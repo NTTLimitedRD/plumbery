@@ -1,0 +1,116 @@
+---
+# fittings to be deployed, managed, and destroyed in the cloud infrastructure of Dimension Data
+
+# world is split in several federated regions: dd-au, dd-eu, dd-na, ...
+regionId: dd-eu
+
+# each location in a region (multi-tenant or on-premise) has a different nick name, e.g., AU1, EU6, NA1, ...
+locationId: EU6
+
+# in safe mode no change is actually made on the infrastructure
+safeMode: False
+
+# fittings consist of multiple blueprints
+blueprints:
+
+  # workloads involved into management, administration, and monitoring
+  - control:
+      domain: my fittings
+      ethernet: control
+      subnet: 10.0.10.0
+      nodes:
+        - stackstorm:
+            description: 'StackStorm engine #vdc1 #ops'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+        - zabbix:
+            description: 'Zabbix dashboard #vdc1 #ops'
+            appliance: 'RedHat 6 64-bit 2 CPU'
+        - scom:
+            appliance: 'Win2012 R2 Std 4 CPU'
+            description: 'Microsoft System Center Operation Manager #vdc1 #ops'
+
+  # workloads dealing directly with end-user devices
+  - web:
+      domain: my fittings
+      ethernet: production
+      subnet: 10.0.2.0
+      nodes:
+        - web1:
+            description: 'Stateless web #vdc1 #primary'
+        - web2:
+            description: 'Stateless web #vdc1 #primary'
+        - web3:
+            description: 'Stateless web #vdc1 #primary'
+
+  # workloads dealing with short-term memory
+  - memcache:
+      domain: my fittings
+      ethernet: production
+      subnet: 10.0.2.0
+      nodes:
+        - redis1:
+            description: 'Redis #vdc1 #primary'
+        - redis2:
+            description: 'Redis #vdc1 #primary'
+
+  # workloads dedicated to data records
+  - sql:
+      domain: my fittings
+      ethernet: data
+      subnet: 10.0.3.0
+      nodes:
+        - masterSQL:
+            appliance: 'RedHat 6 64-bit 4 CPU'
+            description: 'SQL #vdc1 #primary'
+        - slaveSQL:
+            appliance: 'RedHat 6 64-bit 4 CPU'
+            description: 'SQL #vdc1 #secondary'
+
+  # workloads dedicated to BLOBs
+  - nosql:
+      domain: my fittings
+      ethernet: data
+      subnet: 10.0.3.0
+      nodes:
+        - mongo1:
+            description: 'MongoDB #vdc1 #primary'
+        - mongo2:
+            description: 'MongoDB #vdc1 #primary'
+        - mongo3:
+            description: 'MongoDB #vdc1 #primary'
+
+  # workloads devoted to object-based storage
+  - s3:
+      domain: my fittings
+      ethernet: data
+      subnet: 10.0.3.0
+      nodes:
+        - ceph1:
+            description: 'Ceph #vdc1 #primary'
+        - ceph2:
+            description: 'Ceph #vdc1 #primary'
+        - ceph3:
+            description: 'Ceph #vdc1 #primary'
+
+  # workloads dedicated to source code and related
+  - source:
+      domain: my fittings
+      ethernet: source
+      subnet: 10.0.4.0
+      nodes:
+        - git:
+            description: 'GitLab #vdc1 #dev'
+
+# some network domains may have been created manually - they are considered part of these fittings
+domains:
+  - JohannesBrunner_PoC
+  - FR_DoubleTake_PoC
+
+# some nodes may have been created manually - they are considered part of these fittings
+nodes:
+  - test
+  - SCOM1
+
+
+
+
