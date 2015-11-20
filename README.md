@@ -21,12 +21,12 @@ This will load the YAML file, parse it, and call the cloud API to make it happen
 
 Then you can start all nodes with a single statement as well:
 
-```plumbery.start_all_nodes()
-```
+```plumbery.start_all_nodes()```
 
 Now you can concentrate on important things, connect remotely to the nodes, play with them, run different tests, etc. At the end of the game, you would just have to stop all servers and destroy them as per following statements:
 
-```plumbery.stop_all_nodes()
+```
+plumbery.stop_all_nodes()
 plumbery.destroy_all_nodes()
 ```
 
@@ -42,7 +42,8 @@ In plumbery the full fittings is split in multiple blueprints. The most natural 
 
 Then you can handle a single blueprint independently from the others:
 
-```plumbery.build_blueprint('sql')
+```
+plumbery.build_blueprint('sql')
 plumbery.start_nodes('sql')
 plumbery.stop_nodes('sql')
 plumbery.destroy_nodes('sql')
