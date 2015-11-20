@@ -10,7 +10,7 @@ The simple toolbox here is based on a central description of servers, documented
 
 Then very simple Python code is used to act on the infrastructure. For example you can build the entire set of resources described in YAML interactively, in the Python interpreter:
 
-```bash
+```python
 from plumbery import Plumbery
 
 plumbery = Plumbery()
@@ -21,18 +21,20 @@ This will load the YAML file, parse it, and call the cloud API to make it happen
 
 Then you can start all nodes with a single statement as well:
 
-```plumbery.start_all_nodes()```
+```python
+plumbery.start_all_nodes()
+```
 
 Now you can concentrate on important things, connect remotely to the nodes, play with them, run different tests, etc. At the end of the game, you would just have to stop all servers and destroy them as per following statements:
 
-```
+```python
 plumbery.stop_all_nodes()
 plumbery.destroy_all_nodes()
 ```
 
 If you are reluctant to use the Python interpreter, you may prefer to use the ready-to-use scripts provided with plumbery. For example, in a shell box, type the following command to build all resources:
 
-```$ python build_all_blueprints.py```
+    $ python build_all_blueprints.py
 
 Look at the content of the directory to find other similar examples that you may find useful.
 
