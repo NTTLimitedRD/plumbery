@@ -46,26 +46,34 @@ class SpitPolisher(PlumberyPolisher):
         rubs = []
 
         # path to the public key that has to be pushed to new node
-        publicKeyPath = os.path.expanduser('~/.ssh/id_rsa.pub')
+        try:
+            publicKeyPath = os.path.expanduser('~/.ssh/id_rsa.pub')
 
-        # read text of the public key
-        publicKeyText = None
-        with open(publicKeyPath) as stream:
-            publicKeyText = stream.read()
+            # read text of the public key
+            publicKeyText = None
+            with open(publicKeyPath) as stream:
+                publicKeyText = stream.read()
 
-        # will be added to the keys for root user on remote node
-        if publicKeyText:
-            rubs.append(SSHKeyDeployment(publicKeyText))
+            # will be added to the keys for root user on remote node
+            if publicKeyText:
+                rubs.append(SSHKeyDeployment(publicKeyText))
+
+        finally:
+            pass
 
         # shell script to run on the remote server
-        scriptText = None
-        with open(os.path.dirname(__file__)+'/spit.sh') as stream:
-            scriptText = stream.read()
+        try:
+            scriptText = None
+            with open(os.path.dirname(__file__)+'/spit.sh') as stream:
+                scriptText = stream.read()
 
-        # this will be communicated to remote node and executed
-        if scriptText:
-            rubs.append(ScriptDeployment(publicKeyText))
+            # this will be communicated to remote node and executed
+            if scriptText:
+                rubs.append(ScriptDeployment(publicKeyText))
+
+        finally:
+            pass
 
         # rub this node
-        if self.rub_node(node=node, rubs=MultiStepDeployment(rubs)):
+        if len(rubs) > 0 and self.rub_node(node=node, rubs=MultiStepDeployment(rubs)):
             print '- done'
