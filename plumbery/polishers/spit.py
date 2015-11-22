@@ -69,7 +69,7 @@ class SpitPolisher(PlumberyPolisher):
 
             # this will be communicated to remote node and executed
             if scriptText:
-                rubs.append(ScriptDeployment(publicKeyText))
+                rubs.append(ScriptDeployment(scriptText))
 
         except IOError:
             pass
