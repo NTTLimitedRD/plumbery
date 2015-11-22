@@ -11,7 +11,7 @@ except ImportError:
     from distutils.core import setup
 
 
-requirements = ['libcloud']
+requirements = ['apache-libcloud']
 
 test_requirements = [
     # TODO: put package test requirements here
