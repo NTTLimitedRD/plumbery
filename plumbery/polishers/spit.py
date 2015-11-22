@@ -58,7 +58,7 @@ class SpitPolisher(PlumberyPolisher):
             if publicKeyText:
                 rubs.append(SSHKeyDeployment(publicKeyText))
 
-        finally:
+        except IOError:
             pass
 
         # shell script to run on the remote server
@@ -71,7 +71,7 @@ class SpitPolisher(PlumberyPolisher):
             if scriptText:
                 rubs.append(ScriptDeployment(publicKeyText))
 
-        finally:
+        except IOError:
             pass
 
         # rub this node
