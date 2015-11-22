@@ -33,7 +33,31 @@ __all__ = ['PlumberyFacility']
 
 
 class PlumberyFacility:
-    """Cloud automation at one facility"""
+    """Plumbing at one facility
+
+    Args:
+
+        plumbery (PlumberyEngine): the automate that is coordinating
+            plumbing activities at multiple facilities
+
+        fittings (PlumberyBlueprints): the plan for the fittings
+
+    Example::
+
+        from plumbery.facility import PlumberyFacility
+        facility = PlumberyFacility(plumbery=plumbery, fittings=fittings)
+        facility.build_all_blueprints()
+
+    In this example a facility is ruled by the given plumber, and the plan
+    of all the fittings is provided as well.
+
+    Attributes:
+
+        plumbery: global parameters and functions
+
+        fittings: the plan is available when needed
+
+    """
 
     # the description of the fittings
     fittings = None
@@ -51,13 +75,7 @@ class PlumberyFacility:
     region = None
 
     def __init__(self, plumbery=None, fittings=None):
-        """Put this facility in context
-
-        Args:
-            plumbery (PlumberyEngine): the automate that is coordinating activities at multiple facilities
-            fittings (PlumberyBlueprints): the description of how fittings should look like
-
-        """
+        """Put this facility in context"""
 
         # handle to global parameters and functions
         self.plumbery = plumbery
@@ -99,9 +117,9 @@ class PlumberyFacility:
         domain.build(blueprint)
 
         # create nodes that do not exist
-        self.build_nodes(blueprint=blueprint, domain=domain)
+        self._build_nodes(blueprint=blueprint, domain=domain)
 
-    def build_nodes(self, blueprint, domain):
+    def _build_nodes(self, blueprint, domain):
         """Create nodes if they do not exist"""
 
         # ensure that we have some nodes described here
@@ -296,12 +314,6 @@ class PlumberyFacility:
         # not found
         return None
 
-    def start_all_nodes(self):
-        """Start all nodes"""
-
-        for blueprint in self.fittings.blueprints:
-            self.start_nodes(blueprint.keys()[0])
-
     def polish_node(self, node, polisher):
         """Wait for a node to be started and polish it"""
 
@@ -319,7 +331,13 @@ class PlumberyFacility:
         if node:
             polisher.shine_node(node)
 
-    def start_node(self, name, attributes=None):
+    def start_all_nodes(self):
+        """Start all nodes"""
+
+        for blueprint in self.fittings.blueprints:
+            self.start_nodes(blueprint.keys()[0])
+
+    def _start_node(self, name, attributes=None):
         """Start a node"""
 
         # get fresh state of the node
@@ -403,7 +421,7 @@ class PlumberyFacility:
                 nodeAttributes = None
 
             # one node at at time
-            self.start_node(nodeName, nodeAttributes)
+            self._start_node(nodeName, nodeAttributes)
 
     def stop_all_nodes(self):
         """Stop all nodes"""
@@ -479,19 +497,19 @@ class PlumberyFacility:
                         break
 
     @staticmethod
-    def wait_and_tick():
+    def wait_and_tick(tick=3):
         """Animate the screen while delaying next call to the API"""
 
         sys.stdout.write('-\r')
         sys.stdout.flush()
-        time.sleep(3)
+        time.sleep(tick)
         sys.stdout.write('\\\r')
         sys.stdout.flush()
-        time.sleep(3)
+        time.sleep(tick)
         sys.stdout.write('|\r')
         sys.stdout.flush()
-        time.sleep(3)
+        time.sleep(tick)
         sys.stdout.write('/\r')
         sys.stdout.flush()
-        time.sleep(3)
+        time.sleep(tick)
         sys.stdout.write(' \r')

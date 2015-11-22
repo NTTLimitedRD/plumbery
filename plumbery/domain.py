@@ -12,9 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Handle fittings for a network domain
-"""
 
 
 __all_ = ['PlumberyDomain']
@@ -25,18 +22,32 @@ class PlumberyDomain:
 
     A network domain is similar to a virtual data center. It is a secured
     container for multiple nodes.
+
+    Args:
+        facility (PlumberyFacility): the underlying physical facility
+
+    Example::
+
+        from plumbery.domain import PlumberyDomain
+        domain = PlumberyDomain(facility=facility)
+        domain.build_blueprint(blueprint=blueprint)
+
+    In this example a domain is initialised at the given facility, and then
+    it is asked to create the pipes and the plumbery mentioned in the
+    provided blueprint. This is covering solely the network and the security,
+    not the nodes themselves.
+
+    Attributes:
+        facility (PlumberyFacility): a handle to the physical facility where
+            network domains are implemented
+
     """
 
     # the physical data center
     facility = None
 
     def __init__(self, facility=None):
-        """Put network domains in context
-
-        Args:
-            facility (PlumberyFacility): the physical facility that is used
-
-        """
+        """Put network domains in context"""
 
         # handle to parent parameters and functions
         self.facility = facility

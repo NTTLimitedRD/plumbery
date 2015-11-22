@@ -11,6 +11,7 @@ coverage_html_report/
 dist/*plumbery*
 docs/apidocs/*
 _build/
+htmlcov/
 plumbery.egg-info/
 .project
 .pydevproject

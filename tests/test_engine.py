@@ -19,7 +19,7 @@ class TestPlumberyEngine(unittest.TestCase):
     def tearDown(self):
         self.engine = None
 
-    def test_000_something(self):
+    def test_000(self):
         pass
 
 
