@@ -4,6 +4,7 @@
 Tests for `polisher` module.
 """
 
+import os
 import unittest
 
 from libcloud.compute.types import NodeState
@@ -25,6 +26,8 @@ class TestPlumberyPolisher(unittest.TestCase):
             name = 'fake'
             state = NodeState.RUNNING
             private_ips = ['10.100.100.100']
+
+        os.environ["SHARED_SECRET"] = "WhatsUpDoc"
 
         self.polisher.shine_node(FakeNode())
 
