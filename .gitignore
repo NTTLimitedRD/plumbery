@@ -1,2 +1,19 @@
+*.py[co]
+*.sw[po]
+*~
+.tox
+build
+MANIFEST
+/.ropeproject/config.py
+/.coverage
+coverage_html_report/
+.idea
+dist/*plumbery*
+docs/apidocs/*
+_build/
+plumbery.egg-info/
+.project
+.pydevproject
+.settings
 .DS_Store
 

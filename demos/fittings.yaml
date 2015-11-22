@@ -1,0 +1,173 @@
+---
+# fittings to be deployed, managed, and destroyed in the cloud infrastructure of Dimension Data
+
+# in safe mode no change is actually made on the infrastructure
+safeMode: False
+
+# each facility is described separately
+---
+# Frankfurt in Europe
+locationId: EU6
+regionId: dd-eu
+
+# fittings consist of multiple blueprints
+blueprints:
+
+  # workloads involved into management, administration, and monitoring
+  - control:
+      domain: &vdc1
+        name: VDC1
+        service: ADVANCED
+        description: '#vdc1'
+      ethernet:
+        name: control
+        subnet: 10.0.10.0
+        description: '#vdc1'
+      nodes:
+        - stackstorm:
+            description: 'StackStorm engine #vdc1 #ops'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+        - zabbix:
+            description: 'Zabbix dashboard #vdc1 #ops'
+            appliance: 'RedHat 6 64-bit 2 CPU'
+        - scom:
+            description: 'Microsoft System Center Operation Manager #vdc1 #ops'
+            appliance: 'Win2012 R2 Std 4 CPU'
+
+  # secondary sql servers
+  - sql:
+      domain: *vdc1
+      ethernet: &data
+        name: data
+        subnet: 10.0.3.0
+        description: '#vdc1'
+      nodes:
+        - slaveSQL:
+            description: 'SQL #vdc1 #secondary'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+
+---
+# Amsterdam in Europe
+locationId: EU7
+regionId: dd-eu
+
+# fittings consist of multiple blueprints
+blueprints:
+
+  # workloads involved into management, administration, and monitoring
+  - control:
+      domain: &vdc2
+        name: VDC2
+        description: '#vdc2'
+      ethernet:
+        name: control
+        subnet: 10.0.10.0
+        description: '#vdc2'
+      nodes:
+        - stackstorm:
+            description: 'StackStorm engine #vdc2 #ops'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+        - zabbix:
+            description: 'Zabbix dashboard #vdc2 #ops'
+            appliance: 'RedHat 6 64-bit 2 CPU'
+        - scom:
+            appliance: 'Win2012 R2 Std 4 CPU'
+            description: 'Microsoft System Center Operation Manager #vdc2 #ops'
+
+  # workloads dealing directly with end-user devices
+  - web:
+      domain: *vdc2
+      ethernet: &prod
+        name: production
+        subnet: 10.0.2.0
+        description: '#vdc2'
+      nodes:
+        - web1:
+            description: 'Stateless web #vdc2 #primary'
+        - web2:
+            description: 'Stateless web #vdc2 #primary'
+        - web3:
+            description: 'Stateless web #vdc2 #primary'
+
+  # workloads dealing with short-term memory
+  - memcache:
+      domain: *vdc2
+      ethernet: *prod
+      nodes:
+        - redis1:
+            description: 'Redis #vdc2 #primary'
+        - redis2:
+            description: 'Redis #vdc2 #primary'
+
+  # workloads dedicated to data records
+  - sql:
+      domain: *vdc2
+      ethernet: &data
+        name: data
+        subnet: 10.0.3.0
+        description: '#vdc2'
+      nodes:
+        - masterSQL:
+            description: 'SQL #vdc2 #primary'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+
+  # workloads dedicated to big data
+  - cassandra:
+      domain: *vdc2
+      ethernet: *data
+      nodes:
+        - cassandra1:
+            description: 'Cassandra #vdc2 #primary'
+        - cassandra2:
+            description: 'Cassandra #vdc2 #primary'
+        - cassandra3:
+            description: 'Cassandra #vdc2 #primary'
+
+  # workloads dedicated to BLOBs
+  - mongodb:
+      domain: *vdc2
+      ethernet: *data
+      nodes:
+        - mongo1:
+            description: 'MongoDB #vdc2 #primary'
+        - mongo2:
+            description: 'MongoDB #vdc2 #primary'
+        - mongo3:
+            description: 'MongoDB #vdc2 #primary'
+
+  # workloads devoted to object-based storage
+  - s3:
+      domain: *vdc2
+      ethernet: *data
+      nodes:
+        - ceph1:
+            description: 'Ceph #vdc2 #primary'
+        - ceph2:
+            description: 'Ceph #vdc2 #primary'
+        - ceph3:
+            description: 'Ceph #vdc2 #primary'
+
+  # workloads dedicated to source code and related
+  - source:
+      domain: *vdc2
+      ethernet:
+        name: source
+        subnet: 10.0.4.0
+        description: '#vdc2'
+      nodes:
+        - gitlab:
+            description: 'GitLab #vdc2 #dev'
+
+# some network domains may have been created manually - they are considered part of these fittings
+domains:
+  - JohannesBrunner_PoC
+  - FR_DoubleTake_PoC
+
+# some nodes may have been created manually - they are considered part of these fittings
+nodes:
+  - test
+  - SCOM1
+
+
+
+
