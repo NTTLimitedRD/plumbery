@@ -88,13 +88,18 @@ class PlumberyPolisher:
             node = rubs.run(node, session)
 
         except Exception as feedback:
-            session.close()
-
             print "Error: unable to rub '{}' at '{}'!".format(node.name,
                                                              node.private_ips[0])
             print feedback
-            return False
+            result = False
 
         else:
+            result = True
+
+        # closing could kill everything as well
+        try:
             session.close()
-            return True
+        except:
+            pass
+
+        return result
