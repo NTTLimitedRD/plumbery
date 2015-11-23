@@ -1,3 +1,5 @@
+"""Are you looking for a cloud plumber? We hope this one will be useful to you
+"""
 
 __all__ = ['__version__']
 

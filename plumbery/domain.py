@@ -14,7 +14,7 @@
 # limitations under the License.
 
 
-__all_ = ['PlumberyDomain']
+__all__ = ['PlumberyDomain']
 
 
 class PlumberyDomain:
