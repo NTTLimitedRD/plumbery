@@ -164,7 +164,7 @@ class PlumberyDomain:
                             name=networkName,
                             private_ipv4_base_address=blueprint['ethernet']['subnet'],
                             description=description)
-                        print "- in progress"
+                        print("- in progress")
 
                     except Exception as feedback:
 
