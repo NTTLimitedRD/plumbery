@@ -64,7 +64,7 @@ class PlumberyDomain:
 
         # check the target network domain
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
-            print "Error: no network domain has been defined for the blueprint '{}'!".format(blueprint['target'])
+            print("Error: no network domain has been defined for the blueprint '{}'!".format(blueprint['target']))
             exit(-1)
 
         # seek for an existing network domain with this name
@@ -72,18 +72,18 @@ class PlumberyDomain:
         self.domain = None
         for self.domain in self.region.ex_list_network_domains(location=self.facility.location):
             if self.domain.name == domainName:
-                print "Network domain '{}' already exists".format(domainName)
+                print("Network domain '{}' already exists".format(domainName))
                 break
 
         # create a network domain if needed
         if self.domain is None or self.domain.name != domainName:
 
             if self.plumbery.safeMode:
-                print "Would have created network domain '{}' if not in safe mode".format(domainName)
+                print("Would have created network domain '{}' if not in safe mode".format(domainName))
                 exit(0)
 
             else:
-                print "Creating network domain '{}'".format(domainName)
+                print("Creating network domain '{}'".format(domainName))
 
                 # the description attribute is a smart way to tag resources
                 description = '#plumbery'
@@ -104,7 +104,7 @@ class PlumberyDomain:
                             name=domainName,
                             service_plan=service,
                             description=description)
-                        print "- in progress"
+                        print("- in progress")
 
                     except Exception as feedback:
 
@@ -115,8 +115,8 @@ class PlumberyDomain:
 
                         # fatal error
                         else:
-                            print "Error: unable to create network domain '{}'!".format(domainName)
-                            print feedback
+                            print("Error: unable to create network domain '{}'!".format(domainName))
+                            print(str(feedback))
                             exit(-1)
 
                     # quit the loop
@@ -124,12 +124,12 @@ class PlumberyDomain:
 
         # check name of the target network
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
-            print "Error: no ethernet network has been defined for the blueprint '{}'!".format(blueprint['target'])
+            print("Error: no ethernet network has been defined for the blueprint '{}'!".format(blueprint['target']))
             exit(-1)
 
         # check addresses to use for the target network
         if 'subnet' not in blueprint['ethernet']:
-            print "Error: no IPv4 subnet (e.g., '10.0.34.0') as been defined for the blueprint '{}'!".format(blueprint['target'])
+            print("Error: no IPv4 subnet (e.g., '10.0.34.0') as been defined for the blueprint '{}'!".format(blueprint['target']))
             exit(-1)
 
         # seek for an existing network with this name
@@ -137,18 +137,18 @@ class PlumberyDomain:
         self.network = None
         for self.network in self.region.ex_list_vlans(location=self.facility.location, network_domain=self.domain):
             if self.network.name == networkName:
-                print "Ethernet network '{}' already exists".format(networkName)
+                print("Ethernet network '{}' already exists".format(networkName))
                 break
 
         # create a network if needed
         if self.network is None or self.network.name != networkName:
 
             if self.plumbery.safeMode:
-                print "Would have created Ethernet network '{}' if not in safe mode".format(networkName)
+                print("Would have created Ethernet network '{}' if not in safe mode".format(networkName))
                 exit(0)
 
             else:
-                print "Creating Ethernet network '{}'".format(networkName)
+                print("Creating Ethernet network '{}'".format(networkName))
 
                 # the description attribute is a smart way to tag resources
                 description = '#plumbery'
@@ -175,8 +175,8 @@ class PlumberyDomain:
 
                         # fatal error
                         else:
-                            print "Error: unable to create Ethernet network '{}'!".format(networkName)
-                            print feedback
+                            print("Error: unable to create Ethernet network '{}'!".format(networkName))
+                            print(str(feedback))
                             exit(-1)
 
                     # quit the loop

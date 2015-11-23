@@ -12,9 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-The minimum action before rubbing an appliance
-"""
 
 import os
 
@@ -40,7 +37,7 @@ class SpitPolisher(PlumberyPolisher):
         :type node: :class:`libcloud.compute.base.Node`
         """
 
-        print "Spitting on node '{}'".format(node.name)
+        print("Spitting on node '{}'".format(node.name))
 
         # actions to be performed
         rubs = []
@@ -76,4 +73,4 @@ class SpitPolisher(PlumberyPolisher):
 
         # rub this node
         if len(rubs) > 0 and self.rub_node(node=node, rubs=MultiStepDeployment(rubs)):
-            print '- done'
+            print('- done')

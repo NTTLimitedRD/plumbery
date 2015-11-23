@@ -55,17 +55,17 @@ for facility in plumbery.facilities:
 
 		# offer to shutdown running alien nodes
 		if node.state is NodeState.RUNNING:
-			print "'{}' has been deployed is not part of our fittings".format(node.name)
+			print("'{}' has been deployed is not part of our fittings".format(node.name))
 			feedback = raw_input('Should this node been stopped? [y/N/q] ').lower()
 
 			# we are asked to shutdown this node
 			if len(feedback) > 0 and feedback[0] == 'y':
 
 				if plumbery.safeMode:
-					print "Would have stopped node '{}' if not in safe mode".format(node.name)
+					print("Would have stopped node '{}' if not in safe mode".format(node.name))
 
 				else:
-					print "Stopping node '{}'".format(node.name)
+					print("Stopping node '{}'".format(node.name))
 
 					# we may have to wait for busy resources
 					while True:
@@ -83,7 +83,7 @@ for facility in plumbery.facilities:
 
 							# other exception
 							else:
-								print "Error: unable to stop node '{}'!".format(node.name)
+								print("Error: unable to stop node '{}'!".format(node.name))
 								print feedback
 
 						# quit the loop
@@ -95,7 +95,7 @@ for facility in plumbery.facilities:
 				break
 
 # report on the hard work
-print "{} nodes have been processed in total, including {} alien nodes".format(nodesCount, aliensCount)
+print("{} nodes have been processed in total, including {} alien nodes".format(nodesCount, aliensCount))
 
 
 

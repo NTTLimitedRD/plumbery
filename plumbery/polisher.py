@@ -12,9 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Make new appliances shine
-"""
 
 # standard libraries
 import os
@@ -50,8 +47,8 @@ class PlumberyPolisher:
             return polisherClass()
 
         except Exception as feedback:
-            print "Error: unable to load polisher '{}'!".format(polishId)
-            print feedback
+            print("Error: unable to load polisher '{}'!".format(polishId))
+            print(str(feedback))
             return None
 
     def shine_node(self, node):
@@ -88,9 +85,9 @@ class PlumberyPolisher:
             node = rubs.run(node, session)
 
         except Exception as feedback:
-            print "Error: unable to rub '{}' at '{}'!".format(node.name,
-                                                             node.private_ips[0])
-            print feedback
+            print("Error: unable to rub '{}' at '{}'!".format(node.name,
+                                                             node.private_ips[0]))
+            print(str(feedback))
             result = False
 
         else:

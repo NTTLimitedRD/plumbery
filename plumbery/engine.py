@@ -131,7 +131,7 @@ class PlumberyEngine:
         # get root password from environment - with bash, edit ~/.bash_profile to export SHARED_SECRET in local environment
         self.sharedSecret = os.getenv('SHARED_SECRET')
         if self.sharedSecret is None or len(self.sharedSecret) < 3:
-            print "Error: set environment variable SHARED_SECRET with the password to access nodes remotely!"
+            print("Error: set environment variable SHARED_SECRET with the password to access nodes remotely!")
             exit(-1)
 
         # load the plan
@@ -276,13 +276,13 @@ class PlumberyEngine:
                     self.facilities.append(facility)
 
         except Exception as feedback:
-            print "Error: unable to load file '{}'!".format(fileName)
-            print feedback
+            print("Error: unable to load file '{}'!".format(fileName))
+            print(str(feedback))
             exit(-1)
 
         # are we in safe mode?
         if self.safeMode:
-            print "Running in safe mode - no actual change will be made to the fittings"
+            print("Running in safe mode - no actual change will be made to the fittings")
 
     def start_all_nodes(self):
         """Start all nodes
@@ -294,7 +294,7 @@ class PlumberyEngine:
 
         """
 
-        print "Starting nodes from all blueprints"
+        print("Starting nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -313,7 +313,7 @@ class PlumberyEngine:
 
         """
 
-        print "Starting nodes from blueprint '{}'".format(name)
+        print("Starting nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
@@ -329,7 +329,7 @@ class PlumberyEngine:
 
         """
 
-        print "Stopping nodes from all blueprints"
+        print("Stopping nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -348,7 +348,7 @@ class PlumberyEngine:
 
         """
 
-        print "Stopping nodes from blueprint '{}'".format(name)
+        print("Stopping nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
