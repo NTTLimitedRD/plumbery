@@ -186,7 +186,7 @@ class PlumberyFacility:
                                 ex_vlan=domain.network,
                                 ex_is_started=False,
                                 ex_description=description)
-                            print "- in progress"
+                            print("- in progress")
 
                         except Exception as feedback:
 

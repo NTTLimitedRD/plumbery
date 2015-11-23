@@ -151,7 +151,7 @@ class PlumberyEngine:
 
         """
 
-        print "Building all blueprints"
+        print("Building all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -173,7 +173,7 @@ class PlumberyEngine:
 
         """
 
-        print "Building blueprint '{}'".format(name)
+        print("Building blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
@@ -192,7 +192,7 @@ class PlumberyEngine:
 
         """
 
-        print "Destroying nodes from all blueprints"
+        print("Destroying nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -214,7 +214,7 @@ class PlumberyEngine:
 
         """
 
-        print "Destroying nodes from blueprint '{}'".format(name)
+        print("Destroying nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
