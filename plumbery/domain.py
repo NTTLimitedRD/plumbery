@@ -53,7 +53,7 @@ class PlumberyDomain:
         self.facility = facility
         self.region = facility.region
         self.plumbery = facility.plumbery
-        self.logger = logger if logger is not None else print
+        self.logger = logger if logger is not None else sys.stdout.write
         self.network = None
         self.domain = None
 
