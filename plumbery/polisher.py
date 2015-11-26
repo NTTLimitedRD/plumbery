@@ -47,7 +47,7 @@ class PlumberyPolisher:
             return polisherClass()
 
         except Exception as feedback:
-            raise PlumberyException("Error: unable to load polisher '{1}' {2}!".format(polishId, feedback))
+            raise PlumberyException("Error: unable to load polisher '{0}' {1}!".format(polishId, feedback))
 
 
     def shine_node(self, node):
