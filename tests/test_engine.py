@@ -5,6 +5,7 @@ Tests for `plumbery` module.
 """
 
 import os
+import sys
 import unittest
 
 from plumbery.engine import PlumberyEngine
