@@ -111,7 +111,7 @@ class PlumberyDomain:
 
                 except Exception as feedback:
                     raise PlumberyException(
-                        "Error: unable to create network domain '{1}' {2]!".format(domainName, feedback))
+                        "Error: unable to create network domain '{0}' {1]!".format(domainName, feedback))
 
         # check name of the target network
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
@@ -158,4 +158,4 @@ class PlumberyDomain:
                              vlan_id=self.network.id)
 
                 except Exception as feedback:
-                    raise PlumberyException("Error: unable to create Ethernet network '{1}' {2}!".format(networkName, feedback))
+                    raise PlumberyException("Error: unable to create Ethernet network '{0}' {1}!".format(networkName, feedback))

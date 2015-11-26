@@ -197,7 +197,7 @@ class PlumberyFacility:
                             # fatal error
                             else:
                                 raise PlumberyException(
-                                    "Error: unable to create node '{1}' - {2}!".format(nodeName, feedback))
+                                    "Error: unable to create node '{0}' - {1}!".format(nodeName, feedback))
 
                         # quit the loop
                         break
@@ -264,7 +264,7 @@ class PlumberyFacility:
 
                             # fatal error
                             else:
-                                raise PlumberyException("Error: unable to destroy node '{1}' - {2}!".format(nodeName, feedback))
+                                raise PlumberyException("Error: unable to destroy node '{0}' - {1}!".format(nodeName, feedback))
 
 
                         # quit the loop
@@ -378,7 +378,7 @@ class PlumberyFacility:
 
                     # fatal error
                     else:
-                        raise PlumberyException("Error: unable to start node '{1}' - {2}!".format(name, feedback))
+                        raise PlumberyException("Error: unable to start node '{0}' - {1}!".format(name, feedback))
 
                 # quit the loop
                 break
@@ -480,7 +480,7 @@ class PlumberyFacility:
 
                             # fatal error
                             else:
-                                raise PlumberyException("Error: unable to stop node '{1}' {2}!".format(nodeName, feedback))
+                                raise PlumberyException("Error: unable to stop node '{0}' {1}!".format(nodeName, feedback))
 
                         # quit the loop
                         break
