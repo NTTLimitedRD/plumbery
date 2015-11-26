@@ -86,8 +86,7 @@ class PlumberyPolisher:
         except Exception as feedback:
             raise PlumberyException("Error: unable to rub '{}' at '{}'!".format(node.name,
                                                              node.private_ips[0]))
-            print(str(feedback))
-            result = False
+
 
         else:
             result = True
