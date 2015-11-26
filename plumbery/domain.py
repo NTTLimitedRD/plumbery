@@ -46,14 +46,14 @@ class PlumberyDomain:
     # the physical data center
     facility = None
 
-    def __init__(self, facility=None, logger=print):
+    def __init__(self, facility=None, logger=None):
         """Put network domains in context"""
 
         # handle to parent parameters and functions
         self.facility = facility
         self.region = facility.region
         self.plumbery = facility.plumbery
-        self.logger = logger
+        self.logger = logger if logger is not None else print
         self.network = None
         self.domain = None
 

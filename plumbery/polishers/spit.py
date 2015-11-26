@@ -28,6 +28,8 @@ class SpitPolisher(PlumberyPolisher):
 
 
     """
+    def __init__(self, logger=None):
+        self.logger = logger if logger is not None else print
 
     def shine_node(self, node):
         """
@@ -37,7 +39,7 @@ class SpitPolisher(PlumberyPolisher):
         :type node: :class:`libcloud.compute.base.Node`
         """
 
-        print("Spitting on node '{}'".format(node.name))
+        self.logger("Spitting on node '{}'".format(node.name))
 
         # actions to be performed
         rubs = []
@@ -73,4 +75,4 @@ class SpitPolisher(PlumberyPolisher):
 
         # rub this node
         if len(rubs) > 0 and self.rub_node(node=node, rubs=MultiStepDeployment(rubs)):
-            print('- done')
+            self.logger('- done')

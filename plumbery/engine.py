@@ -25,7 +25,7 @@ from libcloud.compute.types import Provider
 
 # other code related to plumbery
 from facility import PlumberyFacility
-
+from exceptions import PlumberyException
 
 __all__ = ['PlumberyEngine', 'PlumberyBlueprints']
 
@@ -118,7 +118,7 @@ class PlumberyEngine:
     # the password to access remote servers
     sharedSecret = None
 
-    def __init__(self, fileName=None, userName=None, password=None, debug=True):
+    def __init__(self, fileName=None, userName=None, password=None, logger=None):
         """
         Ignite the plumbering engine
 
@@ -130,7 +130,7 @@ class PlumberyEngine:
         """
         # get libcloud driver for Managed Cloud Platform (MCP) of Dimension Data
         self.driver = get_driver(Provider.DIMENSIONDATA)
-        self.debug = debug
+        self.logger = logger if logger is not None else print
         if userName is None:
             self.userName = os.getenv(
                 'MCP_USERNAME',
@@ -166,8 +166,7 @@ class PlumberyEngine:
             PlumberyEngine('fittings.yaml').build_all_blueprints()
 
         """
-        if self.debug:
-            print("Building all blueprints")
+        self.logger("Building all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -188,8 +187,7 @@ class PlumberyEngine:
             PlumberyEngine('fittings.yaml').build_blueprints('sql')
 
         """
-        if self.debug:
-            print("Building blueprint '{}'".format(name))
+        self.logger("Building blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
@@ -207,8 +205,7 @@ class PlumberyEngine:
             they can be actually destroyed.
 
         """
-        if self.debug:
-            print("Destroying nodes from all blueprints")
+        self.logger("Destroying nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -229,8 +226,7 @@ class PlumberyEngine:
             they can be actually destroyed.
 
         """
-        if self.debug:
-            print("Destroying nodes from blueprint '{}'".format(name))
+        self.logger("Destroying nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
@@ -295,7 +291,7 @@ class PlumberyEngine:
 
         # are we in safe mode?
         if self.safeMode:
-            print("Running in safe mode - no actual change will be made to the fittings")
+            self.logger("Running in safe mode - no actual change will be made to the fittings")
 
     def add_document(self, document):
         facility = PlumberyFacility(self, PlumberyBlueprints(**document))
@@ -314,7 +310,7 @@ class PlumberyEngine:
 
         """
 
-        print("Starting nodes from all blueprints")
+        self.logger("Starting nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -333,7 +329,7 @@ class PlumberyEngine:
 
         """
 
-        print("Starting nodes from blueprint '{}'".format(name))
+        self.logger("Starting nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
@@ -349,7 +345,7 @@ class PlumberyEngine:
 
         """
 
-        print("Stopping nodes from all blueprints")
+        self.logger("Stopping nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -368,7 +364,7 @@ class PlumberyEngine:
 
         """
 
-        print("Stopping nodes from blueprint '{}'".format(name))
+        self.logger("Stopping nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()

@@ -71,14 +71,14 @@ class PlumberyFacility:
     # the handle to the Apache Libcloud driver
     region = None
 
-    def __init__(self, plumbery=None, fittings=None, logger=print):
+    def __init__(self, plumbery=None, fittings=None, logger=None):
         """Put this facility in context"""
 
         # handle to global parameters and functions
         self.plumbery = plumbery
 
         # consumer can pass callable logger where all messages will be sent.
-        self.logger = logger
+        self.logger = logger if logger is not None else print
 
         # parameters for this location
         self.fittings = fittings
