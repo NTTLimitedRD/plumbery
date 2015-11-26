@@ -27,13 +27,7 @@ from libcloud.compute.types import Provider
 from facility import PlumberyFacility
 
 
-__all__ = ['PlumberyException', 'PlumberyEngine', 'PlumberyBlueprints']
-
-
-class PlumberyException(Exception):
-    def __init__(self, message):
-        self.message = message
-        super(PlumberyException, message).__init__(message)
+__all__ = ['PlumberyEngine', 'PlumberyBlueprints']
 
 
 class PlumberyEngine:

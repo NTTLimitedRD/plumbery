@@ -24,7 +24,7 @@ from libcloud.compute.types import NodeState
 # other code related to plumbery
 from domain import PlumberyDomain
 from polisher import PlumberyPolisher
-
+from exceptions import PlumberyException
 
 __all__ = ['PlumberyFacility']
 
@@ -71,11 +71,14 @@ class PlumberyFacility:
     # the handle to the Apache Libcloud driver
     region = None
 
-    def __init__(self, plumbery=None, fittings=None):
+    def __init__(self, plumbery=None, fittings=None, logger=print):
         """Put this facility in context"""
 
         # handle to global parameters and functions
         self.plumbery = plumbery
+
+        # consumer can pass callable logger where all messages will be sent.
+        self.logger = logger
 
         # parameters for this location
         self.fittings = fittings
@@ -87,9 +90,7 @@ class PlumberyFacility:
         try:
             self.location = self.region.ex_get_location_by_id(fittings.locationId)
         except Exception as feedback:
-            print("Error: unable to communicate with API endpoint - have you checked http_proxy environment variable?")
-            print(str(feedback))
-            exit(-1)
+            raise PlumberyException("Error: unable to communicate with API endpoint - have you checked http_proxy environment variable? - %s" % feedback)
 
         # fetch the list of available images only once from the API
         self.images = self.region.list_images(location=self.location)
@@ -98,7 +99,7 @@ class PlumberyFacility:
         """Build all blueprints"""
 
         for blueprint in self.fittings.blueprints:
-            print("Building blueprint '{}'".format(blueprint.keys()[0]))
+            self.logger("Building blueprint '{}'".format(blueprint.keys()[0]))
             self.build_blueprint(blueprint.keys()[0])
 
     def build_blueprint(self, name):
@@ -121,8 +122,7 @@ class PlumberyFacility:
 
         # ensure that we have some nodes described here
         if 'nodes' not in blueprint:
-            print("Error: no nodes have been defined for the blueprint '{}'!".format(blueprint['target']))
-            exit(-1)
+            raise PlumberyException("Error: no nodes have been defined for the blueprint '{}'!".format(blueprint['target']))
 
         # respect the order of nodes defined in the fittings description
         for item in blueprint['nodes']:
@@ -139,7 +139,7 @@ class PlumberyFacility:
 
             # node may already exist
             if self.get_node(nodeName):
-                print("Node '{}' already exists".format(nodeName))
+                self.logger("Node '{}' already exists".format(nodeName))
 
             # create a new node
             else:
@@ -163,16 +163,15 @@ class PlumberyFacility:
 
                 # Houston, we've got a problem
                 if image is None or imageName not in image.name:
-                    print("Error: unable to find image for '{}'!".format(imageName))
-                    exit(-1)
+                    raise PlumberyException("Error: unable to find image for '{}'!".format(imageName))
 
                 # safe mode
                 if self.plumbery.safeMode:
-                    print("Would have created node '{}' if not in safe mode".format(nodeName))
+                    self.logger("Would have created node '{}' if not in safe mode".format(nodeName))
 
                 # actual node creation
                 else:
-                    print("Creating node '{}'".format(nodeName))
+                    self.logger("Creating node '{}'".format(nodeName))
 
                     # we may have to wait for busy resources
                     while True:
@@ -186,7 +185,7 @@ class PlumberyFacility:
                                 ex_vlan=domain.network,
                                 ex_is_started=False,
                                 ex_description=description)
-                            print("- in progress")
+                            self.logger("- in progress")
 
                         except Exception as feedback:
 
@@ -197,9 +196,8 @@ class PlumberyFacility:
 
                             # fatal error
                             else:
-                                print("Error: unable to create node '{}'!".format(nodeName))
-                                print(str(feedback))
-                                exit(-1)
+                                raise PlumberyException(
+                                    "Error: unable to create node '{1}' - {2}!".format(nodeName, feedback))
 
                         # quit the loop
                         break
@@ -240,18 +238,18 @@ class PlumberyFacility:
 
                 # safe mode
                 if self.plumbery.safeMode:
-                    print("Would have destroyed node '{}' if not in safe mode".format(nodeName))
+                    self.logger("Would have destroyed node '{}' if not in safe mode".format(nodeName))
 
                 # actual node destruction
                 else:
-                    print("Destroying node '{}'".format(nodeName))
+                    self.logger("Destroying node '{}'".format(nodeName))
 
                     # we may have to wait for busy resources
                     while True:
 
                         try:
                             self.region.destroy_node(node)
-                            print("- in progress")
+                            self.logger("- in progress")
 
                         except Exception as feedback:
 
@@ -262,21 +260,19 @@ class PlumberyFacility:
 
                             # node is up and running, would have to stop it first
                             elif 'SERVER_STARTED' in str(feedback):
-                                print("- skipped - node is up and running")
+                                self.logger("- skipped - node is up and running")
 
                             # fatal error
                             else:
-                                print("Error: unable to destroy node '{}'!".format(nodeName))
-                                print(str(feedback))
-                                exit(-1)
+                                raise PlumberyException("Error: unable to destroy node '{1}' - {2}!".format(nodeName, feedback))
+
 
                         # quit the loop
                         break
 
     def focus(self):
         """Where are we plumbing?"""
-
-        print("Plumbing at '{}' {} ({})".format(self.location.id, self.location.name, self.location.country))
+        self.logger("Plumbing at '{}' {} ({})".format(self.location.id, self.location.name, self.location.country))
 
     def get_blueprint(self, name):
         """Get a blueprint by name"""
@@ -352,18 +348,18 @@ class PlumberyFacility:
 
         # safe mode
         if self.plumbery.safeMode:
-            print("Would have started node '{}' if not in safe mode".format(name))
+            self.logger("Would have started node '{}' if not in safe mode".format(name))
 
         # actual node start
         else:
-            print("Starting node '{}'".format(name))
+            self.logger("Starting node '{}'".format(name))
 
             # we may have to wait for busy resources
             while True:
 
                 try:
                     self.region.ex_start_node(node)
-                    print("- in progress")
+                    self.logger("- in progress")
 
                     # if there is a need to polish the appliance, we may have to wait a bit more
                     if polisher:
@@ -378,13 +374,11 @@ class PlumberyFacility:
 
                     # node is up and running, nothing to do
                     elif 'SERVER_STARTED' in str(feedback):
-                        print("- skipped - node is up and running")
+                        self.logger("- skipped - node is up and running")
 
                     # fatal error
                     else:
-                        print("Error: unable to start node '{}'!".format(name))
-                        print(str(feedback))
-                        exit(-1)
+                        raise PlumberyException("Error: unable to start node '{1}' - {2}!".format(name, feedback))
 
                 # quit the loop
                 break
@@ -455,18 +449,18 @@ class PlumberyFacility:
 
                 # safe mode
                 if self.plumbery.safeMode:
-                    print("Would have stopped node '{}' if not in safe mode".format(nodeName))
+                    self.logger("Would have stopped node '{}' if not in safe mode".format(nodeName))
 
                 # actual node stop
                 else:
-                    print("Stopping node '{}'".format(nodeName))
+                    self.logger("Stopping node '{}'".format(nodeName))
 
                     # we may have to wait for busy resources
                     while True:
 
                         try:
                             self.region.ex_shutdown_graceful(node)
-                            print("- in progress")
+                            self.logger("- in progress")
 
                         except Exception as feedback:
 
@@ -486,9 +480,7 @@ class PlumberyFacility:
 
                             # fatal error
                             else:
-                                print("Error: unable to stop node '{}'!".format(nodeName))
-                                print(str(feedback))
-                                exit(-1)
+                                raise PlumberyException("Error: unable to stop node '{1}' {2}!".format(nodeName, feedback))
 
                         # quit the loop
                         break
