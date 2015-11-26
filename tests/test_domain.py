@@ -5,6 +5,7 @@ Tests for `domain` module.
 """
 
 import os
+import sys
 import unittest
 
 from plumbery.domain import PlumberyDomain

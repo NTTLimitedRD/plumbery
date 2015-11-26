@@ -17,7 +17,7 @@
 import os
 
 from libcloud.compute.ssh import SSHClient
-
+from exceptions import PlumberyException
 
 __all__ = ['PlumberyPolisher']
 
@@ -47,9 +47,8 @@ class PlumberyPolisher:
             return polisherClass()
 
         except Exception as feedback:
-            print("Error: unable to load polisher '{}'!".format(polishId))
-            print(str(feedback))
-            return None
+            raise PlumberyException("Error: unable to load polisher '{0}' {1}!".format(polishId, feedback))
+
 
     def shine_node(self, node):
         """
@@ -85,10 +84,9 @@ class PlumberyPolisher:
             node = rubs.run(node, session)
 
         except Exception as feedback:
-            print("Error: unable to rub '{}' at '{}'!".format(node.name,
+            raise PlumberyException("Error: unable to rub '{}' at '{}'!".format(node.name,
                                                              node.private_ips[0]))
-            print(str(feedback))
-            result = False
+
 
         else:
             result = True

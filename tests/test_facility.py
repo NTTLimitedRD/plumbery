@@ -5,6 +5,7 @@ Tests for `facility` module.
 """
 
 import os
+import sys
 import unittest
 
 from plumbery.engine import PlumberyBlueprints

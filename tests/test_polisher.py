@@ -4,6 +4,7 @@
 Tests for `polisher` module.
 """
 
+import sys
 import unittest
 
 from libcloud.compute.types import NodeState

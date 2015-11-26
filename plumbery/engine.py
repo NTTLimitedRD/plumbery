@@ -15,7 +15,7 @@
 
 # standard libraries
 import os
-
+import sys
 # yaml for descriptions - http://pyyaml.org/wiki/PyYAMLDocumentation
 import yaml
 
@@ -25,7 +25,7 @@ from libcloud.compute.types import Provider
 
 # other code related to plumbery
 from facility import PlumberyFacility
-
+from exceptions import PlumberyException
 
 __all__ = ['PlumberyEngine', 'PlumberyBlueprints']
 
@@ -118,21 +118,37 @@ class PlumberyEngine:
     # the password to access remote servers
     sharedSecret = None
 
-    def __init__(self, fileName=None):
-        """Ignite the plumbering engine"""
+    def __init__(self, fileName=None, userName=None, password=None, logger=None):
+        """
+        Ignite the plumbering engine
 
+        :param   fileName: The file path of the blueprints
+        :type    fileName: `str`
+
+        :param   user_name: The username for the CaaS API
+        :type    user_name: `str`
+        """
         # get libcloud driver for Managed Cloud Platform (MCP) of Dimension Data
         self.driver = get_driver(Provider.DIMENSIONDATA)
+        self.logger = logger if logger is not None else sys.stdout.write
+        if userName is None:
+            self.userName = os.getenv(
+                'MCP_USERNAME',
+                "Set environment variable MCP_USERNAME with credentials given to you")
+        else:
+            self.userName = userName
 
-        # get API credentials from environment - with bash, edit ~/.bash_profile to export your credentials in local environment
-        self.userName = os.getenv('MCP_USERNAME', "Set environment variable MCP_USERNAME with credentials given to you")
-        self.userPassword = os.getenv('MCP_PASSWORD', "Set environment variable MCP_PASSWORD with credentials given to you")
+        if password is None:
+            self.userPassword = os.getenv(
+                'MCP_PASSWORD',
+                "Set environment variable MCP_PASSWORD with credentials given to you")
+        else:
+            self.userPassword = password
 
         # get root password from environment - with bash, edit ~/.bash_profile to export SHARED_SECRET in local environment
         self.sharedSecret = os.getenv('SHARED_SECRET')
         if self.sharedSecret is None or len(self.sharedSecret) < 3:
-            print("Error: set environment variable SHARED_SECRET with the password to access nodes remotely!")
-            exit(-1)
+            raise PlumberyException("Error: set environment variable SHARED_SECRET with the password to access nodes remotely!")
 
         # load the plan
         if fileName:
@@ -150,8 +166,7 @@ class PlumberyEngine:
             PlumberyEngine('fittings.yaml').build_all_blueprints()
 
         """
-
-        print("Building all blueprints")
+        self.logger("Building all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -172,8 +187,7 @@ class PlumberyEngine:
             PlumberyEngine('fittings.yaml').build_blueprints('sql')
 
         """
-
-        print("Building blueprint '{}'".format(name))
+        self.logger("Building blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
@@ -191,8 +205,7 @@ class PlumberyEngine:
             they can be actually destroyed.
 
         """
-
-        print("Destroying nodes from all blueprints")
+        self.logger("Destroying nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -213,8 +226,7 @@ class PlumberyEngine:
             they can be actually destroyed.
 
         """
-
-        print("Destroying nodes from blueprint '{}'".format(name))
+        self.logger("Destroying nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
@@ -272,17 +284,21 @@ class PlumberyEngine:
 
                 # one document per facility
                 for document in documents:
-                    facility = PlumberyFacility(self, PlumberyBlueprints(**document))
-                    self.facilities.append(facility)
+                    self.add_document(document)
 
         except Exception as feedback:
-            print("Error: unable to load file '{}'!".format(fileName))
-            print(str(feedback))
-            exit(-1)
+            raise PlumberyException("Error: unable to load file '{}'!".format(fileName))
 
         # are we in safe mode?
         if self.safeMode:
-            print("Running in safe mode - no actual change will be made to the fittings")
+            self.logger("Running in safe mode - no actual change will be made to the fittings")
+
+    def add_document(self, document):
+        facility = PlumberyFacility(self, PlumberyBlueprints(**document))
+        self.add_facility(facility)
+
+    def add_facility(self, facility):
+        self.facilities.append(facility)
 
     def start_all_nodes(self):
         """Start all nodes
@@ -294,7 +310,7 @@ class PlumberyEngine:
 
         """
 
-        print("Starting nodes from all blueprints")
+        self.logger("Starting nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -313,7 +329,7 @@ class PlumberyEngine:
 
         """
 
-        print("Starting nodes from blueprint '{}'".format(name))
+        self.logger("Starting nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
@@ -329,7 +345,7 @@ class PlumberyEngine:
 
         """
 
-        print("Stopping nodes from all blueprints")
+        self.logger("Stopping nodes from all blueprints")
 
         for facility in self.facilities:
             facility.focus()
@@ -348,7 +364,7 @@ class PlumberyEngine:
 
         """
 
-        print("Stopping nodes from blueprint '{}'".format(name))
+        self.logger("Stopping nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
