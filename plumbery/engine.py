@@ -15,7 +15,7 @@
 
 # standard libraries
 import os
-
+import sys
 # yaml for descriptions - http://pyyaml.org/wiki/PyYAMLDocumentation
 import yaml
 
@@ -130,7 +130,7 @@ class PlumberyEngine:
         """
         # get libcloud driver for Managed Cloud Platform (MCP) of Dimension Data
         self.driver = get_driver(Provider.DIMENSIONDATA)
-        self.logger = logger if logger is not None else print
+        self.logger = logger if logger is not None else sys.stdout.write
         if userName is None:
             self.userName = os.getenv(
                 'MCP_USERNAME',

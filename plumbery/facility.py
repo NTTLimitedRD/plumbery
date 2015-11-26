@@ -78,7 +78,7 @@ class PlumberyFacility:
         self.plumbery = plumbery
 
         # consumer can pass callable logger where all messages will be sent.
-        self.logger = logger if logger is not None else print
+        self.logger = logger if logger is not None else sys.stdout.write
 
         # parameters for this location
         self.fittings = fittings
