@@ -43,8 +43,9 @@ class PlumberyDomain:
     not the nodes themselves.
 
     Attributes:
-        facility (PlumberyFacility): a handle to the physical facility where
-            network domains are implemented
+        facility (PlumberyFacility):
+            a handle to the physical facility where network domains
+            are implemented
 
     """
 

@@ -42,8 +42,8 @@ class PlumberyEngine:
     puppet. At its name implies, plumbery is targeting pipes and fittings, the
     very basic utility stuff that sophisticated tools can leverage.
 
-    Args:
-        fileName (str): the location of the plan for the fittings
+    :param fileName the location of the plan for the fittings
+    :type fileName: ``str``
 
     Example::
 
@@ -124,10 +124,10 @@ class PlumberyEngine:
         Ignite the plumbering engine
 
         :param   fileName: The file path of the blueprints
-        :type    fileName: `str`
+        :type    fileName: ``str``
 
         :param   user_name: The username for the CaaS API
-        :type    user_name: `str`
+        :type    user_name: `str``
         """
         # get libcloud driver for Managed Cloud Platform (MCP) of Dimension Data
         self.driver = get_driver(Provider.DIMENSIONDATA)
@@ -179,8 +179,8 @@ class PlumberyEngine:
         This function will check all facilities, one at a time and in the order
         defined in fittings plan, to build one single blueprint there.
 
-        Args:
-            name (str): the name of the blueprint to deploy
+        :param name: the name of the blueprint to deploy
+        :type name: ``str``
 
         Example::
 
@@ -218,8 +218,8 @@ class PlumberyEngine:
         This function will check all facilities, one at a time and in the order
         defined in fittings plan, to destroy nodes from one single blueprint.
 
-        Args:
-            name (str): the name of the blueprint to destroy
+        :param name: the name of the blueprint to destroy
+        :type name: ``str``
 
         Note:
             Running nodes are always preserved from destruction.
@@ -239,8 +239,8 @@ class PlumberyEngine:
         The fittings plan is expected to follow YAML specifications, and its
         structure has to follow some rules described here.
 
-        Args:
-            fileName (str): the location of the plan for the fittings
+        :param fileName: the location of the plan for the fittings
+        :type fileName: ``str``
 
         An example of a minimum fittings plan::
 
@@ -258,7 +258,7 @@ class PlumberyEngine:
                     name: myVLAN
                     subnet: 10.1.10.0
                   nodes:
-                    - myServer:
+                    - myServer
 
         In this example, the plan is to deploy a single node in the data centre
         at Frankfurt, in Europe. The node `myServer` will be placed in a
@@ -323,8 +323,8 @@ class PlumberyEngine:
         This function will check all facilities, one at a time and in the order
         defined in fittings plan, to start nodes from one single blueprint.
 
-        Args:
-            name (str): the name of the blueprint to start
+        :param name: the name of the blueprint to start
+        :type name: ``str``
 
         This function has no effect on nodes that are already up and running.
 
@@ -358,8 +358,8 @@ class PlumberyEngine:
         This function will check all facilities, one at a time and in the order
         defined in fittings plan, to stop nodes from one single blueprint.
 
-        Args:
-            name (str): the name of the blueprint to stop
+        :param name: the name of the blueprint to stop
+        :type name: ``str``
 
         This function has no effect on nodes that are already stopped.
 

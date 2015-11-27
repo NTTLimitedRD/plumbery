@@ -130,7 +130,7 @@ blueprints:
 
 ```
 
-## Great, how to install plumbery on my machine?
+## Great, how to move forward?
 
 Everything here is based on Python and on open source software, so it should
 not be too difficult to most people with some experience of Linux, unix and
@@ -138,3 +138,7 @@ the like.
 
 The first thing to install is Python itself, then you have to clone Apache
 Libcloud, and then plumbery.
+
+The full project documentation can be found at https://plumbery.readthedocs.org.
+
+

@@ -32,10 +32,9 @@ __all__ = ['PlumberyFacility']
 class PlumberyFacility:
     """Plumbing at one facility
 
-    Args:
-
-        plumbery (PlumberyEngine): the automate that is coordinating
+    :param plumbery: the automate that is coordinating
             plumbing activities at multiple facilities
+    :type plumbery: :class:``PlumberyEngine``
 
         fittings (PlumberyBlueprints): the plan for the fittings
 
@@ -50,9 +49,11 @@ class PlumberyFacility:
 
     Attributes:
 
-        plumbery: global parameters and functions
+        plumbery:
+            global parameters and functions
 
-        fittings: the plan is available when needed
+        fittings:
+            the plan is available when needed
 
     """
 
@@ -103,7 +104,12 @@ class PlumberyFacility:
             self.build_blueprint(blueprint.keys()[0])
 
     def build_blueprint(self, name):
-        """Build a named blueprint"""
+        """Build a named blueprint
+
+        :param name: the name of the blueprint to build
+        :type name: ``str``
+
+        """
 
         # get the blueprint
         blueprint = self.get_blueprint(name)
@@ -118,7 +124,15 @@ class PlumberyFacility:
         self._build_nodes(blueprint=blueprint, domain=domain)
 
     def _build_nodes(self, blueprint, domain):
-        """Create nodes if they do not exist"""
+        """Create nodes if they do not exist
+
+        :param blueprint: the blueprint to build
+        :type blueprint: ``dict``
+
+        :param domain: the domain where nodes will be built
+        :type domain: `PlumberyDomain``
+
+        """
 
         # ensure that we have some nodes described here
         if 'nodes' not in blueprint:
@@ -210,7 +224,12 @@ class PlumberyFacility:
             self.destroy_nodes(blueprint.keys()[0])
 
     def destroy_nodes(self, name):
-        """Destroy nodes"""
+        """Destroy nodes
+
+        :param name: the name of the blueprint to destroy
+        :type name: ``str``
+
+        """
 
         # get the blueprint
         blueprint = self.get_blueprint(name)
@@ -275,7 +294,15 @@ class PlumberyFacility:
         self.logger("Plumbing at '{}' {} ({})".format(self.location.id, self.location.name, self.location.country))
 
     def get_blueprint(self, name):
-        """Get a blueprint by name"""
+        """Get a blueprint by name
+
+        :param name: the name of the target blueprint
+        :type name: ``str``
+
+        :return: the target blueprint, or None
+        :rtype: ``dict``
+
+        """
 
         for blueprint in self.fittings.blueprints:
             if name in blueprint.keys()[0]:
@@ -286,7 +313,15 @@ class PlumberyFacility:
         return None
 
     def get_node(self, name):
-        """Get a node by name"""
+        """Get a node by name
+
+        :param name: the name of the target node
+        :type name: ``str``
+
+        :return: the target node, or None
+        :rtype: :class:``Node``
+
+        """
 
         # enumerate existing nodes
         node = None
@@ -308,7 +343,15 @@ class PlumberyFacility:
         return None
 
     def polish_node(self, node, polisher):
-        """Wait for a node to be started and polish it"""
+        """Wait for a node to be started and polish it
+
+        :param node: the target node
+        :type node: :class:``Node``
+
+        :param polisher: the polisher to apply
+        :type polisher: :class:``PlumberyPolisher``
+
+        """
 
         # we have to wait until node is running
         while node is not None:
@@ -331,7 +374,15 @@ class PlumberyFacility:
             self.start_nodes(blueprint.keys()[0])
 
     def _start_node(self, name, attributes=None):
-        """Start a node"""
+        """Start a node
+
+        :param name: the name of the target node
+        :type name: ``str``
+
+        :param attributes: additional attributes associated with this node
+        :type attributes: ``dict``
+
+        """
 
         # get fresh state of the node
         node = self.get_node(name)
@@ -387,7 +438,12 @@ class PlumberyFacility:
         return node
 
     def start_nodes(self, name):
-        """Start nodes"""
+        """Start nodes
+
+        :param name: the name of the target blueprint
+        :type name: ``str``
+
+        """
 
         # get the blueprint
         blueprint = self.get_blueprint(name)
@@ -421,7 +477,12 @@ class PlumberyFacility:
             self.stop_nodes(blueprint.keys()[0])
 
     def stop_nodes(self, name):
-        """Stop nodes"""
+        """Stop nodes
+
+        :param name: the name of the target blueprint
+        :type name: ``str``
+
+        """
 
         # get the blueprint
         blueprint = self.get_blueprint(name)

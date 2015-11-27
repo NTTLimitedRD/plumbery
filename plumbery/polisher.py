@@ -34,6 +34,7 @@ class PlumberyPolisher:
 
         :return: instance of a polisher ready to use
         :rtype: :class:`PlumberyPolisher`
+
         """
 
         # we may not find a suitable polisher
