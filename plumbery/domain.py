@@ -26,8 +26,10 @@ class PlumberyDomain:
     A network domain is similar to a virtual data center. It is a secured
     container for multiple nodes.
 
-    Args:
-        facility (PlumberyFacility): the underlying physical facility
+    :param facility: the underlying physical facility
+    :type facility: :class:``PlumberFacility``
+
+    :param logger: the logging handle
 
     Example::
 
@@ -63,8 +65,8 @@ class PlumberyDomain:
     def build(self, blueprint):
         """Create network domain if it does not exist
 
-        Args:
-            blueprint (dict): the various attributes of the target fittings
+        :param blueprint: the various attributes of the target fittings
+        :type blueprint: ``dict``
 
         """
 

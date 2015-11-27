@@ -27,6 +27,14 @@ plumbery.engine module
     :undoc-members:
     :show-inheritance:
 
+plumbery.exceptions module
+--------------------------
+
+.. automodule:: plumbery.exceptions
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 plumbery.facility module
 ------------------------
 
