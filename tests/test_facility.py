@@ -12,6 +12,11 @@ from plumbery.engine import PlumberyBlueprints
 from plumbery.facility import PlumberyFacility
 
 
+class FakeDomain:
+
+    id = 123
+
+
 class FakeImage:
 
     name = 'RedHat 6 64-bit 4 CPU'
@@ -21,6 +26,11 @@ class FakeLocation:
     id = 'EU7'
     name = 'data centre in Amsterdam'
     country = 'Netherlands'
+
+
+class FakeNetwork:
+
+    id = 123
 
 
 class FakePlumbery:
@@ -46,16 +56,19 @@ class FakeRegion:
         return True
 
     def ex_create_network_domain(self, location, name, service_plan, description):
-        return True
+        return FakeDomain()
 
     def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
-        return True
-
-    def destroy_node(self, node):
-        return True
+        return FakeNetwork()
 
     def ex_get_location_by_id(self, location):
         return FakeLocation()
+
+    def ex_get_network_domain(self, location, network_domain):
+        return []
+
+    def ex_get_vlan(self, vlan_id):
+        return FakeNetwork()
 
     def ex_list_network_domains(self, location):
         return []
@@ -67,6 +80,12 @@ class FakeRegion:
         return True
 
     def ex_shutdown_graceful(self, node):
+        return True
+
+    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):
+        return []
+
+    def destroy_node(self, node):
         return True
 
     def list_images(self, location):

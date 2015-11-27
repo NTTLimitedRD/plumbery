@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import os
+import sys
 
 from libcloud.compute.deployment import MultiStepDeployment
 from libcloud.compute.deployment import ScriptDeployment
@@ -29,7 +30,7 @@ class SpitPolisher(PlumberyPolisher):
 
     """
     def __init__(self, logger=None):
-        self.logger = logger if logger is not None else print
+        self.logger = logger if logger is not None else sys.stdout.write
 
     def shine_node(self, node):
         """

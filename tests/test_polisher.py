@@ -10,6 +10,7 @@ import unittest
 from libcloud.compute.types import NodeState
 
 from plumbery.polisher import PlumberyPolisher
+from plumbery.exceptions import PlumberyException
 
 
 class TestPlumberyPolisher(unittest.TestCase):
@@ -27,7 +28,10 @@ class TestPlumberyPolisher(unittest.TestCase):
             state = NodeState.RUNNING
             private_ips = ['10.100.100.100']
 
-        self.polisher.shine_node(FakeNode())
+        try:
+            self.polisher.shine_node(FakeNode())
+        except PlumberyException:
+            pass
 
 
 if __name__ == '__main__':

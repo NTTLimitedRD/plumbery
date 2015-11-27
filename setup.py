@@ -49,7 +49,8 @@ setup(
     zip_safe=False,
     keywords='plumbery',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',

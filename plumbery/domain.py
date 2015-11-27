@@ -12,6 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import sys
+
 from exceptions import PlumberyException
 
 __all__ = ['PlumberyDomain']
@@ -111,7 +114,7 @@ class PlumberyDomain:
 
                 except Exception as feedback:
                     raise PlumberyException(
-                        "Error: unable to create network domain '{0}' {1]!".format(domainName, feedback))
+                        "Error: unable to create network domain '{0}' {1}!".format(domainName, feedback))
 
         # check name of the target network
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:

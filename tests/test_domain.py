@@ -11,6 +11,16 @@ import unittest
 from plumbery.domain import PlumberyDomain
 
 
+class FakeDomain:
+
+    id = 123
+
+
+class FakeNetwork:
+
+    id = 123
+
+
 class FakePlumbery:
 
     safeMode = False
@@ -19,15 +29,24 @@ class FakePlumbery:
 class FakeRegion:
 
     def ex_create_network_domain(self, location, name, service_plan, description):
-        return True
+        return FakeDomain()
 
     def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
-        return True
+        return FakeNetwork()
+
+    def ex_get_network_domain(self, location, network_domain):
+        return []
+
+    def ex_get_vlan(self, vlan_id):
+        return FakeNetwork()
 
     def ex_list_network_domains(self, location):
         return []
 
     def ex_list_vlans(self, location, network_domain):
+        return []
+
+    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):
         return []
 
 
