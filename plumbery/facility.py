@@ -34,7 +34,7 @@ class PlumberyFacility:
 
     :param plumbery: the automate that is coordinating
             plumbing activities at multiple facilities
-    :type plumbery: :class:``PlumberyEngine``
+    :type plumbery: :class:`plumbery.PlumberyEngine`
 
         fittings (PlumberyBlueprints): the plan for the fittings
 
@@ -130,7 +130,7 @@ class PlumberyFacility:
         :type blueprint: ``dict``
 
         :param domain: the domain where nodes will be built
-        :type domain: `PlumberyDomain``
+        :type domain: :class:`PlumberyDomain`
 
         """
 
@@ -319,7 +319,7 @@ class PlumberyFacility:
         :type name: ``str``
 
         :return: the target node, or None
-        :rtype: :class:``Node``
+        :rtype: :class:`Node`
 
         """
 
@@ -346,10 +346,10 @@ class PlumberyFacility:
         """Wait for a node to be started and polish it
 
         :param node: the target node
-        :type node: :class:``Node``
+        :type node: :class:`Node`
 
         :param polisher: the polisher to apply
-        :type polisher: :class:``PlumberyPolisher``
+        :type polisher: :class:`plumbery.PlumberyPolisher`
 
         """
 

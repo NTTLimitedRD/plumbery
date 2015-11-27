@@ -42,7 +42,7 @@ class PlumberyEngine:
     puppet. At its name implies, plumbery is targeting pipes and fittings, the
     very basic utility stuff that sophisticated tools can leverage.
 
-    :param fileName the location of the plan for the fittings
+    :param fileName: the location of the plan for the fittings
     :type fileName: ``str``
 
     Example::
