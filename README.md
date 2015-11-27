@@ -2,7 +2,8 @@
 
 # plumbery
 
-Are you looking for a cloud plumber? We hope that this one will be useful to you
+Are you looking for a cloud plumber? We hope that this one will be useful to
+you.
 
 ## Cloud automation at Dimension Data with Apache Libcloud
 
@@ -12,7 +13,7 @@ easily? The purpose here is not to supplement Chef, Puppet, and other smart
 configuration management that already exist. Our ambition is limited to the
 industrialisation of the underlying virtualised iron. No more, no less.
 
-The simple toolbox here is based on a central description of servers,
+The toolbox here is based on a central description of servers,
 documented in a text file in YAML. If you do not know YAML yet, don't be
 afraid, this may be the most simple and user-friendly language for
 infrastructure managers. Have a look at the sample ``fittings.yaml``
@@ -56,7 +57,8 @@ type the following command to build all resources:
     $ python build_all_blueprints.py
 
 Look at the content of the ``demos``directory to find other similar examples
-that you may find useful.
+that you may find useful. Or jump to `the full documentation of plumbery at
+<https://plumbery.readthedocs.org>` to get all the information you need.
 
 ## How do I handle a subset of cloud resources?
 
@@ -139,6 +141,8 @@ the like.
 The first thing to install is Python itself, then you have to clone Apache
 Libcloud, and then plumbery.
 
-The full project documentation can be found at https://plumbery.readthedocs.org.
+To get instructions, jump to `the full documentation of plumbery at ReadTheDocs`_
+
+.. _`the full documentation of plumbery at ReadTheDocs`: https://plumbery.readthedocs.org
 
 

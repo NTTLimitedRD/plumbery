@@ -21,7 +21,16 @@ Cloud automation at Dimension Data with Apache Libcloud
 Features
 --------
 
-* TODO
+* Read fittings plan in YAML
+* Use cloud API to create the network infrastructure, and to build nodes
+* Build all blueprints
+* Build one single blueprint across multiple locations
+* Start all nodes
+* Start nodes belonging to the same blueprint
+* Stop all nodes
+* Stop nodes belonging to the same blueprint
+* Destroy all nodes
+* Destroy nodes belonging to the same blueprint
 
 Credits
 ---------

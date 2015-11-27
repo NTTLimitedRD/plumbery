@@ -5,9 +5,10 @@ Credits
 Development Lead
 ----------------
 
-* Bernard Paques <bernard.paques@gmail.com>
+* Bernard Paques https://github.com/bernard357
+
 
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Anthony Shaw https://github.com/tonybaloney
