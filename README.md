@@ -16,7 +16,7 @@ industrialisation of the underlying virtualised iron. No more, no less.
 The toolbox here is based on a central description of servers,
 documented in a text file in YAML. If you do not know YAML yet, don't be
 afraid, this may be the most simple and user-friendly language for
-infrastructure managers. Have a look at the sample ``fittings.yaml``
+infrastructure managers. Have a look at the sample `fittings.yaml`
 that is coming with plumbery to get an idea.
 
 Then very simple Python code is used to act on the infrastructure. For example
@@ -57,8 +57,8 @@ type the following command to build all resources:
     $ python build_all_blueprints.py
 
 Look at the content of the ``demos``directory to find other similar examples
-that you may find useful. Or jump to `the full documentation of plumbery at
-<https://plumbery.readthedocs.org>` to get all the information you need.
+that you may find useful. Or jump to [the full documentation of plumbery at
+ReadTheDocs](https://plumbery.readthedocs.org) to get all the information you need.
 
 ## How do I handle a subset of cloud resources?
 
@@ -141,8 +141,6 @@ the like.
 The first thing to install is Python itself, then you have to clone Apache
 Libcloud, and then plumbery.
 
-To get instructions, jump to `the full documentation of plumbery at ReadTheDocs`_
-
-.. _`the full documentation of plumbery at ReadTheDocs`: https://plumbery.readthedocs.org
+To get instructions, jump to [the full documentation of plumbery at ReadTheDocs](https://plumbery.readthedocs.org)
 
 
