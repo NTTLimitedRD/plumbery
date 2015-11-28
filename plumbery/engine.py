@@ -14,6 +14,7 @@
 # limitations under the License.
 
 # standard libraries
+import io
 import logging
 import os
 import sys
@@ -135,7 +136,21 @@ class PlumberyEngine:
         self.provider = self.get_provider()
 
         if fileName:
-            self.parse_layout(fileName)
+            self.setup(fileName)
+
+    def add_facility(self, facility):
+        """
+        Extends the scope of this plumbing engine
+
+        :param facility: description of an additional facility
+        :type facility: ``dict`` or class:`plumbery.PlumberyFacility`
+
+        """
+
+        if isinstance(facility, dict):
+            facility = PlumberyFacility(self, PlumberyBlueprints(**facility))
+
+        self.facilities.append(facility)
 
     def build_all_blueprints(self):
         """
@@ -179,6 +194,25 @@ class PlumberyEngine:
         for facility in self.facilities:
             facility.focus()
             facility.build_blueprint(name)
+
+    def configure(self, settings):
+        """
+        Changes running settings of the engine
+
+        :param settings: the new settings
+        :type settings: ``dict``
+
+        """
+
+        if not isinstance(settings, dict):
+            raise TypeError('settings should be a dictionary')
+
+        if not 'safeMode' in settings:
+            raise LookupError('safeMode is not defined')
+
+        self.safeMode = settings['safeMode']
+        if self.safeMode not in [True, False]:
+            raise ValueError('safeMode should be either True or False')
 
     def destroy_all_nodes(self):
         """
@@ -362,18 +396,22 @@ class PlumberyEngine:
 
         self._userPassword = password
 
-    def parse_layout(self, fileName=None):
+    def setup(self, plan=None):
         """
         Reads the fittings plan
 
-        :param fileName: the location of the plan for the fittings
-        :type fileName: ``str``
+        :param plan: the plan for the fittings
+        :type plan: ``str`` or ``file`
 
-        The fittings plan is expected to follow YAML specifications, and its
-        structure has to follow some rules described here.
+        The fittings plan is expected to follow YAML specifications, and it
+        must have multiple documents in it. The first document provides
+        general configuration parameters for the engine. Subsequent documents
+        describe the various locations for the fittings.
 
         An example of a minimum fittings plan::
 
+            ---
+            safeMode: False
             ---
             # Frankfurt in Europe
             locationId: EU6
@@ -398,39 +436,24 @@ class PlumberyEngine:
         other blueprints.
         """
 
-        # get file name from the environment, or use default name
-        if not fileName:
-            fileName = os.getenv('PLUMBERY', 'fittings.yaml')
+        if not plan:
+            plan = os.getenv('PLUMBERY')
 
-        # maybe file cannot be read or YAML is broken
-        try:
-            with open(fileName, 'r') as stream:
-                documents = yaml.load_all(stream)
+        if isinstance(plan, str):
+            plan = open(plan, 'r')
 
-                # first document provides meta information
-                document = documents.next()
+        documents = yaml.load_all(plan)
 
-                if 'safeMode' in document:
-                    self.safeMode = document['safeMode']
+        # first document contains engine settings
+        self.configure(documents.next())
 
-                # one document per facility
-                for document in documents:
-                    self.add_document(document)
+        # then one document per facility
+        for document in documents:
+            self.add_facility(document)
 
-        except Exception as feedback:
-            raise PlumberyException("Error: unable to load file '{}'!".format(fileName))
-
-        # are we in safe mode?
         if self.safeMode:
             logging.info("Running in safe mode"
                 " - no actual change will be made to the fittings")
-
-    def add_document(self, document):
-        facility = PlumberyFacility(self, PlumberyBlueprints(**document))
-        self.add_facility(facility)
-
-    def add_facility(self, facility):
-        self.facilities.append(facility)
 
     def start_all_nodes(self):
         """
@@ -508,7 +531,13 @@ class PlumberyEngine:
 
 
 class PlumberyBlueprints:
-    """Describe fittings plan for one facility"""
+    """
+    Describe fittings plan for one facility
+
+    :param entries: plan of the fittings
+    :type entries: ``dict``
+
+    """
 
     # turn a dictionary to an object
     def __init__(self, **entries):
