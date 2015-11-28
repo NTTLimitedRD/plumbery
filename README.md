@@ -1,4 +1,4 @@
-[![Build status](https://img.shields.io/travis/bernard357/plumbery.svg)](https://travis-ci.org/bernard357/plumbery)
+[![Build status](https://img.shields.io/travis/bernard357/plumbery.svg)](https://travis-ci.org/bernard357/plumbery)  ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg)
 
 # plumbery
 
