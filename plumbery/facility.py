@@ -17,6 +17,7 @@ import logging
 import sys
 import time
 
+from libcloud.common.types import InvalidCredsError
 from libcloud.compute.base import NodeAuthPassword
 from libcloud.compute.types import NodeState
 
@@ -59,7 +60,7 @@ class PlumberyFacility:
 
     fittings = None
 
-    _images = None
+    _images = []
 
     location = None
 
@@ -338,21 +339,12 @@ class PlumberyFacility:
 
         """
 
-        # get a handle to this location
         if not self.location:
-            try:
-                self.location = self.region.ex_get_location_by_id(self.fittings.locationId)
-
-            except Exception as feedback:
-                raise PlumberyException(
-                    "Error: unable to communicate with API endpoint "
-                    "- have you checked http_proxy environment variable? - %s" % feedback)
-
+            self.location = self.region.ex_get_location_by_id(self.fittings.locationId)
 
         # cache images to limit API calls
-        if not self._images:
+        if len(self._images) < 1:
             self._images = self.region.list_images(location=self.location)
-
 
     def polish_node(self, node, polisher):
         """
