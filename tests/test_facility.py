@@ -116,6 +116,8 @@ class TestPlumberyFacility(unittest.TestCase):
 
     def setUp(self):
         self.plumbery = FakePlumbery()
+        self.plumbery.set_user_name('fake_user')
+        self.plumbery.set_user_password('fake_password')
         self.fittings = PlumberyBlueprints(**fakeFittings)
         self.facility = PlumberyFacility(plumbery=self.plumbery, fittings=self.fittings)
 
