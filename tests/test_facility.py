@@ -122,41 +122,38 @@ class TestPlumberyFacility(unittest.TestCase):
     def tearDown(self):
         self.facility = None
 
-    def test_000(self):
+    def test_build_all_blueprints(self):
         self.facility.build_all_blueprints()
 
-    def test_001(self):
+    def test_build_blueprint(self):
         self.facility.build_blueprint('fake')
 
-    def test_010(self):
+    def test_destroy_all_nodes(self):
         self.facility.destroy_all_nodes()
 
-    def test_011(self):
+    def test_destroy_nodes(self):
         self.facility.destroy_nodes('fake')
 
-    def test_020(self):
+    def test_focus(self):
         self.facility.focus()
 
-    def test_030(self):
+    def test_get_blueprint(self):
         self.facility.get_blueprint('fake')
 
-    def test_031(self):
+    def test_get_node(self):
         self.facility.get_node('stackstorm')
 
-    def test_040(self):
+    def test_start_all_nodes(self):
         self.facility.start_all_nodes()
 
-    def test_041(self):
+    def test_start_nodes(self):
         self.facility.start_nodes('fake')
 
-    def test_050(self):
+    def test_stop_all_nodes(self):
         self.facility.stop_all_nodes()
 
-    def test_051(self):
+    def test_stop_nodes(self):
         self.facility.stop_nodes('fake')
-
-    def test_099(self):
-        self.facility.wait_and_tick(0)
 
 
 if __name__ == '__main__':

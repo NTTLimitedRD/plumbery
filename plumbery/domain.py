@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import sys
 
 from exceptions import PlumberyException
@@ -50,14 +51,13 @@ class PlumberyDomain:
     # the physical data center
     facility = None
 
-    def __init__(self, facility=None, logger=None):
+    def __init__(self, facility=None):
         """Put network domains in context"""
 
         # handle to parent parameters and functions
         self.facility = facility
         self.region = facility.region
         self.plumbery = facility.plumbery
-        self.logger = logger if logger is not None else sys.stdout.write
         self.network = None
         self.domain = None
 
@@ -94,18 +94,18 @@ class PlumberyDomain:
         self.domain = None
         for self.domain in self.region.ex_list_network_domains(location=self.facility.location):
             if self.domain.name == domainName:
-                self.logger("Network domain '{}' already exists".format(domainName))
+                logging.info("Network domain '{}' already exists".format(domainName))
                 break
 
         # create a network domain if needed
         if self.domain is None or self.domain.name != domainName:
 
             if self.plumbery.safeMode:
-                self.logger("Would have created network domain '{}' if not in safe mode".format(domainName))
+                logging.info("Would have created network domain '{}' if not in safe mode".format(domainName))
                 return False
 
             else:
-                self.logger("Creating network domain '{}'".format(domainName))
+                logging.info("Creating network domain '{}'".format(domainName))
 
                 # the description attribute is a smart way to tag resources
                 description = '#plumbery'
@@ -123,7 +123,7 @@ class PlumberyDomain:
                         name=domainName,
                         service_plan=service,
                         description=description)
-                    self.logger("- in progress")
+                    logging.info("- in progress")
                     self.region.ex_wait_for_state(
                         'NORMAL', self.region.ex_get_network_domain,
                         poll_interval=2, timeout=1200,
@@ -147,18 +147,18 @@ class PlumberyDomain:
         self.network = None
         for self.network in self.region.ex_list_vlans(location=self.facility.location, network_domain=self.domain):
             if self.network.name == networkName:
-                self.logger("Ethernet network '{}' already exists".format(networkName))
+                logging.info("Ethernet network '{}' already exists".format(networkName))
                 break
 
         # create a network if needed
         if self.network is None or self.network.name != networkName:
 
             if self.plumbery.safeMode:
-                self.logger("Would have created Ethernet network '{}' if not in safe mode".format(networkName))
+                logging.info("Would have created Ethernet network '{}' if not in safe mode".format(networkName))
                 return False
 
             else:
-                self.logger("Creating Ethernet network '{}'".format(networkName))
+                logging.info("Creating Ethernet network '{}'".format(networkName))
 
                 # the description attribute is a smart way to tag resources
                 description = '#plumbery'
@@ -171,7 +171,7 @@ class PlumberyDomain:
                         name=networkName,
                         private_ipv4_base_address=blueprint['ethernet']['subnet'],
                         description=description)
-                    self.logger("- in progress")
+                    logging.info("- in progress")
                     # Wait for the VLAN to be provisioned
                     self.region.ex_wait_for_state('NORMAL', self.region.ex_get_vlan,
                              poll_interval=2, timeout=1200,

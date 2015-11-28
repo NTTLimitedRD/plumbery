@@ -13,15 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# standard libraries
+import logging
 import sys
 import time
 
-# Apache Libcloud - https://libcloud.readthedocs.org/en/latest
 from libcloud.compute.base import NodeAuthPassword
 from libcloud.compute.types import NodeState
 
-# other code related to plumbery
 from domain import PlumberyDomain
 from polisher import PlumberyPolisher
 from exceptions import PlumberyException
@@ -74,14 +72,11 @@ class PlumberyFacility:
     # the handle to the Apache Libcloud driver
     region = None
 
-    def __init__(self, plumbery=None, fittings=None, logger=None):
+    def __init__(self, plumbery=None, fittings=None):
         """Puts this facility in context"""
 
         # handle to global parameters and functions
         self.plumbery = plumbery
-
-        # consumer can pass callable logger where all messages will be sent.
-        self.logger = logger if logger is not None else sys.stdout.write
 
         # parameters for this location
         self.fittings = fittings
@@ -108,7 +103,7 @@ class PlumberyFacility:
         """
 
         for blueprint in self.fittings.blueprints:
-            self.logger("Building blueprint '{}'".format(blueprint.keys()[0]))
+            logging.info("Building blueprint '{}'".format(blueprint.keys()[0]))
             self.build_blueprint(blueprint.keys()[0])
 
     def build_blueprint(self, name):
@@ -163,7 +158,7 @@ class PlumberyFacility:
 
             # node may already exist
             if self.get_node(nodeName):
-                self.logger("Node '{}' already exists".format(nodeName))
+                logging.info("Node '{}' already exists".format(nodeName))
 
             # create a new node
             else:
@@ -191,11 +186,11 @@ class PlumberyFacility:
 
                 # safe mode
                 if self.plumbery.safeMode:
-                    self.logger("Would have created node '{}' if not in safe mode".format(nodeName))
+                    logging.info("Would have created node '{}' if not in safe mode".format(nodeName))
 
                 # actual node creation
                 else:
-                    self.logger("Creating node '{}'".format(nodeName))
+                    logging.info("Creating node '{}'".format(nodeName))
 
                     # we may have to wait for busy resources
                     while True:
@@ -204,12 +199,13 @@ class PlumberyFacility:
                             self.region.create_node(
                                 name=nodeName,
                                 image=image,
-                                auth=NodeAuthPassword(self.plumbery.sharedSecret),
+                                auth=NodeAuthPassword(
+                                    self.plumbery.get_shared_secret()),
                                 ex_network_domain=domain.domain,
                                 ex_vlan=domain.network,
                                 ex_is_started=False,
                                 ex_description=description)
-                            self.logger("- in progress")
+                            logging.info("- in progress")
 
                         except Exception as feedback:
 
@@ -271,18 +267,18 @@ class PlumberyFacility:
 
                 # safe mode
                 if self.plumbery.safeMode:
-                    self.logger("Would have destroyed node '{}' if not in safe mode".format(nodeName))
+                    logging.info("Would have destroyed node '{}' if not in safe mode".format(nodeName))
 
                 # actual node destruction
                 else:
-                    self.logger("Destroying node '{}'".format(nodeName))
+                    logging.info("Destroying node '{}'".format(nodeName))
 
                     # we may have to wait for busy resources
                     while True:
 
                         try:
                             self.region.destroy_node(node)
-                            self.logger("- in progress")
+                            logging.info("- in progress")
 
                         except Exception as feedback:
 
@@ -293,7 +289,7 @@ class PlumberyFacility:
 
                             # node is up and running, would have to stop it first
                             elif 'SERVER_STARTED' in str(feedback):
-                                self.logger("- skipped - node is up and running")
+                                logging.info("- skipped - node is up and running")
 
                             # fatal error
                             else:
@@ -305,7 +301,7 @@ class PlumberyFacility:
 
     def focus(self):
         """Where are we plumbing?"""
-        self.logger("Plumbing at '{}' {} ({})".format(self.location.id, self.location.name, self.location.country))
+        logging.info("Plumbing at '{}' {} ({})".format(self.location.id, self.location.name, self.location.country))
 
     def get_blueprint(self, name):
         """
@@ -419,18 +415,18 @@ class PlumberyFacility:
 
         # safe mode
         if self.plumbery.safeMode:
-            self.logger("Would have started node '{}' if not in safe mode".format(name))
+            logging.info("Would have started node '{}' if not in safe mode".format(name))
 
         # actual node start
         else:
-            self.logger("Starting node '{}'".format(name))
+            logging.info("Starting node '{}'".format(name))
 
             # we may have to wait for busy resources
             while True:
 
                 try:
                     self.region.ex_start_node(node)
-                    self.logger("- in progress")
+                    logging.info("- in progress")
 
                     # if there is a need to polish the appliance, we may have to wait a bit more
                     if polisher:
@@ -445,7 +441,7 @@ class PlumberyFacility:
 
                     # node is up and running, nothing to do
                     elif 'SERVER_STARTED' in str(feedback):
-                        self.logger("- skipped - node is up and running")
+                        logging.info("- skipped - node is up and running")
 
                     # fatal error
                     else:
@@ -535,18 +531,18 @@ class PlumberyFacility:
 
                 # safe mode
                 if self.plumbery.safeMode:
-                    self.logger("Would have stopped node '{}' if not in safe mode".format(nodeName))
+                    logging.info("Would have stopped node '{}' if not in safe mode".format(nodeName))
 
                 # actual node stop
                 else:
-                    self.logger("Stopping node '{}'".format(nodeName))
+                    logging.info("Stopping node '{}'".format(nodeName))
 
                     # we may have to wait for busy resources
                     while True:
 
                         try:
                             self.region.ex_shutdown_graceful(node)
-                            self.logger("- in progress")
+                            logging.info("- in progress")
 
                         except Exception as feedback:
 
@@ -562,7 +558,7 @@ class PlumberyFacility:
 
                             # node is already stopped
                             elif 'SERVER_STOPPED' in str(feedback):
-                                print("- skipped - node is already stopped")
+                                logging.info("- skipped - node is already stopped")
 
                             # fatal error
                             else:
