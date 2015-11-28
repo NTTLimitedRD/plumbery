@@ -64,16 +64,32 @@ class PlumberyDomain:
         self.domain = None
 
     def build(self, blueprint):
-        """Create network domain if it does not exist
+        """
+        Creates a network domain if needed.
 
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
+        :returns: True if the network has been created or is already there,
+            False otherwise
+        :rtype bool:
+        :raises PlumberyException:
+
+        This function is looking at all fittings in the blueprint except the
+        nodes. This is covering:
+
+        * the network domain itself
+        * one or multiple Ethernet networks
+
+        In safe mode, the function will stop on any missing component since
+        it is not in a position to add fittings, and return ``False``.
+        If all components already exist then the funciton will return ``True``.
 
         """
 
         # check the target network domain
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
-            raise PlumberyException("Error: no network domain has been defined for the blueprint '{}'!".format(blueprint['target']))
+            raise PlumberyException(
+                "Error: no network domain has been defined for the blueprint '{}'!".format(blueprint['target']))
 
         # seek for an existing network domain with this name
         domainName = blueprint['domain']['name']
@@ -88,7 +104,7 @@ class PlumberyDomain:
 
             if self.plumbery.safeMode:
                 self.logger("Would have created network domain '{}' if not in safe mode".format(domainName))
-                exit(0)
+                return False
 
             else:
                 self.logger("Creating network domain '{}'".format(domainName))
@@ -141,7 +157,7 @@ class PlumberyDomain:
 
             if self.plumbery.safeMode:
                 self.logger("Would have created Ethernet network '{}' if not in safe mode".format(networkName))
-                exit(0)
+                return False
 
             else:
                 self.logger("Creating Ethernet network '{}'".format(networkName))
@@ -165,3 +181,5 @@ class PlumberyDomain:
 
                 except Exception as feedback:
                     raise PlumberyException("Error: unable to create Ethernet network '{0}' {1}!".format(networkName, feedback))
+
+        return True
