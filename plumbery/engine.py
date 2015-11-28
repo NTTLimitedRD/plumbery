@@ -372,8 +372,6 @@ class PlumberyEngine:
 
         logging.info("Polishing all blueprints")
 
-        print filter
-        print 'toto'
         polishers = PlumberyPolisher.filter(self.polishers, filter)
 
         for polisher in polishers:
