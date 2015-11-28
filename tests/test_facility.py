@@ -8,7 +8,7 @@ import os
 import sys
 import unittest
 
-from plumbery.engine import PlumberyBlueprints
+from plumbery.engine import PlumberyBlueprints, PlumberyEngine
 from plumbery.facility import PlumberyFacility
 
 
@@ -33,16 +33,9 @@ class FakeNetwork:
     id = 123
 
 
-class FakePlumbery:
+class FakePlumbery(PlumberyEngine):
 
-    userName = 'n'
-    userPassword = 'p'
-    safeMode = False
-    sharedSecret = 's'
-
-    def driver(self, name, password, region):
-        return FakeRegion()
-
+    pass
 
 class FakeNode:
 
@@ -122,9 +115,9 @@ fakeFittings = {
 class TestPlumberyFacility(unittest.TestCase):
 
     def setUp(self):
-        plumbery = FakePlumbery()
+        self.plumbery = FakePlumbery()
         self.fittings = PlumberyBlueprints(**fakeFittings)
-        self.facility = PlumberyFacility(plumbery=plumbery, fittings=self.fittings)
+        self.facility = PlumberyFacility(plumbery=self.plumbery, fittings=self.fittings)
 
     def tearDown(self):
         self.facility = None

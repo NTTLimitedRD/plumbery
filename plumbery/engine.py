@@ -70,7 +70,7 @@ class PlumberyEngine:
 
     Last but not least, plumbery sets the root password of any new server that
     it creates. For obvious security reasons this is not taken from the fittings
-    plan but from the environement as well.
+    plan but from the environment, or it can be set in code.
 
     Under Linux, you may want to edit `~/.bash_profile` like this::
 
@@ -117,39 +117,25 @@ class PlumberyEngine:
     safeMode = True
 
     # the password to access remote servers
-    sharedSecret = None
+    _sharedSecret = None
 
-    def __init__(self, fileName=None, userName=None, password=None, logger=None):
+    # the name to authenticate to the driver
+    _userName = None
+
+    # the password to authenticate to the driver
+    _userPassword = None
+
+    def __init__(self, fileName=None, logger=None):
         """
-        Ignite the plumbering engine
+        Ignite the plumbing engine
 
         :param   fileName: The file path of the blueprints
         :type    fileName: ``str``
 
-        :param   user_name: The username for the CaaS API
-        :type    user_name: `str``
         """
         # get libcloud driver for Managed Cloud Platform (MCP) of Dimension Data
         self.driver = get_driver(Provider.DIMENSIONDATA)
         self.logger = logger if logger is not None else sys.stdout.write
-        if userName is None:
-            self.userName = os.getenv(
-                'MCP_USERNAME',
-                "Set environment variable MCP_USERNAME with credentials given to you")
-        else:
-            self.userName = userName
-
-        if password is None:
-            self.userPassword = os.getenv(
-                'MCP_PASSWORD',
-                "Set environment variable MCP_PASSWORD with credentials given to you")
-        else:
-            self.userPassword = password
-
-        # get root password from environment - with bash, edit ~/.bash_profile to export SHARED_SECRET in local environment
-        self.sharedSecret = os.getenv('SHARED_SECRET')
-        if self.sharedSecret is None or len(self.sharedSecret) < 3:
-            raise PlumberyException("Error: set environment variable SHARED_SECRET with the password to access nodes remotely!")
 
         # load the plan
         if fileName:
@@ -232,6 +218,128 @@ class PlumberyEngine:
         for facility in self.facilities:
             facility.focus()
             facility.destroy_nodes(name)
+
+    def get_shared_secret(self):
+        """
+        Retrieves shared secret communicated to new nodes during their setup
+
+        The shared secret is not put in the fittings plan, but is normally taken
+        from the environment variable ``SHARED_SECRET``.
+
+        Under Linux, you may want to edit `~/.bash_profile` like this::
+
+            # password to access nodes remotely
+            export SHARED_SECRET='*you really want to use a tricky password*'
+
+        Alternatively, you can use the member function ``set_shared_secret`` to
+        set this important attribute via code.
+
+        :returns: the shared secret to be given to the driver
+        :raises PlumberyException: if no shared secret can be found
+
+        """
+
+        if not self._sharedSecret:
+            self._sharedSecret = os.getenv('SHARED_SECRET')
+            if self._sharedSecret is None or len(self._sharedSecret) < 3:
+                raise PlumberyException(
+                    "Error: missing node password in environment SHARED_SECRET")
+
+        return self._sharedSecret
+
+    def get_user_name(self):
+        """
+        Retrieves user name to authenticate to the API
+
+        The user name is not put in the fittings plan, but is normally taken
+        from the environment variable ``MCP_USERNAME``.
+
+        Under Linux, you may want to edit `~/.bash_profile` like this::
+
+            # credentials to access cloud resources from Dimension Data
+            export MCP_USERNAME='foo.bar'
+            export MCP_PASSWORD='WhatsUpDoc'
+
+        :returns: the user name to be used with the driver
+        :raises PlumberyException: if no shared secret can be found
+
+        """
+
+        if not self._userName:
+            self._userName = os.getenv('MCP_USERNAME')
+            if self._userName is None or len(self._userName) < 3:
+                raise PlumberyException(
+                    "Error: missing credentials in environment MCP_USERNAME")
+
+        return self._userName
+
+    def get_user_password(self):
+        """
+        Retrieves user password to authenticate to the API
+
+        The user password is not put in the fittings plan, but is normally taken
+        from the environment variable ``MCP_PASSWORD``.
+
+        Under Linux, you may want to edit `~/.bash_profile` like this::
+
+            # credentials to access cloud resources from Dimension Data
+            export MCP_USERNAME='foo.bar'
+            export MCP_PASSWORD='WhatsUpDoc'
+
+        :returns: the user password to be used with the driver
+        :raises PlumberyException: if no shared secret can be found
+
+        """
+
+        if not self._userPassword:
+            self._userPassword = os.getenv('MCP_PASSWORD')
+            if self._userPassword is None or len(self._userPassword) < 3:
+                raise PlumberyException(
+                    "Error: missing credentials in environment MCP_PASSWORD")
+
+        return self._userPassword
+
+    def set_shared_secret(self, secret):
+        """
+        Changes the shared secret to be used with new nodes
+
+        This function can be used to supplement the normal provision of
+        the shared secret via the environment variable ``SHARED_SECRET``.
+
+        :param secret: the user name to be used with the driver
+        :type : ``str``
+
+        """
+
+        self._sharedSecret = secret
+
+    def set_user_name(self, name):
+        """
+        Changes the name used to authenticate to the API
+
+        This function can be used to supplement the normal provision of
+        a user name via the environment variable ``MCP_USERNAME`
+
+        :param name: the user name to be used with the driver
+        :type name: ``str``
+
+        """
+
+        self._userName = name
+
+    def set_user_password(self, password):
+        """
+        Changes the password used to authenticate to the API
+
+        This function can be used to supplement the normal provision of
+        a user password via the environment variable ``MCP_PASSWORD``
+
+        :param password: the user password to be used with the driver
+        :type password: ``str``
+
+        """
+
+        self._userPassword = password
 
     def parse_layout(self, fileName=None):
         """Read the fittings plan

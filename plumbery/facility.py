@@ -85,7 +85,10 @@ class PlumberyFacility:
         self.fittings = fittings
 
         # configure the API endpoint - regional parameter is related to federated structure of cloud services at Dimension Data
-        self.region = plumbery.driver(plumbery.userName, plumbery.userPassword, region=fittings.regionId)
+        self.region = plumbery.driver(
+            plumbery.get_user_name(),
+            plumbery.get_user_password(),
+            region=fittings.regionId)
 
         # focus at one specific location - and attempt to use the API over the network
         try:
