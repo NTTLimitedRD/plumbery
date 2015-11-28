@@ -4,9 +4,13 @@
 Tests for `facility` module.
 """
 
+import logging
 import os
 import sys
 import unittest
+
+from libcloud.compute.providers import get_driver
+from libcloud.compute.types import Provider
 
 from plumbery.engine import PlumberyBlueprints, PlumberyEngine
 from plumbery.facility import PlumberyFacility
@@ -31,11 +35,6 @@ class FakeLocation:
 class FakeNetwork:
 
     id = 123
-
-
-class FakePlumbery(PlumberyEngine):
-
-    pass
 
 class FakeNode:
 
@@ -115,11 +114,12 @@ fakeFittings = {
 class TestPlumberyFacility(unittest.TestCase):
 
     def setUp(self):
-        self.plumbery = FakePlumbery()
+        self.plumbery = PlumberyEngine()
         self.plumbery.set_user_name('fake_user')
         self.plumbery.set_user_password('fake_password')
         self.fittings = PlumberyBlueprints(**fakeFittings)
         self.facility = PlumberyFacility(plumbery=self.plumbery, fittings=self.fittings)
+        self.facility.region = FakeRegion()
 
     def tearDown(self):
         self.facility = None

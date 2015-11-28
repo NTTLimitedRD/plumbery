@@ -10,8 +10,6 @@ import unittest
 
 from plumbery.engine import PlumberyEngine
 
-os.environ['SHARED_SECRET'] = "WhatsUpDoc"
-
 
 class TestPlumberyEngine(unittest.TestCase):
 

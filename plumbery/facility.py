@@ -57,16 +57,12 @@ class PlumberyFacility:
 
     """
 
-    # the description of the fittings
     fittings = None
 
-    # the list of available images to create nodes
-    images = None
+    _images = None
 
-    # the target physical data center
     location = None
 
-    # the handle to global parameters and functions
     plumbery = None
 
     # the handle to the Apache Libcloud driver
@@ -75,26 +71,15 @@ class PlumberyFacility:
     def __init__(self, plumbery=None, fittings=None):
         """Puts this facility in context"""
 
-        # handle to global parameters and functions
         self.plumbery = plumbery
 
-        # parameters for this location
         self.fittings = fittings
 
-        # configure the API endpoint - regional parameter is related to federated structure of cloud services at Dimension Data
-        self.region = plumbery.driver(
+        # Dimension Data provides a federation of regions
+        self.region = plumbery.provider(
             plumbery.get_user_name(),
             plumbery.get_user_password(),
-            region=fittings.regionId)
-
-        # focus at one specific location - and attempt to use the API over the network
-        try:
-            self.location = self.region.ex_get_location_by_id(fittings.locationId)
-        except Exception as feedback:
-            raise PlumberyException("Error: unable to communicate with API endpoint - have you checked http_proxy environment variable? - %s" % feedback)
-
-        # fetch the list of available images only once from the API
-        self.images = self.region.list_images(location=self.location)
+            region=self.fittings.regionId)
 
     def build_all_blueprints(self):
         """
@@ -115,16 +100,13 @@ class PlumberyFacility:
 
         """
 
-        # get the blueprint
         blueprint = self.get_blueprint(name)
         if not blueprint:
             return
 
-        # create the network domain if it does not exist
         domain = PlumberyDomain(self)
         domain.build(blueprint)
 
-        # create nodes that do not exist
         self._build_nodes(blueprint=blueprint, domain=domain)
 
     def _build_nodes(self, blueprint, domain):
@@ -139,28 +121,24 @@ class PlumberyFacility:
 
         """
 
-        # ensure that we have some nodes described here
+        self.power_on()
+
         if 'nodes' not in blueprint:
             raise PlumberyException("Error: no nodes have been defined for the blueprint '{}'!".format(blueprint['target']))
 
-        # respect the order of nodes defined in the fittings description
         for item in blueprint['nodes']:
 
-            # node has several explicit attributes
             if type(item) is dict:
                 nodeName = item.keys()[0]
                 nodeAttributes = item.values()[0]
 
-            # node has only a name
             else:
                 nodeName = item
                 nodeAttributes = None
 
-            # node may already exist
             if self.get_node(nodeName):
                 logging.info("Node '{}' already exists".format(nodeName))
 
-            # create a new node
             else:
 
                 # the description attribute is a smart way to tag resources
@@ -176,7 +154,7 @@ class PlumberyFacility:
 
                 # find suitable image to use
                 image = None
-                for image in self.images:
+                for image in self._images:
                     if imageName in image.name:
                         break
 
@@ -211,7 +189,7 @@ class PlumberyFacility:
 
                             # resource is busy, wait a bit and retry
                             if 'RESOURCE_BUSY' in str(feedback):
-                                self.wait_and_tick()
+                                time.sleep(10)
                                 continue
 
                             # fatal error
@@ -241,28 +219,24 @@ class PlumberyFacility:
 
         """
 
-        # get the blueprint
+        self.power_on()
+
         blueprint = self.get_blueprint(name)
         if not blueprint:
             return
 
-        # ensure that some nodes have been described
         if 'nodes' not in blueprint:
             return
 
         # destroy in reverse order
         for item in reversed(blueprint['nodes']):
 
-            # find the name of the node to be destroyed
             if type(item) is dict:
                 nodeName = item.keys()[0]
             else:
                 nodeName = str(item)
 
-            # enumerate existing nodes
             node = self.get_node(nodeName)
-
-            # destroy an existing node
             if node is not None:
 
                 # safe mode
@@ -284,7 +258,7 @@ class PlumberyFacility:
 
                             # resource is busy, wait a bit and retry
                             if 'RESOURCE_BUSY' in str(feedback):
-                                self.wait_and_tick()
+                                time.sleep(10)
                                 continue
 
                             # node is up and running, would have to stop it first
@@ -300,7 +274,12 @@ class PlumberyFacility:
                         break
 
     def focus(self):
-        """Where are we plumbing?"""
+        """
+        Where are we plumbing?
+
+        """
+
+        self.power_on()
         logging.info("Plumbing at '{}' {} ({})".format(self.location.id, self.location.name, self.location.country))
 
     def get_blueprint(self, name):
@@ -334,7 +313,8 @@ class PlumberyFacility:
 
         """
 
-        # enumerate existing nodes
+        self.power_on()
+
         node = None
         for node in self.region.list_nodes():
 
@@ -350,8 +330,29 @@ class PlumberyFacility:
             if node.name == name:
                 return node
 
-        # not found
         return None
+
+    def power_on(self):
+        """
+        Switches electricity on
+
+        """
+
+        # get a handle to this location
+        if not self.location:
+            try:
+                self.location = self.region.ex_get_location_by_id(self.fittings.locationId)
+
+            except Exception as feedback:
+                raise PlumberyException(
+                    "Error: unable to communicate with API endpoint "
+                    "- have you checked http_proxy environment variable? - %s" % feedback)
+
+
+        # cache images to limit API calls
+        if not self._images:
+            self._images = self.region.list_images(location=self.location)
+
 
     def polish_node(self, node, polisher):
         """
@@ -371,7 +372,7 @@ class PlumberyFacility:
                 break
 
             # give it some time to start
-            PlumberyFacility.wait_and_tick()
+            time.sleep(10)
             node = self.get_node(node.name)
             continue
 
@@ -436,7 +437,7 @@ class PlumberyFacility:
 
                     # resource is busy, wait a bit and retry
                     if 'RESOURCE_BUSY' in str(feedback):
-                        self.wait_and_tick()
+                        time.sleep(10)
                         continue
 
                     # node is up and running, nothing to do
@@ -548,12 +549,12 @@ class PlumberyFacility:
 
                             # resource is busy, wait a bit and retry
                             if 'RESOURCE_BUSY' in str(feedback):
-                                self.wait_and_tick()
+                                time.sleep(10)
                                 continue
 
                             # transient error, wait a bit and retry
                             elif 'UNEXPECTED_ERROR' in str(feedback):
-                                self.wait_and_tick()
+                                time.sleep(10)
                                 continue
 
                             # node is already stopped
@@ -566,21 +567,3 @@ class PlumberyFacility:
 
                         # quit the loop
                         break
-
-    @staticmethod
-    def wait_and_tick(tick=3):
-        """Animate the screen while delaying next call to the API"""
-
-        sys.stdout.write('-\r')
-        sys.stdout.flush()
-        time.sleep(tick)
-        sys.stdout.write('\\\r')
-        sys.stdout.flush()
-        time.sleep(tick)
-        sys.stdout.write('|\r')
-        sys.stdout.flush()
-        time.sleep(tick)
-        sys.stdout.write('/\r')
-        sys.stdout.flush()
-        time.sleep(tick)
-        sys.stdout.write(' \r')

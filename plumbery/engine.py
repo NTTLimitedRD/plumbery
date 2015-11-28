@@ -91,7 +91,7 @@ class PlumberyEngine:
     shared across some people.
 
     Attributes:
-        driver (libcloud.base.NodeDriver):
+        provider (libcloud.base.NodeDriver):
             A handle to the underlying Apache Libcloud instance
 
         facilities (list of PlumberyFacility objects):
@@ -105,8 +105,8 @@ class PlumberyEngine:
 
     """
 
-    # the Apache Libcloud driver
-    driver = None
+    # the cloud service provider
+    provider = None
 
     # the various facilities where fittings are put under control
     facilities = []
@@ -131,10 +131,9 @@ class PlumberyEngine:
         :type    fileName: ``str``
 
         """
-        # get libcloud driver for Managed Cloud Platform (MCP) of Dimension Data
-        self.driver = get_driver(Provider.DIMENSIONDATA)
 
-        # load the plan
+        self.provider = self.get_provider()
+
         if fileName:
             self.parse_layout(fileName)
 
@@ -151,6 +150,7 @@ class PlumberyEngine:
             PlumberyEngine('fittings.yaml').build_all_blueprints()
 
         """
+
         logging.info("Building all blueprints")
 
         for facility in self.facilities:
@@ -173,6 +173,7 @@ class PlumberyEngine:
             PlumberyEngine('fittings.yaml').build_blueprints('sql')
 
         """
+
         logging.info("Building blueprint '{}'".format(name))
 
         for facility in self.facilities:
@@ -192,6 +193,7 @@ class PlumberyEngine:
             they can be actually destroyed.
 
         """
+
         logging.info("Destroying nodes from all blueprints")
 
         for facility in self.facilities:
@@ -214,11 +216,23 @@ class PlumberyEngine:
             they can be actually destroyed.
 
         """
+
         logging.info("Destroying nodes from blueprint '{}'".format(name))
 
         for facility in self.facilities:
             facility.focus()
             facility.destroy_nodes(name)
+
+    def get_provider(self):
+        """
+        Loads a provider from Apache Libcloud.
+
+        This is the function to override if you want to use plumbery with
+        any cloud service provider known by libcloud.
+
+        """
+
+        return get_driver(Provider.DIMENSIONDATA)
 
     def get_shared_secret(self):
         """
@@ -408,7 +422,8 @@ class PlumberyEngine:
 
         # are we in safe mode?
         if self.safeMode:
-            logging.info("Running in safe mode - no actual change will be made to the fittings")
+            logging.info("Running in safe mode"
+                " - no actual change will be made to the fittings")
 
     def add_document(self, document):
         facility = PlumberyFacility(self, PlumberyBlueprints(**document))
