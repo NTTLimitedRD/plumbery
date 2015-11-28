@@ -23,13 +23,11 @@ __all__ = ['PlumberyDomain']
 class PlumberyDomain:
     """Cloud automation for a network domain
 
+    :param facility: the underlying physical facility
+    :type facility: :class:`plumbery.PlumberFacility`
+
     A network domain is similar to a virtual data center. It is a secured
     container for multiple nodes.
-
-    :param facility: the underlying physical facility
-    :type facility: :class:``PlumberFacility``
-
-    :param logger: the logging handle
 
     Example::
 
@@ -69,13 +67,13 @@ class PlumberyDomain:
 
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
-        :returns: True if the network has been created or is already there,
+        :returns: ``bool``
+            - True if the network has been created or is already there,
             False otherwise
-        :rtype bool:
-        :raises PlumberyException:
+        :raises: :class:`plumbery.PlumberyException` if some unrecoverable error occurs
 
         This function is looking at all fittings in the blueprint except the
-        nodes. This is covering:
+        nodes. This is including:
 
         * the network domain itself
         * one or multiple Ethernet networks

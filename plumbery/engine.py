@@ -32,7 +32,11 @@ __all__ = ['PlumberyEngine', 'PlumberyBlueprints']
 
 
 class PlumberyEngine:
-    """Cloud automation at Dimension Data with Apache Libcloud
+    """
+    Cloud automation at Dimension Data with Apache Libcloud
+
+    :param fileName: the location of the plan for the fittings
+    :type fileName: ``str``
 
     Plumbery is a convenient tool for infrastructure managers at cloud times.
     It allows for easy and repeatable deployments of various
@@ -41,9 +45,6 @@ class PlumberyEngine:
     The idea here is not to compete with respected solutions such as chef or
     puppet. At its name implies, plumbery is targeting pipes and fittings, the
     very basic utility stuff that sophisticated tools can leverage.
-
-    :param fileName: the location of the plan for the fittings
-    :type fileName: ``str``
 
     Example::
 
@@ -101,10 +102,6 @@ class PlumberyEngine:
             will be made against the infrastructure. This global attribute
             is coming from the fittings plan.
 
-        sharedSecret (str):
-            The main password used during the creation of a new
-            node. This attribute is read from the local environment.
-
     """
 
     # the Apache Libcloud driver
@@ -127,7 +124,7 @@ class PlumberyEngine:
 
     def __init__(self, fileName=None, logger=None):
         """
-        Ignite the plumbing engine
+        Ignites the plumbing engine
 
         :param   fileName: The file path of the blueprints
         :type    fileName: ``str``
@@ -142,9 +139,10 @@ class PlumberyEngine:
             self.parse_layout(fileName)
 
     def build_all_blueprints(self):
-        """Build all blueprints
+        """
+        Builds all blueprints
 
-        This function will check all facilities, one at a time and in the order
+        This function checks all facilities, one at a time and in the order
         defined in fittings plan, to build all blueprints there.
 
         Example::
@@ -160,13 +158,14 @@ class PlumberyEngine:
             facility.build_all_blueprints()
 
     def build_blueprint(self, name):
-        """Build a named blueprint
-
-        This function will check all facilities, one at a time and in the order
-        defined in fittings plan, to build one single blueprint there.
+        """
+        Builds a named blueprint
 
         :param name: the name of the blueprint to deploy
         :type name: ``str``
+
+        This function checks all facilities, one at a time and in the order
+        defined in fittings plan, to build one single blueprint there.
 
         Example::
 
@@ -181,9 +180,10 @@ class PlumberyEngine:
             facility.build_blueprint(name)
 
     def destroy_all_nodes(self):
-        """Destroy all nodes
+        """
+        Destroys all nodes
 
-        This function will check all facilities, one at a time and in the order
+        This function checks all facilities, one at a time and in the order
         defined in fittings plan, to destroy all nodes there.
 
         Note:
@@ -199,13 +199,14 @@ class PlumberyEngine:
             facility.destroy_all_nodes()
 
     def destroy_nodes(self, name):
-        """Destroy nodes
-
-        This function will check all facilities, one at a time and in the order
-        defined in fittings plan, to destroy nodes from one single blueprint.
+        """
+        Destroys nodes
 
         :param name: the name of the blueprint to destroy
         :type name: ``str``
+
+        This function checks all facilities, one at a time and in the order
+        defined in fittings plan, to destroy nodes from one single blueprint.
 
         Note:
             Running nodes are always preserved from destruction.
@@ -221,7 +222,12 @@ class PlumberyEngine:
 
     def get_shared_secret(self):
         """
-        Retrieves shared secret communicated to new nodes during their setup
+        Retrieves the secret that is communicated to new nodes during etup
+
+        :returns: ``str``
+            - the shared secret to be given to the driver
+        :raises: :class:`plumbery.PlumberyException`
+            - if no shared secret can be found
 
         The shared secret is not put in the fittings plan, but is normally taken
         from the environment variable ``SHARED_SECRET``.
@@ -233,9 +239,6 @@ class PlumberyEngine:
 
         Alternatively, you can use the member function ``set_shared_secret`` to
         set this important attribute via code.
-
-        :returns: the shared secret to be given to the driver
-        :raises PlumberyException: if no shared secret can be found
 
         """
 
@@ -251,6 +254,11 @@ class PlumberyEngine:
         """
         Retrieves user name to authenticate to the API
 
+        :returns: ``str``
+            - the user name to be used with the driver
+        :raises: :class:`plumbery.PlumberyException`
+            - if no user name can be found
+
         The user name is not put in the fittings plan, but is normally taken
         from the environment variable ``MCP_USERNAME``.
 
@@ -259,9 +267,6 @@ class PlumberyEngine:
             # credentials to access cloud resources from Dimension Data
             export MCP_USERNAME='foo.bar'
             export MCP_PASSWORD='WhatsUpDoc'
-
-        :returns: the user name to be used with the driver
-        :raises PlumberyException: if no shared secret can be found
 
         """
 
@@ -277,6 +282,11 @@ class PlumberyEngine:
         """
         Retrieves user password to authenticate to the API
 
+        :returns: ``str``
+            - the user password to be used with the driver
+        :raises: :class:`plumbery.PlumberyException`
+            - if no user password can be found
+
         The user password is not put in the fittings plan, but is normally taken
         from the environment variable ``MCP_PASSWORD``.
 
@@ -285,9 +295,6 @@ class PlumberyEngine:
             # credentials to access cloud resources from Dimension Data
             export MCP_USERNAME='foo.bar'
             export MCP_PASSWORD='WhatsUpDoc'
-
-        :returns: the user password to be used with the driver
-        :raises PlumberyException: if no shared secret can be found
 
         """
 
@@ -303,11 +310,11 @@ class PlumberyEngine:
         """
         Changes the shared secret to be used with new nodes
 
+        :param secret: the user name to be used with the driver
+        :type secret: ``str``
+
         This function can be used to supplement the normal provision of
         the shared secret via the environment variable ``SHARED_SECRET``.
-
-        :param secret: the user name to be used with the driver
-        :type : ``str``
 
         """
 
@@ -317,11 +324,11 @@ class PlumberyEngine:
         """
         Changes the name used to authenticate to the API
 
-        This function can be used to supplement the normal provision of
-        a user name via the environment variable ``MCP_USERNAME`
-
         :param name: the user name to be used with the driver
         :type name: ``str``
+
+        This function can be used to supplement the normal provision of
+        a user name via the environment variable ``MCP_USERNAME``.
 
         """
 
@@ -331,24 +338,25 @@ class PlumberyEngine:
         """
         Changes the password used to authenticate to the API
 
-        This function can be used to supplement the normal provision of
-        a user password via the environment variable ``MCP_PASSWORD``
-
         :param password: the user password to be used with the driver
         :type password: ``str``
+
+        This function can be used to supplement the normal provision of
+        a user password via the environment variable ``MCP_PASSWORD``.
 
         """
 
         self._userPassword = password
 
     def parse_layout(self, fileName=None):
-        """Read the fittings plan
-
-        The fittings plan is expected to follow YAML specifications, and its
-        structure has to follow some rules described here.
+        """
+        Reads the fittings plan
 
         :param fileName: the location of the plan for the fittings
         :type fileName: ``str``
+
+        The fittings plan is expected to follow YAML specifications, and its
+        structure has to follow some rules described here.
 
         An example of a minimum fittings plan::
 
@@ -410,9 +418,10 @@ class PlumberyEngine:
         self.facilities.append(facility)
 
     def start_all_nodes(self):
-        """Start all nodes
+        """
+        Starts all nodes
 
-        This function will check all facilities, one at a time and in the order
+        This function checks all facilities, one at a time and in the order
         defined in fittings plan, to start all nodes there.
 
         This function has no effect on nodes that are already up and running.
@@ -426,13 +435,14 @@ class PlumberyEngine:
             facility.start_all_nodes()
 
     def start_nodes(self, name):
-        """Start nodes
-
-        This function will check all facilities, one at a time and in the order
-        defined in fittings plan, to start nodes from one single blueprint.
+        """
+        Starts nodes
 
         :param name: the name of the blueprint to start
         :type name: ``str``
+
+        This function checks all facilities, one at a time and in the order
+        defined in fittings plan, to start nodes from one single blueprint.
 
         This function has no effect on nodes that are already up and running.
 
@@ -445,9 +455,10 @@ class PlumberyEngine:
             facility.start_nodes(name)
 
     def stop_all_nodes(self):
-        """Stop all nodes
+        """
+        Stops all nodes
 
-        This function will check all facilities, one at a time and in the order
+        This function checks all facilities, one at a time and in the order
         defined in fittings plan, to stop all nodes there.
 
         This function has no effect on nodes that are already stopped.
@@ -461,13 +472,14 @@ class PlumberyEngine:
             facility.stop_all_nodes()
 
     def stop_nodes(self, name):
-        """Stop nodes
-
-        This function will check all facilities, one at a time and in the order
-        defined in fittings plan, to stop nodes from one single blueprint.
+        """
+        Stops nodes
 
         :param name: the name of the blueprint to stop
         :type name: ``str``
+
+        This function checks all facilities, one at a time and in the order
+        defined in fittings plan, to stop nodes from one single blueprint.
 
         This function has no effect on nodes that are already stopped.
 

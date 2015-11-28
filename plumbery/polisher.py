@@ -27,13 +27,13 @@ class PlumberyPolisher:
     @classmethod
     def from_shelf(cls, polishId):
         """
-        Pick up a polisher from the shelf
+        Picks up a polisher from the shelf
 
         :param polishId: name of the polisher to use, e.g., ``spit``
         :type polishId: ``str``
 
-        :return: instance of a polisher ready to use
-        :rtype: :class:`PlumberyPolisher`
+        :returns: :class:`plumbery.PlumberyPolisher`
+            - instance of a polisher ready to use
 
         """
 
@@ -52,7 +52,7 @@ class PlumberyPolisher:
 
     def shine_node(self, node):
         """
-        Rub it until it shines
+        Rubs it until it shines
 
         :param node: the node to be polished
         :type node: :class:`libcloud.compute.base.Node`
@@ -63,7 +63,7 @@ class PlumberyPolisher:
     @classmethod
     def rub_node(cls, node, rubs):
         """
-        Communicate with the node over SSH
+        Communicates with the node over SSH
         """
 
         # get root password from environment SHARED_SECRET

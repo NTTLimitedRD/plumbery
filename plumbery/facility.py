@@ -30,13 +30,15 @@ __all__ = ['PlumberyFacility']
 
 
 class PlumberyFacility:
-    """Plumbing at one facility
+    """
+    Plumbing at one facility
 
     :param plumbery: the automate that is coordinating
             plumbing activities at multiple facilities
     :type plumbery: :class:`plumbery.PlumberyEngine`
 
-        fittings (PlumberyBlueprints): the plan for the fittings
+    :param fittings:  the plan for the fittings
+    :type fittings: :class:`plumbery.PlumberyBlueprints`
 
     Example::
 
@@ -73,7 +75,7 @@ class PlumberyFacility:
     region = None
 
     def __init__(self, plumbery=None, fittings=None, logger=None):
-        """Put this facility in context"""
+        """Puts this facility in context"""
 
         # handle to global parameters and functions
         self.plumbery = plumbery
@@ -100,14 +102,18 @@ class PlumberyFacility:
         self.images = self.region.list_images(location=self.location)
 
     def build_all_blueprints(self):
-        """Build all blueprints"""
+        """
+        Builds all blueprints defined for this facility
+
+        """
 
         for blueprint in self.fittings.blueprints:
             self.logger("Building blueprint '{}'".format(blueprint.keys()[0]))
             self.build_blueprint(blueprint.keys()[0])
 
     def build_blueprint(self, name):
-        """Build a named blueprint
+        """
+        Builds a named blueprint for this facility
 
         :param name: the name of the blueprint to build
         :type name: ``str``
@@ -127,13 +133,14 @@ class PlumberyFacility:
         self._build_nodes(blueprint=blueprint, domain=domain)
 
     def _build_nodes(self, blueprint, domain):
-        """Create nodes if they do not exist
+        """
+        Create nodes if they do not exist at this facility
 
         :param blueprint: the blueprint to build
         :type blueprint: ``dict``
 
         :param domain: the domain where nodes will be built
-        :type domain: :class:`PlumberyDomain`
+        :type domain: :class:`plumbery.PlumberyDomain`
 
         """
 
@@ -220,14 +227,18 @@ class PlumberyFacility:
                         break
 
     def destroy_all_nodes(self):
-        """Destroy all nodes"""
+        """
+        Destroys all nodes at this facility
+
+        """
 
         # destroy in reverse order
         for blueprint in self.fittings.blueprints:
             self.destroy_nodes(blueprint.keys()[0])
 
     def destroy_nodes(self, name):
-        """Destroy nodes
+        """
+        Destroys nodes of a given blueprint at this facility
 
         :param name: the name of the blueprint to destroy
         :type name: ``str``
@@ -297,13 +308,13 @@ class PlumberyFacility:
         self.logger("Plumbing at '{}' {} ({})".format(self.location.id, self.location.name, self.location.country))
 
     def get_blueprint(self, name):
-        """Get a blueprint by name
+        """
+        Retrieves a blueprint by name
 
         :param name: the name of the target blueprint
         :type name: ``str``
 
-        :return: the target blueprint, or None
-        :rtype: ``dict``
+        :returns: ``dict`` - the target blueprint, or None
 
         """
 
@@ -316,13 +327,14 @@ class PlumberyFacility:
         return None
 
     def get_node(self, name):
-        """Get a node by name
+        """
+        Retrieves a node by name
 
         :param name: the name of the target node
         :type name: ``str``
 
-        :return: the target node, or None
-        :rtype: :class:`Node`
+        :returns: :class:`libcloud.compute.base.Node`
+            - the target node, or None
 
         """
 
@@ -346,10 +358,11 @@ class PlumberyFacility:
         return None
 
     def polish_node(self, node, polisher):
-        """Wait for a node to be started and polish it
+        """
+        Waits for a node to be started and polish it
 
         :param node: the target node
-        :type node: :class:`Node`
+        :type node: :class:`libcloud.compute.base.Node`
 
         :param polisher: the polisher to apply
         :type polisher: :class:`plumbery.PlumberyPolisher`
@@ -371,13 +384,17 @@ class PlumberyFacility:
             polisher.shine_node(node)
 
     def start_all_nodes(self):
-        """Start all nodes"""
+        """
+        Starts all nodes at this facility
+
+        """
 
         for blueprint in self.fittings.blueprints:
             self.start_nodes(blueprint.keys()[0])
 
     def _start_node(self, name, attributes=None):
-        """Start a node
+        """
+        Starts one node
 
         :param name: the name of the target node
         :type name: ``str``
@@ -441,7 +458,8 @@ class PlumberyFacility:
         return node
 
     def start_nodes(self, name):
-        """Start nodes
+        """
+        Starts nodes from a given blueprint at this facility
 
         :param name: the name of the target blueprint
         :type name: ``str``
@@ -474,13 +492,17 @@ class PlumberyFacility:
             self._start_node(nodeName, nodeAttributes)
 
     def stop_all_nodes(self):
-        """Stop all nodes"""
+        """
+        Stops all nodes at this facility
+
+        """
 
         for blueprint in self.fittings.blueprints:
             self.stop_nodes(blueprint.keys()[0])
 
     def stop_nodes(self, name):
-        """Stop nodes
+        """
+        Stops nodes of the given blueprint at this facility
 
         :param name: the name of the target blueprint
         :type name: ``str``
