@@ -4,6 +4,13 @@
 # in safe mode no change is actually made on the infrastructure
 safeMode: False
 
+#
+polishers:
+  - spit:
+      file: nodes.yaml
+  - ansible:
+      file: inventory.yaml
+
 # each facility is described separately
 ---
 # Frankfurt in Europe

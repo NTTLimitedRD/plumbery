@@ -4,13 +4,7 @@
 Tests for `facility` module.
 """
 
-import logging
-import os
-import sys
 import unittest
-
-from libcloud.compute.providers import get_driver
-from libcloud.compute.types import Provider
 
 from plumbery.engine import PlumberyBlueprints, PlumberyEngine
 from plumbery.facility import PlumberyFacility
@@ -25,6 +19,7 @@ class FakeImage:
 
     name = 'RedHat 6 64-bit 4 CPU'
 
+
 class FakeLocation:
 
     id = 'EU7'
@@ -35,6 +30,7 @@ class FakeLocation:
 class FakeNetwork:
 
     id = 123
+
 
 class FakeNode:
 

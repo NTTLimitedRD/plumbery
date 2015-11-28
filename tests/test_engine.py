@@ -5,9 +5,7 @@ Tests for `plumbery` module.
 """
 
 import io
-import os
 import socket
-import sys
 import unittest
 
 from libcloud.common.types import InvalidCredsError
@@ -57,18 +55,24 @@ myFacility = {
             }]
     }
 
+
 class FakeLocation:
 
     id = 'EU7'
     name = 'data centre in Amsterdam'
     country = 'Netherlands'
 
+
 class TestPlumberyEngine(unittest.TestCase):
 
     def test_configure(self):
 
         settings = {
-            'safeMode': False
+            'safeMode': False,
+            'polishers': [
+                {'spit': {}},
+#                {'ansible': {}},
+                ]
             }
 
         self.engine = PlumberyEngine()

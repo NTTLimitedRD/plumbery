@@ -13,88 +13,175 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+import logging
 
-from libcloud.compute.ssh import SSHClient
 from exceptions import PlumberyException
 
 __all__ = ['PlumberyPolisher']
 
 
 class PlumberyPolisher:
-    """Make new appliances shine"""
+    """
+    Polishes all these nodes
+
+    :param settings: specific settings for this polisher
+    :type param: ``dict``
+
+    Even embedded fittings deserve some good treatment, and this what
+    polishing is about. You know the usual sequence:
+
+    * at some point, decide that all appliances have to be visited
+    * find every appliance and rub it
+    * after the hard work, go back home for some rest
+
+    This is exactly what plumbery is offering to you in a straightforward
+    extensible mechanism.
+
+    """
+
+    def __init__(self, settings):
+        self.settings = settings
 
     @classmethod
-    def from_shelf(cls, polishId):
+    def from_shelf(cls, polishId, settings={}):
         """
         Picks up a polisher from the shelf
 
         :param polishId: name of the polisher to use, e.g., ``spit``
         :type polishId: ``str``
 
+        :param settings: specific settings for this polisher
+        :type param: ``dict``
+
         :returns: :class:`plumbery.PlumberyPolisher`
             - instance of a polisher ready to use
 
+        :raises: :class:`plumbery.PlumberyException` if no polisher can be found
+
+        You can create polishers of your own, or use polishers from other
+        persons. All polishers have to be placed in the directory
+        ``plumbery.polishers``. Each polisher should be put in a separate
+        python file, and define a class that repeats the file name. For example
+        the file::
+
+            plumbery\\polishers\\spit.py
+
+        should contain::
+
+            class SpitPolisher(PlumberyPolisher):
+            ...
+
+        Once this is done properly, you can use the polisher by mentioning it
+        if the fittings plan used by plumbery. Also, you can pass any parameters
+        that the polisher would require.
+
+        Example of configuration of ``fittings.yaml``::
+
+            ---
+            safeMode: False
+            polishers:
+              - spit:
+                  file: nodes.yaml
+              - ansible:
+                  file: inventory.yaml
+            ---
+            # Frankfurt in Europe
+            locationId: EU6
+            regionId: dd-eu
+            ...
+
+        The engine provides multiple ways to polish nodes. For example::
+
+            from plumbery.engine import PlumberyEngine
+            PlumberyEngine('fittings.yaml').polish_all_nodes()
+
         """
 
-        # we may not find a suitable polisher
         try:
+            settings['name'] = polishId
+
             moduleName = 'polishers.' + polishId
             polisherName = polishId.capitalize() + 'Polisher'
 
-            polisherModule = __import__(moduleName, globals(), locals(), [polisherName])
+            polisherModule = __import__(moduleName,
+                    globals(), locals(), [polisherName])
             polisherClass = getattr(polisherModule, polisherName)
-            return polisherClass()
+            return polisherClass(settings)
 
         except Exception as feedback:
-            raise PlumberyException("Error: unable to load polisher '{0}' {1}!".format(polishId, feedback))
+            raise PlumberyException(
+                "Error: unable to load polisher '{0}' {1}!".format(
+                    polishId, feedback))
 
-
-    def shine_node(self, node):
+    def go(self):
         """
-        Rubs it until it shines
+        Puts the shoes on, and go polishing
+
+        This function is called once, before starting the process of
+        polishing each node. You can override it for any specific
+        initialisation that you would require.
+
+        """
+
+        pass
+
+    @classmethod
+    def filter(cls, polishers, filter=None):
+        """
+        Selects only the polisher you want, or take them all
+
+        :param polishers: polishers to be applied
+        :type polishers: list of :class:`plumbery.PlumberyPolisher`
+
+        :param filter: the name of a single polisher to apply. If this
+            parameter is missing, all polishers declared in the fittings plan
+            will be applied
+        :type filter: ``str``
+
+        :returns: list of :class:`plumbery.PlumberyPolisher`
+
+        :raises: ``LookupError`` if no polisher can be found
+
+        """
+
+        if not filter:
+            for polisher in polishers:
+                logging.info("Using polisher '{}'".format(polisher.settings['name']))
+            return polishers
+
+        for polisher in polishers:
+            if polisher.settings['name'] == filter:
+                filtered = [polisher]
+                logging.info("Using polisher '{}'".format(polisher.settings['name']))
+                return filtered
+
+        raise LookupError("Error: polisher '{}' cannot be found".format(filter))
+
+    def shine_node(self, node, settings):
+        """
+        Rubs a node until it shines
 
         :param node: the node to be polished
         :type node: :class:`libcloud.compute.base.Node`
+
+        :param settings: the fittings plan for this node
+        :type settings: ``dict``
+
+        This is where the hard work is done. You have to override this
+        function in your own polisher. Note that you can compare the reality
+        versus the theoritical settings if you want.
+
         """
 
-        raise NotImplementedError("Error: do not know how to polish '{}'".format(node.name))
+        raise NotImplementedError("Error: no polisher '{}'".format(node.name))
 
-    @classmethod
-    def rub_node(cls, node, rubs):
+    def reap(self):
         """
-        Communicates with the node over SSH
+        Reaps the outcome of all this polishing
+
+        This function is called once, after all nodes have been polished. You
+        can override it for any specific closure that you would require.
+
         """
 
-        # get root password from environment SHARED_SECRET
-        # with bash, edit ~/.bash_profile to export in local environment
-        sharedSecret = os.getenv('SHARED_SECRET', 'whatSUpDoc')
-
-        # use libcloud to communicate to remote nodes
-        session = SSHClient(hostname=node.private_ips[0],
-                            port=22,
-                            username='root',
-                            password=sharedSecret,
-                            key_files=None,
-                            timeout=15)
-
-        # end to end private connectivity is required to succeed
-        try:
-            session.connect()
-            node = rubs.run(node, session)
-
-        except Exception as feedback:
-            raise PlumberyException("Error: unable to rub '{}' at '{}'!".format(node.name,
-                                                             node.private_ips[0]))
-
-
-        else:
-            result = True
-
-        # closing could kill everything as well
-        try:
-            session.close()
-        except:
-            pass
-
-        return result
+        pass

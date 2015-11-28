@@ -13,67 +13,99 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
-from libcloud.compute.deployment import MultiStepDeployment
-from libcloud.compute.deployment import ScriptDeployment
-from libcloud.compute.deployment import SSHKeyDeployment
+import logging
+import yaml
 
 from plumbery.polisher import PlumberyPolisher
 
 
 class SpitPolisher(PlumberyPolisher):
     """
-    Make new appliances shine
+    Captures inventory information
+
+    This polisher looks at each node in sequence, but only to retrieve
+    maximum information about each of them. At the end of the process,
+    the polisher writes a YAML file for future reference.
+
+    To activate this polisher you have to mention it in the fittings plan,
+    like in the following example::
+
+        ---
+        safeMode: False
+        polishers:
+          - spit:
+              file: nodes.yaml
+          - ansible:
+              file: inventory.yaml
+        ---
+        # Frankfurt in Europe
+        locationId: EU6
+        regionId: dd-eu
+        ...
 
 
     """
-    def __init__(self, logger=None):
-        self.logger = logger if logger is not None else sys.stdout.write
 
-    def shine_node(self, node):
+    def go(self):
         """
-        Rub it until it shines
+        Restarts the inventory process
+        """
+
+        self.inventory = []
+
+    def shine_node(self, node, settings):
+        """
+        Gets as much information as possible from a node
 
         :param node: the node to be polished
         :type node: :class:`libcloud.compute.base.Node`
+
+        :param settings: the fittings plan for this node
+        :type settings: ``dict``
+
         """
 
-        self.logger("Spitting on node '{}'".format(node.name))
+        self.inventory.append(self._spit(node))
 
-        # actions to be performed
-        rubs = []
+    def _spit(self, node):
+        """
+        Puts node information in a flat dictionary
 
-        # path to the public key that has to be pushed to new node
-        try:
-            publicKeyPath = os.path.expanduser('~/.ssh/id_rsa.pub')
+        :param node: the node to be polished
+        :type node: :class:`libcloud.compute.base.Node`
 
-            # read text of the public key
-            publicKeyText = None
-            with open(publicKeyPath) as stream:
-                publicKeyText = stream.read()
+        :returns: ``dict`` - flatten attributes of the node
 
-            # will be added to the keys for root user on remote node
-            if publicKeyText:
-                rubs.append(SSHKeyDeployment(publicKeyText))
+        Please note that the information returned is a combination of
+        attributes exposed by Apache Libcloud and of extra fields
+        provided by Dimension Data.
 
-        except IOError:
-            pass
+        """
+        data = {}
+        data['id'] = node.id
+        data['name'] = node.name
+        data['private_ip'] = node.private_ips[0]
+        data.update(node.extra)
+        data.pop('status')
 
-        # shell script to run on the remote server
-        try:
-            scriptText = None
-            with open(os.path.dirname(__file__)+'/spit.sh') as stream:
-                scriptText = stream.read()
+        return data
 
-            # this will be communicated to remote node and executed
-            if scriptText:
-                rubs.append(ScriptDeployment(scriptText))
+    def reap(self):
+        """
+        Saves information gathered through the polishing sequence
 
-        except IOError:
-            pass
+        All information captured in dumped in a file, in YAML format,
+        to provide a flexible and accurate inventory of all live nodes
+        described in the fittings plan.
 
-        # rub this node
-        if len(rubs) > 0 and self.rub_node(node=node, rubs=MultiStepDeployment(rubs)):
-            self.logger('- done')
+        """
+
+        if 'file' in self.settings:
+            fileName = self.settings['file']
+        else:
+            fileName = 'spit.yaml'
+
+        logging.info("Spitting in '{}'".format(fileName))
+        with open(fileName, 'w') as stream:
+            stream.write(yaml.dump(self.inventory, default_flow_style=False))
+            stream.close()

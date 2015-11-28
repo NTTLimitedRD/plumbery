@@ -4,8 +4,6 @@
 Tests for `domain` module.
 """
 
-import os
-import sys
 import unittest
 
 from plumbery.domain import PlumberyDomain
@@ -65,6 +63,7 @@ fakeBluePrint = {'domain': {'name': 'fake',
                 'ethernet': {'name': 'fake',
                             'subnet': '10.0.10.0',
                             'description': '#vdc1'}}
+
 
 class TestPlumberyDomain(unittest.TestCase):
 

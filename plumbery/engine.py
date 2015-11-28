@@ -13,22 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# standard libraries
-import io
 import logging
 import os
-import sys
-
-# yaml for descriptions - http://pyyaml.org/wiki/PyYAMLDocumentation
 import yaml
 
-# Apache Libcloud - https://libcloud.readthedocs.org/en/latest
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider
 
-# other code related to plumbery
-from facility import PlumberyFacility
 from exceptions import PlumberyException
+from facility import PlumberyFacility
+from polisher import PlumberyPolisher
 
 __all__ = ['PlumberyEngine', 'PlumberyBlueprints']
 
@@ -106,22 +100,18 @@ class PlumberyEngine:
 
     """
 
-    # the cloud service provider
-    provider = None
-
-    # the various facilities where fittings are put under control
     facilities = []
 
-    # in safe mode no change is made to the fittings
+    polishers = []
+
+    provider = None
+
     safeMode = True
 
-    # the password to access remote servers
     _sharedSecret = None
 
-    # the name to authenticate to the driver
     _userName = None
 
-    # the password to authenticate to the driver
     _userPassword = None
 
     def __init__(self, fileName=None):
@@ -207,12 +197,19 @@ class PlumberyEngine:
         if not isinstance(settings, dict):
             raise TypeError('settings should be a dictionary')
 
-        if not 'safeMode' in settings:
+        if 'safeMode' not in settings:
             raise LookupError('safeMode is not defined')
 
         self.safeMode = settings['safeMode']
         if self.safeMode not in [True, False]:
             raise ValueError('safeMode should be either True or False')
+
+        if 'polishers' in settings:
+            for item in settings['polishers']:
+                key = item.keys()[0]
+                value = item[key]
+                self.polishers.append(
+                    PlumberyPolisher.from_shelf(key, value))
 
     def destroy_all_nodes(self):
         """
@@ -353,6 +350,77 @@ class PlumberyEngine:
                     "Error: missing credentials in environment MCP_PASSWORD")
 
         return self._userPassword
+
+    def polish_all_nodes(self, filter=None):
+        """
+        Walk all nodes and polish them
+
+        :param filter: the name of a single polisher to apply. If this
+            parameter is missing, all polishers declared in the fittings plan
+            will be applied
+        :type filter: ``str``
+
+        This function checks all facilities, one at a time and in the order
+        defined in fittings plan, to apply custom polishers there.
+
+        Example::
+
+            from plumbery.engine import PlumberyEngine
+            PlumberyEngine('fittings.yaml').polish_all_nodes()
+
+        """
+
+        logging.info("Polishing all blueprints")
+
+        print filter
+        print 'toto'
+        polishers = PlumberyPolisher.filter(self.polishers, filter)
+
+        for polisher in polishers:
+            polisher.go()
+
+        for facility in self.facilities:
+            facility.focus()
+            facility.polish_all_nodes(polishers)
+
+        for polisher in polishers:
+            polisher.reap()
+
+    def polish_nodes(self, name, filter=None):
+        """
+        Walk nodes from the target blueprint and polish them
+
+        :param name: the name of the blueprint to polish
+        :type name: ``str``
+
+        :param filter: the name of a single polisher to apply. If this
+            parameter is missing, all polishers declared in the fittings plan
+            will be applied
+        :type filter: ``str``
+
+        This function checks all facilities, one at a time and in the order
+        defined in fittings plan, to apply custom polishers there.
+
+        Example::
+
+            from plumbery.engine import PlumberyEngine
+            PlumberyEngine('fittings.yaml').polish_nodes('sql')
+
+        """
+
+        logging.info("Polishing blueprint '{}'".format(name))
+
+        polishers = PlumberyPolisher.filter(self.polishers, filter)
+
+        for polisher in polishers:
+            polisher.go()
+
+        for facility in self.facilities:
+            facility.focus()
+            facility.polish_nodes(name, polishers)
+
+        for polisher in polishers:
+            polisher.reap()
 
     def set_shared_secret(self, secret):
         """

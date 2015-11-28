@@ -14,12 +14,9 @@
 # limitations under the License.
 
 import logging
-import sys
 import time
 
-from libcloud.common.types import InvalidCredsError
 from libcloud.compute.base import NodeAuthPassword
-from libcloud.compute.types import NodeState
 
 from domain import PlumberyDomain
 from polisher import PlumberyPolisher
@@ -270,7 +267,6 @@ class PlumberyFacility:
                             else:
                                 raise PlumberyException("Error: unable to destroy node '{0}' - {1}!".format(nodeName, feedback))
 
-
                         # quit the loop
                         break
 
@@ -333,6 +329,56 @@ class PlumberyFacility:
 
         return None
 
+    def polish_all_nodes(self, polishers):
+        """
+        Walks all nodes at this facility and polish them
+
+        :param polishers: polishers to be applied
+        :type polishers: list of :class:`plumbery.PlumberyPolisher`
+
+        """
+
+        for blueprint in self.fittings.blueprints:
+            logging.info("Polishing blueprint '{}'".format(blueprint.keys()[0]))
+            self.polish_nodes(blueprint.keys()[0], polishers)
+
+    def polish_nodes(self, name, polishers):
+        """
+        Walks a named blueprint for this facility and polish related nodes
+
+        :param name: the name of the blueprint to polish
+        :type name: ``str``
+
+        :param polishers: polishers to be applied
+        :type polishers: list of :class:`plumbery.PlumberyPolisher`
+
+        """
+
+        blueprint = self.get_blueprint(name)
+        if not blueprint:
+            return
+
+        if 'nodes' not in blueprint:
+            return
+
+        for item in blueprint['nodes']:
+
+            if type(item) is dict:
+                label = item.keys()[0]
+                settings = item[label]
+            else:
+                label = str(item)
+                settings = {}
+            settings['name'] = label
+
+            node = self.get_node(label)
+            if node is not None:
+
+                logging.info("Polishing node '{}'".format(node.name))
+
+                for polisher in polishers:
+                    polisher.shine_node(node, settings)
+
     def power_on(self):
         """
         Switches electricity on
@@ -345,32 +391,6 @@ class PlumberyFacility:
         # cache images to limit API calls
         if len(self._images) < 1:
             self._images = self.region.list_images(location=self.location)
-
-    def polish_node(self, node, polisher):
-        """
-        Waits for a node to be started and polish it
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param polisher: the polisher to apply
-        :type polisher: :class:`plumbery.PlumberyPolisher`
-
-        """
-
-        # we have to wait until node is running
-        while node is not None:
-            if node.state == NodeState.RUNNING:
-                break
-
-            # give it some time to start
-            time.sleep(10)
-            node = self.get_node(node.name)
-            continue
-
-        # polish
-        if node:
-            polisher.shine_node(node)
 
     def start_all_nodes(self):
         """
@@ -498,35 +518,26 @@ class PlumberyFacility:
 
         """
 
-        # get the blueprint
         blueprint = self.get_blueprint(name)
         if not blueprint:
             return
 
-        # ensure that some nodes have been described
         if 'nodes' not in blueprint:
             return
 
-        # stop nodes
         for item in blueprint['nodes']:
 
-            # find the name of the node to be destroyed
             if type(item) is dict:
                 nodeName = item.keys()[0]
             else:
                 nodeName = str(item)
 
-            # enumerate existing nodes
             node = self.get_node(nodeName)
-
-            # stop an existing node
             if node is not None:
 
-                # safe mode
                 if self.plumbery.safeMode:
                     logging.info("Would have stopped node '{}' if not in safe mode".format(nodeName))
 
-                # actual node stop
                 else:
                     logging.info("Stopping node '{}'".format(nodeName))
 
@@ -539,23 +550,18 @@ class PlumberyFacility:
 
                         except Exception as feedback:
 
-                            # resource is busy, wait a bit and retry
                             if 'RESOURCE_BUSY' in str(feedback):
                                 time.sleep(10)
                                 continue
 
-                            # transient error, wait a bit and retry
                             elif 'UNEXPECTED_ERROR' in str(feedback):
                                 time.sleep(10)
                                 continue
 
-                            # node is already stopped
                             elif 'SERVER_STOPPED' in str(feedback):
                                 logging.info("- skipped - node is already stopped")
 
-                            # fatal error
                             else:
                                 raise PlumberyException("Error: unable to stop node '{0}' {1}!".format(nodeName, feedback))
 
-                        # quit the loop
                         break
