@@ -6,6 +6,7 @@ Tests for `plumbery` module.
 
 import io
 import os
+import socket
 import sys
 import unittest
 
@@ -116,6 +117,8 @@ class TestPlumberyEngine(unittest.TestCase):
             self.engine.destroy_all_nodes()
             self.engine.destroy_nodes('myBlueprint')
 
+        except socket.gaierror:
+            pass
         except InvalidCredsError:
             pass
 
