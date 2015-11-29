@@ -226,6 +226,7 @@ class RubPolisher(PlumberyPolisher):
         """
 
         self.facility = facility
+        print self.facility
 
         self.beachheading = False
 
@@ -247,6 +248,7 @@ class RubPolisher(PlumberyPolisher):
             pass
 
         print self.facility.fittings.rub
+
         for item in self.facility.fittings.rub:
             if not isinstance(item, dict):
                 continue

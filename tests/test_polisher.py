@@ -9,6 +9,7 @@ import unittest
 from libcloud.compute.types import NodeState
 
 from plumbery.engine import PlumberyFittings
+from plumbery.facility import PlumberyFacility
 from plumbery.polisher import PlumberyPolisher
 
 
@@ -18,13 +19,17 @@ class FakeEngine():
         return 'nuts'
 
 
-class FakeFittings(PlumberyFittings):
-    locationId = 'EU6'
-    rub = [{'beachhead': '10.1.10.9'}, {'beachhead': '10.1.10.10'}]
+fakeFacilitySettings = {
+    'locationId': 'EU6',
+    'rub': [{'beachhead': '10.1.10.9'}, {'beachhead': '10.1.10.10'}],
+    'regionId': 'dd-eu'}
 
 
 class FakeFacility():
-    fittings = FakeFittings()
+    fittings = PlumberyFittings(**fakeFacilitySettings)
+
+    def __repr__(self):
+        return "<FakeFacility fittings: {}>".format(self.fittings)
 
 
 class FakeNode():
