@@ -124,7 +124,7 @@ class AnsiblePolisher(SpitPolisher):
 
         for item in self.inventory:
             host = item['name']
-            hosts.append("{} ansible_host={}".format(host, item['private_ip']))
+            hosts.append("{} ansible_ssh_host={}".format(host, item['private_ip']))
 
             group = item['datacenterId']
             if group not in groups.keys():
