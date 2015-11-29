@@ -417,7 +417,6 @@ class PlumberyEngine:
             polisher.go(self)
 
         for facility in self.facilities:
-            print facility
             facility.focus()
             for polisher in polishers:
                 polisher.move_to(facility)
