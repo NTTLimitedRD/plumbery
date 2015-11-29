@@ -44,10 +44,12 @@ Tools used to build this package:
 
 *  `Apache Libcloud`_
 *  netifaces_
+*  PyYAML_
 *  Cookiecutter_
 *  `cookiecutter-pypackage`_
 
 .. _`Apache Libcloud`: https://libcloud.apache.org/
 .. _netifaces: https://pypi.python.org/pypi/netifaces
+.. _PyYAML: https://pypi.python.org/pypi/PyYAML
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

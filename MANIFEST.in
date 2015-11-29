@@ -6,7 +6,7 @@ include HISTORY.rst
 include LICENSE
 include Makefile
 include MANIFEST.in
-recursive-include polishers *
+recursive-include plumbery/polishers *
 include README.md
 include README.rst
 include requirements_dev.txt
