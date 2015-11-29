@@ -6,7 +6,7 @@ Tests for `facility` module.
 
 import unittest
 
-from plumbery.engine import PlumberyBlueprints, PlumberyEngine
+from plumbery.engine import PlumberyFittings, PlumberyEngine
 from plumbery.facility import PlumberyFacility
 
 
@@ -113,7 +113,7 @@ class TestPlumberyFacility(unittest.TestCase):
         self.plumbery = PlumberyEngine()
         self.plumbery.set_user_name('fake_user')
         self.plumbery.set_user_password('fake_password')
-        self.fittings = PlumberyBlueprints(**fakeFittings)
+        self.fittings = PlumberyFittings(**fakeFittings)
         self.facility = PlumberyFacility(plumbery=self.plumbery, fittings=self.fittings)
         self.facility.region = FakeRegion()
 
