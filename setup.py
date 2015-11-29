@@ -48,7 +48,7 @@ setup(
     keywords='plumbery',
     classifiers=[
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'Development Status :: Development Status :: 4 - Beta',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',

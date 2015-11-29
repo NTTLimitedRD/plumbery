@@ -14,16 +14,18 @@ History
 * Build inventory for ansible
 * Extension mechanism called polishers
 * Add demonstration scripts related to polishers
-* Test coverage 59%
+* A lot of docstring has been added
 * fake8 complains only about long lines and line termination
+* Passing Travis CI
+* Test coverage 59%
 
 0.1.2 (2015-11-27)
 ---------------------
 
 * First pull request fully processed
 * Docstring for all modules
-* Test coverage 62%
 * Passing Travis CI
+* Test coverage 62%
 
 0.1.1 (2015-11-23)
 ---------------------
