@@ -611,7 +611,6 @@ class PlumberyFittings:
 
     """
 
-    # turn a dictionary to an object
     def __init__(self, **entries):
 
         self.blueprints = []

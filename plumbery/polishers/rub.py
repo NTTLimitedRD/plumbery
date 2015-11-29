@@ -241,17 +241,20 @@ class RubPolisher(PlumberyPolisher):
                     for address in addresses[netifaces.AF_INET6]:
                         self.addresses.append(address['addr'])
 
-            for item in self.facility.rub:
-                if not isinstance(item, dict):
-                    continue
-                if 'beachhead' not in item.keys():
-                    continue
-                if item['beachhead'] in self.addresses:
-                    self.beachheading = True
-                    break
+            print self.addresses
 
-        except:
+        except Exception as feedback:
             pass
+
+        print self.facility.fittings.rub
+        for item in self.facility.fittings.rub:
+            if not isinstance(item, dict):
+                continue
+            if 'beachhead' not in item.keys():
+                continue
+            if item['beachhead'] in self.addresses:
+                self.beachheading = True
+                break
 
         if self.beachheading:
             logging.info("- beachheading at '{}'".format(self.facility.fittings.locationId))
