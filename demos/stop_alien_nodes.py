@@ -55,7 +55,7 @@ for facility in plumbery.facilities:
 
 		# offer to shutdown running alien nodes
 		if node.state is NodeState.RUNNING:
-			print("'{}' has been deployed is not part of our fittings".format(node.name))
+			print("'{}' has been deployed but is not part of our fittings".format(node.name))
 			feedback = raw_input('Should this node been stopped? [y/N/q] ').lower()
 
 			# we are asked to shutdown this node

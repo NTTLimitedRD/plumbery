@@ -33,7 +33,7 @@ class AnsiblePolisher(SpitPolisher):
         safeMode: False
         polishers:
           - ansible:
-              file: inventory.yaml
+              reap: inventory.yaml
         ---
         # Frankfurt in Europe
         locationId: EU6
@@ -138,10 +138,10 @@ class AnsiblePolisher(SpitPolisher):
                     groups[tag] = []
                 groups[tag].append(host)
 
-        if 'file' in self.settings:
-            fileName = self.settings['file']
+        if 'reap' in self.settings:
+            fileName = self.settings['reap']
         else:
-            fileName = 'inventory.yaml'
+            fileName = 'ansible.yaml'
 
         logging.info("Writing the inventory for ansible in '{}'".format(fileName))
         with open(fileName, 'w') as stream:

@@ -267,10 +267,11 @@ class PlumberyEngine:
 
     def get_shared_secret(self):
         """
-        Retrieves the secret that is communicated to new nodes during etup
+        Retrieves the secret that is communicated to new nodes during setup
 
         :returns: ``str``
             - the shared secret to be given to the driver
+
         :raises: :class:`plumbery.PlumberyException`
             - if no shared secret can be found
 
@@ -375,10 +376,12 @@ class PlumberyEngine:
         polishers = PlumberyPolisher.filter(self.polishers, filter)
 
         for polisher in polishers:
-            polisher.go()
+            polisher.go(self)
 
         for facility in self.facilities:
             facility.focus()
+            for polisher in polishers:
+                polisher.move_to(facility)
             facility.polish_all_nodes(polishers)
 
         for polisher in polishers:
@@ -411,10 +414,12 @@ class PlumberyEngine:
         polishers = PlumberyPolisher.filter(self.polishers, filter)
 
         for polisher in polishers:
-            polisher.go()
+            polisher.go(self)
 
         for facility in self.facilities:
             facility.focus()
+            for polisher in polishers:
+                polisher.move_to(facility)
             facility.polish_nodes(name, polishers)
 
         for polisher in polishers:
@@ -502,7 +507,7 @@ class PlumberyEngine:
         other blueprints.
         """
 
-        if not plan:
+        if plan is None:
             plan = os.getenv('PLUMBERY')
 
         if isinstance(plan, str):

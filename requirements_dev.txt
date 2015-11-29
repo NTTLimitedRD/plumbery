@@ -1,4 +1,5 @@
 -e git+https://github.com/apache/libcloud#egg=apache-libcloud
+netifaces==0.10.4
 bumpversion==0.5.3
 wheel==0.23.0
 watchdog==0.8.3

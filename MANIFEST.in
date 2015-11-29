@@ -6,6 +6,7 @@ include HISTORY.rst
 include LICENSE
 include Makefile
 include MANIFEST.in
+recursive-include polishers *
 include README.md
 include README.rst
 include requirements_dev.txt
@@ -17,4 +18,6 @@ include travis_pypi_setup.py
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
+recursive-exclude * test_*.yaml
+recursive-exclude * .DS_Store
 

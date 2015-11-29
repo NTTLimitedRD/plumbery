@@ -19,7 +19,6 @@ import time
 from libcloud.compute.base import NodeAuthPassword
 
 from domain import PlumberyDomain
-from polisher import PlumberyPolisher
 from exceptions import PlumberyException
 
 __all__ = ['PlumberyFacility']
@@ -401,69 +400,50 @@ class PlumberyFacility:
         for blueprint in self.fittings.blueprints:
             self.start_nodes(blueprint.keys()[0])
 
-    def _start_node(self, name, attributes=None):
+    def _start_node(self, name, settings={}):
         """
         Starts one node
 
         :param name: the name of the target node
         :type name: ``str``
 
-        :param attributes: additional attributes associated with this node
-        :type attributes: ``dict``
+        :param settings: extracted from the fittings plan for this node
+        :type settings: ``dict``
+
+        :returns: the node itself
 
         """
 
-        # get fresh state of the node
         node = self.get_node(name)
-
-        # not found
         if node is None:
             return None
 
-        # define which polish to use
-        polisher = None
-        if type(attributes) is dict and 'polish' in attributes:
-            polish = attributes['polish']
-            polisher = PlumberyPolisher.from_shelf(polish)
-
-        # safe mode
         if self.plumbery.safeMode:
             logging.info("Would have started node '{}' if not in safe mode".format(name))
 
-        # actual node start
         else:
             logging.info("Starting node '{}'".format(name))
 
-            # we may have to wait for busy resources
             while True:
 
                 try:
                     self.region.ex_start_node(node)
                     logging.info("- in progress")
 
-                    # if there is a need to polish the appliance, we may have to wait a bit more
-                    if polisher:
-                        self.polish_node(node, polisher)
-
                 except Exception as feedback:
 
-                    # resource is busy, wait a bit and retry
                     if 'RESOURCE_BUSY' in str(feedback):
                         time.sleep(10)
                         continue
 
-                    # node is up and running, nothing to do
                     elif 'SERVER_STARTED' in str(feedback):
                         logging.info("- skipped - node is up and running")
 
-                    # fatal error
                     else:
                         raise PlumberyException("Error: unable to start node '{0}' - {1}!".format(name, feedback))
 
-                # quit the loop
                 break
 
-        # provide more details
         return node
 
     def start_nodes(self, name):
@@ -475,30 +455,24 @@ class PlumberyFacility:
 
         """
 
-        # get the blueprint
         blueprint = self.get_blueprint(name)
         if not blueprint:
             return
 
-        # ensure that some nodes have been described
         if 'nodes' not in blueprint:
             return
 
-        # start nodes
         for item in blueprint['nodes']:
 
-            # node has several explicit attributes
             if type(item) is dict:
-                nodeName = item.keys()[0]
-                nodeAttributes = item.values()[0]
+                label = item.keys()[0]
+                settings = item.values()[0]
 
-            # node has only a name
             else:
-                nodeName = item
-                nodeAttributes = None
+                label = item
+                settings = {}
 
-            # one node at at time
-            self._start_node(nodeName, nodeAttributes)
+            self._start_node(label, settings)
 
     def stop_all_nodes(self):
         """
@@ -516,6 +490,16 @@ class PlumberyFacility:
         :param name: the name of the target blueprint
         :type name: ``str``
 
+        You can use the following setting to prevent plumbery from stopping a
+        node::
+
+          - sql:
+              domain: *vdc1
+              ethernet: *data
+              nodes:
+                - slaveSQL:
+                    running: always
+
         """
 
         blueprint = self.get_blueprint(name)
@@ -528,40 +512,47 @@ class PlumberyFacility:
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                nodeName = item.keys()[0]
+                label = item.keys()[0]
+                settings = item.values()[0]
+
             else:
-                nodeName = str(item)
+                label = item
+                settings = {}
 
-            node = self.get_node(nodeName)
-            if node is not None:
+            if 'running' in settings and settings['running'] == 'always':
+                logging.info("Node '{}' has to stay always on".format(label))
+                continue
 
-                if self.plumbery.safeMode:
-                    logging.info("Would have stopped node '{}' if not in safe mode".format(nodeName))
+            node = self.get_node(label)
+            if node is None:
+                continue
 
-                else:
-                    logging.info("Stopping node '{}'".format(nodeName))
+            if self.plumbery.safeMode:
+                logging.info("Would have stopped node '{}' if not in safe mode".format(label))
 
-                    # we may have to wait for busy resources
-                    while True:
+            else:
+                logging.info("Stopping node '{}'".format(label))
 
-                        try:
-                            self.region.ex_shutdown_graceful(node)
-                            logging.info("- in progress")
+                while True:
 
-                        except Exception as feedback:
+                    try:
+                        self.region.ex_shutdown_graceful(node)
+                        logging.info("- in progress")
 
-                            if 'RESOURCE_BUSY' in str(feedback):
-                                time.sleep(10)
-                                continue
+                    except Exception as feedback:
 
-                            elif 'UNEXPECTED_ERROR' in str(feedback):
-                                time.sleep(10)
-                                continue
+                        if 'RESOURCE_BUSY' in str(feedback):
+                            time.sleep(10)
+                            continue
 
-                            elif 'SERVER_STOPPED' in str(feedback):
-                                logging.info("- skipped - node is already stopped")
+                        elif 'UNEXPECTED_ERROR' in str(feedback):
+                            time.sleep(10)
+                            continue
 
-                            else:
-                                raise PlumberyException("Error: unable to stop node '{0}' {1}!".format(nodeName, feedback))
+                        elif 'SERVER_STOPPED' in str(feedback):
+                            logging.info("- skipped - node is already stopped")
 
-                        break
+                        else:
+                            raise PlumberyException("Error: unable to stop node '{0}' {1}!".format(label, feedback))
+
+                    break

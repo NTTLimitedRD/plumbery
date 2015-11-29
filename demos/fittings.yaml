@@ -6,21 +6,27 @@ safeMode: False
 
 #
 polishers:
-  - spit:
-      file: nodes.yaml
   - ansible:
-      file: inventory.yaml
+      reap: test_inventory.yaml
+  - rub:
+      key: ~/.ssh/id_rsa.pub
+      reap: test_rubs.yaml
+  - spit:
+      reap: test_nodes.yaml
 
 # each facility is described separately
 ---
-# Frankfurt in Europe
+# Frankfurt in Europe - 10.1.x.y
 locationId: EU6
 regionId: dd-eu
 
-# fittings consist of multiple blueprints
+rub:
+  - beachhead: 10.1.10.9
+  - beachhead: 10.1.10.10
+
 blueprints:
 
-  # workloads involved into management, administration, and monitoring
+  # management, administration, and monitoring
   - control:
       domain: &vdc1
         name: VDC1
@@ -31,15 +37,34 @@ blueprints:
         subnet: 10.1.10.0
         description: '#vdc1'
       nodes:
-        - stackstorm:
+        - stackstorm1:
             description: 'StackStorm engine #vdc1 #ops'
-            appliance: 'RedHat 6 64-bit 4 CPU'
-        - zabbix:
-            description: 'Zabbix dashboard #vdc1 #ops'
-            appliance: 'RedHat 6 64-bit 2 CPU'
-        - scom:
-            description: 'Microsoft System Center Operation Manager #vdc1 #ops'
-            appliance: 'Win2012 R2 Std 4 CPU'
+            address: 10.1.10.8
+            running: always
+        - beachhead1:
+            description: 'Plumbery engine #vdc1 #ops'
+            address: 10.1.10.9
+            running: always
+
+  # docker resources
+  - docker:
+      domain: *vdc1
+      ethernet: &containers
+        name: containers
+        subnet: 10.1.2.0
+        description: '#vdc1'
+      nodes:
+        - docker1:
+            description: 'Docker #vdc1 #docker'
+            rub: &docker
+              - rub.update.sh
+              - rub.docker.sh
+        - docker2:
+            description: 'Docker #vdc1 #docker'
+            rub: *docker
+        - docker3:
+            description: 'Docker #vdc1 #docker'
+            rub: *docker
 
   # secondary sql servers
   - sql:
@@ -54,14 +79,13 @@ blueprints:
             appliance: 'RedHat 6 64-bit 4 CPU'
 
 ---
-# Amsterdam in Europe
+# Amsterdam in Europe - 10.2.x.y
 locationId: EU7
 regionId: dd-eu
 
-# fittings consist of multiple blueprints
 blueprints:
 
-  # workloads involved into management, administration, and monitoring
+  # management, administration, and monitoring
   - control:
       domain: &vdc2
         name: VDC2
@@ -71,13 +95,16 @@ blueprints:
         subnet: 10.2.10.0
         description: '#vdc2'
       nodes:
-        - stackstorm:
+        - stackstorm2:
             description: 'StackStorm engine #vdc2 #ops'
             appliance: 'RedHat 6 64-bit 4 CPU'
-        - zabbix:
+        - zabbix2:
             description: 'Zabbix dashboard #vdc2 #ops'
             appliance: 'RedHat 6 64-bit 2 CPU'
-        - scom:
+        - scom1:
+            appliance: 'Win2012 R2 Std 4 CPU'
+            description: 'Microsoft System Center Operation Manager #vdc2 #ops'
+        - scom2:
             appliance: 'Win2012 R2 Std 4 CPU'
             description: 'Microsoft System Center Operation Manager #vdc2 #ops'
 
@@ -171,13 +198,9 @@ blueprints:
 
 # some network domains may have been created manually - they are considered part of these fittings
 domains:
-  - JohannesBrunner_PoC
-  - FR_DoubleTake_PoC
 
 # some nodes may have been created manually - they are considered part of these fittings
 nodes:
-  - test
-  - SCOM1
 
 
 

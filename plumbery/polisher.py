@@ -113,7 +113,7 @@ class PlumberyPolisher:
                 "Error: unable to load polisher '{0}' {1}!".format(
                     polishId, feedback))
 
-    def go(self):
+    def go(self, engine):
         """
         Puts the shoes on, and go polishing
 
@@ -123,7 +123,7 @@ class PlumberyPolisher:
 
         """
 
-        pass
+        self.engine = engine
 
     @classmethod
     def filter(cls, polishers, filter=None):
@@ -156,6 +156,18 @@ class PlumberyPolisher:
                 return filtered
 
         raise LookupError("Error: polisher '{}' cannot be found".format(filter))
+
+    def move_to(self, facility):
+        """
+        Enters a facility to polish nodes there
+
+        This function is called once for each facility that is visited during
+        the polishing process. You can override it for any specific
+        initialisation that you would require.
+
+        """
+
+        self.facility = facility
 
     def shine_node(self, node, settings):
         """

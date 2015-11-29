@@ -34,9 +34,9 @@ class SpitPolisher(PlumberyPolisher):
         safeMode: False
         polishers:
           - spit:
-              file: nodes.yaml
+              reap: nodes.yaml
           - ansible:
-              file: inventory.yaml
+              reap: inventory.yaml
         ---
         # Frankfurt in Europe
         locationId: EU6
@@ -46,10 +46,12 @@ class SpitPolisher(PlumberyPolisher):
 
     """
 
-    def go(self):
+    def go(self, engine):
         """
         Restarts the inventory process
         """
+
+        self.engine = engine
 
         self.inventory = []
 
@@ -100,8 +102,8 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
-        if 'file' in self.settings:
-            fileName = self.settings['file']
+        if 'reap' in self.settings:
+            fileName = self.settings['reap']
         else:
             fileName = 'spit.yaml'
 

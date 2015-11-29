@@ -27,18 +27,27 @@ Features
 * Build one single blueprint across multiple locations
 * Start all nodes
 * Start nodes belonging to the same blueprint
+* Polish all Linux nodes for quick bootstrapping
+* Build a full inventory of nodes that have been deployed
+* Reflect fittings into a ready-to-use inventory for ansible
 * Stop all nodes
 * Stop nodes belonging to the same blueprint
 * Destroy all nodes
 * Destroy nodes belonging to the same blueprint
+* Many demonstration scripts are provided
+* You can extend plumbery with your own polishers, it has been designed for that
 
 Credits
 ---------
 
-Tools used in rendering this package:
+Tools used to build this package:
 
+*  `Apache Libcloud`_
+*  netifaces_
 *  Cookiecutter_
 *  `cookiecutter-pypackage`_
 
+.. _`Apache Libcloud`: https://libcloud.apache.org/
+.. _netifaces: https://pypi.python.org/pypi/netifaces
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

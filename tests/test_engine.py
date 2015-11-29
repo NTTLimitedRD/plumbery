@@ -93,6 +93,8 @@ class TestPlumberyEngine(unittest.TestCase):
             self.engine.add_facility(myFacility)
             self.assertEqual(len(self.engine.facilities), 2)
 
+        except socket.gaierror:
+            pass
         except InvalidCredsError:
             pass
 

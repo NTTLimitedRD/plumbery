@@ -11,11 +11,9 @@ except ImportError:
     from distutils.core import setup
 
 
-requirements = ['apache-libcloud']
+requirements = ['apache-libcloud', 'netifaces']
 
-test_requirements = [
-    # TODO: put package test requirements here
-]
+test_requirements = []
 
 # get version from package itself
 def get_version():
@@ -50,7 +48,7 @@ setup(
     keywords='plumbery',
     classifiers=[
         # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'Development Status :: 3 - Alpha',
+        'Development Status :: Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
@@ -59,13 +57,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Programming Language :: Python :: 2.7',
-#        'Programming Language :: Python :: 3',
-#        'Programming Language :: Python :: 3.0',
-#        'Programming Language :: Python :: 3.1',
-#        'Programming Language :: Python :: 3.2',
-#        'Programming Language :: Python :: 3.3',
-#        'Programming Language :: Python :: 3.4',
-#        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
