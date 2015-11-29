@@ -50,8 +50,8 @@ blueprints:
   - docker:
       domain: *vdc1
       ethernet: &containers
-        name: containers
-        subnet: 10.1.2.0
+        name: control
+        subnet: 10.1.10.0
         description: '#vdc1'
       nodes:
         - docker1:
