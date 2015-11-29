@@ -33,7 +33,7 @@ class PlumberyFacility:
     :type plumbery: :class:`plumbery.PlumberyEngine`
 
     :param fittings:  the plan for the fittings
-    :type fittings: :class:`plumbery.PlumberyBlueprints`
+    :type fittings: :class:`plumbery.PlumberyFittings`
 
     Example::
 
@@ -77,6 +77,10 @@ class PlumberyFacility:
             plumbery.get_user_name(),
             plumbery.get_user_password(),
             region=self.fittings.regionId)
+
+    def __repr__(self):
+
+        return "<PlumberyFacility fittings: {}>".format(self.fittings)
 
     def build_all_blueprints(self):
         """

@@ -24,7 +24,7 @@ from exceptions import PlumberyException
 from facility import PlumberyFacility
 from polisher import PlumberyPolisher
 
-__all__ = ['PlumberyEngine', 'PlumberyBlueprints']
+__all__ = ['PlumberyEngine', 'PlumberyFittings']
 
 
 class PlumberyEngine:
@@ -138,7 +138,7 @@ class PlumberyEngine:
         """
 
         if isinstance(facility, dict):
-            facility = PlumberyFacility(self, PlumberyBlueprints(**facility))
+            facility = PlumberyFacility(self, PlumberyFittings(**facility))
 
         self.facilities.append(facility)
 
@@ -417,6 +417,7 @@ class PlumberyEngine:
             polisher.go(self)
 
         for facility in self.facilities:
+            print facility
             facility.focus()
             for polisher in polishers:
                 polisher.move_to(facility)
@@ -601,7 +602,7 @@ class PlumberyEngine:
             facility.stop_nodes(name)
 
 
-class PlumberyBlueprints:
+class PlumberyFittings:
     """
     Describe fittings plan for one facility
 
@@ -612,4 +613,17 @@ class PlumberyBlueprints:
 
     # turn a dictionary to an object
     def __init__(self, **entries):
+
+        self.blueprints = []
+        self.locationID = None
+        self.regionID = None
+        self.rub = []
+
         self.__dict__.update(entries)
+
+    def __repr__(self):
+
+        return "<PlumberyFittings locationId: {}, regionId: {}, "           \
+            "rub: {}, blueprints: {}>"                                      \
+            .format(self.locationId, self.regionId, self.rub, self.blueprints)
+
