@@ -283,8 +283,6 @@ class RubPolisher(PlumberyPolisher):
                 }})
             return
 
-        logging.info("Rubbing node '{}'".format(node.name))
-
         descriptions = []
         steps = []
         for item in rubs:
