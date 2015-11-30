@@ -332,9 +332,9 @@ class PlumberyFacility:
 
         return None
 
-    def polish_all_nodes(self, polishers):
+    def polish_all_blueprints(self, polishers):
         """
-        Walks all nodes at this facility and polish them
+        Walks all resources at this facility and polish them
 
         :param polishers: polishers to be applied
         :type polishers: list of :class:`plumbery.PlumberyPolisher`
@@ -343,11 +343,11 @@ class PlumberyFacility:
 
         for blueprint in self.fittings.blueprints:
             logging.info("Polishing blueprint '{}'".format(blueprint.keys()[0]))
-            self.polish_nodes(blueprint.keys()[0], polishers)
+            self.polish_blueprint(blueprint.keys()[0], polishers)
 
-    def polish_nodes(self, name, polishers):
+    def polish_blueprint(self, name, polishers):
         """
-        Walks a named blueprint for this facility and polish related nodes
+        Walks a named blueprint for this facility and polish related resources
 
         :param name: the name of the blueprint to polish
         :type name: ``str``

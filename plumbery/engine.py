@@ -352,9 +352,9 @@ class PlumberyEngine:
 
         return self._userPassword
 
-    def polish_all_nodes(self, filter=None):
+    def polish_all_blueprints(self, filter=None):
         """
-        Walk all nodes and polish them
+        Walk all resources and polish them
 
         :param filter: the name of a single polisher to apply. If this
             parameter is missing, all polishers declared in the fittings plan
@@ -367,7 +367,7 @@ class PlumberyEngine:
         Example::
 
             from plumbery.engine import PlumberyEngine
-            PlumberyEngine('fittings.yaml').polish_all_nodes()
+            PlumberyEngine('fittings.yaml').polish_all_blueprints()
 
         """
 
@@ -382,14 +382,14 @@ class PlumberyEngine:
             facility.focus()
             for polisher in polishers:
                 polisher.move_to(facility)
-            facility.polish_all_nodes(polishers)
+            facility.polish_all_blueprints(polishers)
 
         for polisher in polishers:
             polisher.reap()
 
-    def polish_nodes(self, name, filter=None):
+    def polish_blueprint(self, name, filter=None):
         """
-        Walk nodes from the target blueprint and polish them
+        Walk resources from the target blueprint and polish them
 
         :param name: the name of the blueprint to polish
         :type name: ``str``
@@ -405,7 +405,7 @@ class PlumberyEngine:
         Example::
 
             from plumbery.engine import PlumberyEngine
-            PlumberyEngine('fittings.yaml').polish_nodes('sql')
+            PlumberyEngine('fittings.yaml').polish_blueprint('sql')
 
         """
 
@@ -420,7 +420,7 @@ class PlumberyEngine:
             facility.focus()
             for polisher in polishers:
                 polisher.move_to(facility)
-            facility.polish_nodes(name, polishers)
+            facility.polish_blueprint(name, polishers)
 
         for polisher in polishers:
             polisher.reap()
