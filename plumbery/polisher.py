@@ -169,6 +169,24 @@ class PlumberyPolisher:
 
         self.facility = facility
 
+    def shine_domain(self, domain, settings):
+        """
+        Rubs a domain until it shines
+
+        :param domain: the domain to be polished
+        :type domain: `strp`
+
+        :param settings: the fittings plan for this node
+        :type settings: ``dict``
+
+        This is where the hard work is done. You have to override this
+        function in your own polisher. Note that you can compare the reality
+        versus the theoritical settings if you want.
+
+        """
+
+        pass
+
     def shine_node(self, node, settings):
         """
         Rubs a node until it shines
@@ -185,7 +203,7 @@ class PlumberyPolisher:
 
         """
 
-        raise NotImplementedError("Error: no polisher '{}'".format(node.name))
+        pass
 
     def reap(self):
         """
