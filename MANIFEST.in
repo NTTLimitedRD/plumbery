@@ -1,18 +1,18 @@
 include AUTHORS.rst
 include CONTRIBUTING.rst
-recursive-include demos *
+include demos/*
 recursive-include docs *.rst conf.py Makefile make.bat
 include HISTORY.rst
 include LICENSE
 include Makefile
 include MANIFEST.in
-recursive-include plumbery/polishers *
+include plumbery/polishers/*
 include README.md
 include README.rst
 include requirements_dev.txt
 include setup.cfg
 include setup.py
-recursive-include tests *
+include tests/*
 include tox.ini
 include travis_pypi_setup.py
 
