@@ -65,32 +65,21 @@ class SpitPolisher(PlumberyPolisher):
         :param settings: the fittings plan for this node
         :type settings: ``dict``
 
-        """
-
-        self.inventory.append(self._spit(node))
-
-    def _spit(self, node):
-        """
-        Puts node information in a flat dictionary
-
-        :param node: the node to be polished
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :returns: ``dict`` - flatten attributes of the node
-
-        Please note that the information returned is a combination of
+        Please note that the information saved here is a combination of
         attributes exposed by Apache Libcloud and of extra fields
         provided by Dimension Data.
 
         """
+
         data = {}
+        data['type'] = 'node'
         data['id'] = node.id
         data['name'] = node.name
         data['private_ip'] = node.private_ips[0]
         data.update(node.extra)
         data.pop('status')
 
-        return data
+        self.inventory.append(data)
 
     def reap(self):
         """
