@@ -9,7 +9,7 @@ python build_sql_blueprint.py
 python start_sql_nodes.py
 
 # polish all nodes in 'sql' blueprint
-python polish_sql_nodes.py
+python polish_sql_blueprint.py
 
 # time to recycle resources - stop all nodes of 'sql', and reduce the bill
 python stop_sql_nodes.py
