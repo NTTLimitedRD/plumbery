@@ -40,8 +40,6 @@ Features
 Credits
 ---------
 
-Tools used to build this package:
-
 *  `Apache Libcloud`_
 *  netifaces_
 *  PyYAML_
