@@ -3,6 +3,14 @@
 History
 -------
 
+0.2.1 (2015-12-02)
+---------------------
+
+* Code refactoring into a new module for nodes
+* fake8 complains only about long lines and line termination
+* Passing Travis CI
+* Test coverage 59%
+
 0.2.0 (2015-11-29)
 ---------------------
 
