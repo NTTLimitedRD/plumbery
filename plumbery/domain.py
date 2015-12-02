@@ -21,7 +21,8 @@ __all__ = ['PlumberyDomain']
 
 
 class PlumberyDomain:
-    """Cloud automation for a network domain
+    """
+    Cloud automation for a network domain
 
     :param facility: the underlying physical facility
     :type facility: :class:`plumbery.PlumberFacility`
@@ -32,8 +33,8 @@ class PlumberyDomain:
     Example::
 
         from plumbery.domain import PlumberyDomain
-        domain = PlumberyDomain(facility=facility)
-        domain.build_blueprint(blueprint=blueprint)
+        domain = PlumberyDomain(facility)
+        domain.build(blueprint)
 
     In this example a domain is initialised at the given facility, and then
     it is asked to create the pipes and the plumbery mentioned in the

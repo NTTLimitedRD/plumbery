@@ -19,6 +19,7 @@ import time
 from libcloud.compute.base import NodeAuthPassword
 
 from domain import PlumberyDomain
+from nodes import PlumberyNodes
 from exceptions import PlumberyException
 
 __all__ = ['PlumberyFacility']
@@ -62,7 +63,7 @@ class PlumberyFacility:
 
     plumbery = None
 
-    # the handle to the Apache Libcloud driver
+    # handle to the Apache Libcloud driver
     region = None
 
     def __init__(self, plumbery=None, fittings=None):
@@ -108,98 +109,8 @@ class PlumberyFacility:
         domain = PlumberyDomain(self)
         domain.build(blueprint)
 
-        self._build_nodes(blueprint=blueprint, domain=domain)
-
-    def _build_nodes(self, blueprint, domain):
-        """
-        Create nodes if they do not exist at this facility
-
-        :param blueprint: the blueprint to build
-        :type blueprint: ``dict``
-
-        :param domain: the domain where nodes will be built
-        :type domain: :class:`plumbery.PlumberyDomain`
-
-        """
-
-        self.power_on()
-
-        if 'nodes' not in blueprint:
-            raise PlumberyException("Error: no nodes have been defined for the blueprint '{}'!".format(blueprint['target']))
-
-        for item in blueprint['nodes']:
-
-            if type(item) is dict:
-                nodeName = item.keys()[0]
-                nodeAttributes = item.values()[0]
-
-            else:
-                nodeName = item
-                nodeAttributes = None
-
-            if self.get_node(nodeName):
-                logging.info("Node '{}' already exists".format(nodeName))
-
-            else:
-
-                # the description attribute is a smart way to tag resources
-                description = '#plumbery'
-                if type(nodeAttributes) is dict and 'description' in nodeAttributes:
-                    description = nodeAttributes['description'] + ' #plumbery'
-
-                # define which appliance to use
-                if type(nodeAttributes) is dict and 'appliance' in nodeAttributes:
-                    imageName = nodeAttributes['appliance']
-                else:
-                    imageName = 'Ubuntu'
-
-                # find suitable image to use
-                image = None
-                for image in self._images:
-                    if imageName in image.name:
-                        break
-
-                # Houston, we've got a problem
-                if image is None or imageName not in image.name:
-                    raise PlumberyException("Error: unable to find image for '{}'!".format(imageName))
-
-                # safe mode
-                if self.plumbery.safeMode:
-                    logging.info("Would have created node '{}' if not in safe mode".format(nodeName))
-
-                # actual node creation
-                else:
-                    logging.info("Creating node '{}'".format(nodeName))
-
-                    # we may have to wait for busy resources
-                    while True:
-
-                        try:
-                            self.region.create_node(
-                                name=nodeName,
-                                image=image,
-                                auth=NodeAuthPassword(
-                                    self.plumbery.get_shared_secret()),
-                                ex_network_domain=domain.domain,
-                                ex_vlan=domain.network,
-                                ex_is_started=False,
-                                ex_description=description)
-                            logging.info("- in progress")
-
-                        except Exception as feedback:
-
-                            # resource is busy, wait a bit and retry
-                            if 'RESOURCE_BUSY' in str(feedback):
-                                time.sleep(10)
-                                continue
-
-                            # fatal error
-                            else:
-                                raise PlumberyException(
-                                    "Error: unable to create node '{0}' - {1}!".format(nodeName, feedback))
-
-                        # quit the loop
-                        break
+        nodes = PlumberyNodes(self)
+        nodes.build_blueprint(blueprint, domain)
 
     def destroy_all_nodes(self):
         """
@@ -226,52 +137,8 @@ class PlumberyFacility:
         if not blueprint:
             return
 
-        if 'nodes' not in blueprint:
-            return
-
-        # destroy in reverse order
-        for item in reversed(blueprint['nodes']):
-
-            if type(item) is dict:
-                nodeName = item.keys()[0]
-            else:
-                nodeName = str(item)
-
-            node = self.get_node(nodeName)
-            if node is not None:
-
-                # safe mode
-                if self.plumbery.safeMode:
-                    logging.info("Would have destroyed node '{}' if not in safe mode".format(nodeName))
-
-                # actual node destruction
-                else:
-                    logging.info("Destroying node '{}'".format(nodeName))
-
-                    # we may have to wait for busy resources
-                    while True:
-
-                        try:
-                            self.region.destroy_node(node)
-                            logging.info("- in progress")
-
-                        except Exception as feedback:
-
-                            # resource is busy, wait a bit and retry
-                            if 'RESOURCE_BUSY' in str(feedback):
-                                time.sleep(10)
-                                continue
-
-                            # node is up and running, would have to stop it first
-                            elif 'SERVER_STARTED' in str(feedback):
-                                logging.info("- skipped - node is up and running")
-
-                            # fatal error
-                            else:
-                                raise PlumberyException("Error: unable to destroy node '{0}' - {1}!".format(nodeName, feedback))
-
-                        # quit the loop
-                        break
+        nodes = PlumberyNodes(self)
+        nodes.destroy_blueprint(blueprint)
 
     def focus(self):
         """
@@ -301,36 +168,32 @@ class PlumberyFacility:
 
         return None
 
-    def get_node(self, name):
+    def get_image(self, name):
         """
-        Retrieves a node by name
+        Retrieves an acceptable image
 
-        :param name: the name of the target node
+        :param name: the name of the target image
         :type name: ``str``
 
-        :returns: :class:`libcloud.compute.base.Node`
-            - the target node, or None
+        :returns: :class:`Image` - the target image, or None
 
         """
 
-        self.power_on()
-
-        node = None
-        for node in self.region.list_nodes():
-
-            # skip nodes from other locations
-            if node.extra['datacenterId'] != self.location.id:
-                continue
-
-#           # skip nodes from other network domains
-#           if node.extra['networkDomainId'] != self.domain.id:
-#               continue
-
-            # found an existing node with this name
-            if node.name == name:
-                return node
+        for image in self.facility._images:
+            if name in image.name:
+                return image
 
         return None
+
+    def get_location_id(self):
+        """
+        Retrieves the id of the current location
+
+        :return: ``str``- the id of the current location
+
+        """
+
+        return self.location.id
 
     def polish_all_blueprints(self, polishers):
         """
@@ -364,23 +227,8 @@ class PlumberyFacility:
         if 'nodes' not in blueprint:
             return
 
-        for item in blueprint['nodes']:
-
-            if type(item) is dict:
-                label = item.keys()[0]
-                settings = item[label]
-            else:
-                label = str(item)
-                settings = {}
-            settings['name'] = label
-
-            node = self.get_node(label)
-            if node is not None:
-
-                logging.info("Polishing node '{}'".format(node.name))
-
-                for polisher in polishers:
-                    polisher.shine_node(node, settings)
+        nodes = PlumberyNodes(self)
+        nodes.polish_blueprint(blueprint)
 
     def power_on(self):
         """
@@ -404,52 +252,6 @@ class PlumberyFacility:
         for blueprint in self.fittings.blueprints:
             self.start_nodes(blueprint.keys()[0])
 
-    def _start_node(self, name, settings={}):
-        """
-        Starts one node
-
-        :param name: the name of the target node
-        :type name: ``str``
-
-        :param settings: extracted from the fittings plan for this node
-        :type settings: ``dict``
-
-        :returns: the node itself
-
-        """
-
-        node = self.get_node(name)
-        if node is None:
-            return None
-
-        if self.plumbery.safeMode:
-            logging.info("Would have started node '{}' if not in safe mode".format(name))
-
-        else:
-            logging.info("Starting node '{}'".format(name))
-
-            while True:
-
-                try:
-                    self.region.ex_start_node(node)
-                    logging.info("- in progress")
-
-                except Exception as feedback:
-
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'SERVER_STARTED' in str(feedback):
-                        logging.info("- skipped - node is up and running")
-
-                    else:
-                        raise PlumberyException("Error: unable to start node '{0}' - {1}!".format(name, feedback))
-
-                break
-
-        return node
-
     def start_nodes(self, name):
         """
         Starts nodes from a given blueprint at this facility
@@ -466,17 +268,8 @@ class PlumberyFacility:
         if 'nodes' not in blueprint:
             return
 
-        for item in blueprint['nodes']:
-
-            if type(item) is dict:
-                label = item.keys()[0]
-                settings = item.values()[0]
-
-            else:
-                label = item
-                settings = {}
-
-            self._start_node(label, settings)
+        nodes = PlumberyNodes(self)
+        nodes.start_blueprint(blueprint)
 
     def stop_all_nodes(self):
         """
@@ -513,50 +306,5 @@ class PlumberyFacility:
         if 'nodes' not in blueprint:
             return
 
-        for item in blueprint['nodes']:
-
-            if type(item) is dict:
-                label = item.keys()[0]
-                settings = item.values()[0]
-
-            else:
-                label = item
-                settings = {}
-
-            if 'running' in settings and settings['running'] == 'always':
-                logging.info("Node '{}' has to stay always on".format(label))
-                continue
-
-            node = self.get_node(label)
-            if node is None:
-                continue
-
-            if self.plumbery.safeMode:
-                logging.info("Would have stopped node '{}' if not in safe mode".format(label))
-
-            else:
-                logging.info("Stopping node '{}'".format(label))
-
-                while True:
-
-                    try:
-                        self.region.ex_shutdown_graceful(node)
-                        logging.info("- in progress")
-
-                    except Exception as feedback:
-
-                        if 'RESOURCE_BUSY' in str(feedback):
-                            time.sleep(10)
-                            continue
-
-                        elif 'UNEXPECTED_ERROR' in str(feedback):
-                            time.sleep(10)
-                            continue
-
-                        elif 'SERVER_STOPPED' in str(feedback):
-                            logging.info("- skipped - node is already stopped")
-
-                        else:
-                            raise PlumberyException("Error: unable to stop node '{0}' {1}!".format(label, feedback))
-
-                    break
+        nodes = PlumberyNodes(self)
+        nodes.stop_blueprint(blueprint)

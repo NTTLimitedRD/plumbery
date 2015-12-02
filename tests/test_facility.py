@@ -138,9 +138,6 @@ class TestPlumberyFacility(unittest.TestCase):
     def test_get_blueprint(self):
         self.facility.get_blueprint('fake')
 
-    def test_get_node(self):
-        self.facility.get_node('stackstorm')
-
     def test_start_all_nodes(self):
         self.facility.start_all_nodes()
 
