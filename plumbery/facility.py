@@ -179,7 +179,7 @@ class PlumberyFacility:
 
         """
 
-        for image in self.facility._images:
+        for image in self._images:
             if name in image.name:
                 return image
 
@@ -228,7 +228,7 @@ class PlumberyFacility:
             return
 
         nodes = PlumberyNodes(self)
-        nodes.polish_blueprint(blueprint)
+        nodes.polish_blueprint(blueprint, polishers)
 
     def power_on(self):
         """
