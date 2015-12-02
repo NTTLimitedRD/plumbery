@@ -43,6 +43,14 @@ plumbery.facility module
     :undoc-members:
     :show-inheritance:
 
+plumbery.nodes module
+---------------------
+
+.. automodule:: plumbery.nodes
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 plumbery.polisher module
 ------------------------
 
