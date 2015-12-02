@@ -14,13 +14,9 @@
 # limitations under the License.
 
 import logging
-import time
-
-from libcloud.compute.base import NodeAuthPassword
 
 from domain import PlumberyDomain
 from nodes import PlumberyNodes
-from exceptions import PlumberyException
 
 __all__ = ['PlumberyFacility']
 

@@ -6,8 +6,6 @@ Tests for `nodes` module.
 
 import unittest
 
-from plumbery.engine import PlumberyFittings, PlumberyEngine
-from plumbery.facility import PlumberyFacility
 from plumbery.nodes import PlumberyNodes
 
 
@@ -47,6 +45,7 @@ class FakePlumbery:
 
     def get_shared_secret(self):
         return 'foo'
+
 
 class FakeRegion:
 

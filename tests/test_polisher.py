@@ -9,7 +9,6 @@ import unittest
 from libcloud.compute.types import NodeState
 
 from plumbery.engine import PlumberyFittings
-from plumbery.facility import PlumberyFacility
 from plumbery.polisher import PlumberyPolisher
 
 
