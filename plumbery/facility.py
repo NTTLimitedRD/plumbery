@@ -83,11 +83,21 @@ class PlumberyFacility:
         """
         Builds all blueprints defined for this facility
 
+        This function builds all network domains across all blueprints, then
+        it builds all nodes across all blueprints.
+
         """
 
-        for blueprint in self.fittings.blueprints:
-            logging.info("Building blueprint '{}'".format(blueprint.keys()[0]))
-            self.build_blueprint(blueprint.keys()[0])
+        domains = PlumberyDomain(self)
+        for label in self.list_blueprints():
+            blueprint = self.get_blueprint(label)
+            domains.build(blueprint)
+
+        nodes = PlumberyNodes(self)
+        for label in self.list_blueprints():
+            blueprint = self.get_blueprint(label)
+            domain = domains.get_domain(label)
+            nodes.build_blueprint(blueprint, domain)
 
     def build_blueprint(self, name):
         """
@@ -96,17 +106,52 @@ class PlumberyFacility:
         :param name: the name of the blueprint to build
         :type name: ``str``
 
+        This function builds the named blueprint in two steps: the network
+        domain first, and then the nodes themselves.
+
+            >>>facility.build_blueprint('sql')
+
+        If the keyword ``basement`` mentions one or several blueprints,
+        then network domains of these special blueprints are built before
+        the actual target blueprint.
+
+        Example ``fittings.yaml``:
+
+            ---
+            basement: admin
+
+            blueprints:
+
+              - admin: ...
+                  ethernet: control
+
+              - sql:
+                  ethernet: data
+                  nodes:
+                    - server1:
+                        glue: control
+
+        In this example, the node ``server1``has two network interfaces. The
+        main network interface is connected to the network ``data``, and the
+        secondary network interface is connected to the network ``control``.
+
         """
 
-        blueprint = self.get_blueprint(name)
-        if not blueprint:
+        target = self.get_blueprint(name)
+        if not target:
             return
 
-        domain = PlumberyDomain(self)
-        domain.build(blueprint)
+        domains = PlumberyDomain(self)
+        for label in self.list_basement():
+            blueprint = self.get_blueprint(label)
+            if blueprint is not None:
+                domains.build(blueprint)
+
+        if name not in self.list_basement():
+            domains.build(target)
 
         nodes = PlumberyNodes(self)
-        nodes.build_blueprint(blueprint, domain)
+        nodes.build_blueprint(target, domains.get_domain(name))
 
     def destroy_all_nodes(self):
         """
@@ -190,6 +235,67 @@ class PlumberyFacility:
         """
 
         return self.location.id
+
+    def list_basement(self):
+        """
+        Retrieves a list of blueprints that, together, constitute the basement
+        of this facility
+
+        :returns: ``list`` of ``str``
+            - the basement blueprints, or []
+
+        Basement is a list of blueprints defined in the fittings plan, as per
+        following example::
+
+            ---
+            basement: admin control
+
+            blueprints:
+
+              - admin: ...
+
+        In that case you would get::
+
+            >>facility.list_basement()
+            ['admin', 'control']
+
+        """
+
+        if self.fittings.basement is None:
+            return []
+
+        return self.fittings.basement.strip().split(' ')
+
+    def list_blueprints(self):
+        """
+        Retrieves a list of blueprints that have been defined
+
+        :returns: ``list`` of ``str``
+            - the blueprints defined for this facility, or []
+
+        Blueprints are defined in the fittings plan, as per
+        following example::
+
+            ---
+            blueprints:
+
+              - admin: ...
+
+              - web: ...
+
+              - data: ...
+
+        In that case you would get::
+
+            >>facility.list_blueprints()
+            ['admin', 'web, 'data']
+
+        """
+
+        if self.fittings.basement is None:
+            return []
+
+        return self.fittings.basement.strip().split(' ')
 
     def polish_all_blueprints(self, polishers):
         """

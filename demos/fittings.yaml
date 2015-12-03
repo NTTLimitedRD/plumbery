@@ -24,6 +24,8 @@ rub:
   - beachhead: 10.1.10.9
   - beachhead: 10.1.10.10
 
+basement: control
+
 blueprints:
 
   # management, administration, and monitoring
@@ -50,8 +52,8 @@ blueprints:
   - docker:
       domain: *vdc1
       ethernet: &containers
-        name: control
-        subnet: 10.1.10.0
+        name: docker
+        subnet: 10.1.11.0
         description: '#vdc1'
       nodes:
         - docker1:
@@ -59,12 +61,15 @@ blueprints:
             rub: &docker
               - rub.update.sh
               - rub.docker.sh
+            glue: control
         - docker2:
             description: 'Docker #vdc1 #docker'
             rub: *docker
+            glue: control
         - docker3:
             description: 'Docker #vdc1 #docker'
             rub: *docker
+            glue: control
 
   # secondary sql servers
   - sql:

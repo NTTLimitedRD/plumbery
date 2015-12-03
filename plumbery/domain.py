@@ -181,3 +181,6 @@ class PlumberyDomain:
                     raise PlumberyException("Error: unable to create Ethernet network '{0}' {1}!".format(networkName, feedback))
 
         return True
+
+    def get_domain(self, name):
+        return None

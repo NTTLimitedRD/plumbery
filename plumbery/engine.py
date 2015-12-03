@@ -612,6 +612,7 @@ class PlumberyFittings:
 
     def __init__(self, **entries):
 
+        self.basement = None
         self.blueprints = []
         self.locationID = None
         self.regionID = None
@@ -621,7 +622,8 @@ class PlumberyFittings:
 
     def __repr__(self):
 
-        return "<PlumberyFittings locationId: {}, regionId: {}, "           \
-            "rub: {}, blueprints: {}>"                                      \
-            .format(self.locationId, self.regionId, self.rub, self.blueprints)
+        return "<PlumberyFittings locationId: {}, regionId: {}, "       \
+            "rub: {}, blueprints: {}, basement: {}>"                    \
+            .format(self.locationId, self.regionId, self.rub,           \
+                self.blueprints, self.basement)
 
