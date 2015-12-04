@@ -321,10 +321,11 @@ class PlumberyFacility:
 
         """
 
-        if self.fittings.basement is None:
-            return []
+        labels = []
+        for blueprint in self.fittings.blueprints:
+            labels.append(blueprint.keys()[0])
 
-        return self.fittings.basement.strip().split(' ')
+        return labels
 
     def polish_all_blueprints(self, polishers):
         """
