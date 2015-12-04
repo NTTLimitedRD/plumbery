@@ -96,7 +96,7 @@ class PlumberyFacility:
         nodes = PlumberyNodes(self)
         for label in self.list_blueprints():
             blueprint = self.get_blueprint(label)
-            domain = domains.get_domain(label)
+            domain = domains.get_domain(blueprint)
             nodes.build_blueprint(blueprint, domain)
 
     def build_blueprint(self, name):
@@ -151,7 +151,16 @@ class PlumberyFacility:
             domains.build(target)
 
         nodes = PlumberyNodes(self)
-        nodes.build_blueprint(target, domains.get_domain(name))
+        nodes.build_blueprint(target, domains.get_domain(target))
+
+    def destroy_all_blueprints(self):
+        """
+        Destroys all blueprints at this facility
+
+        """
+
+        for blueprint in self.fittings.blueprints:
+            self.destroy_blueprint(blueprint.keys()[0])
 
     def destroy_all_nodes(self):
         """
@@ -159,9 +168,29 @@ class PlumberyFacility:
 
         """
 
-        # destroy in reverse order
         for blueprint in self.fittings.blueprints:
             self.destroy_nodes(blueprint.keys()[0])
+
+    def destroy_blueprint(self, name):
+        """
+        Destroys a given blueprint at this facility
+
+        :param name: the name of the blueprint to destroy
+        :type name: ``str``
+
+        """
+
+        self.power_on()
+
+        blueprint = self.get_blueprint(name)
+        if not blueprint:
+            return
+
+        nodes = PlumberyNodes(self)
+        nodes.destroy_blueprint(blueprint)
+
+        domains = PlumberyDomain(self)
+        domains.destroy_blueprint(blueprint)
 
     def destroy_nodes(self, name):
         """

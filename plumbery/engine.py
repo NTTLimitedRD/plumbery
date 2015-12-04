@@ -211,6 +211,26 @@ class PlumberyEngine:
                 self.polishers.append(
                     PlumberyPolisher.from_shelf(key, value))
 
+    def destroy_all_blueprints(self):
+        """
+        Destroys all blueprints
+
+        This function checks all facilities, one at a time and in the order
+        defined in fittings plan, to destroy all blueprints there.
+
+        Note:
+            Running nodes are always preserved from destruction.
+            Therefore the need to stop nodes, in a separate command, before
+            they can be actually destroyed.
+
+        """
+
+        logging.info("Destroying all blueprints")
+
+        for facility in self.facilities:
+            facility.focus()
+            facility.destroy_all_blueprints()
+
     def destroy_all_nodes(self):
         """
         Destroys all nodes
@@ -230,6 +250,29 @@ class PlumberyEngine:
         for facility in self.facilities:
             facility.focus()
             facility.destroy_all_nodes()
+
+    def destroy_blueprint(self, name):
+        """
+        Destroys blueprint
+
+        :param name: the name of the blueprint to destroy
+        :type name: ``str``
+
+        This function checks all facilities, one at a time and in the order
+        defined in fittings plan, to destroy one single blueprint.
+
+        Note:
+            Running nodes are always preserved from destruction.
+            Therefore the need to stop nodes, in a separate command, before
+            they can be actually destroyed.
+
+        """
+
+        logging.info("Destroying blueprint '{}'".format(name))
+
+        for facility in self.facilities:
+            facility.focus()
+            facility.destroy_blueprint(name)
 
     def destroy_nodes(self, name):
         """
