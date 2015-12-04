@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import logging
+import re
 import time
 
 from libcloud.compute.base import NodeAuthPassword
@@ -83,7 +84,8 @@ class PlumberyNodes:
         self.facility.power_on()
 
         if 'nodes' not in blueprint:
-            raise PlumberyException("Error: no nodes have been defined for the blueprint '{}'!".format(blueprint['target']))
+            raise PlumberyException("Error: no nodes have been defined " \
+                        "for the blueprint '{}'!".format(blueprint['target']))
 
         for item in blueprint['nodes']:
 
@@ -190,6 +192,9 @@ class PlumberyNodes:
                     if 'RESOURCE_BUSY' in str(feedback):
                         time.sleep(10)
                         continue
+
+                    elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                        logging.info("- not found")
 
                     elif 'SERVER_STARTED' in str(feedback):
                         logging.info("- skipped - node is up and running")
