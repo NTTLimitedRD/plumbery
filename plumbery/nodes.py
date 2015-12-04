@@ -95,54 +95,57 @@ class PlumberyNodes:
                 label = item
                 settings = {}
 
-            if self.get_node(label):
-                logging.info("Node '{}' already exists".format(label))
-                continue
+            for label in self.expand_labels(label):
 
-            description = '#plumbery'
-            if 'description' in settings:
-                description = settings['description'] + ' #plumbery'
+                if self.get_node(label):
+                    logging.info("Node '{}' already exists".format(label))
+                    continue
 
-            if 'appliance' in settings:
-                imageName = settings['appliance']
-            else:
-                imageName = 'Ubuntu'
+                description = '#plumbery'
+                if 'description' in settings:
+                    description = settings['description'] + ' #plumbery'
 
-            image = self.facility.get_image(imageName)
-            if image is None:
-                raise PlumberyException("Error: unable to find image for '{}'!".format(imageName))
+                if 'appliance' in settings:
+                    imageName = settings['appliance']
+                else:
+                    imageName = 'Ubuntu'
 
-            if self.plumbery.safeMode:
-                logging.info("Would have created node '{}' "
-                                "if not in safe mode".format(label))
-                continue
+                image = self.facility.get_image(imageName)
+                if image is None:
+                    raise PlumberyException("Error: unable to find image " \
+                                                "for '{}'!".format(imageName))
 
-            logging.info("Creating node '{}'".format(label))
-            while True:
+                if self.plumbery.safeMode:
+                    logging.info("Would have created node '{}' "
+                                    "if not in safe mode".format(label))
+                    continue
 
-                try:
-                    self.region.create_node(
-                        name=label,
-                        image=image,
-                        auth=NodeAuthPassword(
-                            self.plumbery.get_shared_secret()),
-                        ex_network_domain=domain.domain,
-                        ex_vlan=domain.network,
-                        ex_is_started=False,
-                        ex_description=description)
-                    logging.info("- in progress")
+                logging.info("Creating node '{}'".format(label))
+                while True:
 
-                except Exception as feedback:
+                    try:
+                        self.region.create_node(
+                            name=label,
+                            image=image,
+                            auth=NodeAuthPassword(
+                                self.plumbery.get_shared_secret()),
+                            ex_network_domain=domain.domain,
+                            ex_vlan=domain.network,
+                            ex_is_started=False,
+                            ex_description=description)
+                        logging.info("- in progress")
 
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
+                    except Exception as feedback:
 
-                    else:
+                        if 'RESOURCE_BUSY' in str(feedback):
+                            time.sleep(10)
+                            continue
+
                         raise PlumberyException(
-                            "Error: unable to create node '{0}' - {1}!".format(label, feedback))
+                            "Error: unable to create node '{0}' - {1}!"
+                                                    .format(label, feedback))
 
-                break
+                    break
 
     def destroy_blueprint(self, blueprint):
         """
@@ -226,6 +229,32 @@ class PlumberyNodes:
                 return node
 
         return None
+
+    def expand_labels(self, label):
+        """
+        Designate multiple nodes with a simple label
+
+        :param label: the label to be expanded, e.g., ``mongodb[0..5]``
+        :type label: ``str``
+
+        :returns: ``list`` of ``str``
+
+        This function creates multiple names where applicable::
+
+            >>>nodes.expand_labels('mongodb')
+            ['mongodb']
+            >>>nodes.expand_labels('mongodb[0-3]')
+            ['mongodb0', 'mongodb1', 'mongodb2', 'mongodb3']
+
+        """
+        matches = re.match(r'(.*)\[([01])..([0-9]+)\]', label)
+        if matches is None:
+            return [label]
+
+        labels = []
+        for index in range(int(matches.group(2)), int(matches.group(3))):
+            labels.append(matches.group(1)+str(index))
+        return labels
 
     def polish_blueprint(self, blueprint, polishers):
         """
