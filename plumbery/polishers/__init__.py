@@ -20,3 +20,7 @@ The full list of available polishers
 __all__ = [
     'spit',
 ]
+
+#TODO
+#
+# - generate a map of all resources as a Freeplane format
