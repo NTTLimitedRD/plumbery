@@ -150,7 +150,12 @@ class PlumberyDomain:
                             time.sleep(10)
                             continue
 
-                        raise PlumberyException(
+                        elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
+                            logging.info("- operation not supported")
+                            return False
+
+                        else:
+                            raise PlumberyException(
                             "Error: unable to create network domain '{0}' {1}!"
                                             .format(domainName, feedback))
 

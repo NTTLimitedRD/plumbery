@@ -123,6 +123,11 @@ class PlumberyNodes:
                     continue
 
                 logging.info("Creating node '{}'".format(label))
+
+                if not domain:
+                    logging.info("- missing network domain")
+                    continue
+
                 while True:
 
                     try:
