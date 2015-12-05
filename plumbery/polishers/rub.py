@@ -144,7 +144,7 @@ class RubPolisher(PlumberyPolisher):
 
         except Exception as feedback:
             logging.info("Error: unable to rub '{}' at '{}'!".format(node.name,
-                                                             node.private_ips[0]))
+                                                             target_ip))
             logging.info(str(feedback))
             result = False
 
