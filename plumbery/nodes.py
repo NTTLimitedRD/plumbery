@@ -174,38 +174,67 @@ class PlumberyNodes:
             else:
                 label = str(item)
 
-            node = self.get_node(label)
-            if node is None:
-                continue
+            for label in self.expand_labels(label):
 
-            if self.plumbery.safeMode:
-                logging.info("Would have destroyed node '{}' "
-                                "if not in safe mode".format(label))
-                continue
+                node = self.get_node(label)
+                if node is None:
+                    continue
 
-            logging.info("Destroying node '{}'".format(label))
-            while True:
+                if self.plumbery.safeMode:
+                    logging.info("Would have destroyed node '{}' "
+                                    "if not in safe mode".format(label))
+                    continue
 
-                try:
-                    self.region.destroy_node(node)
-                    logging.info("- in progress")
+                logging.info("Destroying node '{}'".format(label))
+                while True:
 
-                except Exception as feedback:
+                    try:
+                        self.region.destroy_node(node)
+                        logging.info("- in progress")
 
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
+                    except Exception as feedback:
 
-                    elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                        logging.info("- not found")
+                        if 'RESOURCE_BUSY' in str(feedback):
+                            time.sleep(10)
+                            continue
 
-                    elif 'SERVER_STARTED' in str(feedback):
-                        logging.info("- skipped - node is up and running")
+                        elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                            logging.info("- not found")
 
-                    else:
-                        raise PlumberyException("Error: unable to destroy node '{0}' - {1}!".format(label, feedback))
+                        elif 'SERVER_STARTED' in str(feedback):
+                            logging.info("- skipped - node is up and running")
 
-                break
+                        else:
+                            raise PlumberyException("Error: unable to destroy" \
+                                " node '{0}' - {1}!".format(label, feedback))
+
+                    break
+
+    def expand_labels(self, label):
+        """
+        Designate multiple nodes with a simple label
+
+        :param label: the label to be expanded, e.g., ``mongodb[0..5]``
+        :type label: ``str``
+
+        :returns: ``list`` of ``str``
+
+        This function creates multiple names where applicable::
+
+            >>>nodes.expand_labels('mongodb')
+            ['mongodb']
+            >>>nodes.expand_labels('mongodb[0..3]')
+            ['mongodb0', 'mongodb1', 'mongodb2', 'mongodb3']
+
+        """
+        matches = re.match(r'(.*)\[([0-9]+)..([0-9]+)\]', label)
+        if matches is None:
+            return [label]
+
+        labels = []
+        for index in range(int(matches.group(2)), int(matches.group(3))+1):
+            labels.append(matches.group(1)+str(index))
+        return labels
 
     def get_node(self, name):
         """
@@ -238,32 +267,6 @@ class PlumberyNodes:
 
         return None
 
-    def expand_labels(self, label):
-        """
-        Designate multiple nodes with a simple label
-
-        :param label: the label to be expanded, e.g., ``mongodb[0..5]``
-        :type label: ``str``
-
-        :returns: ``list`` of ``str``
-
-        This function creates multiple names where applicable::
-
-            >>>nodes.expand_labels('mongodb')
-            ['mongodb']
-            >>>nodes.expand_labels('mongodb[0-3]')
-            ['mongodb0', 'mongodb1', 'mongodb2', 'mongodb3']
-
-        """
-        matches = re.match(r'(.*)\[([01])..([0-9]+)\]', label)
-        if matches is None:
-            return [label]
-
-        labels = []
-        for index in range(int(matches.group(2)), int(matches.group(3))):
-            labels.append(matches.group(1)+str(index))
-        return labels
-
     def polish_blueprint(self, blueprint, polishers):
         """
         Walks a named blueprint for this facility and polish related resources
@@ -289,13 +292,15 @@ class PlumberyNodes:
                 settings = {}
             settings['name'] = label
 
-            node = self.get_node(label)
-            if node is not None:
+            for label in self.expand_labels(label):
 
-                logging.info("Polishing node '{}'".format(node.name))
+                node = self.get_node(label)
+                if node is not None:
 
-                for polisher in polishers:
-                    polisher.shine_node(node, settings)
+                    logging.info("Polishing node '{}'".format(node.name))
+
+                    for polisher in polishers:
+                        polisher.shine_node(node, settings)
 
     def start_node(self, name, settings={}):
         """
@@ -365,7 +370,9 @@ class PlumberyNodes:
                 label = item
                 settings = {}
 
-            self.start_node(label, settings)
+            for label in self.expand_labels(label):
+
+                self.start_node(label, settings)
 
     def stop_blueprint(self, blueprint):
         """
@@ -399,40 +406,44 @@ class PlumberyNodes:
                 label = item
                 settings = {}
 
-            if 'running' in settings and settings['running'] == 'always':
-                logging.info("Node '{}' has to stay always on".format(label))
-                continue
+            for label in self.expand_labels(label):
 
-            node = self.get_node(label)
-            if node is None:
-                continue
+                if 'running' in settings and settings['running'] == 'always':
+                    logging.info("Node '{}' has to stay always on".format(label))
+                    continue
 
-            if self.plumbery.safeMode:
-                logging.info("Would have stopped node '{}' if not in safe mode".format(label))
+                node = self.get_node(label)
+                if node is None:
+                    continue
 
-            else:
-                logging.info("Stopping node '{}'".format(label))
+                if self.plumbery.safeMode:
+                    logging.info("Would have stopped node '{}' " \
+                                    "if not in safe mode".format(label))
 
-                while True:
+                else:
+                    logging.info("Stopping node '{}'".format(label))
 
-                    try:
-                        self.region.ex_shutdown_graceful(node)
-                        logging.info("- in progress")
+                    while True:
 
-                    except Exception as feedback:
+                        try:
+                            self.region.ex_shutdown_graceful(node)
+                            logging.info("- in progress")
 
-                        if 'RESOURCE_BUSY' in str(feedback):
-                            time.sleep(10)
-                            continue
+                        except Exception as feedback:
 
-                        elif 'UNEXPECTED_ERROR' in str(feedback):
-                            time.sleep(10)
-                            continue
+                            if 'RESOURCE_BUSY' in str(feedback):
+                                time.sleep(10)
+                                continue
 
-                        elif 'SERVER_STOPPED' in str(feedback):
-                            logging.info("- skipped - node is already stopped")
+                            elif 'UNEXPECTED_ERROR' in str(feedback):
+                                time.sleep(10)
+                                continue
 
-                        else:
-                            raise PlumberyException("Error: unable to stop node '{0}' {1}!".format(label, feedback))
+                            elif 'SERVER_STOPPED' in str(feedback):
+                                logging.info("- skipped - node is already stopped")
 
-                    break
+                            else:
+                                raise PlumberyException("Error: unable to stop"\
+                                    " node '{0}' {1}!".format(label, feedback))
+
+                        break
