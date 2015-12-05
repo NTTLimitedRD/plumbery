@@ -92,6 +92,19 @@ class PlumberyDomain:
                      "for the blueprint '{}'!".format(blueprint['target']))
 
         domainName = blueprint['domain']['name']
+
+        if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
+            raise PlumberyException(
+                "Error: no ethernet network has been defined " \
+                        "for the blueprint '{}'!".format(blueprint['target']))
+
+        if 'subnet' not in blueprint['ethernet']:
+            raise PlumberyException("Error: no IPv4 subnet " \
+                "(e.g., '10.0.34.0') as been defined for the blueprint '{}'!"
+                                                .format(blueprint['target']))
+
+        networkName = blueprint['ethernet']['name']
+
         self.domain = None
         for self.domain in self.region.ex_list_network_domains(
                                         location=self.facility.location):
@@ -105,6 +118,8 @@ class PlumberyDomain:
             if self.plumbery.safeMode:
                 logging.info("Would have created network domain '{}' " \
                                     "if not in safe mode".format(domainName))
+                logging.info("Would have created Ethernet network '{}' " \
+                                    "if not in safe mode".format(networkName))
                 return False
 
             else:
@@ -141,21 +156,9 @@ class PlumberyDomain:
 
                     break
 
-        if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
-            raise PlumberyException(
-                "Error: no ethernet network has been defined " \
-                        "for the blueprint '{}'!".format(blueprint['target']))
-
-        if 'subnet' not in blueprint['ethernet']:
-            raise PlumberyException("Error: no IPv4 subnet " \
-                "(e.g., '10.0.34.0') as been defined for the blueprint '{}'!"
-                                                .format(blueprint['target']))
-
-        networkName = blueprint['ethernet']['name']
         self.network = None
         for self.network in self.region.ex_list_vlans(
-                                        location=self.facility.location,
-                                        network_domain=self.domain):
+                                        location=self.facility.location):
             if self.network.name == networkName:
                 logging.info("Ethernet network '{}' already exists"
                                                         .format(networkName))
@@ -230,6 +233,8 @@ class PlumberyDomain:
                 break
 
         if domain is None or domain.name != domainName:
+            logging.info("Destroying network domain '{}'".format(domainName))
+            logging.info("- not found")
             return False
 
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
@@ -250,6 +255,8 @@ class PlumberyDomain:
             if self.plumbery.safeMode:
                 logging.info("Would have destroyed Ethernet network '{}' "
                                 "if not in safe mode".format(networkName))
+                logging.info("Would have destroyed network domain '{}' "
+                                "if not in safe mode".format(domainName))
                 return False
 
             logging.info("Destroying Ethernet network '{}'".format(networkName))
@@ -269,7 +276,7 @@ class PlumberyDomain:
                         logging.info("- not found")
 
                     elif 'HAS_DEPENDENCY' in str(feedback):
-                        logging.info("- not now")
+                        logging.info("- not now - stuff on it")
                         return False
 
                     else:
@@ -278,6 +285,10 @@ class PlumberyDomain:
                                             .format(networkName, feedback))
 
                 break
+
+        else:
+            logging.info("Destroying Ethernet network '{}'".format(networkName))
+            logging.info("- not found")
 
         if self.plumbery.safeMode:
             logging.info("Would have destroyed network domain '{}' "
@@ -301,7 +312,7 @@ class PlumberyDomain:
                     logging.info("- not found")
 
                 elif 'HAS_DEPENDENCY' in str(feedback):
-                    logging.info("- not now")
+                    logging.info("- not now - stuff on it")
                     return False
 
                 raise PlumberyException(
@@ -339,6 +350,8 @@ class PlumberyDomain:
                 break
 
         if target.domain is None or target.domain.name != domainName:
+            logging.debug("Warning: network domain '{}' is unknown"
+                            .format(domainName))
             return None
 
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
@@ -354,12 +367,13 @@ class PlumberyDomain:
         networkName = blueprint['ethernet']['name']
         target.network = None
         for target.network in self.region.ex_list_vlans(
-                                            location=self.facility.location,
-                                            network_domain=target.domain):
+                                            location=self.facility.location):
             if target.network.name == networkName:
                 break
 
         if target.network is None or target.network.name != networkName:
+            logging.debug("Warning: Ethernet network '{}' is unknown"
+                            .format(networkName))
             return None
 
         return target
