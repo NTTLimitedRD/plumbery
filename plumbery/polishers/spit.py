@@ -75,7 +75,8 @@ class SpitPolisher(PlumberyPolisher):
         data['type'] = 'node'
         data['id'] = node.id
         data['name'] = node.name
-        data['private_ip'] = node.private_ips[0]
+        data['public_ips'] = node.public_ips
+        data['private_ips'] = node.private_ips
         data.update(node.extra)
         data.pop('status')
 
