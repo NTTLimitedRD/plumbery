@@ -122,6 +122,10 @@ class RubPolisher(PlumberyPolisher):
 
         """
 
+        logging.info(node.public_ips)
+        logging.info(node.extra)
+        logging.info(node.private_ips)
+
         # select the address to use
         if len(node.public_ips) > 0:
             target_ip = public_ips[0]
@@ -129,10 +133,6 @@ class RubPolisher(PlumberyPolisher):
             target_ip = node.extra['ipv6']
         else:
             target_ip = node.private_ips[0]
-
-        print(node.public_ips)
-        print(node.extra)
-        print(node.private_ips)
 
         # use libcloud to communicate with remote nodes
         session = SSHClient(hostname=target_ip,
