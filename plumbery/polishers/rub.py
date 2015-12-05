@@ -186,17 +186,19 @@ class RubPolisher(PlumberyPolisher):
                 'description': 'deploy SSH public key',
                 'genius': SSHKeyDeployment(self.key)})
 
-        for script in settings['rub']:
-            try:
-                with open(os.path.dirname(__file__)+'/'+script) as stream:
-                    text = stream.read()
-                    if text:
-                        rubs.append({
-                            'description': 'run '+script,
-                            'genius': ScriptDeployment(text)})
+        if settings['rub'] is not None:
+            for script in settings['rub']:
+                try:
+                    with open(os.path.dirname(__file__)+'/'+script) as stream:
+                        text = stream.read()
+                        if text:
+                            rubs.append({
+                                'description': 'run '+script,
+                                'genius': ScriptDeployment(text)})
 
-            except IOError:
-                raise PlumberyException("Error: cannot read '{}'".format(script))
+                except IOError:
+                    raise PlumberyException("Error: cannot read '{}'"
+                                                            .format(script))
 
         return rubs
 
