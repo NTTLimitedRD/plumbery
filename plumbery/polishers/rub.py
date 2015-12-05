@@ -130,6 +130,10 @@ class RubPolisher(PlumberyPolisher):
         else:
             target_ip = node.private_ips[0]
 
+        print(node.public_ips)
+        print(node.extra)
+        print(node.private_ips)
+
         # use libcloud to communicate with remote nodes
         session = SSHClient(hostname=target_ip,
                             port=22,
