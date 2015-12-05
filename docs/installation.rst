@@ -4,7 +4,7 @@ Installation
 
 To install the most stable version, do the following at the prompt under Ubuntu 14.04::
 
-    $ sudo apt-get install python-dev
+    $ sudo apt-get install python-pip python-dev
     $ sudo pip install plumbery
 
 
