@@ -55,6 +55,8 @@ blueprints:
       nodes:
         - apache[10..11]:
             description: 'Apache #web #eu'
+            rub:
+              - rub.update.sh
 
   # workloads dealing with short-term memory
   - redis:
@@ -63,6 +65,8 @@ blueprints:
       nodes:
         - redis[10..12]:
             description: '#redis #eu'
+            rub:
+              - rub.update.sh
 
   # workloads dedicated to BLOBs
   - mongodb:
@@ -71,6 +75,8 @@ blueprints:
       nodes:
         - mongo[10..16]:
             description: '#mongo #eu'
+            rub:
+              - rub.update.sh
 
 ---
 # Virginia in US - 10.3.x.y
