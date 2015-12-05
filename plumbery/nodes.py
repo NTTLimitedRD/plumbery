@@ -18,6 +18,8 @@ import re
 import time
 
 from libcloud.compute.base import NodeAuthPassword
+from libcloud.common.dimensiondata import TYPES_URN
+from libcloud.utils.xml import fixxpath, findtext, findall
 
 from domain import PlumberyDomain
 from exceptions import PlumberyException
@@ -270,9 +272,33 @@ class PlumberyNodes:
 
             # found an existing node with this name
             if node.name == name:
+                self._update_ipv6(node)
                 return node
 
         return None
+
+    def _update_ipv6(self, node):
+        """
+        Retrieves the ipv6 address for this node
+
+        This is a hack. Code here should really go to the Libcloud driver in
+        libcloud.compute.drivers.dimensiondata.py _to_node()
+
+        """
+
+        element = self.region.connection.request_with_orgId_api_2(
+            'server/server/%s' % node.id).object
+
+        has_network_info \
+            = element.find(fixxpath('networkInfo', TYPES_URN)) is not None
+
+        ipv6 = element.find(
+            fixxpath('networkInfo/primaryNic', TYPES_URN)) \
+            .get('ipv6') \
+            if has_network_info else \
+            element.find(fixxpath('nic', TYPES_URN)).get('ipv6')
+
+        node.extra['ipv6'] = ipv6
 
     def polish_blueprint(self, blueprint, polishers):
         """
