@@ -36,7 +36,11 @@ class FakeNode():
     id = '1234'
     state = NodeState.RUNNING
     private_ips = ['10.100.100.100']
-    extra = {'datacenterId': 'EU6', 'description': '#fake description with #tags', 'status': {}}
+    public_ips = []
+    extra = {'datacenterId': 'EU6',
+            'description': '#fake description with #tags',
+            'ipv6': '2a00:47c0:111:1208:4802:ab7:cb3c:92ec',
+            'status': {}}
 
 fakeNodeSettings = {
     'name': 'stackstorm',

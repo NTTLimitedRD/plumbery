@@ -41,7 +41,7 @@ class FakeRegion:
     def ex_list_network_domains(self, location):
         return []
 
-    def ex_list_vlans(self, location, network_domain):
+    def ex_list_vlans(self, location):
         return []
 
     def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):

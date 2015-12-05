@@ -9,11 +9,21 @@ import unittest
 from plumbery.engine import PlumberyFittings, PlumberyEngine
 from plumbery.facility import PlumberyFacility
 
+class FakeElement:
+
+    def find(self, dummy):
+        return {'ipv6': 'nuts'}
+
+class FakeConnection:
+
+    object = FakeElement()
+
+    def request_with_orgId_api_2(self, dummy):
+        return self
 
 class FakeDomain:
 
     id = 123
-
 
 class FakeImage:
 
@@ -34,11 +44,14 @@ class FakeNetwork:
 
 class FakeNode:
 
+    id = 123
     name = 'stackstorm'
     extra = {'datacenterId': 'EU7'}
 
 
 class FakeRegion:
+
+    connection = FakeConnection()
 
     def create_node(self, name, image, auth, ex_network_domain, ex_vlan, ex_is_started, ex_description):
         return True
