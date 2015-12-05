@@ -3,6 +3,15 @@
 History
 -------
 
+0.2.2 (2015-12-05)
+---------------------
+
+* Manual tests to improve usage on specific conditions, e.g., against MCP 1.0
+* Label expansion to facilitate node handling, e.g., mongo[1..20]
+* Allow for destruction of networks and of domain networks
+* Passing Travis CI
+* Test coverage 55%
+
 0.2.1 (2015-12-02)
 ---------------------
 
