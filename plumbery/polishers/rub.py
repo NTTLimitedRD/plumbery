@@ -140,7 +140,7 @@ class RubPolisher(PlumberyPolisher):
                             username='root',
                             password=self.secret,
                             key_files=None,
-                            timeout=15)
+                            timeout=6)
 
         try:
             session.connect()
