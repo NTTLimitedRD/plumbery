@@ -335,7 +335,6 @@ class PlumberyDomain:
         target.domain = None
         for target.domain in self.region.ex_list_network_domains(
                                         location=self.facility.location):
-            print target.domain.name
             if target.domain.name == domainName:
                 break
 
