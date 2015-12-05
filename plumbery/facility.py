@@ -90,11 +90,15 @@ class PlumberyFacility:
 
         domains = PlumberyDomain(self)
         for label in self.list_blueprints():
+            logging.info("Building network domain of blueprint '{}'"
+                                .format(label))
             blueprint = self.get_blueprint(label)
             domains.build(blueprint)
 
         nodes = PlumberyNodes(self)
         for label in self.list_blueprints():
+            logging.info("Building nodes of blueprint '{}'"
+                                .format(label))
             blueprint = self.get_blueprint(label)
             domain = domains.get_domain(blueprint)
             nodes.build_blueprint(blueprint, domain)
@@ -160,6 +164,8 @@ class PlumberyFacility:
         """
 
         for blueprint in self.fittings.blueprints:
+            logging.info("Destroying blueprint '{}'"
+                                .format(blueprint.keys()[0]))
             self.destroy_blueprint(blueprint.keys()[0])
 
     def destroy_all_nodes(self):
@@ -169,6 +175,8 @@ class PlumberyFacility:
         """
 
         for blueprint in self.fittings.blueprints:
+            logging.info("Destroying nodes of blueprint '{}'"
+                                        .format(blueprint.keys()[0]))
             self.destroy_nodes(blueprint.keys()[0])
 
     def destroy_blueprint(self, name):

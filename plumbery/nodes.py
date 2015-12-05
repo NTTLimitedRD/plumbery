@@ -143,6 +143,9 @@ class PlumberyNodes:
                             time.sleep(10)
                             continue
 
+                        elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                            logging.info("- not now")
+
                         raise PlumberyException(
                             "Error: unable to create node '{0}' - {1}!"
                                                     .format(label, feedback))
