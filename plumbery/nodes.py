@@ -213,6 +213,10 @@ class PlumberyNodes:
                         elif 'SERVER_STARTED' in str(feedback):
                             logging.info("- skipped - node is up and running")
 
+                        elif 'RESOURCE_LOCKED' in str(feedback):
+                            logging.info("- not now - locked")
+                            return False
+
                         else:
                             raise PlumberyException("Error: unable to destroy" \
                                 " node '{0}' - {1}!".format(label, feedback))

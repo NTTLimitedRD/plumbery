@@ -284,6 +284,10 @@ class PlumberyDomain:
                         logging.info("- not now - stuff on it")
                         return False
 
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
+                        return False
+
                     else:
                         raise PlumberyException("Error: unable to destroy " \
                                     "Ethernet network '{0}' {1}!"
@@ -318,6 +322,10 @@ class PlumberyDomain:
 
                 elif 'HAS_DEPENDENCY' in str(feedback):
                     logging.info("- not now - stuff on it")
+                    return False
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
                     return False
 
                 raise PlumberyException(
