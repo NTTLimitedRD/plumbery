@@ -1,0 +1,111 @@
+---
+# fittings to be deployed, managed, and destroyed in the cloud infrastructure of Dimension Data
+
+# in safe mode no change is actually made on the infrastructure
+safeMode: False
+
+#
+polishers:
+  - ansible:
+      reap: demo_gigafox_ansible.yaml
+  - rub:
+#      key: ~/.ssh/id_rsa.pub
+      reap: demo_gigafox_rub.yaml
+  - spit:
+      reap: demo_gigafox_spit.yaml
+
+# each facility is described separately
+---
+# Frankfurt in Europe - 10.2.x.y
+locationId: EU6
+regionId: dd-eu
+
+basement: control
+
+rub:
+    - beachhead: 10.1.10.9
+
+blueprints:
+
+  # management, administration, and monitoring
+  - control:
+      domain: &vdc1
+        name: GigaFox.EU
+        description: '#eu'
+        service: ADVANCED
+      ethernet:
+        name: gigafox.control
+        subnet: 10.1.10.0
+        description: '#eu'
+      nodes:
+        - stackstorm10:
+            description: '#stackstorm #eu #ops'
+            running: always
+        - beachhead10:
+            description: '#beachhead #eu #ops'
+            running: always
+
+  # workloads dealing directly with end-user devices
+  - web:
+      domain: *vdc1
+      ethernet: &prod
+        name: gigafox.production
+        subnet: 10.1.2.0
+        description: '#eu'
+      nodes:
+        - apache[10..11]:
+            description: 'Apache #web #eu'
+
+  # workloads dealing with short-term memory
+  - redis:
+      domain: *vdc1
+      ethernet: *prod
+      nodes:
+        - redis[10..12]:
+            description: '#redis #eu'
+
+  # workloads dedicated to BLOBs
+  - mongodb:
+      domain: *vdc1
+      ethernet: *prod
+      nodes:
+        - mongo[10..16]:
+            description: '#mongo #eu'
+
+---
+# Virginia in US - 10.3.x.y
+locationId: NA1
+regionId: dd-na
+
+blueprints:
+
+  # workloads dealing directly with end-user devices
+  - web:
+      domain: &vdc2
+        name: GigaFox.US
+        description: '#us'
+        service: ADVANCED
+      ethernet: &prod
+        name: gigafox.production
+        subnet: 10.2.2.0
+        description: '#us'
+      nodes:
+        - apache[20..21]:
+            description: 'Apache #web #us'
+
+  # workloads dealing with short-term memory
+  - redis:
+      domain: *vdc2
+      ethernet: *prod
+      nodes:
+        - redis[20..22]:
+            description: '#redis #us'
+
+  # workloads dedicated to BLOBs
+  - mongodb:
+      domain: *vdc2
+      ethernet: *prod
+      nodes:
+        - mongo[20..26]:
+            description: '#mongo #us'
+
