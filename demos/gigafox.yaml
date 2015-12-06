@@ -46,11 +46,13 @@ blueprints:
             running: always
 
   # workloads dealing directly with end-user devices
-  - web:
+  - webOUT:
       domain: *vdc1
-      ethernet: &prod
-        name: gigafox.production
-        subnet: 10.1.2.0
+      ethernet:
+        name: gigafox.web
+        subnet: 10.1.1.0
+        accept:
+          - gigafox.control
         description: '#eu'
       nodes:
         - apache[10..11]:
@@ -61,7 +63,12 @@ blueprints:
   # workloads dealing with short-term memory
   - redis:
       domain: *vdc1
-      ethernet: *prod
+      ethernet:
+        name: gigafox.redis
+        subnet: 10.1.2.0
+        accept:
+          - gigafox.control
+        description: '#eu'
       nodes:
         - redis[10..12]:
             description: '#redis #eu'
@@ -71,7 +78,12 @@ blueprints:
   # workloads dedicated to BLOBs
   - mongodb:
       domain: *vdc1
-      ethernet: *prod
+      ethernet:
+        name: gigafox.mongodb
+        subnet: 10.1.3.0
+        accept:
+          - gigafox.control
+        description: '#eu'
       nodes:
         - mongo[10..16]:
             description: '#mongo #eu'
@@ -80,7 +92,7 @@ blueprints:
 
 ---
 # Virginia in US - 10.3.x.y
-locationId: NA1
+locationId: NA9
 regionId: dd-na
 
 blueprints:
@@ -91,27 +103,50 @@ blueprints:
         name: GigaFox.US
         description: '#us'
         service: ADVANCED
-      ethernet: &prod
-        name: gigafox.production
-        subnet: 10.2.2.0
+      ethernet:
+        name: gigafox.web
+        subnet: 10.2.1.0
         description: '#us'
+        accept:
+          - dd-eu::EU6::gigafox.control
       nodes:
         - apache[20..21]:
             description: 'Apache #web #us'
+            rub:
+              - rub.update.sh
+#              - run rub.update.sh
+#              - put rub.puppet.apache.pp
+#              - run rub.puppet.sh apache.pp
 
   # workloads dealing with short-term memory
   - redis:
       domain: *vdc2
-      ethernet: *prod
+      ethernet:
+        name: gigafox.redis
+        subnet: 10.2.2.0
+        description: '#us'
+        accept:
+          - gigafox.web
+          - dd-eu::EU6::gigafox.control
       nodes:
         - redis[20..22]:
             description: '#redis #us'
+            rub:
+              - rub.update.sh
 
   # workloads dedicated to BLOBs
   - mongodb:
       domain: *vdc2
-      ethernet: *prod
+      ethernet:
+        name: gigafox.mongodb
+        subnet: 10.2.3.0
+        description: '#us'
+        accept:
+          - gigafox.web
+          - dd-eu::EU6::gigafox.control
       nodes:
         - mongo[20..26]:
             description: '#mongo #us'
+            rub:
+              - rub.update.sh
 
