@@ -62,6 +62,13 @@ class PlumberyDomain:
         self.network = None
         self.domain = None
 
+        self._cache_network_domains = []
+        self._cache_vlans = []
+        self._cache_firewall_rules = []
+
+        self._network_domains_already_built =[]
+        self._vlans_already_built =[]
+
     def build(self, blueprint):
         """
         Creates a network domain if needed.
@@ -105,12 +112,19 @@ class PlumberyDomain:
 
         networkName = blueprint['ethernet']['name']
 
+        if len(self._cache_network_domains) < 1:
+            logging.info("Fetching the list of existing network domains")
+            self._cache_network_domains = self.region.ex_list_network_domains(
+                                        location=self.facility.location)
+            logging.info("- {} network domains".format(len(self._cache_network_domains)))
+
         self.domain = None
-        for self.domain in self.region.ex_list_network_domains(
-                                        location=self.facility.location):
+        for self.domain in self._cache_network_domains:
             if self.domain.name == domainName:
-                logging.info("Network domain '{}' already exists"
+                if not domainName in self._network_domains_already_built:
+                    logging.info("Network domain '{}' already exists"
                                                         .format(domainName))
+                self._network_domains_already_built.append(domainName)
                 break
 
         if self.domain is None or self.domain.name != domainName:
@@ -144,6 +158,8 @@ class PlumberyDomain:
                             description=description)
                         logging.info("- in progress")
 
+                        self._cache_network_domains.append(self.domain)
+
                     except Exception as feedback:
 
                         if 'RESOURCE_BUSY' in str(feedback):
@@ -161,12 +177,19 @@ class PlumberyDomain:
 
                     break
 
+        if len(self._cache_vlans) < 1:
+            logging.info("Fetching the list of existing Ethernet networks")
+            self._cache_vlans = self.region.ex_list_vlans(
+                                        location=self.facility.location)
+            logging.info("- {} Ethernet networks".format(len(self._cache_vlans)))
+
         self.network = None
-        for self.network in self.region.ex_list_vlans(
-                                        location=self.facility.location):
+        for self.network in self._cache_vlans:
             if self.network.name == networkName:
-                logging.info("Ethernet network '{}' already exists"
+                if not networkName in self._vlans_already_built:
+                    logging.info("Ethernet network '{}' already exists"
                                                         .format(networkName))
+                self._vlans_already_built.append(networkName)
                 break
 
         if self.network is None or self.network.name != networkName:
@@ -193,6 +216,8 @@ class PlumberyDomain:
                             private_ipv4_base_address=blueprint['ethernet']['subnet'],
                             description=description)
                         logging.info("- in progress")
+
+                        self._cache_vlans.append(self.network)
 
                     except Exception as feedback:
 
@@ -230,10 +255,13 @@ class PlumberyDomain:
                 "Error: no network domain has been defined " \
                      "for the blueprint '{}'!".format(blueprint['target']))
 
+        if len(self._cache_network_domains) < 1:
+            self._cache_network_domains = self.region.ex_list_network_domains(
+                                        location=self.facility.location)
+
         domainName = blueprint['domain']['name']
         domain = None
-        for domain in self.region.ex_list_network_domains(
-                                        location=self.facility.location):
+        for domain in self._cache_network_domains:
             if domain.name == domainName:
                 break
 
@@ -247,11 +275,13 @@ class PlumberyDomain:
                 "Error: no ethernet network has been defined " \
                         "for the blueprint '{}'!".format(blueprint['target']))
 
+        if len(self._cache_vlans) < 1:
+            self._cache_vlans = self.region.ex_list_vlans(
+                                        location=self.facility.location)
+
         networkName = blueprint['ethernet']['name']
         network = None
-        for network in self.region.ex_list_vlans(
-                                    location=self.facility.location,
-                                    network_domain=domain):
+        for network in self._cache_vlans:
             if network.name == networkName:
                 break
 
@@ -355,15 +385,18 @@ class PlumberyDomain:
                 "Error: no network domain has been defined " \
                      "for the blueprint '{}'!".format(blueprint['target']))
 
+        if len(self._cache_network_domains) < 1:
+            self._cache_network_domains = self.region.ex_list_network_domains(
+                                        location=self.facility.location)
+
         domainName = blueprint['domain']['name']
         target.domain = None
-        for target.domain in self.region.ex_list_network_domains(
-                                        location=self.facility.location):
+        for target.domain in self._cache_network_domains:
             if target.domain.name == domainName:
                 break
 
         if target.domain is None or target.domain.name != domainName:
-            logging.debug("Warning: network domain '{}' is unknown"
+            logging.info("Warning: network domain '{}' is unknown"
                             .format(domainName))
             return None
 
@@ -372,22 +405,137 @@ class PlumberyDomain:
                 "Error: no ethernet network has been defined " \
                         "for the blueprint '{}'!".format(blueprint['target']))
 
-        if 'subnet' not in blueprint['ethernet']:
-            raise PlumberyException("Error: no IPv4 subnet " \
-                "(e.g., '10.0.34.0') as been defined for the blueprint '{}'!"
-                                                .format(blueprint['target']))
+        if len(self._cache_vlans) < 1:
+            self._cache_vlans = self.region.ex_list_vlans(
+                                        location=self.facility.location)
 
         networkName = blueprint['ethernet']['name']
         target.network = None
-        for target.network in self.region.ex_list_vlans(
-                                            location=self.facility.location):
+        for target.network in self._cache_vlans:
             if target.network.name == networkName:
                 break
 
         if target.network is None or target.network.name != networkName:
-            logging.debug("Warning: Ethernet network '{}' is unknown"
+            logging.info("Warning: Ethernet network '{}' is unknown"
                             .format(networkName))
             return None
 
         return target
+
+    def get_ethernet(self, path):
+        """
+        Retrieves an Ethernet network by name
+
+        :param label: the name of the target Ethernet network
+        :type label: ``str``
+
+        :returns: :class:`VLAN` or None
+
+        :raises: :class:`.PlumberyException`
+
+        This function searches firstly at the current facility. If the
+        name is a complete path to a remote network, then plumbery looks
+        there. If a different region is provided, then authentication is done
+        against the related endpoint.
+
+        For example if ``MyNetwork`` has been defined in a data centre in
+        Europe::
+
+            >>>domains.get_ethernet('MyNetwork')
+            >>>domains.get_ethernet(['EU6', 'MyNetwork'])
+            >>>domains.get_ethernet(['dd-eu', 'EU6', 'MyNetwork'])
+        """
+
+        if isinstance(path, str):
+            path = [path]
+
+        if len(path) == 1:
+
+            if len(self._cache_vlans) < 1:
+                self._cache_vlans = self.region.ex_list_vlans(
+                                            location=self.facility.location)
+
+            for network in self._cache_vlans:
+                if network.name == path[0]:
+                    self._update_ipv6(self.region.connection, network)
+                    return network
+
+        elif len(path) == 2:
+
+            remoteLocation = self.region.ex_get_location_by_id(path[0])
+
+            vlans = self.region.ex_list_vlans(location=remoteLocation)
+            for network in vlans:
+                if network.name == path[1]:
+                    self._update_ipv6(self.region.connection, network)
+                    return network
+
+        elif len(path) == 3:
+
+            offshore = self.plumbery.provider(
+                self.plumbery.get_user_name(),
+                self.plumbery.get_user_password(),
+                region=path[0])
+
+            remoteLocation = offshore.ex_get_location_by_id(path[1])
+
+            vlans = offshore.ex_list_vlans(location=remoteLocation)
+            for network in vlans:
+                if network.name == path[2]:
+                    self._update_ipv6(offshore.connection, network)
+                    return network
+
+        return None
+
+    def get_firewall_rule_name(self, source, destination, protocol):
+        """
+        Provides a name for a firewall rule
+
+        :param source: name of the source network
+        :type source: ``str``
+
+        :param destination: name of the destination network
+        :type destination: ``str``
+
+        :param protocol: the protocol that will flow
+        :type protocol: ``str``
+
+        Use this function to ensure consistent naming across firewall rules.
+
+        Example::
+
+            >>>source='gigafox.control'
+            >>>destination='gigafox.production'
+            >>>protocol='IP'
+            >>>domain.get_firewall_rule_name(source, destination, protocol)
+            'plumbery.FlowIPFromGigafoxControlToGigafoxProduction'
+
+        """
+
+        source = ''.join(e for e in source.title() if e.isalnum())
+        destination = ''.join(e for e in destination.title() if e.isalnum())
+
+        return "plumbery.Flow{}From{}To{}".format(protocol, source, destination)
+
+    def _update_ipv6(self, connection, network):
+        """
+        Retrieves the ipv6 addresses for this network
+
+        This is a hack. Code here should really go to the Libcloud driver in
+        libcloud.compute.drivers.dimensiondata.py _to_vlan()
+
+        """
+
+        try:
+            element = connection.request_with_orgId_api_2(
+                'network/vlan/%s' % network.id).object
+
+            ip_range = element.find(fixxpath('ipv6Range', TYPES_URN))
+
+            network.ipv6_range_address=ip_range.get('address')
+            network.ipv6_range_size=ip_range.get('prefixSize')
+
+        except:
+            pass
+
 
