@@ -170,6 +170,10 @@ class PlumberyDomain:
                             logging.info("- operation not supported")
                             return False
 
+                        elif 'RESOURCE_LOCKED' in str(feedback):
+                            logging.info("- not now - locked")
+                            return False
+
                         else:
                             raise PlumberyException(
                             "Error: unable to create network domain '{0}' {1}!"
@@ -227,6 +231,10 @@ class PlumberyDomain:
 
                         elif 'NAME_NOT_UNIQUE' in str(feedback):
                             logging.info("- network already exists")
+
+                        elif 'RESOURCE_LOCKED' in str(feedback):
+                            logging.info("- not now - locked")
+                            return False
 
                         else:
                             raise PlumberyException("Error: unable to create " \
@@ -296,7 +304,8 @@ class PlumberyDomain:
 
             logging.info("Destroying Ethernet network '{}'".format(networkName))
 
-            while True:
+            count = 5
+            while count > 0:
                 try:
                     self.region.ex_delete_vlan(vlan=network)
                     logging.info("- in progress")
@@ -311,11 +320,16 @@ class PlumberyDomain:
                         logging.info("- not found")
 
                     elif 'HAS_DEPENDENCY' in str(feedback):
+                        count -= 1
+                        if count > 0:
+                            time.sleep(20)
+                            continue
                         logging.info("- not now - stuff on it")
                         return False
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
                         logging.info("- not now - locked")
+                        logging.info(feedback)
                         return False
 
                     else:
@@ -336,7 +350,8 @@ class PlumberyDomain:
 
         logging.info("Destroying network domain '{}'".format(domainName))
 
-        while True:
+        count = 5
+        while count > 0:
             try:
                 self.region.ex_delete_network_domain(network_domain=domain)
                 logging.info("- in progress")
@@ -351,6 +366,10 @@ class PlumberyDomain:
                     logging.info("- not found")
 
                 elif 'HAS_DEPENDENCY' in str(feedback):
+                    count -= 1
+                    if count > 0:
+                        time.sleep(20)
+                        continue
                     logging.info("- not now - stuff on it")
                     return False
 
