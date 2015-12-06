@@ -239,7 +239,7 @@ class PlumberyFacility:
         """
 
         for blueprint in self.fittings.blueprints:
-            if name in blueprint.keys()[0]:
+            if name == blueprint.keys()[0]:
                 blueprint = blueprint[name]
                 blueprint['target'] = name
                 return blueprint
