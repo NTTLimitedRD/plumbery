@@ -21,6 +21,6 @@ __all__ = [
     'spit',
 ]
 
-#TODO
+# TODO
 #
 # - generate a map of all resources as a Freeplane format
