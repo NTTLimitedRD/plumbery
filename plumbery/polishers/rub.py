@@ -122,10 +122,6 @@ class RubPolisher(PlumberyPolisher):
 
         """
 
-        logging.info(node.public_ips)
-        logging.info(node.extra)
-        logging.info(node.private_ips)
-
         # select the address to use
         if len(node.public_ips) > 0:
             target_ip = public_ips[0]
