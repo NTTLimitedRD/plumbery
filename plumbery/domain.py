@@ -15,6 +15,18 @@
 
 import logging
 import time
+from uuid import uuid4
+
+try:
+    from lxml import etree as ET
+except ImportError:
+    from xml.etree import ElementTree as ET
+
+from libcloud.common.dimensiondata import DimensionDataFirewallRule
+from libcloud.common.dimensiondata import DimensionDataFirewallAddress
+from libcloud.common.dimensiondata import DimensionDataNatRule
+from libcloud.utils.xml import fixxpath, findtext, findall
+from libcloud.common.dimensiondata import TYPES_URN
 
 from exceptions import PlumberyException
 
@@ -134,6 +146,7 @@ class PlumberyDomain:
                                     "if not in safe mode".format(domainName))
                 logging.info("Would have created Ethernet network '{}' " \
                                     "if not in safe mode".format(networkName))
+                self._build_accept(blueprint, None, None)
                 return False
 
             else:
@@ -201,6 +214,7 @@ class PlumberyDomain:
             if self.plumbery.safeMode:
                 logging.info("Would have created Ethernet network '{}' " \
                                     "if not in safe mode".format(networkName))
+                self._build_accept(blueprint, self.domain, None)
                 return False
 
             else:
@@ -242,6 +256,268 @@ class PlumberyDomain:
                                                 .format(networkName, feedback))
 
                     break
+
+        if not self._build_accept(blueprint, self.domain, self.network):
+            return False
+
+        return True
+
+    def _build_accept(self, blueprint, domain, network):
+        """
+        Changes firewall settings to accept incoming traffic
+
+        Example in the fittings plan::
+
+          - web:
+              domain: *vdc1
+              ethernet: &prod
+                name: gigafox.production
+                subnet: 10.1.2.0
+                accept:
+                  - gigafox.control
+                  - dd-eu::EU6::other.network.there
+                description: '#eu'
+
+        In this example, the firewall is configured to that any ip traffic
+        from the Ethernet network ``gigafox.control`` can reach the Ethernet
+        network ``gigafox.production``. By default, one rule is created for
+        IPv4 and another rule is created for IPv6.
+
+        """
+
+        if 'accept' not in blueprint['ethernet']:
+            return True
+
+        if network is None:
+            return True
+
+        destination = self.get_ethernet(network.name)
+        if not destination:
+            return True
+
+        destinationIPv4 = DimensionDataFirewallAddress(
+                    any_ip=False,
+                    ip_address=destination.private_ipv4_range_address,
+                    ip_prefix_size=destination.private_ipv4_range_size,
+                    port_begin=None,
+                    port_end=None)
+
+        destinationIPv6 = DimensionDataFirewallAddress(
+                    any_ip=False,
+                    ip_address=destination.ipv6_range_address,
+                    ip_prefix_size=destination.ipv6_range_size,
+                    port_begin=None,
+                    port_end=None)
+
+        for item in blueprint['ethernet']['accept']:
+
+            if isinstance(item, dict):
+                label = item.keys()[0]
+                parameters = item[label]
+            else:
+                label = str(item)
+                parameters = {}
+
+            source = self.get_ethernet(label.split('::'))
+            if not source:
+                logging.info("Source network '{}' is unknown".format(label))
+                continue
+
+            ruleIPv4Name = self.get_firewall_rule_name(
+                                        source.name, destination.name, 'IP')
+
+            shouldCreateRuleIPv4 = True
+            if source.location.name != destination.location.name:
+                shouldCreateRuleIPv4 = False
+            elif source.network_domain.name != destination.network_domain.name:
+                shouldCreateRuleIPv4 = False
+
+            ruleIPv6Name = self.get_firewall_rule_name(
+                                        source.name, destination.name, 'IPv6')
+
+            shouldCreateRuleIPv6 = True
+
+            if len(self._cache_firewall_rules) < 1:
+                self._cache_firewall_rules = self.region.ex_list_firewall_rules(
+                                            domain)
+
+            for rule in self._cache_firewall_rules:
+
+                if shouldCreateRuleIPv4 and rule.name == ruleIPv4Name:
+                    logging.info("Firewall rule '{}' already exists"
+                                                            .format(rule.name))
+                    shouldCreateRuleIPv4 = False
+                    continue
+
+                if shouldCreateRuleIPv6 and rule.name == ruleIPv6Name:
+                    logging.info("Firewall rule '{}' already exists"
+                                                            .format(rule.name))
+                    shouldCreateRuleIPv6 = False
+                    continue
+
+            if shouldCreateRuleIPv4:
+
+                logging.info("Creating firewall rule '{}'"
+                                                   .format(ruleIPv4Name))
+
+                sourceIPv4 = DimensionDataFirewallAddress(
+                                any_ip=False,
+                                ip_address=source.private_ipv4_range_address,
+                                ip_prefix_size=source.private_ipv4_range_size,
+                                port_begin=None,
+                                port_end=None)
+
+                ruleIPv4 = DimensionDataFirewallRule(
+                                id=uuid4(),
+                                action= 'ACCEPT_DECISIVELY',
+                                name=ruleIPv4Name,
+                                location=destination.location,
+                                network_domain=destination.network_domain,
+                                status='NORMAL',
+                                ip_version='IPV4',
+                                protocol='IP',
+                                enabled='true',
+                                source=sourceIPv4,
+                                destination=destinationIPv4)
+
+                self._ex_create_firewall_rule(
+                                network_domain=destination.network_domain,
+                                rule=ruleIPv4,
+                                position='LAST')
+
+                logging.info("- in progress")
+
+            if shouldCreateRuleIPv6:
+
+                logging.info("Creating firewall rule '{}'"
+                                                   .format(ruleIPv6Name))
+
+                sourceIPv6 = DimensionDataFirewallAddress(
+                                any_ip=False,
+                                ip_address=source.ipv6_range_address,
+                                ip_prefix_size=source.ipv6_range_size,
+                                port_begin=None,
+                                port_end=None)
+
+                ruleIPv6 = DimensionDataFirewallRule(
+                                id=uuid4(),
+                                action= 'ACCEPT_DECISIVELY',
+                                name=ruleIPv6Name,
+                                location=destination.location,
+                                network_domain=destination.network_domain,
+                                status='NORMAL',
+                                ip_version='IPV6',
+                                protocol='IP',
+                                enabled='true',
+                                source=sourceIPv6,
+                                destination=destinationIPv6)
+
+                self._ex_create_firewall_rule(
+                                network_domain=destination.network_domain,
+                                rule=ruleIPv6,
+                                position='LAST')
+
+                logging.info("- in progress")
+
+        return True
+
+    def _ex_create_firewall_rule(self, network_domain, rule, position):
+        create_node = ET.Element('createFirewallRule', {'xmlns': TYPES_URN})
+        ET.SubElement(create_node, "networkDomainId").text = network_domain.id
+        ET.SubElement(create_node, "name").text = rule.name
+        ET.SubElement(create_node, "action").text = rule.action
+        ET.SubElement(create_node, "ipVersion").text = rule.ip_version
+        ET.SubElement(create_node, "protocol").text = rule.protocol
+        # Setup source port rule
+        source = ET.SubElement(create_node, "source")
+        source_ip = ET.SubElement(source, 'ip')
+        if rule.source.any_ip:
+            source_ip.set('address', 'ANY')
+        else:
+            source_ip.set('address', rule.source.ip_address)
+            source_ip.set('prefixSize', rule.source.ip_prefix_size)
+            if rule.source.port_begin is not None:
+                source_port = ET.SubElement(source, 'port')
+                source_port.set('begin', rule.source.port_begin)
+            if rule.source.port_end is not None:
+                source_port.set('end', rule.source.port_end)
+        # Setup destination port rule
+        dest = ET.SubElement(create_node, "destination")
+        dest_ip = ET.SubElement(dest, 'ip')
+        if rule.destination.any_ip:
+            dest_ip.set('address', 'ANY')
+        else:
+            dest_ip.set('address', rule.destination.ip_address)
+            dest_ip.set('prefixSize', rule.destination.ip_prefix_size)
+            if rule.destination.port_begin is not None:
+                dest_port = ET.SubElement(dest, 'port')
+                dest_port.set('begin', rule.destination.port_begin)
+            if rule.destination.port_end is not None:
+                dest_port.set('end', rule.destination.port_end)
+        ET.SubElement(create_node, "enabled").text = 'true'
+        placement = ET.SubElement(create_node, "placement")
+        placement.set('position', position)
+
+        response = self.region.connection.request_with_orgId_api_2(
+            'network/createFirewallRule',
+            method='POST',
+            data=ET.tostring(create_node)).object
+
+        rule_id = None
+        for info in findall(response, 'info', TYPES_URN):
+            if info.get('name') == 'firewallRuleId':
+                rule_id = info.get('value')
+        rule.id = rule_id
+        return rule
+
+    def _destroy_accept(self, blueprint, domain, network):
+        """
+        Destroys firewall rules
+
+        """
+
+        if 'accept' not in blueprint['ethernet']:
+            return True
+
+        if network is None:
+            return True
+
+        destination = self.get_ethernet(network.name)
+        if not destination:
+            return True
+
+        for item in blueprint['ethernet']['accept']:
+
+            if isinstance(item, dict):
+                label = item.keys()[0]
+                parameters = item[label]
+            else:
+                label = str(item)
+                parameters = {}
+
+            source = self.get_ethernet(label.split('::'))
+            if not source:
+                logging.info("Source network '{}' is unknown".format(label))
+                continue
+
+            ruleIPv4Name = self.get_firewall_rule_name(
+                                        source.name, destination.name, 'IP')
+
+            ruleIPv6Name = self.get_firewall_rule_name(
+                                        source.name, destination.name, 'IPv6')
+
+            if len(self._cache_firewall_rules) < 1:
+                self._cache_firewall_rules = self.region.ex_list_firewall_rules(
+                                            domain)
+
+            for rule in self._cache_firewall_rules:
+
+                if rule.name == ruleIPv4Name or rule.name == ruleIPv6Name:
+                    logging.info("Destroying firewall rule '{}'"
+                                                            .format(rule.name))
+                    self.region._ex_delete_firewall_rule(rule)
+
+                    logging.info("- in progress")
 
         return True
 
@@ -349,6 +625,8 @@ class PlumberyDomain:
             return False
 
         logging.info("Destroying network domain '{}'".format(domainName))
+
+        self._destroy_accept(blueprint, domain, network)
 
         count = 5
         while count > 0:
