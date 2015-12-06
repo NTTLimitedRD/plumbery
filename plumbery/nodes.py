@@ -85,9 +85,9 @@ class PlumberyNodes:
 
         self.facility.power_on()
 
-        if 'nodes' not in blueprint:
-            raise PlumberyException("Error: no nodes have been defined " \
-                        "for the blueprint '{}'!".format(blueprint['target']))
+        if 'nodes' not in blueprint or not isinstance(blueprint['nodes'], list):
+            logging.info("No nodes have been defined")
+            return
 
         for item in blueprint['nodes']:
 
@@ -172,7 +172,7 @@ class PlumberyNodes:
 
         self.facility.power_on()
 
-        if 'nodes' not in blueprint:
+        if 'nodes' not in blueprint or not isinstance(blueprint['nodes'], list):
             return
 
         # destroy in reverse order
