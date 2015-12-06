@@ -3,9 +3,20 @@
 History
 -------
 
+0.2.3 (2015-12-07)
+---------------------
+
+* Introduce Gigafox project, to demonstrate deployment across multiple places
+* Create firewall rules to allow traffic between networks
+* Cache information to save on API calls and to accelerate the processing
+* Improve the state engine
+* Passing Travis CI
+* Test coverage 48%
+
 0.2.2 (2015-12-05)
 ---------------------
 
+* Use ipv6 when possible to connect to remote nodes
 * Manual tests to improve usage on specific conditions, e.g., against MCP 1.0
 * Label expansion to facilitate node handling, e.g., mongo[1..20]
 * Allow for destruction of networks and of domain networks
