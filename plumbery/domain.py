@@ -76,6 +76,8 @@ class PlumberyDomain:
 
         self._cache_network_domains = []
         self._cache_vlans = []
+        self._cache_remote_vlan = []
+        self._cache_offshore_vlan = []
         self._cache_firewall_rules = []
 
         self._network_domains_already_built =[]
@@ -124,138 +126,114 @@ class PlumberyDomain:
 
         networkName = blueprint['ethernet']['name']
 
-        if len(self._cache_network_domains) < 1:
-            logging.info("Fetching the list of existing network domains")
-            self._cache_network_domains = self.region.ex_list_network_domains(
-                                        location=self.facility.location)
-            logging.info("- {} network domains".format(len(self._cache_network_domains)))
+        self.domain = self.get_network_domain(domainName)
+        if self.domain is not None:
+            logging.info("Network domain '{}' already exists"
+                                                    .format(domainName))
 
-        self.domain = None
-        for self.domain in self._cache_network_domains:
-            if self.domain.name == domainName:
-                if not domainName in self._network_domains_already_built:
-                    logging.info("Network domain '{}' already exists"
-                                                        .format(domainName))
-                self._network_domains_already_built.append(domainName)
+        elif self.plumbery.safeMode:
+            logging.info("Would have created network domain '{}' " \
+                                "if not in safe mode".format(domainName))
+            logging.info("Would have created Ethernet network '{}' " \
+                                "if not in safe mode".format(networkName))
+            self._build_accept(blueprint, None, None)
+            return False
+
+        else:
+            logging.info("Creating network domain '{}'".format(domainName))
+
+            # the description attribute is a smart way to tag resources
+            description = '#plumbery'
+            if 'description' in blueprint['domain']:
+                description = blueprint['domain']['description']+' #plumbery'
+
+            # level of service
+            service = 'ESSENTIALS'
+            if 'service' in blueprint['domain']:
+                service = blueprint['domain']['service']
+
+            while True:
+                try:
+                    self.domain = self.region.ex_create_network_domain(
+                                    location=self.facility.location,
+                                    name=domainName,
+                                    service_plan=service,
+                                    description=description)
+                    logging.info("- in progress")
+
+                    self._cache_network_domains.append(self.domain)
+
+                except Exception as feedback:
+
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
+                        logging.info("- operation not supported")
+                        return False
+
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
+                        return False
+
+                    else:
+                        raise PlumberyException(
+                        "Error: unable to create network domain '{0}' {1}!"
+                                        .format(domainName, feedback))
+
                 break
 
-        if self.domain is None or self.domain.name != domainName:
-
-            if self.plumbery.safeMode:
-                logging.info("Would have created network domain '{}' " \
-                                    "if not in safe mode".format(domainName))
-                logging.info("Would have created Ethernet network '{}' " \
-                                    "if not in safe mode".format(networkName))
-                self._build_accept(blueprint, None, None)
-                return False
-
-            else:
-                logging.info("Creating network domain '{}'".format(domainName))
-
-                # the description attribute is a smart way to tag resources
-                description = '#plumbery'
-                if 'description' in blueprint['domain']:
-                    description = blueprint['domain']['description']+' #plumbery'
-
-                # level of service
-                service = 'ESSENTIALS'
-                if 'service' in blueprint['domain']:
-                    service = blueprint['domain']['service']
-
-                while True:
-                    try:
-                        self.domain = self.region.ex_create_network_domain(
-                            location=self.facility.location,
-                            name=domainName,
-                            service_plan=service,
-                            description=description)
-                        logging.info("- in progress")
-
-                        self._cache_network_domains.append(self.domain)
-
-                    except Exception as feedback:
-
-                        if 'RESOURCE_BUSY' in str(feedback):
-                            time.sleep(10)
-                            continue
-
-                        elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
-                            logging.info("- operation not supported")
-                            return False
-
-                        elif 'RESOURCE_LOCKED' in str(feedback):
-                            logging.info("- not now - locked")
-                            return False
-
-                        else:
-                            raise PlumberyException(
-                            "Error: unable to create network domain '{0}' {1}!"
-                                            .format(domainName, feedback))
-
-                    break
-
-        if len(self._cache_vlans) < 1:
-            logging.info("Fetching the list of existing Ethernet networks")
-            self._cache_vlans = self.region.ex_list_vlans(
-                                        location=self.facility.location)
-            logging.info("- {} Ethernet networks".format(len(self._cache_vlans)))
-
-        self.network = None
-        for self.network in self._cache_vlans:
-            if self.network.name == networkName:
-                if not networkName in self._vlans_already_built:
-                    logging.info("Ethernet network '{}' already exists"
+        self.network = self.get_ethernet(networkName)
+        if self.network is not None:
+            logging.info("Ethernet network '{}' already exists"
                                                         .format(networkName))
-                self._vlans_already_built.append(networkName)
+        elif self.plumbery.safeMode:
+            logging.info("Would have created Ethernet network '{}' " \
+                                "if not in safe mode".format(networkName))
+            self._build_accept(blueprint, self.domain, None)
+            return False
+
+        else:
+            logging.info("Creating Ethernet network '{}'"
+                                                    .format(networkName))
+
+            # the description attribute is a smart way to tag resources
+            description = '#plumbery'
+            if 'description' in blueprint['ethernet']:
+                description = blueprint['ethernet']['description']+' #plumbery'
+
+            while True:
+                try:
+                    self.network = self.region.ex_create_vlan(
+                        network_domain=self.domain,
+                        name=networkName,
+                        private_ipv4_base_address=blueprint['ethernet']['subnet'],
+                        description=description)
+                    logging.info("- in progress")
+
+                    self._update_ipv6(self.region.connection, self.network)
+                    self._cache_vlans.append(self.network)
+
+                except Exception as feedback:
+
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'NAME_NOT_UNIQUE' in str(feedback):
+                        logging.info("- network already exists")
+
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
+                        return False
+
+                    else:
+                        raise PlumberyException("Error: unable to create " \
+                                        "Ethernet network '{0}' {1}!"
+                                            .format(networkName, feedback))
+
                 break
-
-        if self.network is None or self.network.name != networkName:
-
-            if self.plumbery.safeMode:
-                logging.info("Would have created Ethernet network '{}' " \
-                                    "if not in safe mode".format(networkName))
-                self._build_accept(blueprint, self.domain, None)
-                return False
-
-            else:
-                logging.info("Creating Ethernet network '{}'"
-                                                        .format(networkName))
-
-                # the description attribute is a smart way to tag resources
-                description = '#plumbery'
-                if 'description' in blueprint['ethernet']:
-                    description = blueprint['ethernet']['description']+' #plumbery'
-
-                while True:
-                    try:
-                        self.network = self.region.ex_create_vlan(
-                            network_domain=self.domain,
-                            name=networkName,
-                            private_ipv4_base_address=blueprint['ethernet']['subnet'],
-                            description=description)
-                        logging.info("- in progress")
-
-                        self._cache_vlans.append(self.network)
-
-                    except Exception as feedback:
-
-                        if 'RESOURCE_BUSY' in str(feedback):
-                            time.sleep(10)
-                            continue
-
-                        elif 'NAME_NOT_UNIQUE' in str(feedback):
-                            logging.info("- network already exists")
-
-                        elif 'RESOURCE_LOCKED' in str(feedback):
-                            logging.info("- not now - locked")
-                            return False
-
-                        else:
-                            raise PlumberyException("Error: unable to create " \
-                                            "Ethernet network '{0}' {1}!"
-                                                .format(networkName, feedback))
-
-                    break
 
         if not self._build_accept(blueprint, self.domain, self.network):
             return False
@@ -538,37 +516,24 @@ class PlumberyDomain:
                 "Error: no network domain has been defined " \
                      "for the blueprint '{}'!".format(blueprint['target']))
 
-        if len(self._cache_network_domains) < 1:
-            self._cache_network_domains = self.region.ex_list_network_domains(
-                                        location=self.facility.location)
-
-        domainName = blueprint['domain']['name']
-        domain = None
-        for domain in self._cache_network_domains:
-            if domain.name == domainName:
-                break
-
-        if domain is None or domain.name != domainName:
-            logging.info("Destroying network domain '{}'".format(domainName))
-            logging.info("- not found")
-            return False
-
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
             raise PlumberyException(
                 "Error: no ethernet network has been defined " \
                         "for the blueprint '{}'!".format(blueprint['target']))
 
-        if len(self._cache_vlans) < 1:
-            self._cache_vlans = self.region.ex_list_vlans(
-                                        location=self.facility.location)
+        domainName = blueprint['domain']['name']
+        domain = self.get_network_domain(domainName)
+        if domain is None:
+            logging.info("Destroying network domain '{}'".format(domainName))
+            logging.info("- not found")
+            return False
 
         networkName = blueprint['ethernet']['name']
-        network = None
-        for network in self._cache_vlans:
-            if network.name == networkName:
-                break
+        network = self.get_ethernet(networkName)
+        if network is None:
+            logging.info("Destroying Ethernet network '{}'".format(networkName))
+            logging.info("- not found")
 
-        if network is not None and network.name == networkName:
 
             if self.plumbery.safeMode:
                 logging.info("Would have destroyed Ethernet network '{}' "
@@ -681,40 +646,16 @@ class PlumberyDomain:
                 "Error: no network domain has been defined " \
                      "for the blueprint '{}'!".format(blueprint['target']))
 
-        if len(self._cache_network_domains) < 1:
-            self._cache_network_domains = self.region.ex_list_network_domains(
-                                        location=self.facility.location)
-
-        domainName = blueprint['domain']['name']
-        target.domain = None
-        for target.domain in self._cache_network_domains:
-            if target.domain.name == domainName:
-                break
-
-        if target.domain is None or target.domain.name != domainName:
-            logging.info("Warning: network domain '{}' is unknown"
-                            .format(domainName))
-            return None
-
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
             raise PlumberyException(
                 "Error: no ethernet network has been defined " \
                         "for the blueprint '{}'!".format(blueprint['target']))
 
-        if len(self._cache_vlans) < 1:
-            self._cache_vlans = self.region.ex_list_vlans(
-                                        location=self.facility.location)
+        domainName = blueprint['domain']['name']
+        target.domain = self.get_network_domain(domainName)
 
         networkName = blueprint['ethernet']['name']
-        target.network = None
-        for target.network in self._cache_vlans:
-            if target.network.name == networkName:
-                break
-
-        if target.network is None or target.network.name != networkName:
-            logging.info("Warning: Ethernet network '{}' is unknown"
-                            .format(networkName))
-            return None
+        target.network = self.get_ethernet(networkName)
 
         return target
 
@@ -748,15 +689,26 @@ class PlumberyDomain:
         if len(path) == 1:
 
             if len(self._cache_vlans) < 1:
+                logging.info("Listing existing Ethernet networks")
                 self._cache_vlans = self.region.ex_list_vlans(
                                             location=self.facility.location)
+                for network in self._cache_vlans:
+                    self._update_ipv6(self.region.connection, network)
+                logging.info("- found {} Ethernet networks".format(
+                                len(self._cache_vlans)))
 
             for network in self._cache_vlans:
                 if network.name == path[0]:
-                    self._update_ipv6(self.region.connection, network)
                     return network
 
         elif len(path) == 2:
+
+            if len(self._cache_remote_vlan) == 3                            \
+                            and self._cache_remote_vlan[0] == path[0]       \
+                            and self._cache_remote_vlan[1] == path[1]:
+                return self._cache_remote_vlan[2]
+
+            logging.info("Looking for remote Ethernet network")
 
             remoteLocation = self.region.ex_get_location_by_id(path[0])
 
@@ -764,9 +716,20 @@ class PlumberyDomain:
             for network in vlans:
                 if network.name == path[1]:
                     self._update_ipv6(self.region.connection, network)
+                    self._cache_remote_vlan.append(path)
+                    self._cache_remote_vlan.append(network)
+                    logging.info("- found")
                     return network
 
         elif len(path) == 3:
+
+            if len(self._cache_offshore_vlan) == 4                            \
+                            and self._cache_offshore_vlan[0] == path[0]       \
+                            and self._cache_offshore_vlan[1] == path[1]       \
+                            and self._cache_offshore_vlan[2] == path[2]:
+                return self._cache_offshore_vlan[3]
+
+            logging.info("Looking for offshore Ethernet network")
 
             offshore = self.plumbery.provider(
                 self.plumbery.get_user_name(),
@@ -779,11 +742,39 @@ class PlumberyDomain:
             for network in vlans:
                 if network.name == path[2]:
                     self._update_ipv6(offshore.connection, network)
+                    self._cache_offshore_vlan.append(path)
+                    self._cache_offshore_vlan.append(network)
+                    logging.info("- found")
+                    print self._cache_offshore_vlan
                     return network
 
         return None
 
-    def get_firewall_rule_name(self, source, destination, protocol):
+    def get_network_domain(self, name):
+        """
+        Retrieves a network domain by name
+
+        :param name: name of the target network domain
+        :type name: ``str``
+
+        :param location: the location where this network domain is located
+
+        """
+
+        if len(self._cache_network_domains) < 1:
+            logging.info("Listing existing network domains")
+            self._cache_network_domains = self.region.ex_list_network_domains(
+                                                        self.facility.location)
+            logging.info("- found {} network domains".format(
+                                len(self._cache_network_domains)))
+
+        for domain in self._cache_network_domains:
+            if domain.name == name:
+                return domain
+
+        return None
+
+    def name_firewall_rule(self, source, destination, protocol):
         """
         Provides a name for a firewall rule
 
