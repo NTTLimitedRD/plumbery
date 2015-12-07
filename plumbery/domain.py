@@ -301,7 +301,7 @@ class PlumberyDomain:
                 logging.info("Source network '{}' is unknown".format(label))
                 continue
 
-            ruleIPv4Name = self.get_firewall_rule_name(
+            ruleIPv4Name = self.name_firewall_rule(
                                         source.name, destination.name, 'IP')
 
             shouldCreateRuleIPv4 = True
@@ -310,7 +310,7 @@ class PlumberyDomain:
             elif source.network_domain.name != destination.network_domain.name:
                 shouldCreateRuleIPv4 = False
 
-            ruleIPv6Name = self.get_firewall_rule_name(
+            ruleIPv6Name = self.name_firewall_rule(
                                         source.name, destination.name, 'IPv6')
 
             shouldCreateRuleIPv6 = True
@@ -477,10 +477,10 @@ class PlumberyDomain:
             if source = self.get_ethernet(label.split('::'))
                 sourceLabel = source.name
 
-            ruleIPv4Name = self.get_firewall_rule_name(
+            ruleIPv4Name = self.name_firewall_rule(
                                         sourceLabel, destinationLabel, 'IP')
 
-            ruleIPv6Name = self.get_firewall_rule_name(
+            ruleIPv6Name = self.name_firewall_rule(
                                         sourceLabel, destinationLabel, 'IPv6')
 
             if len(self._cache_firewall_rules) < 1:
@@ -794,7 +794,7 @@ class PlumberyDomain:
             >>>source='gigafox.control'
             >>>destination='gigafox.production'
             >>>protocol='IP'
-            >>>domain.get_firewall_rule_name(source, destination, protocol)
+            >>>domain.name_firewall_rule(source, destination, protocol)
             'plumbery.FlowIPFromGigafoxControlToGigafoxProduction'
 
         """
