@@ -141,15 +141,15 @@ class PlumberyFacility:
 
         """
 
-        target = self.get_blueprint(name)
-        if not target:
-            return
-
         domains = PlumberyDomain(self)
         for label in self.list_basement():
             blueprint = self.get_blueprint(label)
             if blueprint is not None:
                 domains.build(blueprint)
+
+        target = self.get_blueprint(name)
+        if not target:
+            return
 
         if name not in self.list_basement():
             domains.build(target)
