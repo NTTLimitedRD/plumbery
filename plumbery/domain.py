@@ -448,7 +448,7 @@ class PlumberyDomain:
         rule.id = rule_id
         return rule
 
-    def _destroy_accept(self, blueprint, domain, network):
+    def _destroy_accept(self, blueprint, domain, name):
         """
         Destroys firewall rules
 
@@ -457,11 +457,9 @@ class PlumberyDomain:
         if 'accept' not in blueprint['ethernet']:
             return True
 
-        if network is None:
-            return True
-
-        destinationLabel = network.name
-        if destination = self.get_ethernet(network.name):
+        destinationLabel = name
+        destination = self.get_ethernet(name)
+        if destination is not None:
             destinationLabel = destination.name
 
         for item in blueprint['ethernet']['accept']:
@@ -474,7 +472,8 @@ class PlumberyDomain:
                 parameters = {}
 
             sourceLabel = label
-            if source = self.get_ethernet(label.split('::'))
+            source = self.get_ethernet(label.split('::'))
+            if source is not None:
                 sourceLabel = source.name
 
             ruleIPv4Name = self.name_firewall_rule(
