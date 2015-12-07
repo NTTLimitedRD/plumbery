@@ -163,10 +163,17 @@ class PlumberyFacility:
 
         """
 
+        self.power_on()
+        nodes = PlumberyNodes(self)
+        domains = PlumberyDomain(self)
+
         for blueprint in self.fittings.blueprints:
-            logging.info("Destroying blueprint '{}'"
-                                .format(blueprint.keys()[0]))
-            self.destroy_blueprint(blueprint.keys()[0])
+            name = blueprint.keys()[0]
+            blueprint = blueprint[name]
+            blueprint['target'] = name
+            logging.info("Destroying blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
+            domains.destroy_blueprint(blueprint)
 
     def destroy_all_nodes(self):
         """
@@ -174,10 +181,15 @@ class PlumberyFacility:
 
         """
 
+        self.power_on()
+        nodes = PlumberyNodes(self)
+
         for blueprint in self.fittings.blueprints:
-            logging.info("Destroying nodes of blueprint '{}'"
-                                        .format(blueprint.keys()[0]))
-            self.destroy_nodes(blueprint.keys()[0])
+            name = blueprint.keys()[0]
+            blueprint = blueprint[name]
+            blueprint['target'] = name
+            logging.info("Destroying nodes of blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
 
     def destroy_blueprint(self, name):
         """
