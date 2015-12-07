@@ -188,16 +188,18 @@ class PlumberyNodes:
 
             for label in self.expand_labels(label):
 
-                node = self.get_node(label)
-                if node is None:
-                    continue
-
                 if self.plumbery.safeMode:
                     logging.info("Would have destroyed node '{}' "
                                     "if not in safe mode".format(label))
                     continue
 
                 logging.info("Destroying node '{}'".format(label))
+
+                node = self.get_node(label)
+                if node is None:
+                    logging.info("- not found")
+                    continue
+
                 while True:
 
                     try:
