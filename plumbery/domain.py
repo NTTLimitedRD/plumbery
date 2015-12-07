@@ -558,10 +558,6 @@ class PlumberyDomain:
                         logging.info("- not found")
 
                     elif 'HAS_DEPENDENCY' in str(feedback):
-                        count -= 1
-                        if count > 0:
-                            time.sleep(20)
-                            continue
                         logging.info("- not now - stuff on it")
                         return False
 
@@ -577,9 +573,7 @@ class PlumberyDomain:
 
                 break
 
-        else:
-            logging.info("Destroying Ethernet network '{}'".format(networkName))
-            logging.info("- not found")
+        self._destroy_accept(blueprint, domain, networkName)
 
         if self.plumbery.safeMode:
             logging.info("Would have destroyed network domain '{}' "
@@ -588,10 +582,7 @@ class PlumberyDomain:
 
         logging.info("Destroying network domain '{}'".format(domainName))
 
-        self._destroy_accept(blueprint, domain, network)
-
-        count = 5
-        while count > 0:
+        while True:
             try:
                 self.region.ex_delete_network_domain(network_domain=domain)
                 logging.info("- in progress")
@@ -606,10 +597,6 @@ class PlumberyDomain:
                     logging.info("- not found")
 
                 elif 'HAS_DEPENDENCY' in str(feedback):
-                    count -= 1
-                    if count > 0:
-                        time.sleep(20)
-                        continue
                     logging.info("- not now - stuff on it")
                     return False
 
@@ -617,8 +604,9 @@ class PlumberyDomain:
                     logging.info("- not now - locked")
                     return False
 
-                raise PlumberyException(
-                    "Error: unable to destroy network domain '{0}' {1}!"
+                else:
+                    raise PlumberyException(
+                        "Error: unable to destroy network domain '{0}' {1}!"
                                     .format(domainName, feedback))
 
             break
