@@ -580,7 +580,7 @@ class PlumberyDomain:
 
             logging.info("Destroying Ethernet network '{}'".format(networkName))
 
-            count = 5
+            count = 2
             while count > 0:
                 try:
                     self.region.ex_delete_vlan(vlan=network)
@@ -832,7 +832,7 @@ class PlumberyDomain:
             network.ipv6_range_address=ip_range.get('address')
             network.ipv6_range_size=ip_range.get('prefixSize')
 
-        except:
+        except IOError:
             pass
 
 
