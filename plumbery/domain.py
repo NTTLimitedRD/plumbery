@@ -489,13 +489,16 @@ class PlumberyDomain:
             for rule in self._cache_firewall_rules:
 
                 if rule.name == ruleIPv4Name or rule.name == ruleIPv6Name:
-                    logging.info("Destroying firewall rule '{}'"
+
+                    if self.plumbery.safeMode:
+                        logging.info("Would have destroyed firewall rule '{}' "
+                            "if not in safe mode".format(rule.name))
+
+                    else:
+                        logging.info("Destroying firewall rule '{}'"
                                                             .format(rule.name))
-                    self.region.ex_delete_firewall_rule(rule)
-
-                    logging.info("- in progress")
-
-        return True
+                        self.region.ex_delete_firewall_rule(rule)
+                        logging.info("- in progress")
 
     def destroy_blueprint(self, blueprint):
         """
@@ -533,18 +536,14 @@ class PlumberyDomain:
             logging.info("Destroying Ethernet network '{}'".format(networkName))
             logging.info("- not found")
 
+        elif self.plumbery.safeMode:
+            logging.info("Would have destroyed Ethernet network '{}' "
+                            "if not in safe mode".format(networkName))
 
-            if self.plumbery.safeMode:
-                logging.info("Would have destroyed Ethernet network '{}' "
-                                "if not in safe mode".format(networkName))
-                logging.info("Would have destroyed network domain '{}' "
-                                "if not in safe mode".format(domainName))
-                return False
-
+        else:
             logging.info("Destroying Ethernet network '{}'".format(networkName))
 
-            count = 2
-            while count > 0:
+            while True:
                 try:
                     self.region.ex_delete_vlan(vlan=network)
                     logging.info("- in progress")
