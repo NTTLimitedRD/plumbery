@@ -482,9 +482,9 @@ class PlumberyDomain:
         if network is None:
             return True
 
-        destination = self.get_ethernet(network.name)
-        if not destination:
-            return True
+        destinationLabel = network.name
+        if destination = self.get_ethernet(network.name):
+            destinationLabel = destination.name
 
         for item in blueprint['ethernet']['accept']:
 
@@ -495,16 +495,15 @@ class PlumberyDomain:
                 label = str(item)
                 parameters = {}
 
-            source = self.get_ethernet(label.split('::'))
-            if not source:
-                logging.info("Source network '{}' is unknown".format(label))
-                continue
+            sourceLabel = label
+            if source = self.get_ethernet(label.split('::'))
+                sourceLabel = source.name
 
             ruleIPv4Name = self.get_firewall_rule_name(
-                                        source.name, destination.name, 'IP')
+                                        sourceLabel, destinationLabel, 'IP')
 
             ruleIPv6Name = self.get_firewall_rule_name(
-                                        source.name, destination.name, 'IPv6')
+                                        sourceLabel, destinationLabel, 'IPv6')
 
             if len(self._cache_firewall_rules) < 1:
                 self._cache_firewall_rules = self.region.ex_list_firewall_rules(
@@ -515,7 +514,7 @@ class PlumberyDomain:
                 if rule.name == ruleIPv4Name or rule.name == ruleIPv6Name:
                     logging.info("Destroying firewall rule '{}'"
                                                             .format(rule.name))
-                    self.region._ex_delete_firewall_rule(rule)
+                    self.region.ex_delete_firewall_rule(rule)
 
                     logging.info("- in progress")
 
