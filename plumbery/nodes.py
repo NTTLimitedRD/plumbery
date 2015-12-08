@@ -157,6 +157,10 @@ class PlumberyNodes:
                             logging.info("- not now")
                             logging.info(str(feedback))
 
+                        elif 'RESOURCE_LOCKED' in str(feedback):
+                            logging.info("- not now - locked")
+                            logging.info(str(feedback))
+
                         else:
                             raise PlumberyException(
                                 "Error: unable to create node '{0}' - {1}!"
