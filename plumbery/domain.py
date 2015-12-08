@@ -717,7 +717,7 @@ class PlumberyDomain:
             for network in vlans:
                 if network.name == path[1]:
                     self._update_ipv6(self.region.connection, network)
-                    self._cache_remote_vlan.append(path)
+                    self._cache_remote_vlan += path
                     self._cache_remote_vlan.append(network)
                     logging.info("- found")
                     return network
@@ -743,10 +743,9 @@ class PlumberyDomain:
             for network in vlans:
                 if network.name == path[2]:
                     self._update_ipv6(offshore.connection, network)
-                    self._cache_offshore_vlan.append(path)
+                    self._cache_offshore_vlan += path
                     self._cache_offshore_vlan.append(network)
                     logging.info("- found")
-                    print self._cache_offshore_vlan
                     return network
 
         return None
