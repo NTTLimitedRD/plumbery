@@ -44,9 +44,17 @@ blueprints:
         - beachhead10:
             description: '#beachhead #eu #ops'
             running: always
+        - apacheTest:
+            description: 'Apache #web #eu'
+#            cpu: 4
+#            memory: 8
+            rub:
+              - run rub.update.sh
+              - put rub.puppet.apache.pp /root/apache.pp
+              - run rub.puppet.sh /root/apache.pp
 
   # workloads dealing directly with end-user devices
-  - webOUT:
+  - web:
       domain: *vdc1
       ethernet:
         name: gigafox.web
