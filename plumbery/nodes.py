@@ -19,6 +19,7 @@ import time
 
 from libcloud.compute.base import NodeAuthPassword
 from libcloud.common.dimensiondata import TYPES_URN
+#from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 from libcloud.utils.xml import fixxpath, findtext, findall
 
 from domain import PlumberyDomain
@@ -114,6 +115,24 @@ class PlumberyNodes:
                 else:
                     imageName = 'Ubuntu'
 
+#                if 'cpu' in settings:
+#                    tokens = settings['cpu'].split(' ')
+#                    if len(tokens) < 3:
+#                        tokens.append('1')
+#                        tokens.append('STANDARD')
+#
+#                    cpu = DimensionDataServerCpuSpecification(
+#                                        cpu_count=tokens[0],
+#                                        cores_per_socket=tokens[1],
+#                                        performance=tokens[2])
+#                else:
+#                    cpu = None
+
+                if 'memory' in settings:
+                    memory = settings['memory']
+                else:
+                    memory = None
+
                 image = self.facility.get_image(imageName)
                 if image is None:
                     raise PlumberyException("Error: unable to find image " \
@@ -143,6 +162,8 @@ class PlumberyNodes:
                                 self.plumbery.get_shared_secret()),
                             ex_network_domain=domain.domain,
                             ex_vlan=domain.network,
+#                            ex_cpu_specification=cpu,
+#                            ex_memory_gb=memory,
                             ex_is_started=False,
                             ex_description=description)
                         logging.info("- in progress")

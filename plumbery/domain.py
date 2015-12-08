@@ -665,7 +665,7 @@ class PlumberyDomain:
         Retrieves an Ethernet network by name
 
         :param label: the name of the target Ethernet network
-        :type label: ``str``
+        :type label: ``str`` of ``list``of ``str``
 
         :returns: :class:`VLAN` or None
 
