@@ -161,6 +161,12 @@ class PlumberyDomain:
                                     description=description)
                     logging.info("- in progress")
 
+                    # prevent locks in xops
+                    self.region.ex_wait_for_state(
+                                'NORMAL', self.region.ex_get_network_domain,
+                                poll_interval=2, timeout=1200,
+                                network_domain_id=self.domain.id)
+
                     self._cache_network_domains.append(self.domain)
 
                 except Exception as feedback:
@@ -211,6 +217,12 @@ class PlumberyDomain:
                         private_ipv4_base_address=blueprint['ethernet']['subnet'],
                         description=description)
                     logging.info("- in progress")
+
+                    # prevent locks in xops
+                    self.region.ex_wait_for_state('NORMAL',
+                                                self.region.ex_get_vlan,
+                                                poll_interval=2, timeout=1200,
+                                                vlan_id=self.network.id)
 
                     self._update_ipv6(self.region.connection, self.network)
                     self._cache_vlans.append(self.network)
