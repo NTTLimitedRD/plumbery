@@ -234,7 +234,10 @@ class PlumberyDomain:
                         continue
 
                     elif 'NAME_NOT_UNIQUE' in str(feedback):
-                        logging.info("- network already exists")
+                        logging.info("- not possible - network already exists elsewhere")
+
+                    elif 'IP_ADDRESS_NOT_UNIQUE' in str(feedback):
+                        logging.info("- not possible - subnet is used elsewhere")
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
                         logging.info("- not now - locked")
