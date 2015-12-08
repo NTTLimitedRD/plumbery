@@ -19,6 +19,7 @@ import yaml
 
 import netifaces
 
+from libcloud.compute.deployment import FileDeployment
 from libcloud.compute.deployment import MultiStepDeployment
 from libcloud.compute.deployment import ScriptDeployment
 from libcloud.compute.deployment import SSHKeyDeployment
@@ -184,17 +185,58 @@ class RubPolisher(PlumberyPolisher):
 
         if settings['rub'] is not None:
             for script in settings['rub']:
-                try:
-                    with open(os.path.dirname(__file__)+'/'+script) as stream:
-                        text = stream.read()
-                        if text:
-                            rubs.append({
-                                'description': 'run '+script,
-                                'genius': ScriptDeployment(text)})
 
-                except IOError:
-                    raise PlumberyException("Error: cannot read '{}'"
+                tokens = script.split(' ')
+                if len(tokens) == 1:
+                    tokens.insert(0, 'run')
+
+                if tokens[0] == 'run':
+
+                    script = tokens[1]
+                    if len(tokens) > 2:
+                        args = tokens[2:]
+                    else:
+                        args = None
+
+                    try:
+                        with open(os.path.dirname(__file__)+'/'+script) as stream:
+                            text = stream.read()
+                            if text:
+                                rubs.append({
+                                    'description': ' '.join(tokens),
+                                    'genius': ScriptDeployment(script=text,
+                                                                 args=args)})
+
+                    except IOError:
+                        raise PlumberyException("Error: cannot read '{}'"
                                                             .format(script))
+
+                elif tokens[0] == 'put':
+
+                    file = tokens[1]
+                    if len(tokens) > 2:
+                        destination = tokens[2]
+                    else:
+                        destination = './'+file
+
+                    try:
+                        source = os.path.dirname(__file__)+'/'+file
+                        with open(source) as stream:
+                            text = stream.read()
+                            if text:
+                                rubs.append({
+                                    'description': ' '.join(tokens),
+                                    'genius': FileDeployment(source=source,
+                                                         target=destination)})
+
+                    except IOError:
+                        raise PlumberyException("Error: cannot read '{}'"
+                                                            .format(file))
+
+                else:
+                    raise PlumberyException("Error: unknown directive '{}'"
+                                                    .format(' '.join(tokens)))
+
 
         return rubs
 
