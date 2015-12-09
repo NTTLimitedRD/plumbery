@@ -7,6 +7,10 @@ Tests for `domain` module.
 import unittest
 
 from plumbery.domain import PlumberyDomain
+from mock_api import DimensionDataMockHttp
+from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
+
+DIMENSIONDATA_PARAMS = ('user', 'password')
 
 
 class FakeDomain:
@@ -24,35 +28,13 @@ class FakePlumbery:
     safeMode = False
 
 
-class FakeRegion:
-
-    def ex_create_network_domain(self, location, name, service_plan, description):
-        return FakeDomain()
-
-    def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
-        return FakeNetwork()
-
-    def ex_get_network_domain(self, location, network_domain):
-        return []
-
-    def ex_get_vlan(self, vlan_id):
-        return FakeNetwork()
-
-    def ex_list_network_domains(self, location):
-        return []
-
-    def ex_list_vlans(self, location):
-        return []
-
-    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):
-        return []
-
-
 class FakeFacility:
 
     plumbery = FakePlumbery()
 
-    region = FakeRegion()
+    DimensionDataNodeDriver.connectionCls.conn_classes = (None, DimensionDataMockHttp)
+    DimensionDataMockHttp.type = None
+    region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
     location = 1
 

@@ -7,6 +7,10 @@ Tests for `nodes` module.
 import unittest
 
 from plumbery.nodes import PlumberyNodes
+from mock_api import DimensionDataMockHttp
+from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
+
+DIMENSIONDATA_PARAMS = ('user', 'password')
 
 
 class FakeNetwork:
@@ -26,19 +30,6 @@ class FakeImage:
     name = 'RedHat 6 64-bit 4 CPU'
 
 
-class FakeLocation:
-
-    id = 'EU7'
-    name = 'data centre in Amsterdam'
-    country = 'Netherlands'
-
-
-class FakeNode:
-
-    name = 'stackstorm'
-    extra = {'datacenterId': 'EU7'}
-
-
 class FakePlumbery:
 
     safeMode = False
@@ -47,41 +38,12 @@ class FakePlumbery:
         return 'foo'
 
 
-class FakeRegion:
-
-    def create_node(self, name, image, auth, ex_network_domain, ex_vlan, ex_is_started, ex_description):
-        return True
-
-    def ex_create_network_domain(self, location, name, service_plan, description):
-        return FakeDomain()
-
-    def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
-        return FakeNetwork()
-
-    def ex_get_network_domain(self, location, network_domain):
-        return []
-
-    def ex_get_vlan(self, vlan_id):
-        return FakeNetwork()
-
-    def ex_list_network_domains(self, location):
-        return []
-
-    def ex_list_vlans(self, location, network_domain):
-        return []
-
-    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):
-        return []
-
-    def list_nodes(self):
-        return []
-
-
 class FakeFacility:
 
     plumbery = FakePlumbery()
-
-    region = FakeRegion()
+    DimensionDataNodeDriver.connectionCls.conn_classes = (None, DimensionDataMockHttp)
+    DimensionDataMockHttp.type = None
+    region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
     location = 1
 
