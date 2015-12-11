@@ -74,7 +74,7 @@ class FakeRegion:
     def ex_list_network_domains(self, location):
         return []
 
-    def ex_list_vlans(self, location, network_domain):
+    def ex_list_vlans(self, location):
         return []
 
     def ex_start_node(self, node):
