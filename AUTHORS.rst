@@ -12,3 +12,4 @@ Contributors
 ------------
 
 * Anthony Shaw https://github.com/tonybaloney
+* Olivier Grosjeanne

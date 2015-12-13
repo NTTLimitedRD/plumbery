@@ -3,6 +3,22 @@
 History
 -------
 
+0.2.4 (2015-12-13)
+---------------------
+
+* Extend coverage of the Gigafox project
+* Add monitoring to nodes created
+* Run polisher 'spit' right after build to finalise setup of nodes
+* Produce inventory with polisher of same name
+* Introduce puppet manifests to polisher 'rub'
+* Add file copy to remote nodes
+* Introduce basement blueprints
+* Improve reporting messages
+* Enhance code documentation
+* Fix behaviour on abnormal situations
+* Passing Travis CI
+* Test coverage 46%
+
 0.2.3 (2015-12-07)
 ---------------------
 

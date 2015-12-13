@@ -48,6 +48,10 @@ blueprints:
             description: 'Apache #web #eu'
 #            cpu: 4
 #            memory: 8
+#            disks:
+#              - 500 STANDARD
+#              - 100 HIGHPERFORMANCE
+            monitoring: essentials
             rub:
               - run rub.update.sh
               - put rub.puppet.apache.pp /root/apache.pp
@@ -75,8 +79,8 @@ blueprints:
   # workloads dealing with short-term memory
   - redis:
       domain: *vdc1
-      ethernet:
-        name: gigafox.redis
+      ethernet: &data
+        name: gigafox.data
         subnet: 10.1.2.0
         accept:
           - gigafox.control
@@ -90,12 +94,7 @@ blueprints:
   # workloads dedicated to BLOBs
   - mongodb:
       domain: *vdc1
-      ethernet:
-        name: gigafox.mongodb
-        subnet: 10.1.3.0
-        accept:
-          - gigafox.control
-        description: '#eu'
+      ethernet: *data
       nodes:
         - mongo[10..16]:
             description: '#mongo #eu'
