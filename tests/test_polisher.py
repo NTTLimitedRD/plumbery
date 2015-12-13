@@ -55,8 +55,8 @@ fakeRubConfiguration = {
     'reap': 'test_polisher_rub.yaml',
     'key': 'test_polisher.pub'}
 
-fakeSpitConfiguration = {
-    'reap': 'test_polisher_spit.yaml'}
+fakeInventoryConfiguration = {
+    'reap': 'test_polisher_inventory.yaml'}
 
 
 class TestPlumberyPolisher(unittest.TestCase):
@@ -75,8 +75,8 @@ class TestPlumberyPolisher(unittest.TestCase):
         self.polisher.shine_node(FakeNode(), fakeNodeSettings)
         self.polisher.reap()
 
-    def test_spit(self):
-        self.polisher = PlumberyPolisher.from_shelf('spit', fakeSpitConfiguration)
+    def test_inventory(self):
+        self.polisher = PlumberyPolisher.from_shelf('inventory', fakeInventoryConfiguration)
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
         self.polisher.shine_node(FakeNode(), fakeNodeSettings)

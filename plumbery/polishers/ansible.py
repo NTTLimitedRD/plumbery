@@ -15,10 +15,10 @@
 
 import logging
 
-from plumbery.polishers.spit import SpitPolisher
+from plumbery.polishers.inventory import InventoryPolisher
 
 
-class AnsiblePolisher(SpitPolisher):
+class AnsiblePolisher(InventoryPolisher):
     """
     Captures inventory information for ansible
 
