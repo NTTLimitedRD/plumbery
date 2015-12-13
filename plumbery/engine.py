@@ -144,7 +144,7 @@ class PlumberyEngine:
 
     def build_all_blueprints(self):
         """
-        Builds all blueprints
+        Builds all blueprints described in fittings plan
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to build all blueprints there.
@@ -242,7 +242,7 @@ class PlumberyEngine:
 
     def destroy_all_nodes(self):
         """
-        Destroys all nodes
+        Destroys all nodes from fittings plan
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to destroy all nodes there.
@@ -262,7 +262,7 @@ class PlumberyEngine:
 
     def destroy_blueprint(self, name):
         """
-        Destroys blueprint
+        Destroys one blueprint from fittings plan
 
         :param name: the name of the blueprint to destroy
         :type name: ``str``
@@ -285,7 +285,7 @@ class PlumberyEngine:
 
     def destroy_nodes(self, name):
         """
-        Destroys nodes
+        Destroys nodes for one blueprint of the fittings plan
 
         :param name: the name of the blueprint to destroy
         :type name: ``str``
@@ -308,7 +308,7 @@ class PlumberyEngine:
 
     def get_provider(self):
         """
-        Loads a provider from Apache Libcloud.
+        Loads a provider from Apache Libcloud
 
         This is the function to override if you want to use plumbery with
         any cloud service provider known by libcloud.
@@ -406,7 +406,7 @@ class PlumberyEngine:
 
     def polish_all_blueprints(self, filter=None):
         """
-        Walk all resources and polish them
+        Walks all resources and polishes them
 
         :param filter: the name of a single polisher to apply. If this
             parameter is missing, all polishers declared in the fittings plan
@@ -441,7 +441,7 @@ class PlumberyEngine:
 
     def polish_blueprint(self, name, filter=None):
         """
-        Walk resources from the target blueprint and polish them
+        Walkes resources from the target blueprint and polishes them
 
         :param name: the name of the blueprint to polish
         :type name: ``str``
@@ -580,7 +580,7 @@ class PlumberyEngine:
 
     def start_all_nodes(self):
         """
-        Starts all nodes
+        Starts all nodes described in the fittings plan
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to start all nodes there.
@@ -597,7 +597,7 @@ class PlumberyEngine:
 
     def start_nodes(self, name):
         """
-        Starts nodes
+        Starts nodes of one blueprint of the fittings plan
 
         :param name: the name of the blueprint to start
         :type name: ``str``
@@ -617,7 +617,7 @@ class PlumberyEngine:
 
     def stop_all_nodes(self):
         """
-        Stops all nodes
+        Stops all nodes of the fittings plan
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to stop all nodes there.
@@ -634,7 +634,7 @@ class PlumberyEngine:
 
     def stop_nodes(self, name):
         """
-        Stops nodes
+        Stops nodes of one blueprint of the fittings plan
 
         :param name: the name of the blueprint to stop
         :type name: ``str``

@@ -72,8 +72,8 @@ class RubPolisher(PlumberyPolisher):
             nodes:
               - docker1:
                   rub: &docker
-                    - rub.update.sh
-                    - rub.docker.sh
+                    - run rub.update.sh
+                    - run rub.docker.sh
               - docker2:
                   rub: *docker
               - docker3:
