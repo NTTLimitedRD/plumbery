@@ -162,9 +162,11 @@ class PlumberyEngine:
             facility.focus()
             facility.build_all_blueprints()
 
+        self.polish_all_blueprints(filter=self._buildPolisher)
+
     def build_blueprint(self, name):
         """
-        Builds a named blueprint
+        Builds a named blueprint from fittings plan
 
         :param name: the name of the blueprint to deploy
         :type name: ``str``
@@ -184,6 +186,8 @@ class PlumberyEngine:
         for facility in self.facilities:
             facility.focus()
             facility.build_blueprint(name)
+
+        self.polish_blueprint(name=name, filter=self._buildPolisher)
 
     def configure(self, settings):
         """
@@ -211,9 +215,14 @@ class PlumberyEngine:
                 self.polishers.append(
                     PlumberyPolisher.from_shelf(key, value))
 
+        if 'buildPolisher' in settings:
+            self._buildPolisher = settings['buildPolisher']
+        else:
+            self._buildPolisher = 'spit'
+
     def destroy_all_blueprints(self):
         """
-        Destroys all blueprints
+        Destroys all blueprints from fittings plan
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to destroy all blueprints there.

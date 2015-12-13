@@ -155,7 +155,7 @@ class PlumberyPolisher:
                 logging.info("Using polisher '{}'".format(polisher.settings['name']))
                 return filtered
 
-        raise LookupError("Error: polisher '{}' cannot be found".format(filter))
+        return [PlumberyPolisher.from_shelf(filter)]
 
     def move_to(self, facility):
         """

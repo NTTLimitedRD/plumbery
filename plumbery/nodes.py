@@ -228,6 +228,30 @@ class PlumberyNodes:
                 while True:
 
                     try:
+                        self.region.ex_disable_monitoring(node)
+                        logging.info("- monitoring has been disabled")
+
+                    except Exception as feedback:
+
+                        if 'NO_CHANGE' in str(feedback):
+                            pass
+
+                        elif 'RESOURCE_BUSY' in str(feedback):
+                            time.sleep(10)
+                            continue
+
+                        elif 'RESOURCE_LOCKED' in str(feedback):
+                            logging.info("- not now - locked")
+
+                        else:
+                            logging.info("- monitoring cannot be disabled")
+                            logging.info(str(feedback))
+
+                    break
+
+                while True:
+
+                    try:
                         self.region.destroy_node(node)
                         logging.info("- in progress")
 
