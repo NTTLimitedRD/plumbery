@@ -409,6 +409,7 @@ class PlumberyNodes:
 
         node = self.get_node(name)
         if node is None:
+            logging.info("Node '{}' is not found".format(name))
             return None
 
         if self.plumbery.safeMode:
