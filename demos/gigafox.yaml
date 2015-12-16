@@ -33,6 +33,7 @@ blueprints:
         name: GigaFox.EU
         description: '#eu'
         service: ADVANCED
+        ipv4: 4
       ethernet:
         name: gigafox.control
         subnet: 10.1.10.0

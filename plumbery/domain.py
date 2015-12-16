@@ -267,6 +267,9 @@ class PlumberyDomain:
 
                 break
 
+        if 'ipv4' in blueprint['domain']:
+            self._build_ipv4(self.domain, blueprint['domain'])
+
         self.network = self.get_ethernet(networkName)
         if self.network is not None:
             logging.info("Creating Ethernet network '{}'"
@@ -333,6 +336,20 @@ class PlumberyDomain:
             return False
 
         return True
+
+    def _build_ipv4(self, domain, count):
+        """
+        Reserves public addresses
+
+        :param domain: the target domain where addresses will be consumed
+        :type domain: :class:`.PlumberyDomain`
+
+        :param count: the number of addresses to reserve for this domain
+        :type count: ``int``
+
+        """
+
+        pass
 
     def _build_accept(self, blueprint, domain, network):
         """
