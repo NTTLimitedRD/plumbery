@@ -72,9 +72,6 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
-        print node
-        print settings
-
         spits = []
 
         cpu = None
@@ -92,13 +89,17 @@ class SpitPolisher(PlumberyPolisher):
                 memory = None
 
         if cpu and memory:
+            logging.info("- assigning {} cpus".format(cpu))
+            logging.info("- assigning {}GB of memory".format(memory))
             self.region.ex_update_node(node, cpu_count=cpu, ram_mb=memory)
             spits.append("cpu: {}".format(cpu))
             spits.append("memory: {}".format(memory))
         elif cpu:
+            logging.info("- assigning {} cpus".format(cpu))
             self.region.ex_update_node(node, cpu_count=cpu)
             spits.append("cpu: {}".format(cpu))
         elif memory:
+            logging.info("- assigning {}GB of memory".format(memory))
             self.region.ex_update_node(node, ram_mb=memory)
             spits.append("memory: {}".format(memory))
 
@@ -119,8 +120,8 @@ class SpitPolisher(PlumberyPolisher):
                 else:
                     while True:
                         try:
-                            self.region.ex_add_storage_to_node(node, amount=size, speed=speed)
                             logging.info("- adding disk for {}GB '{}'".format(size, speed))
+                            self.region.ex_add_storage_to_node(node, amount=size, speed=speed)
                             spits.append("disk: {} {}".format(size, speed))
 
                         except Exception as feedback:

@@ -338,6 +338,13 @@ class PlumberyDomain:
         """
         Changes firewall settings to accept incoming traffic
 
+        :param blueprint: the various attributes of the target fittings
+        :type blueprint: ``dict``
+
+        :param domain: the target domain for firewall rules
+        :type domain: :class:`.PlumberyDomain`
+
+
         Example in the fittings plan::
 
           - web:
@@ -552,6 +559,13 @@ class PlumberyDomain:
         """
         Destroys firewall rules
 
+        :param blueprint: the various attributes of the target fittings
+        :type blueprint: ``dict``
+
+        :param domain: the target domain for these firewall rules
+        :type domain: :class:`.PlumberyDomain`
+
+
         """
 
         if 'accept' not in blueprint['ethernet']:
@@ -572,9 +586,6 @@ class PlumberyDomain:
                 parameters = {}
 
             sourceLabel = label
-            source = self.get_ethernet(label.split('::'))
-            if source is not None:
-                sourceLabel = source.name
 
             ruleIPv4Name = self.name_firewall_rule(
                                         sourceLabel, destinationLabel, 'IP')
@@ -841,8 +852,6 @@ class PlumberyDomain:
 
         :param name: name of the target network domain
         :type name: ``str``
-
-        :param location: the location where this network domain is located
 
         """
 

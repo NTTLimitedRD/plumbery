@@ -138,9 +138,7 @@ class PlumberyPolisher:
             will be applied
         :type filter: ``str``
 
-        :returns: list of :class:`plumbery.PlumberyPolisher`
-
-        :raises: ``LookupError`` if no polisher can be found
+        :returns: list of :class:`plumbery.PlumberyPolisher` or []
 
         """
 
