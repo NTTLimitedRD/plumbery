@@ -103,7 +103,8 @@ class PlumberyNodes:
             for label in self.expand_labels(label):
 
                 if self.get_node(label):
-                    logging.info("Node '{}' already exists".format(label))
+                    logging.info("Creating node '{}'".format(label))
+                    logging.info("- already done")
                     continue
 
                 description = '#plumbery'

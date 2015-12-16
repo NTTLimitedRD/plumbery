@@ -205,8 +205,8 @@ class PlumberyDomain:
 
         self.domain = self.get_network_domain(domainName)
         if self.domain is not None:
-            logging.info("Network domain '{}' already exists"
-                                                    .format(domainName))
+            logging.info("Creating network domain '{}'".format(domainName))
+            logging.info("- already done")
 
         elif self.plumbery.safeMode:
             logging.info("Would have created network domain '{}' " \
@@ -269,8 +269,10 @@ class PlumberyDomain:
 
         self.network = self.get_ethernet(networkName)
         if self.network is not None:
-            logging.info("Ethernet network '{}' already exists"
-                                                        .format(networkName))
+            logging.info("Creating Ethernet network '{}'"
+                                                    .format(networkName))
+            logging.info("- already done")
+
         elif self.plumbery.safeMode:
             logging.info("Would have created Ethernet network '{}' " \
                                 "if not in safe mode".format(networkName))
@@ -417,14 +419,16 @@ class PlumberyDomain:
             for rule in self._cache_firewall_rules:
 
                 if shouldCreateRuleIPv4 and rule.name == ruleIPv4Name:
-                    logging.info("Firewall rule '{}' already exists"
-                                                            .format(rule.name))
+                    logging.info("Creating firewall rule '{}'"
+                                                   .format(rule.name))
+                    logging.info("- already done")
                     shouldCreateRuleIPv4 = False
                     continue
 
                 if shouldCreateRuleIPv6 and rule.name == ruleIPv6Name:
-                    logging.info("Firewall rule '{}' already exists"
-                                                            .format(rule.name))
+                    logging.info("Creating firewall rule '{}'"
+                                                   .format(rule.name))
+                    logging.info("- already done")
                     shouldCreateRuleIPv6 = False
                     continue
 
@@ -796,7 +800,7 @@ class PlumberyDomain:
                 if network.name == path[1]:
                     self._cache_remote_vlan += path
                     self._cache_remote_vlan.append(network)
-                    logging.info("- found")
+                    logging.info("- found '{}'".format('::'.join(path)))
                     return network
 
         elif len(path) == 3:
@@ -821,7 +825,7 @@ class PlumberyDomain:
                 if network.name == path[2]:
                     self._cache_offshore_vlan += path
                     self._cache_offshore_vlan.append(network)
-                    logging.info("- found")
+                    logging.info("- found '{}'".format('::'.join(path)))
                     return network
 
         return None
