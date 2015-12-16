@@ -62,13 +62,15 @@ blueprints:
       domain: *vdc1
       ethernet:
         name: gigafox.web
-        subnet: 10.1.1.0
+        subnet: 10.1.11.0
         accept:
           - gigafox.control
         description: '#eu'
       nodes:
         - apache[10..11]:
             description: 'Apache #web #eu'
+            monitoring: advanced
+            glue: internet gigafox.control
             rub:
               - run rub.update.sh
               - put rub.puppet.apache.pp
@@ -81,13 +83,14 @@ blueprints:
       domain: *vdc1
       ethernet: &data
         name: gigafox.data
-        subnet: 10.1.2.0
+        subnet: 10.1.12.0
         accept:
-          - gigafox.control
+          - gigafox.web
         description: '#eu'
       nodes:
         - redis[10..12]:
             description: '#redis #eu'
+            monitoring: essentials
             rub:
               - rub.update.sh
 
