@@ -17,8 +17,10 @@ import logging
 import time
 import yaml
 
+from plumbery.domain import PlumberyDomain
 from plumbery.exceptions import PlumberyException
 from plumbery.polisher import PlumberyPolisher
+from plumbery.nodes import PlumberyNodes
 
 
 class SpitPolisher(PlumberyPolisher):
@@ -55,6 +57,8 @@ class SpitPolisher(PlumberyPolisher):
 
         self.facility = facility
         self.region = facility.region
+        self.domains = PlumberyDomain(facility)
+        self.nodes = PlumberyNodes(facility)
 
     def shine_node(self, node, settings):
         """
@@ -131,30 +135,12 @@ class SpitPolisher(PlumberyPolisher):
                         break
 
         if 'monitoring' in settings:
-            value = settings['monitoring'].upper()
-            if value not in ['ESSENTIALS', 'ADVANCED']:
-                logging.info("- monitoring should be 'essentials' or 'advanced'")
-            else:
-                while True:
-                    try:
-                        self.region.ex_enable_monitoring(node, service_plan=value)
-                        logging.info("- monitoring set to '{}'".format(value))
-                        spits.append("monitoring: {}".format(value))
+            if self.nodes._enable_monitoring(node, settings['monitoring']):
+                spits.append("monitoring: {}".format(settings['monitoring'].upper()))
 
-                    except Exception as feedback:
-                        if 'RESOURCE_BUSY' in str(feedback):
-                            time.sleep(10)
-                            continue
-
-                        elif 'NO_CHANGE' in str(feedback):
-                            logging.info("- monitoring has not been changed")
-
-                        else:
-                            logging.info("- unable to set '{0}' monitoring".format(value))
-                            logging.info(str(feedback))
-
-
-                    break
+        if 'glue' in settings:
+            if self.domains._attach_node(node, settings['glue']):
+                spits.append("glueing: {}".format(settings['glue']))
 
         self.report.append({node.name: spits})
 

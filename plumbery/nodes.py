@@ -218,36 +218,15 @@ class PlumberyNodes:
                                     "if not in safe mode".format(label))
                     continue
 
+                self._disable_monitoring(node)
+                self._detach_node(node)
+
                 logging.info("Destroying node '{}'".format(label))
 
                 node = self.get_node(label)
                 if node is None:
                     logging.info("- not found")
                     continue
-
-                while True:
-
-                    try:
-                        self.region.ex_disable_monitoring(node)
-                        logging.info("- monitoring has been disabled")
-
-                    except Exception as feedback:
-
-                        if 'NO_CHANGE' in str(feedback):
-                            pass
-
-                        elif 'RESOURCE_BUSY' in str(feedback):
-                            time.sleep(10)
-                            continue
-
-                        elif 'RESOURCE_LOCKED' in str(feedback):
-                            logging.info("- not now - locked")
-
-                        else:
-                            logging.info("- monitoring cannot be disabled")
-                            logging.info(str(feedback))
-
-                    break
 
                 while True:
 
@@ -276,6 +255,153 @@ class PlumberyNodes:
                                 " node '{0}' - {1}!".format(label, feedback))
 
                     break
+
+    def _detach_node(self, node):
+        """
+        Detach a node from multiple networks
+
+        :param node: the target node
+        :type node: :class:`libcloud.compute.base.Node`
+
+        This function removes all secondary network interfaces to a node, and
+        any potential translation to the public Internet.
+
+        """
+
+        if node is None:
+            return True
+
+        for interface in self._list_secondary_interfaces(node):
+
+            logging.info("Detaching node '{}' from network '{}'"
+                                      .format(node.name, interface['network']))
+
+            while True:
+                try:
+                    self.region.ex_destroy_nic(interface['id'])
+                    logging.info("- in progress")
+
+                except Exception as feedback:
+
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
+
+                    elif 'NO_CHANGE' in str(feedback):
+                        logging.info("- already done")
+
+                    else:
+                        logging.info("- impossible to detach node")
+                        logging.info(str(feedback))
+                        return False
+
+                break
+
+        return True
+
+    def _list_secondary_interfaces(self, node):
+        """
+        Retrieves the list of secondary interfaces
+
+        This is a hack. Code here should really go to the Libcloud driver in
+        libcloud.compute.drivers.dimensiondata.py _to_node()
+
+        """
+
+        element = self.region.connection.request_with_orgId_api_2(
+            'server/server/%s' % node.id).object
+
+        if element.find(fixxpath('networkInfo', TYPES_URN)) is None:
+            return []
+
+        interfaces = []
+        for item in element.findall(fixxpath('networkInfo/additionalNic', TYPES_URN)):
+            interfaces.append({'id': item.get('id'),
+                'network': item.get('vlanName')})
+
+        return interfaces
+
+    def _disable_monitoring(self, node):
+        """
+        Disables monitoring of one node
+
+        :param node: the target node
+        :type node: :class:`libcloud.compute.base.Node`
+
+        """
+
+        logging.info("Disabling monitoring for node '{}'".format(node.name))
+
+        while True:
+
+            try:
+                self.region.ex_disable_monitoring(node)
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'NO_CHANGE' in str(feedback):
+                    pass
+
+                elif 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+
+                else:
+                    logging.info("- monitoring cannot be disabled")
+                    logging.info(str(feedback))
+
+            break
+
+    def _enable_monitoring(self, node, monitoring='ESSENTIALS'):
+        """
+        Enables monitoring of one node
+
+        :param node: the target node
+        :type node: :class:`libcloud.compute.base.Node`
+
+        :param monitoring: either 'ESSENTIALS' or 'ADVANCED'
+        :type monitoring: ``str``
+
+        """
+
+        value = monitoring.upper()
+        logging.info("Setting monitoring to '{}' for '{}'".format(value, node.name))
+
+        if value not in ['ESSENTIALS', 'ADVANCED']:
+            logging.info("- monitoring should be either 'essentials' or 'advanced'")
+        else:
+            while True:
+                try:
+                    self.region.ex_enable_monitoring(node, service_plan=value)
+                    logging.info("- in progress")
+                    return True
+
+                except Exception as feedback:
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'RETRYABLE_SYSTEM_ERROR' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'NO_CHANGE' in str(feedback):
+                        logging.info("- already done")
+
+                    else:
+                        logging.info("- unable to set monitoring")
+                        logging.info(str(feedback))
+
+                break
+
+        return False
 
     def expand_labels(self, label):
         """

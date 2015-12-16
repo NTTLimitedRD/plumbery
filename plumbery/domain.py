@@ -83,6 +83,83 @@ class PlumberyDomain:
         self._network_domains_already_built =[]
         self._vlans_already_built =[]
 
+    def _attach_node(self, node, networks):
+        """
+        Glues a node to multiple networks
+
+        :param node: the target node
+        :type node: :class:`libcloud.compute.base.Node`
+
+        :param networks: a list of networks to connect, and ``internet``
+        :type networks: ``str``
+
+        This function adds network interfaces to a node, or adds translation
+        to the public Internet.
+
+        Example in the fittings plan::
+
+          - redis:
+              domain:
+                ipv4: 6
+              ethernet: *data
+              nodes:
+                - redis[10..12]:
+                    glue: gigafox.control internet
+
+        TODO: glueing to the Internet is not available for the time being
+
+        In this example, another network interface is added to each node for
+        connection to the Ethernet network ``gigafox.control``. Also,
+        public IPv4 addresses are assigned to private addresses, so that each
+        node redis10, redis11 and redis12 is reachable from the internet.
+
+        """
+
+        hasChanged = False
+
+        if node is None:
+            return hasChanged
+
+        networks = str(networks)
+        for label in networks.split(' '):
+
+            logging.info("Glueing node '{}' to network '{}'"
+                                                    .format(node.name, label))
+            if label == 'internet':
+                logging.info("- address translation to the internet is not supported yet")
+                continue
+
+            target = self.get_ethernet(label.split('::'))
+            if not target:
+                logging.info("- network '{}' is unknown".format(label))
+                continue
+
+            while True:
+                try:
+                    self.region.ex_attach_node_to_vlan(node, target)
+                    logging.info("- in progress")
+                    hasChanged = True
+
+                except Exception as feedback:
+
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
+
+                    elif 'INVALID_INPUT_DATA' in str(feedback):
+                        logging.info("- already done")
+
+                    else:
+                        logging.info("- impossible to glue node")
+                        logging.info(str(feedback))
+
+                break
+
+        return hasChanged
+
     def build(self, blueprint):
         """
         Creates a network domain if needed.
@@ -274,6 +351,10 @@ class PlumberyDomain:
         from the Ethernet network ``gigafox.control`` can reach the Ethernet
         network ``gigafox.production``. By default, one rule is created for
         IPv4 and another rule is created for IPv6.
+
+        The second network that is configured is from another data centre
+        in another region. This is leveraging the private network that
+        interconnect all MCPs.
 
         """
 
