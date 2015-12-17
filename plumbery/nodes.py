@@ -225,16 +225,16 @@ class PlumberyNodes:
                                     "if not in safe mode".format(label))
                     continue
 
+                node = self.get_node(label)
+                if node is None:
+                    logging.info("Destroying node '{}'".format(label))
+                    logging.info("- not found")
+                    continue
+
                 self._disable_monitoring(node)
                 self._detach_node(node)
 
                 logging.info("Destroying node '{}'".format(label))
-
-                node = self.get_node(label)
-                if node is None:
-                    logging.info("- not found")
-                    continue
-
                 while True:
 
                     try:
