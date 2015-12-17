@@ -76,8 +76,6 @@ blueprints:
               - run rub.update.sh
               - put rub.puppet.apache.pp
               - run rub.puppet.sh rub.puppet.apache.pp
-      pool:
-        address: public
 
   # workloads dealing with short-term memory
   - redis:

@@ -273,7 +273,7 @@ class PlumberyDomain:
                 break
 
         if 'ipv4' in blueprint['domain']:
-            self._build_ipv4(self.domain, blueprint['domain'])
+            self._build_ipv4(self.domain, int(blueprint['domain']['ipv4']))
 
         self.network = self.get_ethernet(networkName)
         if self.network is not None:
@@ -346,15 +346,120 @@ class PlumberyDomain:
         """
         Reserves public addresses
 
-        :param domain: the target domain where addresses will be consumed
-        :type domain: :class:`.PlumberyDomain`
+        :param domain: the target network domain where addresses will be consumed
+        :type domain: :class:`DimensionDataNetworkDomain`
 
         :param count: the number of addresses to reserve for this domain
         :type count: ``int``
 
         """
 
-        pass
+        if count < 2 or count > 128:
+            logging.info('Invalid count of requested IPv4 public addresses')
+            return False
+
+        logging.info('Counting existing public IPv4 addresses')
+        actual = 0
+
+        while True:
+            try:
+                blocks = self.region.ex_list_public_ip_blocks(domain)
+                for block in blocks:
+                    actual += int(block.size)
+
+                logging.info("- found {} addresses".format(actual))
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                else:
+                    logging.info("Error: unable to count IPv4 public addresses ")
+                    logging.info(str(feedback))
+                    return False
+
+            break
+
+        if actual >= count:
+            return True
+
+        if self.plumbery.safeMode:
+            logging.info("Would have reserved {} public IPv4 addresses " \
+                            "if not in safe mode".format(count-actual))
+            return True
+
+        logging.info('Reserving additional public IPv4 addresses')
+
+        while actual < count:
+            try:
+                block = self.region.ex_add_public_ip_block_to_network_domain(domain)
+                actual += block.size
+                logging.info("- reserved {} addresses".format(block.size))
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+                    return False
+
+                # compensate for bug in Libcloud driver
+                elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                    actual += 2
+                    continue
+
+                else:
+                    logging.info("Error: unable to reserve IPv4 public addresses")
+                    logging.info(str(feedback))
+                    return False
+
+        logging.info("- reserved {} addresses in total".format(actual))
+
+    def _destroy_ipv4(self, domain):
+        """
+        Releases all public addresses assigned to one network domain
+
+        :param domain: the target network domain where addresses will be consumed
+        :type domain: :class:`DimensionDataNetworkDomain`
+
+        """
+
+        if self.plumbery.safeMode:
+            logging.info("Would have released public IPv4 addresses " \
+                            "if not in safe mode")
+            return
+
+        logging.info('Releasing public IPv4 addresses')
+
+        while True:
+            try:
+                blocks = self.region.ex_list_public_ip_blocks(domain)
+                for block in blocks:
+                    self.region.ex_delete_public_ip_block(block)
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+                    return False
+
+                else:
+                    logging.info("Error: unable to count IPv4 public addresses ")
+                    logging.info(str(feedback))
+                    return False
+
+            break
+
+        logging.info('- in progress')
 
     def _build_accept(self, blueprint, domain, network):
         """
@@ -717,6 +822,7 @@ class PlumberyDomain:
                 break
 
         self._destroy_accept(blueprint, domain, networkName)
+        self._destroy_ipv4(domain)
 
         if self.plumbery.safeMode:
             logging.info("Would have destroyed network domain '{}' "
