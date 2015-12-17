@@ -125,6 +125,11 @@ class PlumberyDomain:
 
             logging.info("Glueing node '{}' to network '{}'"
                                                     .format(node.name, label))
+            if self.plumbery.safeMode:
+                logging.info("Would have glued node '{}' to network '{}' " \
+                                "if not in safe mode".format(node.name, label))
+                continue
+
             if label == 'internet':
                 logging.info("- address translation to the internet is not supported yet")
                 continue
@@ -459,67 +464,77 @@ class PlumberyDomain:
 
             if shouldCreateRuleIPv4:
 
-                logging.info("Creating firewall rule '{}'"
-                                                   .format(ruleIPv4Name))
+                if self.plumbery.safeMode:
+                    logging.info("Would have created firewall rule '{}' " \
+                                    "if not in safe mode".format(ruleIPv4Name))
 
-                sourceIPv4 = DimensionDataFirewallAddress(
-                                any_ip=False,
-                                ip_address=source.private_ipv4_range_address,
-                                ip_prefix_size=source.private_ipv4_range_size,
-                                port_begin=None,
-                                port_end=None)
+                else:
+                    logging.info("Creating firewall rule '{}'"
+                                                       .format(ruleIPv4Name))
 
-                ruleIPv4 = DimensionDataFirewallRule(
-                                id=uuid4(),
-                                action= 'ACCEPT_DECISIVELY',
-                                name=ruleIPv4Name,
-                                location=destination.location,
-                                network_domain=destination.network_domain,
-                                status='NORMAL',
-                                ip_version='IPV4',
-                                protocol='IP',
-                                enabled='true',
-                                source=sourceIPv4,
-                                destination=destinationIPv4)
+                    sourceIPv4 = DimensionDataFirewallAddress(
+                                    any_ip=False,
+                                    ip_address=source.private_ipv4_range_address,
+                                    ip_prefix_size=source.private_ipv4_range_size,
+                                    port_begin=None,
+                                    port_end=None)
 
-                self._ex_create_firewall_rule(
-                                network_domain=destination.network_domain,
-                                rule=ruleIPv4,
-                                position='LAST')
+                    ruleIPv4 = DimensionDataFirewallRule(
+                                    id=uuid4(),
+                                    action= 'ACCEPT_DECISIVELY',
+                                    name=ruleIPv4Name,
+                                    location=destination.location,
+                                    network_domain=destination.network_domain,
+                                    status='NORMAL',
+                                    ip_version='IPV4',
+                                    protocol='IP',
+                                    enabled='true',
+                                    source=sourceIPv4,
+                                    destination=destinationIPv4)
 
-                logging.info("- in progress")
+                    self._ex_create_firewall_rule(
+                                    network_domain=destination.network_domain,
+                                    rule=ruleIPv4,
+                                    position='LAST')
+
+                    logging.info("- in progress")
 
             if shouldCreateRuleIPv6:
 
-                logging.info("Creating firewall rule '{}'"
-                                                   .format(ruleIPv6Name))
+                if self.plumbery.safeMode:
+                    logging.info("Would have created firewall rule '{}' " \
+                                    "if not in safe mode".format(ruleIPv4Name))
 
-                sourceIPv6 = DimensionDataFirewallAddress(
-                                any_ip=False,
-                                ip_address=source.ipv6_range_address,
-                                ip_prefix_size=source.ipv6_range_size,
-                                port_begin=None,
-                                port_end=None)
+                else:
+                    logging.info("Creating firewall rule '{}'"
+                                                       .format(ruleIPv6Name))
 
-                ruleIPv6 = DimensionDataFirewallRule(
-                                id=uuid4(),
-                                action= 'ACCEPT_DECISIVELY',
-                                name=ruleIPv6Name,
-                                location=destination.location,
-                                network_domain=destination.network_domain,
-                                status='NORMAL',
-                                ip_version='IPV6',
-                                protocol='IP',
-                                enabled='true',
-                                source=sourceIPv6,
-                                destination=destinationIPv6)
+                    sourceIPv6 = DimensionDataFirewallAddress(
+                                    any_ip=False,
+                                    ip_address=source.ipv6_range_address,
+                                    ip_prefix_size=source.ipv6_range_size,
+                                    port_begin=None,
+                                    port_end=None)
 
-                self._ex_create_firewall_rule(
-                                network_domain=destination.network_domain,
-                                rule=ruleIPv6,
-                                position='LAST')
+                    ruleIPv6 = DimensionDataFirewallRule(
+                                    id=uuid4(),
+                                    action= 'ACCEPT_DECISIVELY',
+                                    name=ruleIPv6Name,
+                                    location=destination.location,
+                                    network_domain=destination.network_domain,
+                                    status='NORMAL',
+                                    ip_version='IPV6',
+                                    protocol='IP',
+                                    enabled='true',
+                                    source=sourceIPv6,
+                                    destination=destinationIPv6)
 
-                logging.info("- in progress")
+                    self._ex_create_firewall_rule(
+                                    network_domain=destination.network_domain,
+                                    rule=ruleIPv6,
+                                    position='LAST')
+
+                    logging.info("- in progress")
 
         return True
 
