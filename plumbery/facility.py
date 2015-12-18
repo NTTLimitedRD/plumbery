@@ -103,7 +103,7 @@ class PlumberyFacility:
             logging.info("Building nodes of blueprint '{}'"
                                 .format(label))
             blueprint = self.get_blueprint(label)
-            domain = domains.get_domain(blueprint)
+            domain = domains.get_container(blueprint)
             nodes.build_blueprint(blueprint, domain)
 
     def build_blueprint(self, name):
@@ -158,7 +158,7 @@ class PlumberyFacility:
             domains.build(target)
 
         nodes = PlumberyNodes(self)
-        nodes.build_blueprint(target, domains.get_domain(target))
+        nodes.build_blueprint(target, domains.get_container(target))
 
     def destroy_all_blueprints(self):
         """
