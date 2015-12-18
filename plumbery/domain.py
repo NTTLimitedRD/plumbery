@@ -447,11 +447,14 @@ class PlumberyDomain:
                             "if not in safe mode")
             return
 
-        logging.info('Releasing public IPv4 addresses')
-
         while True:
             try:
                 blocks = self.region.ex_list_public_ip_blocks(domain)
+                if len(blocks) < 1:
+                    return
+
+                logging.info('Releasing public IPv4 addresses')
+
                 for block in blocks:
                     self.region.ex_delete_public_ip_block(block)
 
