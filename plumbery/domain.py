@@ -943,7 +943,8 @@ class PlumberyDomain:
                             and self._cache_remote_vlan[1] == path[1]:
                 return self._cache_remote_vlan[2]
 
-            logging.info("Looking for remote Ethernet network")
+            logging.info("Looking for remote Ethernet network '{}'".format(
+                                '::'.join(path)))
 
             remoteLocation = self.region.ex_get_location_by_id(path[0])
 
@@ -953,7 +954,7 @@ class PlumberyDomain:
                     self._update_ipv6(network)
                     self._cache_remote_vlan += path
                     self._cache_remote_vlan.append(network)
-                    logging.info("- found '{}'".format('::'.join(path)))
+                    logging.info("- found it")
                     return network
 
         elif len(path) == 3:
@@ -964,7 +965,8 @@ class PlumberyDomain:
                             and self._cache_offshore_vlan[2] == path[2]:
                 return self._cache_offshore_vlan[3]
 
-            logging.info("Looking for offshore Ethernet network")
+            logging.info("Looking for offshore Ethernet network '{}'".format(
+                                '::'.join(path)))
 
             offshore = self.plumbery.provider(
                 self.plumbery.get_user_name(),
@@ -979,7 +981,7 @@ class PlumberyDomain:
                     self._update_ipv6(network, offshore)
                     self._cache_offshore_vlan += path
                     self._cache_offshore_vlan.append(network)
-                    logging.info("- found '{}'".format('::'.join(path)))
+                    logging.info("- found it")
                     return network
 
         return None
