@@ -319,28 +319,6 @@ class PlumberyNodes:
 
         return True
 
-    def _list_secondary_interfaces(self, node):
-        """
-        Retrieves the list of secondary interfaces
-
-        This is a hack. Code here should really go to the Libcloud driver in
-        libcloud.compute.drivers.dimensiondata.py _to_node()
-
-        """
-
-        element = self.region.connection.request_with_orgId_api_2(
-            'server/server/%s' % node.id).object
-
-        if element.find(fixxpath('networkInfo', TYPES_URN)) is None:
-            return []
-
-        interfaces = []
-        for item in element.findall(fixxpath('networkInfo/additionalNic', TYPES_URN)):
-            interfaces.append({'id': item.get('id'),
-                'network': item.get('vlanName')})
-
-        return interfaces
-
     def _disable_monitoring(self, node, settings):
         """
         Disables monitoring of one node
@@ -484,9 +462,9 @@ class PlumberyNodes:
 
         return None
 
-    def _update_ipv6(self, node):
+    def _list_secondary_interfaces(self, node):
         """
-        Retrieves the ipv6 address for this node
+        Retrieves the list of secondary interfaces
 
         This is a hack. Code here should really go to the Libcloud driver in
         libcloud.compute.drivers.dimensiondata.py _to_node()
@@ -496,16 +474,15 @@ class PlumberyNodes:
         element = self.region.connection.request_with_orgId_api_2(
             'server/server/%s' % node.id).object
 
-        has_network_info \
-            = element.find(fixxpath('networkInfo', TYPES_URN)) is not None
+        if element.find(fixxpath('networkInfo', TYPES_URN)) is None:
+            return []
 
-        ipv6 = element.find(
-            fixxpath('networkInfo/primaryNic', TYPES_URN)) \
-            .get('ipv6') \
-            if has_network_info else \
-            element.find(fixxpath('nic', TYPES_URN)).get('ipv6')
+        interfaces = []
+        for item in element.findall(fixxpath('networkInfo/additionalNic', TYPES_URN)):
+            interfaces.append({'id': item.get('id'),
+                'network': item.get('vlanName')})
 
-        node.extra['ipv6'] = ipv6
+        return interfaces
 
     def polish_blueprint(self, blueprint, polishers):
         """
@@ -688,3 +665,26 @@ class PlumberyNodes:
                                     " node '{0}' {1}!".format(label, feedback))
 
                         break
+
+    def _update_ipv6(self, node):
+        """
+        Retrieves the ipv6 address for this node
+
+        This is a hack. Code here should really go to the Libcloud driver in
+        libcloud.compute.drivers.dimensiondata.py _to_node()
+
+        """
+
+        element = self.region.connection.request_with_orgId_api_2(
+            'server/server/%s' % node.id).object
+
+        has_network_info \
+            = element.find(fixxpath('networkInfo', TYPES_URN)) is not None
+
+        ipv6 = element.find(
+            fixxpath('networkInfo/primaryNic', TYPES_URN)) \
+            .get('ipv6') \
+            if has_network_info else \
+            element.find(fixxpath('nic', TYPES_URN)).get('ipv6')
+
+        node.extra['ipv6'] = ipv6

@@ -169,15 +169,6 @@ class PlumberyDomain:
 
         return hasChanged
 
-    def _translate_node(self, node):
-        """
-        Adds address translation for one node
-
-        """
-
-        logging.info("Making '{}' node reachable from the internet".format(node.name))
-        logging.info("- not implemented yet")
-
     def build(self, blueprint):
         """
         Creates a network domain if needed.
@@ -354,128 +345,6 @@ class PlumberyDomain:
             return False
 
         return True
-
-    def _build_ipv4(self, domain, count):
-        """
-        Reserves public addresses
-
-        :param domain: the target network domain where addresses will be consumed
-        :type domain: :class:`DimensionDataNetworkDomain`
-
-        :param count: the number of addresses to reserve for this domain
-        :type count: ``int``
-
-        """
-
-        if count < 2 or count > 128:
-            logging.info('Invalid count of requested IPv4 public addresses')
-            return False
-
-        logging.info('Counting existing public IPv4 addresses')
-        actual = 0
-
-        while True:
-            try:
-                blocks = self.region.ex_list_public_ip_blocks(domain)
-                for block in blocks:
-                    actual += int(block.size)
-
-                logging.info("- found {} addresses".format(actual))
-
-            except Exception as feedback:
-
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                else:
-                    logging.info("Error: unable to count IPv4 public addresses ")
-                    logging.info(str(feedback))
-                    return False
-
-            break
-
-        if actual >= count:
-            return True
-
-        if self.plumbery.safeMode:
-            logging.info("Would have reserved {} public IPv4 addresses " \
-                            "if not in safe mode".format(count-actual))
-            return True
-
-        logging.info('Reserving additional public IPv4 addresses')
-
-        while actual < count:
-            try:
-                block = self.region.ex_add_public_ip_block_to_network_domain(domain)
-                actual += block.size
-                logging.debug("- reserved {} addresses".format(block.size))
-
-            except Exception as feedback:
-
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
-                    return False
-
-                # compensate for bug in Libcloud driver
-                elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                    actual += 2
-                    continue
-
-                else:
-                    logging.info("Error: unable to reserve IPv4 public addresses")
-                    logging.info(str(feedback))
-                    return False
-
-        logging.info("- reserved {} addresses in total".format(actual))
-
-    def _destroy_ipv4(self, domain):
-        """
-        Releases all public addresses assigned to one network domain
-
-        :param domain: the target network domain where addresses will be consumed
-        :type domain: :class:`DimensionDataNetworkDomain`
-
-        """
-
-        if self.plumbery.safeMode:
-            logging.info("Would have released public IPv4 addresses " \
-                            "if not in safe mode")
-            return
-
-        while True:
-            try:
-                blocks = self.region.ex_list_public_ip_blocks(domain)
-                if len(blocks) < 1:
-                    return
-
-                logging.info('Releasing public IPv4 addresses')
-
-                for block in blocks:
-                    self.region.ex_delete_public_ip_block(block)
-
-                logging.info('- in progress')
-
-            except Exception as feedback:
-
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
-                    return False
-
-                else:
-                    logging.info("Error: unable to count IPv4 public addresses ")
-                    logging.info(str(feedback))
-                    return False
-
-            break
 
     def _build_accept(self, blueprint, domain, network):
         """
@@ -659,54 +528,83 @@ class PlumberyDomain:
 
         return True
 
-    def _ex_create_firewall_rule(self, network_domain, rule, position):
-        create_node = ET.Element('createFirewallRule', {'xmlns': TYPES_URN})
-        ET.SubElement(create_node, "networkDomainId").text = network_domain.id
-        ET.SubElement(create_node, "name").text = rule.name
-        ET.SubElement(create_node, "action").text = rule.action
-        ET.SubElement(create_node, "ipVersion").text = rule.ip_version
-        ET.SubElement(create_node, "protocol").text = rule.protocol
-        # Setup source port rule
-        source = ET.SubElement(create_node, "source")
-        source_ip = ET.SubElement(source, 'ip')
-        if rule.source.any_ip:
-            source_ip.set('address', 'ANY')
-        else:
-            source_ip.set('address', rule.source.ip_address)
-            source_ip.set('prefixSize', str(rule.source.ip_prefix_size))
-            if rule.source.port_begin is not None:
-                source_port = ET.SubElement(source, 'port')
-                source_port.set('begin', rule.source.port_begin)
-            if rule.source.port_end is not None:
-                source_port.set('end', rule.source.port_end)
-        # Setup destination port rule
-        dest = ET.SubElement(create_node, "destination")
-        dest_ip = ET.SubElement(dest, 'ip')
-        if rule.destination.any_ip:
-            dest_ip.set('address', 'ANY')
-        else:
-            dest_ip.set('address', rule.destination.ip_address)
-            dest_ip.set('prefixSize', str(rule.destination.ip_prefix_size))
-            if rule.destination.port_begin is not None:
-                dest_port = ET.SubElement(dest, 'port')
-                dest_port.set('begin', rule.destination.port_begin)
-            if rule.destination.port_end is not None:
-                dest_port.set('end', rule.destination.port_end)
-        ET.SubElement(create_node, "enabled").text = 'true'
-        placement = ET.SubElement(create_node, "placement")
-        placement.set('position', position)
+    def _build_ipv4(self, domain, count):
+        """
+        Reserves public addresses
 
-        response = self.region.connection.request_with_orgId_api_2(
-            'network/createFirewallRule',
-            method='POST',
-            data=ET.tostring(create_node)).object
+        :param domain: the target network domain where addresses will be consumed
+        :type domain: :class:`DimensionDataNetworkDomain`
 
-        rule_id = None
-        for info in findall(response, 'info', TYPES_URN):
-            if info.get('name') == 'firewallRuleId':
-                rule_id = info.get('value')
-        rule.id = rule_id
-        return rule
+        :param count: the number of addresses to reserve for this domain
+        :type count: ``int``
+
+        """
+
+        if count < 2 or count > 128:
+            logging.info('Invalid count of requested IPv4 public addresses')
+            return False
+
+        logging.info('Counting existing public IPv4 addresses')
+        actual = 0
+
+        while True:
+            try:
+                blocks = self.region.ex_list_public_ip_blocks(domain)
+                for block in blocks:
+                    actual += int(block.size)
+
+                logging.info("- found {} addresses".format(actual))
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                else:
+                    logging.info("Error: unable to count IPv4 public addresses ")
+                    logging.info(str(feedback))
+                    return False
+
+            break
+
+        if actual >= count:
+            return True
+
+        if self.plumbery.safeMode:
+            logging.info("Would have reserved {} public IPv4 addresses " \
+                            "if not in safe mode".format(count-actual))
+            return True
+
+        logging.info('Reserving additional public IPv4 addresses')
+
+        while actual < count:
+            try:
+                block = self.region.ex_add_public_ip_block_to_network_domain(domain)
+                actual += block.size
+                logging.debug("- reserved {} addresses".format(block.size))
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+                    return False
+
+                # compensate for bug in Libcloud driver
+                elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                    actual += 2
+                    continue
+
+                else:
+                    logging.info("Error: unable to reserve IPv4 public addresses")
+                    logging.info(str(feedback))
+                    return False
+
+        logging.info("- reserved {} addresses in total".format(actual))
 
     def _destroy_accept(self, blueprint, domain, name):
         """
@@ -880,6 +778,99 @@ class PlumberyDomain:
             break
 
         return True
+
+    def _destroy_ipv4(self, domain):
+        """
+        Releases all public addresses assigned to one network domain
+
+        :param domain: the target network domain where addresses will be consumed
+        :type domain: :class:`DimensionDataNetworkDomain`
+
+        """
+
+        if self.plumbery.safeMode:
+            logging.info("Would have released public IPv4 addresses " \
+                            "if not in safe mode")
+            return
+
+        while True:
+            try:
+                blocks = self.region.ex_list_public_ip_blocks(domain)
+                if len(blocks) < 1:
+                    return
+
+                logging.info('Releasing public IPv4 addresses')
+
+                for block in blocks:
+                    self.region.ex_delete_public_ip_block(block)
+
+                logging.info('- in progress')
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+                    return False
+
+                else:
+                    logging.info("Error: unable to count IPv4 public addresses ")
+                    logging.info(str(feedback))
+                    return False
+
+            break
+
+    def _ex_create_firewall_rule(self, network_domain, rule, position):
+        create_node = ET.Element('createFirewallRule', {'xmlns': TYPES_URN})
+        ET.SubElement(create_node, "networkDomainId").text = network_domain.id
+        ET.SubElement(create_node, "name").text = rule.name
+        ET.SubElement(create_node, "action").text = rule.action
+        ET.SubElement(create_node, "ipVersion").text = rule.ip_version
+        ET.SubElement(create_node, "protocol").text = rule.protocol
+        # Setup source port rule
+        source = ET.SubElement(create_node, "source")
+        source_ip = ET.SubElement(source, 'ip')
+        if rule.source.any_ip:
+            source_ip.set('address', 'ANY')
+        else:
+            source_ip.set('address', rule.source.ip_address)
+            source_ip.set('prefixSize', str(rule.source.ip_prefix_size))
+            if rule.source.port_begin is not None:
+                source_port = ET.SubElement(source, 'port')
+                source_port.set('begin', rule.source.port_begin)
+            if rule.source.port_end is not None:
+                source_port.set('end', rule.source.port_end)
+        # Setup destination port rule
+        dest = ET.SubElement(create_node, "destination")
+        dest_ip = ET.SubElement(dest, 'ip')
+        if rule.destination.any_ip:
+            dest_ip.set('address', 'ANY')
+        else:
+            dest_ip.set('address', rule.destination.ip_address)
+            dest_ip.set('prefixSize', str(rule.destination.ip_prefix_size))
+            if rule.destination.port_begin is not None:
+                dest_port = ET.SubElement(dest, 'port')
+                dest_port.set('begin', rule.destination.port_begin)
+            if rule.destination.port_end is not None:
+                dest_port.set('end', rule.destination.port_end)
+        ET.SubElement(create_node, "enabled").text = 'true'
+        placement = ET.SubElement(create_node, "placement")
+        placement.set('position', position)
+
+        response = self.region.connection.request_with_orgId_api_2(
+            'network/createFirewallRule',
+            method='POST',
+            data=ET.tostring(create_node)).object
+
+        rule_id = None
+        for info in findall(response, 'info', TYPES_URN):
+            if info.get('name') == 'firewallRuleId':
+                rule_id = info.get('value')
+        rule.id = rule_id
+        return rule
 
     def get_domain(self, blueprint):
         """
@@ -1056,6 +1047,15 @@ class PlumberyDomain:
         destination = ''.join(e for e in destination.title() if e.isalnum())
 
         return "plumbery.Flow{}From{}To{}".format(protocol, source, destination)
+
+    def _translate_node(self, node):
+        """
+        Adds address translation for one node
+
+        """
+
+        logging.info("Making '{}' node reachable from the internet".format(node.name))
+        logging.info("- not implemented yet")
 
     def _update_ipv6(self, network, region=None):
         """

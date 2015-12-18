@@ -43,6 +43,36 @@ class PlumberyPolisher:
         self.settings = settings
 
     @classmethod
+    def filter(cls, polishers, filter=None):
+        """
+        Selects only the polisher you want, or take them all
+
+        :param polishers: polishers to be applied
+        :type polishers: list of :class:`plumbery.PlumberyPolisher`
+
+        :param filter: the name of a single polisher to apply. If this
+            parameter is missing, all polishers declared in the fittings plan
+            will be applied
+        :type filter: ``str``
+
+        :returns: list of :class:`plumbery.PlumberyPolisher` or []
+
+        """
+
+        if not filter:
+            for polisher in polishers:
+                logging.info("Using polisher '{}'".format(polisher.settings['name']))
+            return polishers
+
+        for polisher in polishers:
+            if polisher.settings['name'] == filter:
+                filtered = [polisher]
+                logging.info("Using polisher '{}'".format(polisher.settings['name']))
+                return filtered
+
+        return [PlumberyPolisher.from_shelf(filter)]
+
+    @classmethod
     def from_shelf(cls, polishId, settings={}):
         """
         Picks up a polisher from the shelf
@@ -124,36 +154,6 @@ class PlumberyPolisher:
         """
 
         self.engine = engine
-
-    @classmethod
-    def filter(cls, polishers, filter=None):
-        """
-        Selects only the polisher you want, or take them all
-
-        :param polishers: polishers to be applied
-        :type polishers: list of :class:`plumbery.PlumberyPolisher`
-
-        :param filter: the name of a single polisher to apply. If this
-            parameter is missing, all polishers declared in the fittings plan
-            will be applied
-        :type filter: ``str``
-
-        :returns: list of :class:`plumbery.PlumberyPolisher` or []
-
-        """
-
-        if not filter:
-            for polisher in polishers:
-                logging.info("Using polisher '{}'".format(polisher.settings['name']))
-            return polishers
-
-        for polisher in polishers:
-            if polisher.settings['name'] == filter:
-                filtered = [polisher]
-                logging.info("Using polisher '{}'".format(polisher.settings['name']))
-                return filtered
-
-        return [PlumberyPolisher.from_shelf(filter)]
 
     def move_to(self, facility):
         """
