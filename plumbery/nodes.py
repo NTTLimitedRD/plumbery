@@ -675,16 +675,26 @@ class PlumberyNodes:
 
         """
 
-        element = self.region.connection.request_with_orgId_api_2(
-            'server/server/%s' % node.id).object
+        try:
+            element = self.region.connection.request_with_orgId_api_2(
+                'server/server/%s' % node.id).object
 
-        has_network_info \
-            = element.find(fixxpath('networkInfo', TYPES_URN)) is not None
+            has_network_info \
+                = element.find(fixxpath('networkInfo', TYPES_URN)) is not None
 
-        ipv6 = element.find(
-            fixxpath('networkInfo/primaryNic', TYPES_URN)) \
-            .get('ipv6') \
-            if has_network_info else \
-            element.find(fixxpath('nic', TYPES_URN)).get('ipv6')
+            ipv6 = element.find(
+                fixxpath('networkInfo/primaryNic', TYPES_URN)) \
+                .get('ipv6') \
+                if has_network_info else \
+                element.find(fixxpath('nic', TYPES_URN)).get('ipv6')
 
-        node.extra['ipv6'] = ipv6
+            node.extra['ipv6'] = ipv6
+
+        except Exception as feedback:
+
+            if 'RESOURCE_NOT_FOUND' in str(feedback):
+                node.extra['ipv6'] = ''
+
+            else:
+                logging.info("Error: unable to retrieve IPv6 addresses ")
+                logging.info(str(feedback))

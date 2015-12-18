@@ -1081,7 +1081,8 @@ class PlumberyDomain:
         except Exception as feedback:
 
             if 'RESOURCE_NOT_FOUND' in str(feedback):
-                pass
+                network.ipv6_range_address = ''
+                network.ipv6_range_size = ''
 
             else:
                 logging.info("Error: unable to retrieve IPv6 addresses ")
