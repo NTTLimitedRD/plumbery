@@ -215,8 +215,10 @@ class PlumberyNodes:
 
             if type(item) is dict:
                 label = item.keys()[0]
+                settings = item[label]
             else:
                 label = str(item)
+                settings = {}
 
             for label in self.expand_labels(label):
 
@@ -231,8 +233,8 @@ class PlumberyNodes:
                     logging.info("- not found")
                     continue
 
-                self._disable_monitoring(node)
-                self._detach_node(node)
+                self._disable_monitoring(node, settings)
+                self._detach_node(node, settings)
 
                 logging.info("Destroying node '{}'".format(label))
                 while True:
@@ -263,7 +265,7 @@ class PlumberyNodes:
 
                     break
 
-    def _detach_node(self, node):
+    def _detach_node(self, node, settings):
         """
         Detach a node from multiple networks
 
@@ -276,6 +278,9 @@ class PlumberyNodes:
         """
 
         if node is None:
+            return True
+
+        if 'running' in settings and settings['running'] == 'always':
             return True
 
         for interface in self._list_secondary_interfaces(node):
@@ -331,7 +336,7 @@ class PlumberyNodes:
 
         return interfaces
 
-    def _disable_monitoring(self, node):
+    def _disable_monitoring(self, node, settings):
         """
         Disables monitoring of one node
 
@@ -339,6 +344,12 @@ class PlumberyNodes:
         :type node: :class:`libcloud.compute.base.Node`
 
         """
+
+        if node is None:
+            return
+
+        if 'running' in settings and settings['running'] == 'always':
+            return
 
         logging.info("Disabling monitoring for node '{}'".format(node.name))
 
