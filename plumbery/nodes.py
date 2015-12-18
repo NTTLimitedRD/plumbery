@@ -333,27 +333,34 @@ class PlumberyNodes:
         if 'running' in settings and settings['running'] == 'always':
             return
 
-        logging.info("Disabling monitoring for node '{}'".format(node.name))
-
         while True:
 
             try:
                 self.region.ex_disable_monitoring(node)
+                logging.info("Disabling monitoring for node '{}'"
+                                                        .format(node.name))
                 logging.info("- in progress")
 
             except Exception as feedback:
 
                 if 'NO_CHANGE' in str(feedback):
-                    logging.info("- already done")
+                    pass
+
+                elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
+                    pass
 
                 elif 'RESOURCE_BUSY' in str(feedback):
                     time.sleep(10)
                     continue
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("Disabling monitoring for node '{}'"
+                                                        .format(node.name))
                     logging.info("- not now - locked")
 
                 else:
+                    logging.info("Disabling monitoring for node '{}'"
+                                                        .format(node.name))
                     logging.info("- unable to disable monitoring")
                     logging.info(str(feedback))
 
