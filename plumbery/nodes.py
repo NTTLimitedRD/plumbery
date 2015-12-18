@@ -517,61 +517,15 @@ class PlumberyNodes:
 
             for label in self.expand_labels(label):
 
+                logging.info("Polishing node '{}'".format(label))
+
                 node = self.get_node(label)
-                if node is not None:
+                if node is None:
+                    logging.info("- not found")
+                    continue
 
-                    logging.info("Polishing node '{}'".format(node.name))
-
-                    for polisher in polishers:
-                        polisher.shine_node(node, settings)
-
-    def start_node(self, name, settings={}):
-        """
-        Starts one node
-
-        :param name: the name of the target node
-        :type name: ``str``
-
-        :param settings: extracted from the fittings plan for this node
-        :type settings: ``dict``
-
-        :returns: the node itself
-
-        """
-
-        node = self.get_node(name)
-        if node is None:
-            logging.info("Node '{}' is not found".format(name))
-            return None
-
-        if self.plumbery.safeMode:
-            logging.info("Would have started node '{}' if not in safe mode".format(name))
-
-        else:
-            logging.info("Starting node '{}'".format(name))
-
-            while True:
-
-                try:
-                    self.region.ex_start_node(node)
-                    logging.info("- in progress")
-
-                except Exception as feedback:
-
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'SERVER_STARTED' in str(feedback):
-                        logging.info("- skipped - node is up and running")
-
-                    else:
-                        logging.info("- unable to start node")
-                        logging.info(str(feedback))
-
-                break
-
-        return node
+                for polisher in polishers:
+                    polisher.shine_node(node, settings)
 
     def start_blueprint(self, blueprint):
         """
@@ -598,6 +552,54 @@ class PlumberyNodes:
             for label in self.expand_labels(label):
 
                 self.start_node(label, settings)
+
+    def start_node(self, name, settings={}):
+        """
+        Starts one node
+
+        :param name: the name of the target node
+        :type name: ``str``
+
+        :param settings: extracted from the fittings plan for this node
+        :type settings: ``dict``
+
+        :returns: the node itself
+
+        """
+
+        node = self.get_node(name)
+
+        if self.plumbery.safeMode:
+            logging.info("Would have started node '{}' if not in safe mode".format(name))
+            return node
+
+        logging.info("Starting node '{}'".format(name))
+        if node is None:
+            logging.info("- not found")
+            return node
+
+        while True:
+
+            try:
+                self.region.ex_start_node(node)
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'SERVER_STARTED' in str(feedback):
+                    logging.info("- skipped - node is up and running")
+
+                else:
+                    logging.info("- unable to start node")
+                    logging.info(str(feedback))
+
+            break
+
+        return node
 
     def stop_blueprint(self, blueprint):
         """
@@ -637,16 +639,20 @@ class PlumberyNodes:
                     logging.info("Node '{}' has to stay always on".format(label))
                     continue
 
-                node = self.get_node(label)
-                if node is None:
-                    continue
-
                 if self.plumbery.safeMode:
                     logging.info("Would have stopped node '{}' " \
                                     "if not in safe mode".format(label))
+                    continue
+
+                node = self.get_node(label)
+
+                logging.info("Stopping node '{}'".format(label))
+
+                if node is None:
+                    logging.info("- not found")
+                    continue
 
                 else:
-                    logging.info("Stopping node '{}'".format(label))
 
                     while True:
 
