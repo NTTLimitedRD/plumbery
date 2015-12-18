@@ -92,16 +92,16 @@ class SpitPolisher(PlumberyPolisher):
             logging.info("- assigning {} cpus".format(cpu))
             logging.info("- assigning {}GB of memory".format(memory))
             self.region.ex_update_node(node, cpu_count=cpu, ram_mb=memory)
-            spits.append("cpu: {}".format(cpu))
-            spits.append("memory: {}".format(memory))
+            spits.append({"cpu": "{}".format(cpu)})
+            spits.append({"memory": "{}".format(memory)})
         elif cpu:
             logging.info("- assigning {} cpus".format(cpu))
             self.region.ex_update_node(node, cpu_count=cpu)
-            spits.append("cpu: {}".format(cpu))
+            spits.append({"cpu": "{}".format(cpu)})
         elif memory:
             logging.info("- assigning {}GB of memory".format(memory))
             self.region.ex_update_node(node, ram_mb=memory)
-            spits.append("memory: {}".format(memory))
+            spits.append({"memory": "{}".format(memory)})
 
         if 'disks' in settings:
             for item in settings['disks']:
@@ -122,7 +122,7 @@ class SpitPolisher(PlumberyPolisher):
                         try:
                             logging.info("- adding disk for {}GB '{}'".format(size, speed))
                             self.region.ex_add_storage_to_node(node, amount=size, speed=speed)
-                            spits.append("disk: {} {}".format(size, speed))
+                            spits.append({"disk": "{} {}".format(size, speed)})
 
                         except Exception as feedback:
                             if 'RESOURCE_BUSY' in str(feedback):
@@ -137,11 +137,11 @@ class SpitPolisher(PlumberyPolisher):
 
         if 'monitoring' in settings:
             if self.nodes._enable_monitoring(node, settings['monitoring']):
-                spits.append("monitoring: {}".format(settings['monitoring'].upper()))
+                spits.append({"monitoring": "{}".format(settings['monitoring'].upper())})
 
         if 'glue' in settings:
             if self.domains._attach_node(node, settings['glue']):
-                spits.append("glueing: {}".format(settings['glue']))
+                spits.append({"glueing": "{}".format(settings['glue'])})
 
         self.report.append({node.name: spits})
 
