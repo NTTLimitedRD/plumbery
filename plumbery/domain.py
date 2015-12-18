@@ -1054,7 +1054,7 @@ class PlumberyDomain:
 
         """
 
-        logging.info("Making '{}' node reachable from the internet".format(node.name))
+        logging.info("Making node '{}' reachable from the internet".format(node.name))
         logging.info("- not implemented yet")
 
     def _update_ipv6(self, network, region=None):
