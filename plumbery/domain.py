@@ -38,7 +38,7 @@ class PlumberyDomain:
     Cloud automation for a network domain
 
     :param facility: the underlying physical facility
-    :type facility: :class:`plumbery.PlumberFacility`
+    :type facility: :class:`plumbery.PlumberyFacility`
 
     A network domain is similar to a virtual data center. It is a secured
     container for multiple nodes.
@@ -101,7 +101,8 @@ class PlumberyDomain:
           - redis:
               domain:
                 ipv4: 6
-              ethernet: *data
+              ethernet:
+                name: gigafox.data
               nodes:
                 - redis[10..12]:
                     glue: gigafox.control internet
@@ -111,7 +112,7 @@ class PlumberyDomain:
         In this example, another network interface is added to each node for
         connection to the Ethernet network ``gigafox.control``.
 
-        Also, public IPv4 addresses are assigned to private addresses, so that
+        Also, public IPv4 addresses are mapped on private addresses, so that
         each node redis10, redis11 and redis12 is reachable from the internet.
         Public IPv4 addresses are taken from pool declared at the domain level,
         with the attribute ``ipv4``. In the example above, 6 addresses are
@@ -356,30 +357,36 @@ class PlumberyDomain:
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
 
-        :param domain: the target domain for firewall rules
-        :type domain: :class:`.PlumberyDomain`
+        :param domain: the target network domain for firewall rules
+        :type domain: :class:`libcloud.common.DimensionDataNetworkDomain`
 
+        :param network: the destination network for firewall rules
+        :type network: :class:`libcloud.common.DimensionDataNetwork`
+
+        This function adds firewall rules to allow traffic towards given
+        network. It looks at the ``accept`` settings in the blueprint to
+        identify all source networks.
 
         Example in the fittings plan::
 
           - web:
               domain: *vdc1
-              ethernet: &prod
+              ethernet:
                 name: gigafox.production
-                subnet: 10.1.2.0
                 accept:
                   - gigafox.control
                   - dd-eu::EU6::other.network.there
-                description: '#eu'
 
-        In this example, the firewall is configured to that any ip traffic
+        In this example, the firewall is configured so that any ip traffic
         from the Ethernet network ``gigafox.control`` can reach the Ethernet
-        network ``gigafox.production``. By default, one rule is created for
+        network ``gigafox.production``. One rule is created for
         IPv4 and another rule is created for IPv6.
 
         The second network that is configured is from another data centre
         in another region. This is leveraging the private network that
-        interconnect all MCPs.
+        interconnect all MCPs. For networks outside the current domain, only
+        one rule is added to allow IPv6 traffic. This is because IPv4 routing
+        is not allowed across multiple network domains.
 
         """
 
@@ -537,10 +544,20 @@ class PlumberyDomain:
 
         :param domain: the target network domain
                     where addresses will be consumed
-        :type domain: :class:`DimensionDataNetworkDomain`
+        :type domain: :class:`libcloud.common.DimensionDataNetworkDomain`
 
         :param count: the number of addresses to reserve for this domain
         :type count: ``int``
+
+        This function looks at current IPv4 addresses reserved for the
+        target network domain, and adds more if needed.
+
+        Example to reserve 8 IPv4 addresses in the fittings plan::
+
+          - redis:
+              domain:
+                name: myVDC
+                ipv4: 8
 
         """
 
@@ -610,16 +627,18 @@ class PlumberyDomain:
 
         logging.info("- reserved {} addresses in total".format(actual))
 
-    def _destroy_accept(self, blueprint, domain, name):
+    def _destroy_accept(self, network, blueprint, domain):
         """
         Destroys firewall rules
+
+        :param network: the name of the destination network
+        :type network: ``str``
 
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
 
         :param domain: the target domain for these firewall rules
-        :type domain: :class:`.PlumberyDomain`
-
+        :type domain: :class:`libcloud.common.DimensionDataNetworkDomain`
 
         """
 
@@ -668,14 +687,24 @@ class PlumberyDomain:
 
     def destroy_blueprint(self, blueprint):
         """
-        Destroys a domain attached to a blueprint
+        Destroys network and security elements of a blueprint
 
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
 
         :returns: ``bool``
 
-        :raises: :class:`.PlumberyException`
+        This function looks after following service elements:
+
+        * it releases public IPv4 addresses
+        * it destroys firewall rules
+        * it destroys the Ethernet network
+        * it destroys the network domain
+
+        The destruction is tentative, meaning that if the Ethernet network or
+        the network domain have some dependency then they cannot be destroyed.
+        This is happenign quite often since multiple blueprints can share the
+        same Ethernet network or the same network domain.
 
         """
 
@@ -742,7 +771,8 @@ class PlumberyDomain:
 
                 break
 
-        self._destroy_accept(blueprint, domain, networkName)
+        self._destroy_accept(networkName, blueprint, domain)
+
         self._destroy_ipv4(domain)
 
         if self.plumbery.safeMode:
@@ -785,10 +815,10 @@ class PlumberyDomain:
 
     def _destroy_ipv4(self, domain):
         """
-        Releases all public addresses assigned to one network domain
+        Releases all public IPv4 addresses assigned to one network domain
 
-        :param domain: the target network domain where addresses will be consumed
-        :type domain: :class:`DimensionDataNetworkDomain`
+        :param domain: the target network domain with assigned addresses
+        :type domain: :class:`libcloud.common.DimensionDataNetworkDomain`
 
         """
 
@@ -883,9 +913,14 @@ class PlumberyDomain:
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
 
-        :returns: :class:`.PlumberyDomain` or None
+        :returns: :class:`plumbery.PlumberyDomain` or `None``
 
-        :raises: :class:`.PlumberyException`
+        The returned object has at least a network domain and an Ethernet
+        network, like in the following example::
+
+            infra = domains.get_domain(blueprint)
+            print infra.domain.name
+            print infra.network.name
 
         """
         target = PlumberyDomain(self.facility)
@@ -913,11 +948,9 @@ class PlumberyDomain:
         Retrieves an Ethernet network by name
 
         :param label: the name of the target Ethernet network
-        :type label: ``str`` of ``list``of ``str``
+        :type label: ``str`` or ``list``of ``str``
 
         :returns: :class:`VLAN` or None
-
-        :raises: :class:`.PlumberyException`
 
         This function searches firstly at the current facility. If the
         name is a complete path to a remote network, then plumbery looks
@@ -929,7 +962,12 @@ class PlumberyDomain:
 
             >>>domains.get_ethernet('MyNetwork')
             >>>domains.get_ethernet(['EU6', 'MyNetwork'])
+            Looking for remote Ethernet network 'EU6::MyNetwork'
+            - found it
             >>>domains.get_ethernet(['dd-eu', 'EU6', 'MyNetwork'])
+            Looking for offshore Ethernet network 'dd-eu::EU6::MyNetwork'
+            - found it
+
         """
 
         if isinstance(path, str):
@@ -1055,6 +1093,9 @@ class PlumberyDomain:
     def _translate_node(self, node):
         """
         Adds address translation for one node
+
+        :param node: node that has to be reachable from the internet
+        :type node: :class:`libcloud.common.Node`
 
         """
 
