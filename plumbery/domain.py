@@ -162,7 +162,7 @@ class PlumberyDomain:
                         logging.info("- already done")
 
                     else:
-                        logging.info("- impossible to glue node")
+                        logging.info("- unable to glue node")
                         logging.info(str(feedback))
 
                 break
@@ -270,9 +270,9 @@ class PlumberyDomain:
                         return False
 
                     else:
-                        raise PlumberyException(
-                        "Error: unable to create network domain '{0}' {1}!"
-                                        .format(domainName, feedback))
+                        logging.info("- unable to create network domain")
+                        logging.info(str(feedback))
+                        return False
 
                 break
 
@@ -335,9 +335,9 @@ class PlumberyDomain:
                         return False
 
                     else:
-                        raise PlumberyException("Error: unable to create " \
-                                        "Ethernet network '{0}' {1}!"
-                                            .format(networkName, feedback))
+                        logging.info("- unable to create Ethernet network")
+                        logging.info(str(feedback))
+                        return False
 
                 break
 
@@ -562,7 +562,7 @@ class PlumberyDomain:
                     continue
 
                 else:
-                    logging.info("Error: unable to count IPv4 public addresses ")
+                    logging.info("- unable to count IPv4 public addresses")
                     logging.info(str(feedback))
                     return False
 
@@ -600,7 +600,7 @@ class PlumberyDomain:
                     continue
 
                 else:
-                    logging.info("Error: unable to reserve IPv4 public addresses")
+                    logging.info("- unable to reserve IPv4 public addresses")
                     logging.info(str(feedback))
                     return False
 
@@ -732,9 +732,9 @@ class PlumberyDomain:
                         return False
 
                     else:
-                        raise PlumberyException("Error: unable to destroy " \
-                                    "Ethernet network '{0}' {1}!"
-                                            .format(networkName, feedback))
+                        logging.info("- unable to destroy Ethernet network")
+                        logging.info(str(feedback))
+                        return False
 
                 break
 
@@ -771,9 +771,9 @@ class PlumberyDomain:
                     return False
 
                 else:
-                    raise PlumberyException(
-                        "Error: unable to destroy network domain '{0}' {1}!"
-                                    .format(domainName, feedback))
+                    logging.info("- unable to destroy Ethernet network")
+                    logging.info(str(feedback))
+                    return False
 
             break
 
@@ -817,7 +817,7 @@ class PlumberyDomain:
                     return False
 
                 else:
-                    logging.info("Error: unable to count IPv4 public addresses ")
+                    logging.info("- unable to release IPv4 public addresses ")
                     logging.info(str(feedback))
                     return False
 
