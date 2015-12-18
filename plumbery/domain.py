@@ -93,8 +93,8 @@ class PlumberyDomain:
         :param networks: a list of networks to connect, and ``internet``
         :type networks: ``str``
 
-        This function adds network interfaces to a node, or adds translation
-        to the public Internet.
+        This function adds network interfaces to a node, or adds address
+        translation to the public Internet.
 
         Example in the fittings plan::
 
@@ -109,9 +109,13 @@ class PlumberyDomain:
         TODO: glueing to the Internet is not available for the time being
 
         In this example, another network interface is added to each node for
-        connection to the Ethernet network ``gigafox.control``. Also,
-        public IPv4 addresses are assigned to private addresses, so that each
-        node redis10, redis11 and redis12 is reachable from the internet.
+        connection to the Ethernet network ``gigafox.control``.
+
+        Also, public IPv4 addresses are assigned to private addresses, so that
+        each node redis10, redis11 and redis12 is reachable from the internet.
+        Public IPv4 addresses are taken from pool declared at the domain level,
+        with the attribute ``ipv4``. In the example above, 6 addresses are
+        assigned to the network domain, of which 3 are given to redis nodes.
 
         """
 
@@ -123,17 +127,17 @@ class PlumberyDomain:
         networks = str(networks)
         for label in networks.split(' '):
 
-            logging.info("Glueing node '{}' to network '{}'"
-                                                    .format(node.name, label))
             if self.plumbery.safeMode:
                 logging.info("Would have glued node '{}' to network '{}' " \
                                 "if not in safe mode".format(node.name, label))
                 continue
 
             if label == 'internet':
-                logging.info("- address translation to the internet is not supported yet")
+                self._translate_node(node)
                 continue
 
+            logging.info("Glueing node '{}' to network '{}'"
+                                                    .format(node.name, label))
             target = self.get_ethernet(label.split('::'))
             if not target:
                 logging.info("- network '{}' is unknown".format(label))
@@ -164,6 +168,15 @@ class PlumberyDomain:
                 break
 
         return hasChanged
+
+    def _translate_node(self, node):
+        """
+        Adds address translation for one node
+
+        """
+
+        logging.info("Making '{}' node reachable from the internet".format(node.name))
+        logging.info("- not implemented yet")
 
     def build(self, blueprint):
         """
@@ -396,7 +409,7 @@ class PlumberyDomain:
             try:
                 block = self.region.ex_add_public_ip_block_to_network_domain(domain)
                 actual += block.size
-                logging.info("- reserved {} addresses".format(block.size))
+                logging.debug("- reserved {} addresses".format(block.size))
 
             except Exception as feedback:
 
@@ -442,6 +455,8 @@ class PlumberyDomain:
                 for block in blocks:
                     self.region.ex_delete_public_ip_block(block)
 
+                logging.info('- in progress')
+
             except Exception as feedback:
 
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -458,8 +473,6 @@ class PlumberyDomain:
                     return False
 
             break
-
-        logging.info('- in progress')
 
     def _build_accept(self, blueprint, domain, network):
         """
