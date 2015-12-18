@@ -788,13 +788,16 @@ class PlumberyDomain:
                         "for the blueprint '{}'!".format(blueprint['target']))
 
         domainName = blueprint['domain']['name']
+        networkName = blueprint['ethernet']['name']
+
         domain = self.get_network_domain(domainName)
         if domain is None:
+            logging.info("Destroying Ethernet network '{}'".format(networkName))
+            logging.info("- not found")
             logging.info("Destroying network domain '{}'".format(domainName))
             logging.info("- not found")
             return False
 
-        networkName = blueprint['ethernet']['name']
         network = self.get_ethernet(networkName)
         if network is None:
             logging.info("Destroying Ethernet network '{}'".format(networkName))
