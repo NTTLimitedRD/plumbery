@@ -1069,11 +1069,20 @@ class PlumberyDomain:
         if region is None:
             region = self.region
 
-        element = region.connection.request_with_orgId_api_2(
-            'network/vlan/%s' % network.id).object
+        try:
+            element = region.connection.request_with_orgId_api_2(
+                'network/vlan/%s' % network.id).object
 
-        ip_range = element.find(fixxpath('ipv6Range', TYPES_URN))
+            ip_range = element.find(fixxpath('ipv6Range', TYPES_URN))
 
-        network.ipv6_range_address=ip_range.get('address')
-        network.ipv6_range_size=str(ip_range.get('prefixSize'))
+            network.ipv6_range_address=ip_range.get('address')
+            network.ipv6_range_size=str(ip_range.get('prefixSize'))
 
+        except Exception as feedback:
+
+            if 'RESOURCE_NOT_FOUND' in str(feedback):
+                pass
+
+            else:
+                logging.info("Error: unable to retrieve IPv6 addresses ")
+                logging.info(str(feedback))
