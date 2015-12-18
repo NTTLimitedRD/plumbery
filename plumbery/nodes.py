@@ -237,6 +237,11 @@ class PlumberyNodes:
                 self._detach_node(node, settings)
 
                 logging.info("Destroying node '{}'".format(label))
+                if node is None:
+                    logging.info("Destroying node '{}'".format(label))
+                    logging.info("- not found")
+                    continue
+
                 while True:
 
                     try:
@@ -362,7 +367,7 @@ class PlumberyNodes:
             except Exception as feedback:
 
                 if 'NO_CHANGE' in str(feedback):
-                    pass
+                    logging.info("- already done")
 
                 elif 'RESOURCE_BUSY' in str(feedback):
                     time.sleep(10)
