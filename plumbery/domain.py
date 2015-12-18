@@ -179,7 +179,9 @@ class PlumberyDomain:
         :returns: ``bool``
             - True if the network has been created or is already there,
             False otherwise
-        :raises: :class:`plumbery.PlumberyException` if some unrecoverable error occurs
+
+        :raises: :class:`plumbery.PlumberyException`
+            - if some unrecoverable error occurs
 
         This function is looking at all fittings in the blueprint except the
         nodes. This is including:
@@ -195,18 +197,19 @@ class PlumberyDomain:
 
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
             raise PlumberyException(
-                "Error: no network domain has been defined " \
+                "Error: no network domain has been defined "
                      "for the blueprint '{}'!".format(blueprint['target']))
 
         domainName = blueprint['domain']['name']
 
-        if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
+        if 'ethernet' not in blueprint                                      \
+                        or type(blueprint['ethernet']) is not dict:
             raise PlumberyException(
-                "Error: no ethernet network has been defined " \
+                "Error: no ethernet network has been defined "
                         "for the blueprint '{}'!".format(blueprint['target']))
 
         if 'subnet' not in blueprint['ethernet']:
-            raise PlumberyException("Error: no IPv4 subnet " \
+            raise PlumberyException("Error: no IPv4 subnet "
                 "(e.g., '10.0.34.0') as been defined for the blueprint '{}'!"
                                                 .format(blueprint['target']))
 
@@ -303,10 +306,10 @@ class PlumberyDomain:
             while True:
                 try:
                     self.network = self.region.ex_create_vlan(
-                        network_domain=self.domain,
-                        name=networkName,
-                        private_ipv4_base_address=blueprint['ethernet']['subnet'],
-                        description=description)
+                      network_domain=self.domain,
+                      name=networkName,
+                      private_ipv4_base_address=blueprint['ethernet']['subnet'],
+                      description=description)
                     logging.info("- in progress")
 
                     # prevent locks in xops
@@ -463,11 +466,11 @@ class PlumberyDomain:
                                                        .format(ruleIPv4Name))
 
                     sourceIPv4 = DimensionDataFirewallAddress(
-                                    any_ip=False,
-                                    ip_address=source.private_ipv4_range_address,
-                                    ip_prefix_size=source.private_ipv4_range_size,
-                                    port_begin=None,
-                                    port_end=None)
+                                any_ip=False,
+                                ip_address=source.private_ipv4_range_address,
+                                ip_prefix_size=source.private_ipv4_range_size,
+                                port_begin=None,
+                                port_end=None)
 
                     ruleIPv4 = DimensionDataFirewallRule(
                                     id=uuid4(),
@@ -532,7 +535,8 @@ class PlumberyDomain:
         """
         Reserves public addresses
 
-        :param domain: the target network domain where addresses will be consumed
+        :param domain: the target network domain
+                    where addresses will be consumed
         :type domain: :class:`DimensionDataNetworkDomain`
 
         :param count: the number of addresses to reserve for this domain
@@ -1054,7 +1058,8 @@ class PlumberyDomain:
 
         """
 
-        logging.info("Making node '{}' reachable from the internet".format(node.name))
+        logging.info("Making node '{}' reachable from the internet"
+                                                            .format(node.name))
         logging.info("- not implemented yet")
 
     def _update_ipv6(self, network, region=None):

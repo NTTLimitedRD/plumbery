@@ -237,7 +237,10 @@ class PlumberyFacility:
         """
 
         self.power_on()
-        logging.info("Plumbing at '{}' {} ({})".format(self.location.id, self.location.name, self.location.country))
+        logging.info("Plumbing at '{}' {} ({})".format(
+                                                    self.location.id,
+                                                    self.location.name,
+                                                    self.location.country))
 
     def get_blueprint(self, name):
         """
@@ -389,7 +392,8 @@ class PlumberyFacility:
         """
 
         if not self.location:
-            self.location = self.region.ex_get_location_by_id(self.fittings.locationId)
+            self.location = self.region.ex_get_location_by_id(
+                                                    self.fittings.locationId)
 
         # cache images to limit API calls
         if len(self._images) < 1:

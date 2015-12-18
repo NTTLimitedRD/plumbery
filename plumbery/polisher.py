@@ -61,15 +61,17 @@ class PlumberyPolisher:
 
         if not filter:
             for polisher in polishers:
-                logging.info("Using polisher '{}'".format(polisher.settings['name']))
+                logging.info("Using polisher '{}'"
+                                            .format(polisher.settings['name']))
             return polishers
 
         for polisher in polishers:
             if polisher.settings['name'] == filter:
+                logging.info("Using polisher '{}'".format(filter))
                 filtered = [polisher]
-                logging.info("Using polisher '{}'".format(polisher.settings['name']))
                 return filtered
 
+        logging.info("Using polisher '{}'".format(filter))
         return [PlumberyPolisher.from_shelf(filter)]
 
     @classmethod
@@ -86,7 +88,8 @@ class PlumberyPolisher:
         :returns: :class:`plumbery.PlumberyPolisher`
             - instance of a polisher ready to use
 
-        :raises: :class:`plumbery.PlumberyException` if no polisher can be found
+        :raises: :class:`plumbery.PlumberyException`
+            if no polisher can be found
 
         You can create polishers of your own, or use polishers from other
         persons. All polishers have to be placed in the directory
