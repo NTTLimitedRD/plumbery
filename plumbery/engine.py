@@ -441,7 +441,7 @@ class PlumberyEngine:
 
     def polish_blueprint(self, name, filter=None):
         """
-        Walkes resources from the target blueprint and polishes them
+        Walks resources from the target blueprint and polishes them
 
         :param name: the name of the blueprint to polish
         :type name: ``str``

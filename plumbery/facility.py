@@ -119,7 +119,7 @@ class PlumberyFacility:
         then network domains of these special blueprints are built before
         the actual target blueprint.
 
-        Example ``fittings.yaml``:
+        Example ``fittings.yaml``::
 
             ---
             basement: admin
