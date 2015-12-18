@@ -75,6 +75,9 @@ class PlumberyFacility:
             plumbery.get_user_password(),
             region=self.fittings.regionId)
 
+        self._cache_network_domains = []
+        self._cache_vlans = []
+
     def __repr__(self):
 
         return "<PlumberyFacility fittings: {}>".format(self.fittings)

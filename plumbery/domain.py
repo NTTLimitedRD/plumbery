@@ -74,8 +74,6 @@ class PlumberyDomain:
         self.network = None
         self.domain = None
 
-        self._cache_network_domains = []
-        self._cache_vlans = []
         self._cache_remote_vlan = []
         self._cache_offshore_vlan = []
         self._cache_firewall_rules = []
@@ -257,7 +255,7 @@ class PlumberyDomain:
                                 poll_interval=2, timeout=1200,
                                 network_domain_id=self.domain.id)
 
-                    self._cache_network_domains.append(self.domain)
+                    self.facility._cache_network_domains.append(self.domain)
 
                 except Exception as feedback:
 
@@ -320,7 +318,7 @@ class PlumberyDomain:
                                                 vlan_id=self.network.id)
 
                     self._update_ipv6(self.network)
-                    self._cache_vlans.append(self.network)
+                    self.facility._cache_vlans.append(self.network)
 
                 except Exception as feedback:
 
@@ -1047,14 +1045,14 @@ class PlumberyDomain:
 
         """
 
-        if len(self._cache_network_domains) < 1:
-            logging.info("Listing existing network domains")
-            self._cache_network_domains = self.region.ex_list_network_domains(
+        if len(self.facility._cache_network_domains) < 1:
+            logging.info("Listing network domains")
+            self.facility._cache_network_domains = self.region.ex_list_network_domains(
                                                         self.facility.location)
-            logging.info("- found {} network domains".format(
-                                len(self._cache_network_domains)))
+            logging.info("- found {} network domains"
+                         .format(len(self.facility._cache_network_domains)))
 
-        for domain in self._cache_network_domains:
+        for domain in self.facility._cache_network_domains:
             if domain.name == name:
                 return domain
 
