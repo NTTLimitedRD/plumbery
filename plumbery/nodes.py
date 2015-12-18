@@ -190,9 +190,8 @@ class PlumberyNodes:
                             logging.info(str(feedback))
 
                         else:
-                            raise PlumberyException(
-                                "Error: unable to create node '{0}' - {1}!"
-                                                    .format(label, feedback))
+                            logging.info("- unable to create node")
+                            logging.info(str(feedback))
 
                     break
 
@@ -265,8 +264,8 @@ class PlumberyNodes:
                             return False
 
                         else:
-                            raise PlumberyException("Error: unable to destroy" \
-                                " node '{0}' - {1}!".format(label, feedback))
+                            logging.info("- unable to destroy node")
+                            logging.info(str(feedback))
 
                     break
 
@@ -311,7 +310,7 @@ class PlumberyNodes:
                         logging.info("- already done")
 
                     else:
-                        logging.info("- impossible to detach node")
+                        logging.info("- unable to detach node")
                         logging.info(str(feedback))
                         return False
 
@@ -355,7 +354,7 @@ class PlumberyNodes:
                     logging.info("- not now - locked")
 
                 else:
-                    logging.info("- monitoring cannot be disabled")
+                    logging.info("- unable to disable monitoring")
                     logging.info(str(feedback))
 
             break
@@ -560,7 +559,8 @@ class PlumberyNodes:
                         logging.info("- skipped - node is up and running")
 
                     else:
-                        raise PlumberyException("Error: unable to start node '{0}' - {1}!".format(name, feedback))
+                        logging.info("- unable to start node")
+                        logging.info(str(feedback))
 
                 break
 
@@ -661,8 +661,8 @@ class PlumberyNodes:
                                 logging.info("- skipped - node is already stopped")
 
                             else:
-                                raise PlumberyException("Error: unable to stop"\
-                                    " node '{0}' {1}!".format(label, feedback))
+                                logging.info("- unable to stop node")
+                                logging.info(str(feedback))
 
                         break
 
