@@ -125,7 +125,7 @@ class RubPolisher(PlumberyPolisher):
 
         # select the address to use
         if len(node.public_ips) > 0:
-            target_ip = public_ips[0]
+            target_ip = node.public_ips[0]
         elif node.extra['ipv6']:
             target_ip = node.extra['ipv6']
         else:
@@ -237,7 +237,6 @@ class RubPolisher(PlumberyPolisher):
                     raise PlumberyException("Error: unknown directive '{}'"
                                                     .format(' '.join(tokens)))
 
-
         return rubs
 
     def go(self, engine):
@@ -294,7 +293,7 @@ class RubPolisher(PlumberyPolisher):
                         self.addresses.append(address['addr'])
 
         except Exception as feedback:
-            pass
+            logging.info(str(feedback))
 
         for item in self.facility.fittings.rub:
             if not isinstance(item, dict):

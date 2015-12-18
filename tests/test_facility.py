@@ -9,10 +9,12 @@ import unittest
 from plumbery.engine import PlumberyFittings, PlumberyEngine
 from plumbery.facility import PlumberyFacility
 
+
 class FakeElement:
 
     def find(self, dummy):
         return {'ipv6': 'nuts'}
+
 
 class FakeConnection:
 
@@ -21,9 +23,11 @@ class FakeConnection:
     def request_with_orgId_api_2(self, dummy):
         return self
 
+
 class FakeDomain:
 
     id = 123
+
 
 class FakeImage:
 

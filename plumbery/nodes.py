@@ -25,10 +25,8 @@ except ImportError:
 from libcloud.compute.base import NodeAuthPassword
 from libcloud.utils.xml import fixxpath, findtext, findall
 from libcloud.common.dimensiondata import TYPES_URN
-#from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
-from libcloud.utils.xml import fixxpath, findtext, findall
+from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
-from domain import PlumberyDomain
 from exceptions import PlumberyException
 
 __all__ = ['PlumberyNodes']
@@ -74,9 +72,9 @@ class PlumberyNodes:
         self.network = None
         self.domain = None
 
-#    def __repr__(self):
-#
-#        return "<PlumberyNodes facility: {}>".format(self.facility)
+    def __repr__(self):
+
+        return "<PlumberyNodes facility: {}>".format(self.facility)
 
     def build_blueprint(self, blueprint, domain):
         """
@@ -122,18 +120,18 @@ class PlumberyNodes:
                 else:
                     imageName = 'Ubuntu'
 
-#                if 'cpu' in settings:
-#                    tokens = settings['cpu'].split(' ')
-#                    if len(tokens) < 3:
-#                        tokens.append('1')
-#                        tokens.append('STANDARD')
-#
-#                    cpu = DimensionDataServerCpuSpecification(
-#                                        cpu_count=tokens[0],
-#                                        cores_per_socket=tokens[1],
-#                                        performance=tokens[2])
-#                else:
-#                    cpu = None
+                if 'cpu' in settings:
+                    tokens = settings['cpu'].split(' ')
+                    if len(tokens) < 3:
+                        tokens.append('1')
+                        tokens.append('STANDARD')
+
+                    cpu = DimensionDataServerCpuSpecification(
+                                        cpu_count=tokens[0],
+                                        cores_per_socket=tokens[1],
+                                        performance=tokens[2])
+                else:
+                    cpu = None
 
                 if 'memory' in settings:
                     memory = settings['memory']
@@ -142,7 +140,7 @@ class PlumberyNodes:
 
                 image = self.facility.get_image(imageName)
                 if image is None:
-                    raise PlumberyException("Error: unable to find image " \
+                    raise PlumberyException("Error: unable to find image "
                                                 "for '{}'!".format(imageName))
 
                 if self.plumbery.safeMode:
@@ -640,7 +638,7 @@ class PlumberyNodes:
                     continue
 
                 if self.plumbery.safeMode:
-                    logging.info("Would have stopped node '{}' " \
+                    logging.info("Would have stopped node '{}' "
                                     "if not in safe mode".format(label))
                     continue
 

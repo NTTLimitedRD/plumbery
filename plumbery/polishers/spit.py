@@ -18,7 +18,6 @@ import time
 import yaml
 
 from plumbery.domain import PlumberyDomain
-from plumbery.exceptions import PlumberyException
 from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
 
@@ -105,7 +104,7 @@ class SpitPolisher(PlumberyPolisher):
 
         if 'disks' in settings:
             for item in settings['disks']:
-                attributes = item.split( )
+                attributes = item.split()
                 if len(attributes) < 2:
                     size = int(attributes[0])
                     speed = 'STANDARD'

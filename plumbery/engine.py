@@ -674,8 +674,7 @@ class PlumberyFittings:
 
     def __repr__(self):
 
-        return "<PlumberyFittings locationId: {}, regionId: {}, "       \
-            "rub: {}, blueprints: {}, basement: {}>"                    \
-            .format(self.locationId, self.regionId, self.rub,           \
+        return "<PlumberyFittings locationId: {}, regionId: {}, " \
+            "rub: {}, blueprints: {}, basement: {}>"
+            .format(self.locationId, self.regionId, self.rub,
                 self.blueprints, self.basement)
-

@@ -80,8 +80,8 @@ class PlumberyDomain:
         self._cache_offshore_vlan = []
         self._cache_firewall_rules = []
 
-        self._network_domains_already_built =[]
-        self._vlans_already_built =[]
+        self._network_domains_already_built = []
+        self._vlans_already_built = []
 
     def _attach_node(self, node, networks):
         """
@@ -129,7 +129,7 @@ class PlumberyDomain:
         for label in networks.split(' '):
 
             if self.plumbery.safeMode:
-                logging.info("Would have glued node '{}' to network '{}' " \
+                logging.info("Would have glued node '{}' to network '{}' "
                                 "if not in safe mode".format(node.name, label))
                 continue
 
@@ -206,7 +206,7 @@ class PlumberyDomain:
         if 'ethernet' not in blueprint                                      \
                         or type(blueprint['ethernet']) is not dict:
             raise PlumberyException(
-                "Error: no ethernet network has been defined "
+                        "Error: no ethernet network has been defined "
                         "for the blueprint '{}'!".format(blueprint['target']))
 
         if 'subnet' not in blueprint['ethernet']:
@@ -222,9 +222,9 @@ class PlumberyDomain:
             logging.info("- already done")
 
         elif self.plumbery.safeMode:
-            logging.info("Would have created network domain '{}' " \
+            logging.info("Would have created network domain '{}' "
                                 "if not in safe mode".format(domainName))
-            logging.info("Would have created Ethernet network '{}' " \
+            logging.info("Would have created Ethernet network '{}' "
                                 "if not in safe mode".format(networkName))
             self._build_accept(blueprint, None, None)
             return False
@@ -290,7 +290,7 @@ class PlumberyDomain:
             logging.info("- already done")
 
         elif self.plumbery.safeMode:
-            logging.info("Would have created Ethernet network '{}' " \
+            logging.info("Would have created Ethernet network '{}' "
                                 "if not in safe mode".format(networkName))
             self._build_accept(blueprint, self.domain, None)
             return False
@@ -465,7 +465,7 @@ class PlumberyDomain:
             if shouldCreateRuleIPv4:
 
                 if self.plumbery.safeMode:
-                    logging.info("Would have created firewall rule '{}' " \
+                    logging.info("Would have created firewall rule '{}' "
                                     "if not in safe mode".format(ruleIPv4Name))
 
                 else:
@@ -481,7 +481,7 @@ class PlumberyDomain:
 
                     ruleIPv4 = DimensionDataFirewallRule(
                                     id=uuid4(),
-                                    action= 'ACCEPT_DECISIVELY',
+                                    action='ACCEPT_DECISIVELY',
                                     name=ruleIPv4Name,
                                     location=destination.location,
                                     network_domain=destination.network_domain,
@@ -502,7 +502,7 @@ class PlumberyDomain:
             if shouldCreateRuleIPv6:
 
                 if self.plumbery.safeMode:
-                    logging.info("Would have created firewall rule '{}' " \
+                    logging.info("Would have created firewall rule '{}' "
                                     "if not in safe mode".format(ruleIPv4Name))
 
                 else:
@@ -518,7 +518,7 @@ class PlumberyDomain:
 
                     ruleIPv6 = DimensionDataFirewallRule(
                                     id=uuid4(),
-                                    action= 'ACCEPT_DECISIVELY',
+                                    action='ACCEPT_DECISIVELY',
                                     name=ruleIPv6Name,
                                     location=destination.location,
                                     network_domain=destination.network_domain,
@@ -593,7 +593,7 @@ class PlumberyDomain:
             return True
 
         if self.plumbery.safeMode:
-            logging.info("Would have reserved {} public IPv4 addresses " \
+            logging.info("Would have reserved {} public IPv4 addresses "
                             "if not in safe mode".format(count-actual))
             return True
 
@@ -645,8 +645,8 @@ class PlumberyDomain:
         if 'accept' not in blueprint['ethernet']:
             return True
 
-        destinationLabel = name
-        destination = self.get_ethernet(name)
+        destinationLabel = network
+        destination = self.get_ethernet(network)
         if destination is not None:
             destinationLabel = destination.name
 
@@ -710,12 +710,12 @@ class PlumberyDomain:
 
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
             raise PlumberyException(
-                "Error: no network domain has been defined " \
+                "Error: no network domain has been defined "
                      "for the blueprint '{}'!".format(blueprint['target']))
 
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
             raise PlumberyException(
-                "Error: no ethernet network has been defined " \
+                "Error: no ethernet network has been defined "
                         "for the blueprint '{}'!".format(blueprint['target']))
 
         domainName = blueprint['domain']['name']
@@ -823,7 +823,7 @@ class PlumberyDomain:
         """
 
         if self.plumbery.safeMode:
-            logging.info("Would have released public IPv4 addresses " \
+            logging.info("Would have released public IPv4 addresses "
                             "if not in safe mode")
             return
 
@@ -927,12 +927,12 @@ class PlumberyDomain:
 
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
             raise PlumberyException(
-                "Error: no network domain has been defined " \
+                "Error: no network domain has been defined "
                      "for the blueprint '{}'!".format(blueprint['target']))
 
         if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
             raise PlumberyException(
-                "Error: no ethernet network has been defined " \
+                "Error: no ethernet network has been defined "
                         "for the blueprint '{}'!".format(blueprint['target']))
 
         domainName = blueprint['domain']['name']
@@ -1121,8 +1121,8 @@ class PlumberyDomain:
 
             ip_range = element.find(fixxpath('ipv6Range', TYPES_URN))
 
-            network.ipv6_range_address=ip_range.get('address')
-            network.ipv6_range_size=str(ip_range.get('prefixSize'))
+            network.ipv6_range_address = ip_range.get('address')
+            network.ipv6_range_size = str(ip_range.get('prefixSize'))
 
         except Exception as feedback:
 
