@@ -1259,10 +1259,16 @@ class PlumberyDomain:
         source = ''.join(e for e in source.title() if e.isalnum())
         destination = ''.join(e for e in destination.title() if e.isalnum())
 
-        return "plumbery.Flow{}From{}To{}".format(
-                                            protocol,
-                                            source,
-                                            destination)
+        if source == 'Internet':
+            return "plumbery.{}{}".format(
+                                                protocol,
+                                                destination)
+
+        else:
+            return "plumbery.{}From{}To{}".format(
+                                                protocol,
+                                                source,
+                                                destination)
 
     def _release_ipv4(self):
         """
