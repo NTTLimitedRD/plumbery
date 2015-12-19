@@ -1302,14 +1302,15 @@ class PlumberyDomain:
                     time.sleep(10)
                     continue
 
+                elif 'HAS_DEPENDENCY' in str(feedback):
+                    logging.info("- not now - stuff on it")
+
                 elif 'RESOURCE_LOCKED' in str(feedback):
                     logging.info("- not now - locked")
-                    return False
 
                 else:
                     logging.info("- unable to release IPv4 public addresses ")
                     logging.info(str(feedback))
-                    return False
 
             break
 
