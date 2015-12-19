@@ -475,7 +475,7 @@ class PlumberyNodes:
         """
 
         value = monitoring.upper()
-        logging.info("Starting '{}' monitoring of node '{}'".format(value, node.name))
+        logging.info("Starting {} monitoring of node '{}'".format(value.lower(), node.name))
 
         if value not in ['ESSENTIALS', 'ADVANCED']:
             logging.info("- monitoring should be either 'essentials' or 'advanced'")
