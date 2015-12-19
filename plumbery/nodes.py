@@ -23,6 +23,7 @@ except ImportError:
     from xml.etree import ElementTree as ET
 
 from libcloud.compute.base import NodeAuthPassword
+from libcloud.compute.base import NodeState
 from libcloud.utils.xml import fixxpath, findtext, findall
 from libcloud.common.dimensiondata import TYPES_URN
 #from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
@@ -232,16 +233,16 @@ class PlumberyNodes:
                     logging.info("- not found")
                     continue
 
+                if node.state == NodeState.RUNNING:
+                    logging.info("Destroying node '{}'".format(label))
+                    logging.info("- skipped - node is up and running")
+                    continue
+
                 self._stop_monitoring(node, settings)
                 self._detach_node(node, settings)
                 container._detach_node_from_internet(node)
 
                 logging.info("Destroying node '{}'".format(label))
-                if node is None:
-                    logging.info("Destroying node '{}'".format(label))
-                    logging.info("- not found")
-                    continue
-
                 while True:
 
                     try:
