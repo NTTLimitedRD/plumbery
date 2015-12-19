@@ -41,8 +41,6 @@ class SpitPolisher(PlumberyPolisher):
 
         self.engine = engine
 
-        self.report = []
-
     def move_to(self, facility):
         """
         Moves to another API endpoint
@@ -72,8 +70,6 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
-        spits = []
-
         cpu = None
         if 'cpu' in settings:
             cpu = int(settings['cpu'])
@@ -92,16 +88,12 @@ class SpitPolisher(PlumberyPolisher):
             logging.info("- assigning {} cpus".format(cpu))
             logging.info("- assigning {}GB of memory".format(memory))
             self.region.ex_update_node(node, cpu_count=cpu, ram_mb=memory)
-            spits.append({"cpu": "{}".format(cpu)})
-            spits.append({"memory": "{}".format(memory)})
         elif cpu:
             logging.info("- assigning {} cpus".format(cpu))
             self.region.ex_update_node(node, cpu_count=cpu)
-            spits.append({"cpu": "{}".format(cpu)})
         elif memory:
             logging.info("- assigning {}GB of memory".format(memory))
             self.region.ex_update_node(node, ram_mb=memory)
-            spits.append({"memory": "{}".format(memory)})
 
         if 'disks' in settings:
             for item in settings['disks']:
@@ -122,7 +114,6 @@ class SpitPolisher(PlumberyPolisher):
                         try:
                             logging.info("- adding disk for {}GB '{}'".format(size, speed))
                             self.region.ex_add_storage_to_node(node, amount=size, speed=speed)
-                            spits.append({"disk": "{} {}".format(size, speed)})
 
                         except Exception as feedback:
                             if 'RESOURCE_BUSY' in str(feedback):
@@ -136,31 +127,7 @@ class SpitPolisher(PlumberyPolisher):
                         break
 
         if 'monitoring' in settings:
-            if self.nodes._start_monitoring(node, settings['monitoring']):
-                spits.append({"monitoring": "{}".format(settings['monitoring'].upper())})
+            self.nodes._start_monitoring(node, settings['monitoring'])
 
         if 'glue' in settings:
-            if container._attach_node(node, settings['glue']):
-                spits.append({"glueing": "{}".format(settings['glue'])})
-
-        self.report.append({node.name: spits})
-
-    def reap(self):
-        """
-        Saves information gathered through the polishing sequence
-
-        All information captured in dumped in a file, in YAML format,
-        to provide a flexible and accurate inventory of all live nodes
-        described in the fittings plan.
-
-        """
-
-        if 'reap' in self.settings:
-            fileName = self.settings['reap']
-        else:
-            fileName = 'spit.yaml'
-
-        logging.info("Spitting in '{}'".format(fileName))
-        with open(fileName, 'w') as stream:
-            stream.write(yaml.dump(self.report, default_flow_style=False))
-            stream.close()
+            container._attach_node(node, settings['glue'])
