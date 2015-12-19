@@ -545,40 +545,33 @@ class PlumberyNodes:
 
             if type(item) is dict:
                 label = item.keys()[0]
-                settings = item.values()[0]
 
             else:
                 label = item
-                settings = {}
 
             for label in self.expand_labels(label):
+                self.start_node(label)
 
-                self.start_node(label, settings)
-
-    def start_node(self, name, settings={}):
+    def start_node(self, name):
         """
         Starts one node
 
         :param name: the name of the target node
         :type name: ``str``
 
-        :param settings: extracted from the fittings plan for this node
-        :type settings: ``dict``
-
-        :returns: the node itself
-
         """
 
         node = self.get_node(name)
 
         if self.plumbery.safeMode:
-            logging.info("Would have started node '{}' if not in safe mode".format(name))
-            return node
+            logging.info("Would have started node '{}' if not in safe mode"
+                                                                .format(name))
+            return
 
         logging.info("Starting node '{}'".format(name))
         if node is None:
             logging.info("- not found")
-            return node
+            return
 
         while True:
 
@@ -601,7 +594,7 @@ class PlumberyNodes:
 
             break
 
-        return node
+        return
 
     def stop_blueprint(self, blueprint):
         """
