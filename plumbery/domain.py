@@ -867,7 +867,7 @@ class PlumberyDomain:
 
         for rule in self._list_firewall_rules():
 
-            if '_'+node.name in rule.name:
+            if '_'+node.name.lower() in rule.name.lower():
 
                 if self.plumbery.safeMode:
                     logging.info("Would have destroyed firewall rule '{}' "
