@@ -168,6 +168,109 @@ class PlumberyDomain:
 
         return hasChanged
 
+    def _attach_node_to_internet(self, node, ports=[]):
+        """
+        Adds address translation for one node
+
+        :param node: node that has to be reachable from the internet
+        :type node: :class:`libcloud.common.Node`
+
+        :param ports: the ports that have to be opened
+        :type ports: a list of ``str``
+
+        """
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        network = self.get_ethernet(self.blueprint['ethernet']['name'])
+
+        internal_ip = node.private_ips[0]
+
+        rules = self.region.ex_list_nat_rules(domain)
+
+        for rule in rules:
+            if rule.internal_ip == internal_ip:
+                logging.info("Making node '{}' reachable from the internet"
+                             .format(node.name))
+                logging.info("- already done")
+                return
+
+        addresses = self._list_ipv4()
+        if len(addresses) < 1:
+            self._reserve_ipv4()
+            addresses = self._list_ipv4()
+
+        for rule in rules:
+            addresses.remove(rule.external_ip)
+
+        logging.info("Making node '{}' reachable from the internet"
+                     .format(node.name))
+
+        if len(addresses) < 1:
+            logging.info("- no more address available -- assign more")
+            return
+
+        external_ip = addresses[0]
+
+        while True:
+            try:
+                self.region.ex_create_nat_rule(
+                                        domain,
+                                        internal_ip,
+                                        external_ip)
+                logging.info("- node is reachable at '{}'".format(external_ip))
+
+            except Exception as feedback:
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+                    return
+
+                else:
+                    logging.info("- unable to add address translation")
+                    logging.info(str(feedback))
+
+            break
+
+        for port in ports:
+            ruleIPv4Name = self.name_firewall_rule(
+                                    'Internet',
+                                    'Node.'+node.name, 'IPv4.'+port)
+
+            sourceIPv4 = DimensionDataFirewallAddress(
+                        any_ip=True,
+                        ip_address=network.private_ipv4_range_address,
+                        ip_prefix_size=network.private_ipv4_range_size,
+                        port_begin=None,
+                        port_end=None)
+
+            destinationIPv4 = DimensionDataFirewallAddress(
+                        any_ip=False,
+                        ip_address=external_ip,
+                        ip_prefix_size=None,
+                        port_begin=None,
+                        port_end=None)
+
+            ruleIPv4 = DimensionDataFirewallRule(
+                            id=uuid4(),
+                            action='ACCEPT_DECISIVELY',
+                            name=ruleIPv4Name,
+                            location=network.location,
+                            network_domain=network.network_domain,
+                            status='NORMAL',
+                            ip_version='IPV4',
+                            protocol='IP',
+                            enabled='true',
+                            source=sourceIPv4,
+                            destination=destinationIPv4)
+
+            self._ex_create_firewall_rule(
+                            network_domain=network.network_domain,
+                            rule=ruleIPv4,
+                            position='LAST')
+
     def build(self, blueprint):
         """
         Creates a network domain if needed.
@@ -280,13 +383,10 @@ class PlumberyDomain:
 
                 break
 
-        if 'ipv4' in blueprint['domain']:
-            self._build_ipv4(self.domain, int(blueprint['domain']['ipv4']))
-
         self.network = self.get_ethernet(networkName)
         if self.network is not None:
             logging.info("Creating Ethernet network '{}'"
-                                                    .format(networkName))
+                         .format(networkName))
             logging.info("- already done")
 
         elif self.plumbery.safeMode:
@@ -524,107 +624,6 @@ class PlumberyDomain:
 
         return True
 
-    def _attach_node_to_internet(self, node, ports=[]):
-        """
-        Adds address translation for one node
-
-        :param node: node that has to be reachable from the internet
-        :type node: :class:`libcloud.common.Node`
-
-        :param ports: the ports that have to be opened
-        :type ports: a list of ``str``
-
-        """
-
-        domain = self.get_network_domain(self.blueprint['domain']['name'])
-        network = self.get_ethernet(self.blueprint['ethernet']['name'])
-
-        internal_ip = node.private_ips[0]
-
-        rules = self.region.ex_list_nat_rules(domain)
-
-        for rule in rules:
-            if rule.internal_ip == internal_ip:
-                logging.info("Making node '{}' reachable from the internet"
-                             .format(node.name))
-                logging.info("- already done")
-                return
-
-        addresses = self._list_ipv4()
-        if len(addresses) < 1:
-            self._reserve_ipv4()
-            addresses = self._list_ipv4()
-
-        for rule in rules:
-            addresses.remove(rule.external_ip)
-
-        logging.info("Making node '{}' reachable from the internet"
-                     .format(node.name))
-
-        if len(addresses) < 1:
-            logging.info("- no more address available -- assign more")
-            return
-
-        external_ip = addresses[0]
-
-        while True:
-            try:
-                self.region.ex_create_nat_rule(
-                                        domain,
-                                        internal_ip,
-                                        external_ip)
-                logging.info("- node is reachable at '{}'".format(external_ip))
-
-            except Exception as feedback:
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
-                    return
-
-                else:
-                    logging.info("- unable to add address translation")
-                    logging.info(str(feedback))
-
-            break
-
-        for port in ports:
-            ruleIPv4Name = self.name_firewall_rule(
-                                    'Internet',
-                                    'Node.'+node.name, 'IPv4.'+port)
-
-            sourceIPv4 = DimensionDataFirewallAddress(
-                        any_ip=True,
-                        port_begin=None,
-                        port_end=None)
-
-            destinationIPv4 = DimensionDataFirewallAddress(
-                        any_ip=False,
-                        ip_address=external_ip,
-                        ip_prefix_size=network.private_ipv4_range_size,
-                        port_begin=None,
-                        port_end=None)
-
-            ruleIPv4 = DimensionDataFirewallRule(
-                            id=uuid4(),
-                            action='ACCEPT_DECISIVELY',
-                            name=ruleIPv4Name,
-                            location=network.location,
-                            network_domain=network.network_domain,
-                            status='NORMAL',
-                            ip_version='IPV4',
-                            protocol='IP',
-                            enabled='true',
-                            source=sourceIPv4,
-                            destination=destinationIPv4)
-
-            self._ex_create_firewall_rule(
-                            network_domain=network.network_domain,
-                            rule=ruleIPv4,
-                            position='LAST')
-
     def _destroy_accept(self):
         """
         Destroys firewall rules
@@ -715,6 +714,10 @@ class PlumberyDomain:
             logging.info("- not found")
             return False
 
+        self._destroy_accept()
+
+        self._release_ipv4()
+
         network = self.get_ethernet(networkName)
         if network is None:
             logging.info("Destroying Ethernet network '{}'".format(networkName))
@@ -756,10 +759,6 @@ class PlumberyDomain:
                         return False
 
                 break
-
-        self._destroy_accept(networkName, blueprint, domain)
-
-        self._destroy_ipv4(domain)
 
         if self.plumbery.safeMode:
             logging.info("Would have destroyed network domain '{}' "
@@ -1044,6 +1043,45 @@ class PlumberyDomain:
 
         return None
 
+    def _list_ipv4(self):
+        """
+        Lists public IPv4 addresses that have been assigned to a domain
+
+        :returns: list of ``str``
+           - the full list of public IPv4 addresses, or []
+        """
+
+        logging.info('Listing public IPv4 addresses')
+
+        addresses = []
+
+        while True:
+            try:
+                blocks = self.region.ex_list_public_ip_blocks(
+                    self.get_network_domain(self.blueprint['domain']['name']))
+                for block in blocks:
+                    splitted = block.base_ip.split('.')
+                    for ticker in xrange(int(block.size)):
+                        addresses.append('.'.join(splitted))
+                        splitted[3] = str(int(splitted[3])+1)
+
+                logging.info("- found {} addresses".format(len(addresses)))
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                else:
+                    logging.info("- unable to list IPv4 public addresses")
+                    logging.info(str(feedback))
+                    return []
+
+            break
+
+        return addresses
+
     def name_firewall_rule(self, source, destination, protocol):
         """
         Provides a name for a firewall rule
@@ -1074,18 +1112,113 @@ class PlumberyDomain:
 
         return "plumbery.Flow{}From{}To{}".format(protocol, source, destination)
 
-    def _translate_node(self, node):
+    def _release_ipv4(self):
         """
-        Adds address translation for one node
-
-        :param node: node that has to be reachable from the internet
-        :type node: :class:`libcloud.common.Node`
+        Releases all public IPv4 addresses assigned to the blueprint
 
         """
 
-        logging.info("Making node '{}' reachable from the internet"
-                                                            .format(node.name))
-        logging.info("- not implemented yet")
+        while True:
+            try:
+                blocks = self.region.ex_list_public_ip_blocks(
+                    self.get_network_domain(self.blueprint['domain']['name']))
+
+                if len(blocks) < 1:
+                    return
+
+                if self.plumbery.safeMode:
+                    logging.info("Would have released public IPv4 addresses "
+                                 "if not in safe mode")
+                    return
+
+                logging.info('Releasing public IPv4 addresses')
+
+                for block in blocks:
+                    self.region.ex_delete_public_ip_block(block)
+
+                logging.info('- in progress')
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+                    return False
+
+                else:
+                    logging.info("- unable to release IPv4 public addresses ")
+                    logging.info(str(feedback))
+                    return False
+
+            break
+
+    def _reserve_ipv4(self):
+        """
+        Reserves public addresses
+
+        This function looks at current IPv4 addresses reserved for the
+        target network domain, and adds more if needed.
+
+        Example to reserve 8 IPv4 addresses in the fittings plan::
+
+          - redis:
+              domain:
+                name: myVDC
+                ipv4: 8
+
+        """
+
+        if 'ipv4' in self.blueprint['domain']:
+            count = self.blueprint['domain']['ipv4']
+        else:
+            count = 2
+
+        if count < 2 or count > 128:
+            logging.info("Invalid count of requested IPv4 public addresses")
+            return False
+
+        actual = len(self._list_ipv4())
+        if actual >= count:
+            return True
+
+        if self.plumbery.safeMode:
+            logging.info("Would have reserved {} public IPv4 addresses "
+                         "if not in safe mode".format(count-actual))
+            return True
+
+        logging.info('Reserving additional public IPv4 addresses')
+
+        while actual < count:
+            try:
+                block = self.region.ex_add_public_ip_block_to_network_domain(
+                    self.get_network_domain(self.blueprint['domain']['name']))
+                actual += block.size
+                logging.debug("- reserved {} addresses".format(block.size))
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+                    return False
+
+                # compensate for bug in Libcloud driver
+                elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                    actual += 2
+                    continue
+
+                else:
+                    logging.info("- unable to reserve IPv4 public addresses")
+                    logging.info(str(feedback))
+                    return False
+
+        logging.info("- reserved {} addresses in total".format(actual))
 
     def _update_ipv6(self, network, region=None):
         """
