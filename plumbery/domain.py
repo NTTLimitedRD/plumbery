@@ -25,8 +25,14 @@ except ImportError:
 from libcloud.common.dimensiondata import DimensionDataFirewallRule
 from libcloud.common.dimensiondata import DimensionDataFirewallAddress
 from libcloud.common.dimensiondata import DimensionDataNatRule
-from libcloud.utils.xml import fixxpath, findtext, findall
 from libcloud.common.dimensiondata import TYPES_URN
+from libcloud.loadbalancer.base import Algorithm
+from libcloud.loadbalancer.base import Member
+from libcloud.loadbalancer.types import Provider
+from libcloud.loadbalancer.types import State
+from libcloud.loadbalancer.providers import get_driver as get_balancer_factory
+
+from libcloud.utils.xml import fixxpath, findtext, findall
 
 from exceptions import PlumberyException
 
@@ -80,6 +86,70 @@ class PlumberyDomain:
 
         self._network_domains_already_built = []
         self._vlans_already_built = []
+
+    def _add_to_balancer(self, node):
+        """
+        Adds a node to a load balancer
+
+        """
+
+        if 'balancer' not in self.blueprint:
+            return True
+
+        if 'port' in self.blueprint['balancer']:
+            port = self.blueprint['balancer']['port']
+        else:
+            port = '80'
+
+        ports = port.split(' ')
+        for port in ports:
+            port = int(port)
+            if port < 1 or port > 65535:
+                raise PlumberyException(
+                    "Error: invalid balancer port has been defined "
+                    "for the blueprint '{}'!".format(self.blueprint['target']))
+
+        factory = get_balancer_factory(Provider.DIMENSIONDATA)
+        driver = factory(
+            self.plumbery.get_user_name(),
+            self.plumbery.get_user_password(),
+            region=self.facility.fittings.regionId)
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver.ex_set_current_network_domain(domain.id)
+
+        for port in ports:
+
+            name = self._name_load_balancer(port)
+
+            if self.plumbery.safeMode:
+                logging.info("Would have added '{}' to load balancer '{}' "
+                             "if not in safe mode".format(node.name, name))
+                continue
+
+            try:
+                logging.info("Adding '{}' to load balancer '{}'"
+                             .format(node.name, name))
+#                driver.create_balancer(name=name,
+#                                      algorithm=algorithms[algorithm],
+#                                      port=int(port),
+#                                      protocol=protocol,
+#                                      members=None)
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'NAME_NOT_UNIQUE' in str(feedback):
+                    logging.info("- already done")
+
+                elif 'NO_IP_ADDRESS_AVAILABLE' in str(feedback):
+                    logging.info("- no more ipv4 address available -- assign more")
+
+                else:
+                    logging.info("- unable to create load balancer")
+                    logging.info(str(feedback))
+
+        return True
 
     def _attach_node(self, node, networks):
         """
@@ -203,7 +273,7 @@ class PlumberyDomain:
             if external_ip is None:
                 logging.info("Making node '{}' reachable from the internet"
                              .format(node.name))
-                logging.info("- no more address available -- assign more")
+                logging.info("- no more ipv4 address available -- assign more")
                 return
 
             logging.info("Making node '{}' reachable from the internet"
@@ -449,6 +519,9 @@ class PlumberyDomain:
         if not self._build_accept():
             return False
 
+        if not self._build_balancer():
+            return False
+
         return True
 
     def _build_accept(self):
@@ -643,6 +716,126 @@ class PlumberyDomain:
 
         return True
 
+    def _build_balancer(self):
+        """
+        Adds a load balancer for nodes in the blueprint
+
+        Example in the fittings plan::
+
+          - web:
+              domain: *vdc1
+              ethernet: *data
+              nodes:
+                - apache[10..19]
+              balancer:
+                port: 80 443
+                protocol: http
+                members: apache[10..19]
+                algorithm: round_robin
+
+        In this example, the load balancer is configured to accept web traffic
+        and to distribute the workload across multiple web engines.
+
+        The algorithm can take any value among followings:
+
+        * random
+        * round_robin
+        * least_connections
+        * weighted_round_robin
+        * weighted_least_connections
+        * shortest_response
+        * persistent_ip
+
+        """
+
+        if 'balancer' not in self.blueprint:
+            return True
+
+        if 'port' in self.blueprint['balancer']:
+            port = self.blueprint['balancer']['port']
+        else:
+            port = '80'
+
+        ports = port.split(' ')
+        for port in ports:
+            port = int(port)
+            if port < 1 or port > 65535:
+                raise PlumberyException(
+                    "Error: invalid balancer port has been defined "
+                    "for the blueprint '{}'!".format(self.blueprint['target']))
+
+        if 'protocol' in self.blueprint['balancer']:
+            protocol = self.blueprint['balancer']['protocol']
+        else:
+            protocol = 'http'
+
+        protocols = ['http', 'https', 'tcp', 'udp']
+
+        if protocol not in protocols:
+            raise PlumberyException(
+                "Error: unknown balancer protocol has been defined "
+                "for the blueprint '{}'!".format(self.blueprint['target']))
+
+        if 'algorithm' in self.blueprint['balancer']:
+            algorithm = self.blueprint['balancer']['algorithm']
+        else:
+            algorithm = 'round_robin'
+
+        algorithms = {
+            'random': Algorithm.RANDOM,
+            'round_robin': Algorithm.ROUND_ROBIN,
+            'least_connections': Algorithm.LEAST_CONNECTIONS,
+            'weighted_round_robin': Algorithm.WEIGHTED_ROUND_ROBIN,
+            'weighted_least_connections': Algorithm.WEIGHTED_LEAST_CONNECTIONS,
+            'shortest_response': Algorithm.SHORTEST_RESPONSE,
+            'persistent_ip': Algorithm.PERSISTENT_IP}
+
+        if algorithm not in algorithms.keys():
+            raise PlumberyException(
+                "Error: unknown balancer algorithm has been defined "
+                "for the blueprint '{}'!".format(self.blueprint['target']))
+
+        factory = get_balancer_factory(Provider.DIMENSIONDATA)
+        driver = factory(
+            self.plumbery.get_user_name(),
+            self.plumbery.get_user_password(),
+            region=self.facility.fittings.regionId)
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver.ex_set_current_network_domain(domain.id)
+
+        for port in ports:
+
+            name = self._name_load_balancer(port)
+
+            if self.plumbery.safeMode:
+                logging.info("Would have created load balancer '{}' "
+                             "if not in safe mode".format(name))
+                continue
+
+            try:
+                logging.info("Creating load balancer '{}'".format(name))
+                driver.create_balancer(name=name,
+                                      algorithm=algorithms[algorithm],
+                                      port=int(port),
+                                      protocol=protocol,
+                                      members=None)
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'NAME_NOT_UNIQUE' in str(feedback):
+                    logging.info("- already done")
+
+                elif 'NO_IP_ADDRESS_AVAILABLE' in str(feedback):
+                    logging.info("- no more ipv4 address available -- assign more")
+
+                else:
+                    logging.info("- unable to create load balancer")
+                    logging.info(str(feedback))
+
+        return True
+
     def _destroy_accept(self):
         """
         Destroys firewall rules
@@ -682,6 +875,72 @@ class PlumberyDomain:
                                      .format(rule.name))
                         self.region.ex_delete_firewall_rule(rule)
                         logging.info("- in progress")
+
+    def _destroy_balancer(self):
+        """
+        Destroys load balancer
+
+        """
+
+        if 'balancer' not in self.blueprint['ethernet']:
+            return True
+
+        if 'balancer' not in self.blueprint:
+            return True
+
+        if 'port' in self.blueprint['balancer']:
+            port = self.blueprint['balancer']['port']
+        else:
+            port = '80'
+
+        ports = port.split(' ')
+        for port in ports:
+            port = int(port)
+            if port < 1 or port > 65535:
+                raise PlumberyException(
+                    "Error: invalid balancer port has been defined "
+                    "for the blueprint '{}'!".format(self.blueprint['target']))
+
+        factory = get_balancer_factory(Provider.DIMENSIONDATA)
+        driver = factory(
+            self.plumbery.get_user_name(),
+            self.plumbery.get_user_password(),
+            region=self.facility.fittings.regionId)
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver.ex_set_current_network_domain(domain.id)
+
+        candidates = []
+        for port in ports:
+            candidates.append(self._name_load_balancer(port))
+        logging.info(candidates)
+
+        logger.info("balancers")
+        balancers = driver.list_balancers()
+        print(balancers)
+        for balancer in balancers:
+            logger.info("balancer")
+            logger.info(balancer)
+            continue
+
+            if self.plumbery.safeMode:
+                logging.info("Would have destroyed load balancer '{}' "
+                             "if not in safe mode".format(balancer.name))
+                continue
+
+            try:
+                logging.info("Destroying load balancer '{}'".format(balancer.name))
+                driver.destroy_balancer(balancer)
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'NAME_NOT_UNIQUE' in str(feedback):
+                    logging.info("- already done")
+
+                else:
+                    logging.info("- unable to create load balancer")
+                    logging.info(str(feedback))
 
     def destroy_blueprint(self, blueprint):
         """
@@ -730,6 +989,8 @@ class PlumberyDomain:
             return False
 
         self._destroy_accept()
+
+        self._destroy_balancer()
 
         self._release_ipv4()
 
@@ -1270,6 +1531,16 @@ class PlumberyDomain:
                                                 source,
                                                 destination)
 
+    def _name_load_balancer(self, port):
+        """
+        Provides a name for the load balancer attached to a blueprint
+
+        Use this function to ensure consistent naming across load balancers.
+
+        """
+
+        return 'Balancer.'+self.blueprint['target'].title()+'.'+str(port)
+
     def _release_ipv4(self):
         """
         Releases all public IPv4 addresses assigned to the blueprint
@@ -1313,6 +1584,9 @@ class PlumberyDomain:
                     logging.info(str(feedback))
 
             break
+
+    def _remove_from_balancer(self, node):
+        logging.info("Removing '{}' from load balancer".format(node.name))
 
     def _reserve_ipv4(self):
         """

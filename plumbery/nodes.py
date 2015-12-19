@@ -241,6 +241,7 @@ class PlumberyNodes:
                 self._stop_monitoring(node, settings)
                 self._detach_node(node, settings)
                 container._detach_node_from_internet(node)
+                container._remove_from_balancer(node)
 
                 logging.info("Destroying node '{}'".format(label))
                 while True:
