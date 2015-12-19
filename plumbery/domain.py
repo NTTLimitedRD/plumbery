@@ -89,32 +89,35 @@ class PlumberyDomain:
         :type node: :class:`libcloud.compute.base.Node`
 
         :param networks: a list of networks to connect, and ``internet``
-        :type networks: ``str``
+        :type networks: list of ``str``
 
         This function adds network interfaces to a node, or adds address
         translation to the public Internet.
 
         Example in the fittings plan::
 
-          - redis:
+          - web:
               domain:
                 ipv4: 6
               ethernet:
                 name: gigafox.data
               nodes:
-                - redis[10..12]:
-                    glue: gigafox.control internet
-
-        TODO: glueing to the Internet is not available for the time being
+                - web[10..12]:
+                    glue:
+                      - gigafox.control
+                      - internet 80 443
 
         In this example, another network interface is added to each node for
         connection to the Ethernet network ``gigafox.control``.
 
         Also, public IPv4 addresses are mapped on private addresses, so that
-        each node redis10, redis11 and redis12 is reachable from the internet.
+        each node web10, web11 and web12 is reachable from the internet.
         Public IPv4 addresses are taken from pool declared at the domain level,
         with the attribute ``ipv4``. In the example above, 6 addresses are
-        assigned to the network domain, of which 3 are given to redis nodes.
+        assigned to the network domain, of which 3 are given to web nodes.
+
+        If one or multiple numbers are mentioned after the network name, they
+        are used to configure the firewall appropriately.
 
         """
 
@@ -123,8 +126,10 @@ class PlumberyDomain:
         if node is None:
             return hasChanged
 
-        networks = str(networks)
-        for label in networks.split(' '):
+        for line in networks:
+
+            tokens = line.split(' ')
+            label = tokens.pop(0)
 
             if self.plumbery.safeMode:
                 logging.info("Would have glued node '{}' to network '{}' "
@@ -132,11 +137,11 @@ class PlumberyDomain:
                 continue
 
             if label == 'internet':
-                self._translate_node(node)
+                self._attach_node_to_internet(node, tokens)
                 continue
 
             logging.info("Glueing node '{}' to network '{}'"
-                                                    .format(node.name, label))
+                         .format(node.name, label))
             target = self.get_ethernet(label.split('::'))
             if not target:
                 logging.info("- network '{}' is unknown".format(label))
@@ -876,7 +881,8 @@ class PlumberyDomain:
             dest_ip.set('address', 'ANY')
         else:
             dest_ip.set('address', rule.destination.ip_address)
-            dest_ip.set('prefixSize', str(rule.destination.ip_prefix_size))
+            if rule.destination.ip_prefix_size is not None:
+                dest_ip.set('prefixSize', str(rule.destination.ip_prefix_size))
             if rule.destination.port_begin is not None:
                 dest_port = ET.SubElement(dest, 'port')
                 dest_port.set('begin', rule.destination.port_begin)

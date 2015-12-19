@@ -231,8 +231,9 @@ class PlumberyNodes:
                     logging.info("- not found")
                     continue
 
-                self._disable_monitoring(node, settings)
+                self._stop_monitoring(node, settings)
                 self._detach_node(node, settings)
+                container._destroy_translation_rule(node)
 
                 logging.info("Destroying node '{}'".format(label))
                 if node is None:
@@ -368,7 +369,7 @@ class PlumberyNodes:
 #           if node.extra['networkDomainId'] != self.domain.id:
 #               continue
 
-            # found an existing node with this name
+            # found a node with this name
             if node.name == name:
                 self._update_ipv6(node)
                 return node
