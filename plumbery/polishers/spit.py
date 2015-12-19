@@ -136,7 +136,7 @@ class SpitPolisher(PlumberyPolisher):
                         break
 
         if 'monitoring' in settings:
-            if self.nodes._enable_monitoring(node, settings['monitoring']):
+            if self.nodes._start_monitoring(node, settings['monitoring']):
                 spits.append({"monitoring": "{}".format(settings['monitoring'].upper())})
 
         if 'glue' in settings:

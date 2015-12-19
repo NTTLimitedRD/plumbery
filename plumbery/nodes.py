@@ -317,98 +317,6 @@ class PlumberyNodes:
 
         return True
 
-    def _disable_monitoring(self, node, settings):
-        """
-        Disables monitoring of one node
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        """
-
-        if node is None:
-            return
-
-        if 'running' in settings and settings['running'] == 'always':
-            return
-
-        while True:
-
-            try:
-                self.region.ex_disable_monitoring(node)
-                logging.info("Disabling monitoring for node '{}'"
-                                                        .format(node.name))
-                logging.info("- in progress")
-
-            except Exception as feedback:
-
-                if 'NO_CHANGE' in str(feedback):
-                    pass
-
-                elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
-                    pass
-
-                elif 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("Disabling monitoring for node '{}'"
-                                                        .format(node.name))
-                    logging.info("- not now - locked")
-
-                else:
-                    logging.info("Disabling monitoring for node '{}'"
-                                                        .format(node.name))
-                    logging.info("- unable to disable monitoring")
-                    logging.info(str(feedback))
-
-            break
-
-    def _enable_monitoring(self, node, monitoring='ESSENTIALS'):
-        """
-        Enables monitoring of one node
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param monitoring: either 'ESSENTIALS' or 'ADVANCED'
-        :type monitoring: ``str``
-
-        """
-
-        value = monitoring.upper()
-        logging.info("Setting monitoring to '{}' for '{}'".format(value, node.name))
-
-        if value not in ['ESSENTIALS', 'ADVANCED']:
-            logging.info("- monitoring should be either 'essentials' or 'advanced'")
-        else:
-            while True:
-                try:
-                    self.region.ex_enable_monitoring(node, service_plan=value)
-                    logging.info("- in progress")
-                    return True
-
-                except Exception as feedback:
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'RETRYABLE_SYSTEM_ERROR' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'NO_CHANGE' in str(feedback):
-                        logging.info("- already done")
-
-                    else:
-                        logging.info("- unable to set monitoring")
-                        logging.info(str(feedback))
-
-                break
-
-        return False
-
     def expand_labels(self, label):
         """
         Designate multiple nodes with a simple label
@@ -552,6 +460,50 @@ class PlumberyNodes:
             for label in self.expand_labels(label):
                 self.start_node(label)
 
+    def _start_monitoring(self, node, monitoring='ESSENTIALS'):
+        """
+        Enables monitoring of one node
+
+        :param node: the target node
+        :type node: :class:`libcloud.compute.base.Node`
+
+        :param monitoring: either 'ESSENTIALS' or 'ADVANCED'
+        :type monitoring: ``str``
+
+        """
+
+        value = monitoring.upper()
+        logging.info("Starting '{}' monitoring of node '{}'".format(value, node.name))
+
+        if value not in ['ESSENTIALS', 'ADVANCED']:
+            logging.info("- monitoring should be either 'essentials' or 'advanced'")
+        else:
+            while True:
+                try:
+                    self.region.ex_enable_monitoring(node, service_plan=value)
+                    logging.info("- in progress")
+                    return True
+
+                except Exception as feedback:
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'RETRYABLE_SYSTEM_ERROR' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'NO_CHANGE' in str(feedback):
+                        logging.info("- already done")
+
+                    else:
+                        logging.info("- unable to start monitoring")
+                        logging.info(str(feedback))
+
+                break
+
+        return False
+
     def start_node(self, name):
         """
         Starts one node
@@ -673,6 +625,54 @@ class PlumberyNodes:
                                 logging.info(str(feedback))
 
                         break
+
+    def _stop_monitoring(self, node, settings):
+        """
+        Disables monitoring of one node
+
+        :param node: the target node
+        :type node: :class:`libcloud.compute.base.Node`
+
+        """
+
+        if node is None:
+            return
+
+        if 'running' in settings and settings['running'] == 'always':
+            return
+
+        while True:
+
+            try:
+                self.region.ex_disable_monitoring(node)
+                logging.info("Stopping monitoring of node '{}'"
+                                                        .format(node.name))
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'NO_CHANGE' in str(feedback):
+                    pass
+
+                elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
+                    pass
+
+                elif 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("Stopping monitoring of node '{}'"
+                                                        .format(node.name))
+                    logging.info("- not now - locked")
+
+                else:
+                    logging.info("Stopping monitoring of node '{}'"
+                                                        .format(node.name))
+                    logging.info("- unable to stop monitoring")
+                    logging.info(str(feedback))
+
+            break
 
     def _update_ipv6(self, node):
         """
