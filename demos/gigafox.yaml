@@ -71,7 +71,9 @@ blueprints:
         - apache[10..11]:
             description: 'Apache #web #eu'
             monitoring: advanced
-            glue: internet gigafox.control
+            glue:
+              - internet 80 443
+              - gigafox.control
             rub:
               - run rub.update.sh
               - put rub.puppet.apache.pp
@@ -116,6 +118,7 @@ blueprints:
         name: GigaFox.US
         description: '#us'
         service: ADVANCED
+        ipv4: 4
       ethernet:
         name: gigafox.web
         subnet: 10.2.1.0
@@ -125,7 +128,9 @@ blueprints:
       nodes:
         - apache[20..21]:
             description: 'Apache #web #us'
-            monitoring: essentials
+            monitoring: advanced
+            glue:
+              - internet 22 80 443
             rub:
               - rub.update.sh
 

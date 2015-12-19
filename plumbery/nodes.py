@@ -234,7 +234,7 @@ class PlumberyNodes:
 
                 self._stop_monitoring(node, settings)
                 self._detach_node(node, settings)
-                container._destroy_translation_rule(node)
+                container._detach_node_from_internet(node)
 
                 logging.info("Destroying node '{}'".format(label))
                 if node is None:

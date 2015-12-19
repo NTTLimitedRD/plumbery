@@ -186,95 +186,88 @@ class PlumberyDomain:
         """
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
-        network = self.get_ethernet(self.blueprint['ethernet']['name'])
 
         internal_ip = node.private_ips[0]
 
-        rules = self.region.ex_list_nat_rules(domain)
-
-        for rule in rules:
+        external_ip = None
+        for rule in self.region.ex_list_nat_rules(domain):
             if rule.internal_ip == internal_ip:
+                external_ip = rule.external_ip
                 logging.info("Making node '{}' reachable from the internet"
                              .format(node.name))
-                logging.info("- already done")
-                return
-
-        addresses = self._list_ipv4()
-        if len(addresses) < 1:
-            self._reserve_ipv4()
-            addresses = self._list_ipv4()
-
-        for rule in rules:
-            addresses.remove(rule.external_ip)
-
-        logging.info("Making node '{}' reachable from the internet"
-                     .format(node.name))
-
-        if len(addresses) < 1:
-            logging.info("- no more address available -- assign more")
-            return
-
-        external_ip = addresses[0]
-
-        while True:
-            try:
-                self.region.ex_create_nat_rule(
-                                        domain,
-                                        internal_ip,
-                                        external_ip)
                 logging.info("- node is reachable at '{}'".format(external_ip))
 
-            except Exception as feedback:
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
+        if external_ip is None:
+            external_ip = self._get_ipv4()
 
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
-                    return
+            if external_ip is None:
+                logging.info("Making node '{}' reachable from the internet"
+                             .format(node.name))
+                logging.info("- no more address available -- assign more")
+                return
 
-                else:
-                    logging.info("- unable to add address translation")
-                    logging.info(str(feedback))
+            logging.info("Making node '{}' reachable from the internet"
+                         .format(node.name))
+            while True:
+                try:
+                    self.region.ex_create_nat_rule(
+                                            domain,
+                                            internal_ip,
+                                            external_ip)
+                    logging.info("- node is reachable at '{}'".format(external_ip))
 
-            break
+                except Exception as feedback:
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
 
-        for port in ports:
-            ruleIPv4Name = self.name_firewall_rule(
-                                    'Internet',
-                                    'Node.'+node.name, 'IPv4.'+port)
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
+                        return
 
-            sourceIPv4 = DimensionDataFirewallAddress(
-                        any_ip=True,
-                        ip_address=network.private_ipv4_range_address,
-                        ip_prefix_size=network.private_ipv4_range_size,
-                        port_begin=None,
-                        port_end=None)
+                    else:
+                        logging.info("- unable to add address translation")
+                        logging.info(str(feedback))
 
-            destinationIPv4 = DimensionDataFirewallAddress(
-                        any_ip=False,
-                        ip_address=external_ip,
-                        ip_prefix_size=None,
-                        port_begin=None,
-                        port_end=None)
+                break
 
-            ruleIPv4 = DimensionDataFirewallRule(
-                            id=uuid4(),
-                            action='ACCEPT_DECISIVELY',
-                            name=ruleIPv4Name,
-                            location=network.location,
-                            network_domain=network.network_domain,
-                            status='NORMAL',
-                            ip_version='IPV4',
-                            protocol='IP',
-                            enabled='true',
-                            source=sourceIPv4,
-                            destination=destinationIPv4)
+        candidates = self._list_candidate_firewall_rules(node, ports)
 
-            self._ex_create_firewall_rule(
-                            network_domain=network.network_domain,
-                            rule=ruleIPv4,
-                            position='LAST')
+        for rule in self._list_firewall_rules():
+
+            if rule.name in candidates.keys():
+                logging.info("Creating firewall rule '{}'"
+                             .format(rule.name))
+                logging.info("- already done")
+                candidates = {k:candidates[k] for k in candidates if k != rule.name}
+
+        for name, rule in candidates.items():
+
+            if self.plumbery.safeMode:
+                logging.info("Would have created firewall rule '{}' "
+                             "if not in safe mode".format(name))
+
+            else:
+                logging.info("Creating firewall rule '{}'"
+                             .format(name))
+
+                try:
+
+                    self._ex_create_firewall_rule(
+                                network_domain=domain,
+                                rule=rule,
+                                position='LAST')
+
+                    logging.info("- in progress")
+
+                except Exception as feedback:
+
+                    if 'NAME_NOT_UNIQUE' in str(feedback):
+                        logging.info("- already done")
+
+                    else:
+                        logging.info("- unable to create firewall rule")
+                        logging.info(str(feedback))
 
     def build(self, blueprint):
         """
@@ -536,20 +529,16 @@ class PlumberyDomain:
 
             shouldCreateRuleIPv6 = True
 
-            if len(self._cache_firewall_rules) < 1:
-                self._cache_firewall_rules = self.region.ex_list_firewall_rules(
-                    self.get_network_domain(self.blueprint['domain']['name']))
+            for rule in self._list_firewall_rules():
 
-            for rule in self._cache_firewall_rules:
-
-                if shouldCreateRuleIPv4 and rule.name == ruleIPv4Name:
+                if shouldCreateRuleIPv4 and rule.name.lower() == ruleIPv4Name.lower():
                     logging.info("Creating firewall rule '{}'"
                                  .format(rule.name))
                     logging.info("- already done")
                     shouldCreateRuleIPv4 = False
                     continue
 
-                if shouldCreateRuleIPv6 and rule.name == ruleIPv6Name:
+                if shouldCreateRuleIPv6 and rule.name.lower() == ruleIPv6Name.lower():
                     logging.info("Creating firewall rule '{}'"
                                  .format(rule.name))
                     logging.info("- already done")
@@ -586,12 +575,23 @@ class PlumberyDomain:
                                     source=sourceIPv4,
                                     destination=destinationIPv4)
 
-                    self._ex_create_firewall_rule(
+                    try:
+
+                        self._ex_create_firewall_rule(
                                     network_domain=destination.network_domain,
                                     rule=ruleIPv4,
                                     position='LAST')
 
-                    logging.info("- in progress")
+                        logging.info("- in progress")
+
+                    except Exception as feedback:
+
+                        if 'NAME_NOT_UNIQUE' in str(feedback):
+                            logging.info("- already done")
+
+                        else:
+                            logging.info("- unable to create firewall rule")
+                            logging.info(str(feedback))
 
             if shouldCreateRuleIPv6:
 
@@ -623,12 +623,23 @@ class PlumberyDomain:
                                     source=sourceIPv6,
                                     destination=destinationIPv6)
 
-                    self._ex_create_firewall_rule(
+                    try:
+
+                        self._ex_create_firewall_rule(
                                     network_domain=destination.network_domain,
                                     rule=ruleIPv6,
                                     position='LAST')
 
-                    logging.info("- in progress")
+                        logging.info("- in progress")
+
+                    except Exception as feedback:
+
+                        if 'NAME_NOT_UNIQUE' in str(feedback):
+                            logging.info("- already done")
+
+                        else:
+                            logging.info("- unable to create firewall rule")
+                            logging.info(str(feedback))
 
         return True
 
@@ -658,11 +669,7 @@ class PlumberyDomain:
             ruleIPv6Name = self.name_firewall_rule(
                                         sourceLabel, destinationLabel, 'IPv6')
 
-            if len(self._cache_firewall_rules) < 1:
-                self._cache_firewall_rules = self.region.ex_list_firewall_rules(
-                    self.get_network_domain(self.blueprint['domain']['name']))
-
-            for rule in self._cache_firewall_rules:
+            for rule in self._list_firewall_rules():
 
                 if rule.name == ruleIPv4Name or rule.name == ruleIPv6Name:
 
@@ -814,7 +821,7 @@ class PlumberyDomain:
 
         return True
 
-    def _destroy_translation_rule(self, node):
+    def _detach_node_from_internet(self, node):
         """
         Destroys address translation for one node
 
@@ -823,10 +830,8 @@ class PlumberyDomain:
 
         """
 
-        domain = self.get_network_domain(self.blueprint['domain']['name'])
-
         internal_ip = node.private_ips[0]
-
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
         for rule in self.region.ex_list_nat_rules(domain):
             if rule.internal_ip == internal_ip:
 
@@ -852,7 +857,19 @@ class PlumberyDomain:
 
                     break
 
-                return
+        for rule in self._list_firewall_rules():
+
+            if '_'+node.name in rule.name:
+
+                if self.plumbery.safeMode:
+                    logging.info("Would have destroyed firewall rule '{}' "
+                                 "if not in safe mode".format(rule.name))
+
+                else:
+                    logging.info("Destroying firewall rule '{}'"
+                                 .format(rule.name))
+                    self.region.ex_delete_firewall_rule(rule)
+                    logging.info("- in progress")
 
     def _ex_create_firewall_rule(self, network_domain, rule, position):
         create_node = ET.Element('createFirewallRule', {'xmlns': TYPES_URN})
@@ -1038,6 +1055,27 @@ class PlumberyDomain:
 
         return None
 
+    def _get_ipv4(self):
+        """
+        Provides a free public IPv4 if possible
+
+        """
+
+        addresses = self._list_ipv4()
+        if len(addresses) < 1:
+            self._reserve_ipv4()
+            addresses = self._list_ipv4()
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+
+        for rule in self.region.ex_list_nat_rules(domain):
+            addresses.remove(rule.external_ip)
+
+        if len(addresses) < 1:
+            return None
+
+        return addresses[0]
+
     def get_network_domain(self, name):
         """
         Retrieves a network domain by name
@@ -1060,6 +1098,96 @@ class PlumberyDomain:
 
         return None
 
+    def _list_candidate_firewall_rules(self, node, ports=[]):
+        """
+        Lists rules that should apply to one node
+
+        :param node: node that has to be reachable from the internet
+        :type node: :class:`libcloud.common.Node`
+
+        :param ports: the ports that have to be opened
+        :type ports: a list of ``str``
+
+        """
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        network = self.get_ethernet(self.blueprint['ethernet']['name'])
+
+        internal_ip = node.private_ips[0]
+
+        external_ip = None
+        for rule in self.region.ex_list_nat_rules(domain):
+            if rule.internal_ip == internal_ip:
+                external_ip = rule.external_ip
+
+        if external_ip is None:
+            return {}
+
+        candidates = {}
+
+        if len(ports) < 1:
+            ports = ['any']
+
+        for port in ports:
+
+            tokens = port.split('..')
+            if len(tokens) == 1:
+                if tokens[0].lower() == 'any':
+                    port_begin = None
+                else:
+                    port_begin = tokens[0]
+                port_end = None
+                port = tokens[0]
+            else:
+                port_begin = tokens[0]
+                port_end = tokens[1]
+                port = port_begin+'..'+port_end
+
+            ruleIPv4Name = self.name_firewall_rule(
+                                    'Internet',
+                                    node.name, 'TCPv4_'+port+'_')
+
+            sourceIPv4 = DimensionDataFirewallAddress(
+                        any_ip=True,
+                        ip_address=network.private_ipv4_range_address,
+                        ip_prefix_size=network.private_ipv4_range_size,
+                        port_begin=None,
+                        port_end=None)
+
+            destinationIPv4 = DimensionDataFirewallAddress(
+                        any_ip=False,
+                        ip_address=external_ip,
+                        ip_prefix_size=None,
+                        port_begin=port_begin,
+                        port_end=port_end)
+
+            ruleIPv4 = DimensionDataFirewallRule(
+                            id=uuid4(),
+                            action='ACCEPT_DECISIVELY',
+                            name=ruleIPv4Name,
+                            location=network.location,
+                            network_domain=network.network_domain,
+                            status='NORMAL',
+                            ip_version='IPV4',
+                            protocol='TCP',
+                            enabled='true',
+                            source=sourceIPv4,
+                            destination=destinationIPv4)
+
+            candidates[ruleIPv4Name] = ruleIPv4
+
+        return candidates
+
+    def _list_firewall_rules(self):
+        """
+        Lists all existing rules for the current domain
+        """
+        if len(self._cache_firewall_rules) < 1:
+            self._cache_firewall_rules = self.region.ex_list_firewall_rules(
+                self.get_network_domain(self.blueprint['domain']['name']))
+
+        return self._cache_firewall_rules
+
     def _list_ipv4(self):
         """
         Lists public IPv4 addresses that have been assigned to a domain
@@ -1067,8 +1195,6 @@ class PlumberyDomain:
         :returns: list of ``str``
            - the full list of public IPv4 addresses, or []
         """
-
-        logging.info('Listing public IPv4 addresses')
 
         addresses = []
 
@@ -1082,8 +1208,6 @@ class PlumberyDomain:
                         addresses.append('.'.join(splitted))
                         splitted[3] = str(int(splitted[3])+1)
 
-                logging.info("- found {} addresses".format(len(addresses)))
-
             except Exception as feedback:
 
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -1091,7 +1215,7 @@ class PlumberyDomain:
                     continue
 
                 else:
-                    logging.info("- unable to list IPv4 public addresses")
+                    logging.info("Unable to list IPv4 public addresses")
                     logging.info(str(feedback))
                     return []
 
