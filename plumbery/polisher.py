@@ -170,14 +170,14 @@ class PlumberyPolisher:
 
         self.facility = facility
 
-    def shine_domain(self, domain, settings):
+    def shine_container(self, container, settings):
         """
-        Rubs a domain until it shines
+        Rubs a container until it shines
 
-        :param domain: the domain to be polished
-        :type domain: `strp`
+        :param container: the container to be polished
+        :type container: :class:`plumbery.PlumberyDomain`
 
-        :param settings: the fittings plan for this node
+        :param settings: the fittings plan for this infrastructure
         :type settings: ``dict``
 
         This is where the hard work is done. You have to override this
@@ -188,7 +188,7 @@ class PlumberyPolisher:
 
         pass
 
-    def shine_node(self, node, settings):
+    def shine_node(self, node, settings, container):
         """
         Rubs a node until it shines
 
@@ -197,6 +197,9 @@ class PlumberyPolisher:
 
         :param settings: the fittings plan for this node
         :type settings: ``dict``
+
+        :param container: the container of this node
+        :type container: :class:`plumbery.PlumberyDomain`
 
         This is where the hard work is done. You have to override this
         function in your own polisher. Note that you can compare the reality

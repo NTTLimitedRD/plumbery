@@ -309,7 +309,7 @@ class RubPolisher(PlumberyPolisher):
         else:
             logging.info("- '{}' is unreachable".format(self.facility.fittings.locationId))
 
-    def shine_node(self, node, settings):
+    def shine_node(self, node, settings, container):
         """
         Rubs a node
 
@@ -318,6 +318,9 @@ class RubPolisher(PlumberyPolisher):
 
         :param settings: the fittings plan for this node
         :type settings: ``dict``
+
+        :param container: the container of this node
+        :type container: :class:`plumbery.PlumberyDomain`
 
         """
 

@@ -17,7 +17,6 @@ import logging
 import time
 import yaml
 
-from plumbery.domain import PlumberyDomain
 from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
 
@@ -56,10 +55,9 @@ class SpitPolisher(PlumberyPolisher):
 
         self.facility = facility
         self.region = facility.region
-        self.domains = PlumberyDomain(facility)
         self.nodes = PlumberyNodes(facility)
 
-    def shine_node(self, node, settings):
+    def shine_node(self, node, settings, container):
         """
         Finalizes setup of one node
 
@@ -68,6 +66,9 @@ class SpitPolisher(PlumberyPolisher):
 
         :param settings: the fittings plan for this node
         :type settings: ``dict``
+
+        :param container: the container of this node
+        :type container: :class:`plumbery.PlumberyDomain`
 
         """
 
@@ -139,7 +140,7 @@ class SpitPolisher(PlumberyPolisher):
                 spits.append({"monitoring": "{}".format(settings['monitoring'].upper())})
 
         if 'glue' in settings:
-            if self.domains._attach_node(node, settings['glue']):
+            if container._attach_node(node, settings['glue']):
                 spits.append({"glueing": "{}".format(settings['glue'])})
 
         self.report.append({node.name: spits})

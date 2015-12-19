@@ -47,7 +47,7 @@ class PlumberyNodes:
 
         from plumbery.nodes import PlumberyNodes
         nodes = PlumberyNodes(facility)
-        nodes.build_blueprint(blueprint, domain)
+        nodes.build_blueprint(blueprint, container)
 
     In this example an instance is initialised at the given facility, and then
     it is asked to create nodes described in the provided blueprint.
@@ -69,22 +69,20 @@ class PlumberyNodes:
         self.facility = facility
         self.region = facility.region
         self.plumbery = facility.plumbery
-        self.network = None
-        self.domain = None
 
     def __repr__(self):
 
         return "<PlumberyNodes facility: {}>".format(self.facility)
 
-    def build_blueprint(self, blueprint, domain):
+    def build_blueprint(self, blueprint, container):
         """
         Create missing nodes
 
         :param blueprint: the blueprint to build
         :type blueprint: ``dict``
 
-        :param domain: the domain where nodes will be built
-        :type domain: :class:`plumbery.PlumberyDomain`
+        :param container: the container where nodes will be built
+        :type container: :class:`plumbery.PlumberyDomain`
 
         """
 
@@ -150,10 +148,10 @@ class PlumberyNodes:
 
                 logging.info("Creating node '{}'".format(label))
 
-                if not domain.domain:
+                if not container.domain:
                     logging.info("- missing network domain")
                     continue
-                if not domain.network:
+                if not container.network:
                     logging.info("- missing Ethernet network")
                     continue
 
@@ -165,8 +163,8 @@ class PlumberyNodes:
                             image=image,
                             auth=NodeAuthPassword(
                                 self.plumbery.get_shared_secret()),
-                            ex_network_domain=domain.domain,
-                            ex_vlan=domain.network,
+                            ex_network_domain=container.domain,
+                            ex_vlan=container.network,
 #                            ex_cpu_specification=cpu,
 #                            ex_memory_gb=memory,
                             ex_is_started=False,
@@ -203,6 +201,9 @@ class PlumberyNodes:
         """
 
         self.facility.power_on()
+
+        domains = PlumberyDomain(self.facility)
+        container = domains.get_container(blueprint)
 
         if 'nodes' not in blueprint or not isinstance(blueprint['nodes'], list):
             return
@@ -503,6 +504,9 @@ class PlumberyNodes:
         if 'nodes' not in blueprint:
             return
 
+        domains = PlumberyDomain(self.facility)
+        container = domains.get_container(blueprint)
+
         for item in blueprint['nodes']:
 
             if type(item) is dict:
@@ -523,7 +527,7 @@ class PlumberyNodes:
                     continue
 
                 for polisher in polishers:
-                    polisher.shine_node(node, settings)
+                    polisher.shine_node(node, settings, container)
 
     def start_blueprint(self, blueprint):
         """

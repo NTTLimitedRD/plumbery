@@ -12,6 +12,18 @@ from plumbery.engine import PlumberyFittings
 from plumbery.polisher import PlumberyPolisher
 
 
+class FakeNetwork:
+
+    id = 123
+
+
+class FakeContainer:
+
+    id = 123
+    domain = 'fake'
+    network = FakeNetwork()
+
+
 class FakeEngine():
 
     def get_shared_secret(self):
@@ -65,21 +77,21 @@ class TestPlumberyPolisher(unittest.TestCase):
         self.polisher = PlumberyPolisher.from_shelf('ansible', fakeAnsibleConfiguration)
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(FakeNode(), fakeNodeSettings)
+        self.polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
         self.polisher.reap()
 
     def test_rub(self):
         self.polisher = PlumberyPolisher.from_shelf('rub', fakeRubConfiguration)
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(FakeNode(), fakeNodeSettings)
+        self.polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
         self.polisher.reap()
 
     def test_inventory(self):
         self.polisher = PlumberyPolisher.from_shelf('inventory', fakeInventoryConfiguration)
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(FakeNode(), fakeNodeSettings)
+        self.polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
         self.polisher.reap()
 
 if __name__ == '__main__':

@@ -55,7 +55,7 @@ class InventoryPolisher(PlumberyPolisher):
 
         self.inventory = []
 
-    def shine_node(self, node, settings):
+    def shine_node(self, node, settings, container):
         """
         Gets as much information as possible from a node
 
@@ -64,6 +64,9 @@ class InventoryPolisher(PlumberyPolisher):
 
         :param settings: the fittings plan for this node
         :type settings: ``dict``
+
+        :param container: the container of this node
+        :type container: :class:`plumbery.PlumberyDomain`
 
         Please note that the information saved here is a combination of
         attributes exposed by Apache Libcloud and of extra fields
