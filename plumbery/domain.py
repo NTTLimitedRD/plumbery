@@ -735,6 +735,14 @@ class PlumberyDomain:
                     self.region.ex_delete_vlan(vlan=network)
                     logging.info("- in progress")
 
+                    while True:
+                        try:
+                            time.sleep(10)
+                            self.region.ex_get_vlan(vlan_id=network.id)
+                        except Exception as feedback:
+                            if 'RESOURCE_NOT_FOUND' in str(feedback):
+                                break
+
                 except Exception as feedback:
 
                     if 'RESOURCE_BUSY' in str(feedback):
