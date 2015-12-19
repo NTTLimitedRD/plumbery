@@ -357,7 +357,7 @@ class PlumberyDomain:
                     # prevent locks in xops
                     self.region.ex_wait_for_state(
                                 'NORMAL', self.region.ex_get_network_domain,
-                                poll_interval=2, timeout=1200,
+                                poll_interval=5, timeout=1200,
                                 network_domain_id=self.domain.id)
 
                     self.facility._cache_network_domains.append(self.domain)
@@ -416,7 +416,7 @@ class PlumberyDomain:
                     # prevent locks in xops
                     self.region.ex_wait_for_state('NORMAL',
                                                 self.region.ex_get_vlan,
-                                                poll_interval=2, timeout=1200,
+                                                poll_interval=5, timeout=1200,
                                                 vlan_id=self.network.id)
 
                     self._update_ipv6(self.network)
