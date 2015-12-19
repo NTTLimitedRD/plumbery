@@ -128,7 +128,7 @@ class PlumberyDomain:
 
             if self.plumbery.safeMode:
                 logging.info("Would have glued node '{}' to network '{}' "
-                                "if not in safe mode".format(node.name, label))
+                             "if not in safe mode".format(node.name, label))
                 continue
 
             if label == 'internet':
@@ -302,20 +302,21 @@ class PlumberyDomain:
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
             raise PlumberyException(
                 "Error: no network domain has been defined "
-                     "for the blueprint '{}'!".format(blueprint['target']))
+                "for the blueprint '{}'!".format(blueprint['target']))
 
         domainName = blueprint['domain']['name']
 
         if 'ethernet' not in blueprint                                      \
-                        or type(blueprint['ethernet']) is not dict:
+           or type(blueprint['ethernet']) is not dict:
             raise PlumberyException(
                         "Error: no ethernet network has been defined "
                         "for the blueprint '{}'!".format(blueprint['target']))
 
         if 'subnet' not in blueprint['ethernet']:
-            raise PlumberyException("Error: no IPv4 subnet "
+            raise PlumberyException(
+                "Error: no IPv4 subnet "
                 "(e.g., '10.0.34.0') as been defined for the blueprint '{}'!"
-                                                .format(blueprint['target']))
+                .format(blueprint['target']))
 
         networkName = blueprint['ethernet']['name']
 
@@ -326,9 +327,9 @@ class PlumberyDomain:
 
         elif self.plumbery.safeMode:
             logging.info("Would have created network domain '{}' "
-                                "if not in safe mode".format(domainName))
+                         "if not in safe mode".format(domainName))
             logging.info("Would have created Ethernet network '{}' "
-                                "if not in safe mode".format(networkName))
+                         "if not in safe mode".format(networkName))
             self._build_accept()
             return False
 
@@ -397,7 +398,7 @@ class PlumberyDomain:
 
         else:
             logging.info("Creating Ethernet network '{}'"
-                                                    .format(networkName))
+                         .format(networkName))
 
             # the description attribute is a smart way to tag resources
             description = '#plumbery'
@@ -429,10 +430,12 @@ class PlumberyDomain:
                         continue
 
                     elif 'NAME_NOT_UNIQUE' in str(feedback):
-                        logging.info("- not possible - network already exists elsewhere")
+                        logging.info("- not possible "
+                                     "- network already exists elsewhere")
 
                     elif 'IP_ADDRESS_NOT_UNIQUE' in str(feedback):
-                        logging.info("- not possible - subnet is used elsewhere")
+                        logging.info("- not possible "
+                                     "- subnet is used elsewhere")
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
                         logging.info("- not now - locked")
@@ -536,14 +539,14 @@ class PlumberyDomain:
 
                 if shouldCreateRuleIPv4 and rule.name == ruleIPv4Name:
                     logging.info("Creating firewall rule '{}'"
-                                                   .format(rule.name))
+                                 .format(rule.name))
                     logging.info("- already done")
                     shouldCreateRuleIPv4 = False
                     continue
 
                 if shouldCreateRuleIPv6 and rule.name == ruleIPv6Name:
                     logging.info("Creating firewall rule '{}'"
-                                                   .format(rule.name))
+                                 .format(rule.name))
                     logging.info("- already done")
                     shouldCreateRuleIPv6 = False
                     continue
@@ -552,11 +555,11 @@ class PlumberyDomain:
 
                 if self.plumbery.safeMode:
                     logging.info("Would have created firewall rule '{}' "
-                                    "if not in safe mode".format(ruleIPv4Name))
+                                 "if not in safe mode".format(ruleIPv4Name))
 
                 else:
                     logging.info("Creating firewall rule '{}'"
-                                                       .format(ruleIPv4Name))
+                                 .format(ruleIPv4Name))
 
                     sourceIPv4 = DimensionDataFirewallAddress(
                                 any_ip=False,
@@ -589,11 +592,11 @@ class PlumberyDomain:
 
                 if self.plumbery.safeMode:
                     logging.info("Would have created firewall rule '{}' "
-                                    "if not in safe mode".format(ruleIPv4Name))
+                                 "if not in safe mode".format(ruleIPv4Name))
 
                 else:
                     logging.info("Creating firewall rule '{}'"
-                                                       .format(ruleIPv6Name))
+                                 .format(ruleIPv6Name))
 
                     sourceIPv6 = DimensionDataFirewallAddress(
                                     any_ip=False,
@@ -660,11 +663,11 @@ class PlumberyDomain:
 
                     if self.plumbery.safeMode:
                         logging.info("Would have destroyed firewall rule '{}' "
-                            "if not in safe mode".format(rule.name))
+                                     "if not in safe mode".format(rule.name))
 
                     else:
                         logging.info("Destroying firewall rule '{}'"
-                                                            .format(rule.name))
+                                     .format(rule.name))
                         self.region.ex_delete_firewall_rule(rule)
                         logging.info("- in progress")
 
@@ -725,7 +728,7 @@ class PlumberyDomain:
 
         elif self.plumbery.safeMode:
             logging.info("Would have destroyed Ethernet network '{}' "
-                            "if not in safe mode".format(networkName))
+                         "if not in safe mode".format(networkName))
 
         else:
             logging.info("Destroying Ethernet network '{}'".format(networkName))
@@ -770,7 +773,7 @@ class PlumberyDomain:
 
         if self.plumbery.safeMode:
             logging.info("Would have destroyed network domain '{}' "
-                            "if not in safe mode".format(domainName))
+                         "if not in safe mode".format(domainName))
             return False
 
         logging.info("Destroying network domain '{}'".format(domainName))
@@ -986,8 +989,8 @@ class PlumberyDomain:
                             and self._cache_remote_vlan[1] == path[1]:
                 return self._cache_remote_vlan[2]
 
-            logging.info("Looking for remote Ethernet network '{}'".format(
-                                '::'.join(path)))
+            logging.info("Looking for remote Ethernet network '{}'"
+                         .format('::'.join(path)))
 
             remoteLocation = self.region.ex_get_location_by_id(path[0])
 
@@ -1008,8 +1011,8 @@ class PlumberyDomain:
                             and self._cache_offshore_vlan[2] == path[2]:
                 return self._cache_offshore_vlan[3]
 
-            logging.info("Looking for offshore Ethernet network '{}'".format(
-                                '::'.join(path)))
+            logging.info("Looking for offshore Ethernet network '{}'"
+                         .format('::'.join(path)))
 
             offshore = self.plumbery.provider(
                 self.plumbery.get_user_name(),
@@ -1118,7 +1121,10 @@ class PlumberyDomain:
         source = ''.join(e for e in source.title() if e.isalnum())
         destination = ''.join(e for e in destination.title() if e.isalnum())
 
-        return "plumbery.Flow{}From{}To{}".format(protocol, source, destination)
+        return "plumbery.Flow{}From{}To{}".format(
+                                            protocol,
+                                            source,
+                                            destination)
 
     def _release_ipv4(self):
         """
