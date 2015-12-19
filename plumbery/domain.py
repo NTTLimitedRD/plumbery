@@ -745,6 +745,7 @@ class PlumberyDomain:
         else:
             logging.info("Destroying Ethernet network '{}'".format(networkName))
 
+            retry = True
             while True:
                 try:
                     self.region.ex_delete_vlan(vlan=network)
@@ -768,6 +769,13 @@ class PlumberyDomain:
                         logging.info("- not found")
 
                     elif 'HAS_DEPENDENCY' in str(feedback):
+
+                        # give time to ensure nodes have been deleted
+                        if retry:
+                            retry = False
+                            time.sleep(30)
+                            continue
+
                         logging.info("- not now - stuff on it")
                         return False
 
