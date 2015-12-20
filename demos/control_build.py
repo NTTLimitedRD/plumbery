@@ -1,6 +1,6 @@
 from plumbery.engine import PlumberyEngine
 
-PlumberyEngine('fittings.yaml').build_blueprint('control')
+PlumberyEngine('fittings.yaml').build_blueprint('beachhead control')
 
 
 

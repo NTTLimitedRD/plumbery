@@ -164,12 +164,12 @@ class PlumberyEngine:
 
         self.polish_all_blueprints(filter=self._buildPolisher)
 
-    def build_blueprint(self, name):
+    def build_blueprint(self, names):
         """
         Builds a named blueprint from fittings plan
 
-        :param name: the name of the blueprint to deploy
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to deploy
+        :type names: ``str`` of list of ``str`
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to build one single blueprint there.
@@ -181,13 +181,18 @@ class PlumberyEngine:
 
         """
 
-        logging.info("Building blueprint '{}'".format(name))
+        if isinstance(names, list):
+            label = ' '.join(names)
+        else
+            label = names
+
+        logging.info("Building blueprint '{}'".format(label))
 
         for facility in self.facilities:
             facility.focus()
-            facility.build_blueprint(name)
+            facility.build_blueprint(names)
 
-        self.polish_blueprint(name=name, filter=self._buildPolisher)
+        self.polish_blueprint(names=names, filter=self._buildPolisher)
 
     def configure(self, settings):
         """
@@ -260,12 +265,12 @@ class PlumberyEngine:
             facility.focus()
             facility.destroy_all_nodes()
 
-    def destroy_blueprint(self, name):
+    def destroy_blueprint(self, names):
         """
         Destroys one blueprint from fittings plan
 
-        :param name: the name of the blueprint to destroy
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to destroy
+        :type names: ``str`` or list of ``str`
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to destroy one single blueprint.
@@ -277,18 +282,23 @@ class PlumberyEngine:
 
         """
 
-        logging.info("Destroying blueprint '{}'".format(name))
+        if isinstance(names, list):
+            label = ' '.join(names)
+        else
+            label = names
+
+        logging.info("Destroying blueprint '{}'".format(label))
 
         for facility in self.facilities:
             facility.focus()
-            facility.destroy_blueprint(name)
+            facility.destroy_blueprint(names)
 
-    def destroy_nodes(self, name):
+    def destroy_nodes(self, names):
         """
         Destroys nodes for one blueprint of the fittings plan
 
-        :param name: the name of the blueprint to destroy
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to destroy
+        :type names: ``str`` or list of ``str``
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to destroy nodes from one single blueprint.
@@ -300,11 +310,16 @@ class PlumberyEngine:
 
         """
 
-        logging.info("Destroying nodes from blueprint '{}'".format(name))
+        if isinstance(names, list):
+            label = ' '.join(names)
+        else
+            label = names
+
+        logging.info("Destroying nodes from blueprint '{}'".format(label))
 
         for facility in self.facilities:
             facility.focus()
-            facility.destroy_nodes(name)
+            facility.destroy_nodes(names)
 
     def get_provider(self):
         """
@@ -439,12 +454,12 @@ class PlumberyEngine:
         for polisher in polishers:
             polisher.reap()
 
-    def polish_blueprint(self, name, filter=None):
+    def polish_blueprint(self, names, filter=None):
         """
         Walks resources from the target blueprint and polishes them
 
-        :param name: the name of the blueprint to polish
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to polish
+        :type names: ``str`` or list of ``str`
 
         :param filter: the name of a single polisher to apply. If this
             parameter is missing, all polishers declared in the fittings plan
@@ -461,7 +476,12 @@ class PlumberyEngine:
 
         """
 
-        logging.info("Polishing blueprint '{}'".format(name))
+        if isinstance(names, list):
+            label = ' '.join(names)
+        else
+            label = names
+
+        logging.info("Polishing blueprint '{}'".format(label))
 
         polishers = PlumberyPolisher.filter(self.polishers, filter)
 
@@ -472,7 +492,7 @@ class PlumberyEngine:
             facility.focus()
             for polisher in polishers:
                 polisher.move_to(facility)
-            facility.polish_blueprint(name, polishers)
+            facility.polish_blueprint(names, polishers)
 
         for polisher in polishers:
             polisher.reap()
@@ -595,12 +615,12 @@ class PlumberyEngine:
             facility.focus()
             facility.start_all_nodes()
 
-    def start_nodes(self, name):
+    def start_nodes(self, names):
         """
         Starts nodes of one blueprint of the fittings plan
 
-        :param name: the name of the blueprint to start
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to start
+        :type names: ``str`` or list of ``str`
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to start nodes from one single blueprint.
@@ -609,11 +629,16 @@ class PlumberyEngine:
 
         """
 
-        logging.info("Starting nodes from blueprint '{}'".format(name))
+        if isinstance(names, list):
+            label = ' '.join(names)
+        else
+            label = names
+
+        logging.info("Starting nodes from blueprint '{}'".format(label))
 
         for facility in self.facilities:
             facility.focus()
-            facility.start_nodes(name)
+            facility.start_nodes(names)
 
     def stop_all_nodes(self):
         """
@@ -632,12 +657,12 @@ class PlumberyEngine:
             facility.focus()
             facility.stop_all_nodes()
 
-    def stop_nodes(self, name):
+    def stop_nodes(self, names):
         """
         Stops nodes of one blueprint of the fittings plan
 
-        :param name: the name of the blueprint to stop
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to stop
+        :type names: ``str`` or list of ``str`
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to stop nodes from one single blueprint.
@@ -646,11 +671,16 @@ class PlumberyEngine:
 
         """
 
-        logging.info("Stopping nodes from blueprint '{}'".format(name))
+        if isinstance(names, list):
+            label = ' '.join(names)
+        else
+            label = names
+
+        logging.info("Stopping nodes from blueprint '{}'".format(label))
 
         for facility in self.facilities:
             facility.focus()
-            facility.stop_nodes(name)
+            facility.stop_nodes(names)
 
 
 class PlumberyFittings:

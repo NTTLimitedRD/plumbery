@@ -106,12 +106,12 @@ class PlumberyFacility:
             domain = domains.get_container(blueprint)
             nodes.build_blueprint(blueprint, domain)
 
-    def build_blueprint(self, name):
+    def build_blueprint(self, names):
         """
         Builds a named blueprint for this facility
 
-        :param name: the name of the blueprint to build
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to build
+        :type names: ``str`` or list of ``str`
 
         This function builds the named blueprint in two steps: the network
         domain first, and then the nodes themselves.
@@ -150,15 +150,20 @@ class PlumberyFacility:
             if blueprint is not None:
                 domains.build(blueprint)
 
-        target = self.get_blueprint(name)
-        if not target:
-            return
+        if isinstance(names, str):
+            names = names.split(' ')
 
-        if name not in self.list_basement():
-            domains.build(target)
+        for name in names:
 
-        nodes = PlumberyNodes(self)
-        nodes.build_blueprint(target, domains.get_container(target))
+            target = self.get_blueprint(name)
+            if not target:
+                return
+
+            if name not in self.list_basement():
+                domains.build(target)
+
+            nodes = PlumberyNodes(self)
+            nodes.build_blueprint(target, domains.get_container(target))
 
     def destroy_all_blueprints(self):
         """
@@ -194,44 +199,54 @@ class PlumberyFacility:
             logging.info("Destroying nodes of blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
 
-    def destroy_blueprint(self, name):
+    def destroy_blueprint(self, names):
         """
         Destroys a given blueprint at this facility
 
-        :param name: the name of the blueprint to destroy
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to destroy
+        :type names: ``str`` or list of ``str`
 
         """
 
         self.power_on()
-
-        blueprint = self.get_blueprint(name)
-        if not blueprint:
-            return
-
         nodes = PlumberyNodes(self)
-        nodes.destroy_blueprint(blueprint)
-
         domains = PlumberyDomain(self)
-        domains.destroy_blueprint(blueprint)
 
-    def destroy_nodes(self, name):
+        if isinstance(names, str):
+            names = names.split(' ')
+
+        for name in names:
+
+            blueprint = self.get_blueprint(name)
+            if not blueprint:
+                continue
+
+            nodes.destroy_blueprint(blueprint)
+
+            domains.destroy_blueprint(blueprint)
+
+    def destroy_nodes(self, names):
         """
         Destroys nodes of a given blueprint at this facility
 
-        :param name: the name of the blueprint to destroy
-        :type name: ``str``
+        :param names: the names of the blueprint to destroy
+        :type names: ``str`` or list of ``str`
 
         """
 
         self.power_on()
-
-        blueprint = self.get_blueprint(name)
-        if not blueprint:
-            return
-
         nodes = PlumberyNodes(self)
-        nodes.destroy_blueprint(blueprint)
+
+        if isinstance(names, str):
+            names = names.split(' ')
+
+        for name in names:
+
+            blueprint = self.get_blueprint(name)
+            if not blueprint:
+                continue
+
+            nodes.destroy_blueprint(blueprint)
 
     def focus(self):
         """
@@ -436,33 +451,39 @@ class PlumberyFacility:
             logging.info("Polishing blueprint '{}'".format(blueprint.keys()[0]))
             self.polish_blueprint(blueprint.keys()[0], polishers)
 
-    def polish_blueprint(self, name, polishers):
+    def polish_blueprint(self, names, polishers):
         """
         Walks a named blueprint for this facility and polish related resources
 
-        :param name: the name of the blueprint to polish
-        :type name: ``str``
+        :param names: the name(s) of the blueprint(s) to polish
+        :type names: ``str`` or list of ``str`
 
         :param polishers: polishers to be applied
         :type polishers: list of :class:`plumbery.PlumberyPolisher`
 
         """
 
-        blueprint = self.get_blueprint(name)
-        if not blueprint:
-            return
-
         domains = PlumberyDomain(self)
-        container = domains.get_container(blueprint)
-
-        for polisher in polishers:
-            polisher.shine_container(container)
-
-        if 'nodes' not in blueprint:
-            return
-
         nodes = PlumberyNodes(self)
-        nodes.polish_blueprint(blueprint, polishers, container)
+
+        if isinstance(names, str):
+            names = names.split(' ')
+
+        for name in names:
+
+            blueprint = self.get_blueprint(name)
+            if not blueprint:
+                continue
+
+            container = domains.get_container(blueprint)
+
+            for polisher in polishers:
+                polisher.shine_container(container)
+
+            if 'nodes' not in blueprint:
+                continue
+
+            nodes.polish_blueprint(blueprint, polishers, container)
 
     def power_on(self):
         """
@@ -487,24 +508,30 @@ class PlumberyFacility:
         for blueprint in self.fittings.blueprints:
             self.start_nodes(blueprint.keys()[0])
 
-    def start_nodes(self, name):
+    def start_nodes(self, names):
         """
         Starts nodes from a given blueprint at this facility
 
-        :param name: the name of the target blueprint
-        :type name: ``str``
+        :param names: the name(s) of the target blueprint(s)
+        :type names: ``str`` or list of ``str`
 
         """
 
-        blueprint = self.get_blueprint(name)
-        if not blueprint:
-            return
-
-        if 'nodes' not in blueprint:
-            return
-
         nodes = PlumberyNodes(self)
-        nodes.start_blueprint(blueprint)
+
+        if isinstance(names, str):
+            names = names.split(' ')
+
+        for name in names:
+
+            blueprint = self.get_blueprint(name)
+            if not blueprint:
+                continue
+
+            if 'nodes' not in blueprint:
+                continue
+
+            nodes.start_blueprint(blueprint)
 
     def stop_all_nodes(self):
         """
@@ -515,12 +542,12 @@ class PlumberyFacility:
         for blueprint in self.fittings.blueprints:
             self.stop_nodes(blueprint.keys()[0])
 
-    def stop_nodes(self, name):
+    def stop_nodes(self, names):
         """
         Stops nodes of the given blueprint at this facility
 
-        :param name: the name of the target blueprint
-        :type name: ``str``
+        :param names: the name(s) of the target blueprint(s)
+        :type names: ``str`` or list of ``str`
 
         You can use the following setting to prevent plumbery from stopping a
         node::
@@ -534,12 +561,18 @@ class PlumberyFacility:
 
         """
 
-        blueprint = self.get_blueprint(name)
-        if not blueprint:
-            return
-
-        if 'nodes' not in blueprint:
-            return
-
         nodes = PlumberyNodes(self)
-        nodes.stop_blueprint(blueprint)
+
+        if isinstance(names, str):
+            names = names.split(' ')
+
+        for name in names:
+
+            blueprint = self.get_blueprint(name)
+            if not blueprint:
+                continue
+
+            if 'nodes' not in blueprint:
+                continue
+
+            nodes.stop_blueprint(blueprint)
