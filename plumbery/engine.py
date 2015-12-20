@@ -183,7 +183,7 @@ class PlumberyEngine:
 
         if isinstance(names, list):
             label = ' '.join(names)
-        else
+        else:
             label = names
 
         logging.info("Building blueprint '{}'".format(label))
@@ -284,7 +284,7 @@ class PlumberyEngine:
 
         if isinstance(names, list):
             label = ' '.join(names)
-        else
+        else:
             label = names
 
         logging.info("Destroying blueprint '{}'".format(label))
@@ -312,7 +312,7 @@ class PlumberyEngine:
 
         if isinstance(names, list):
             label = ' '.join(names)
-        else
+        else:
             label = names
 
         logging.info("Destroying nodes from blueprint '{}'".format(label))
@@ -478,7 +478,7 @@ class PlumberyEngine:
 
         if isinstance(names, list):
             label = ' '.join(names)
-        else
+        else:
             label = names
 
         logging.info("Polishing blueprint '{}'".format(label))
@@ -631,7 +631,7 @@ class PlumberyEngine:
 
         if isinstance(names, list):
             label = ' '.join(names)
-        else
+        else:
             label = names
 
         logging.info("Starting nodes from blueprint '{}'".format(label))
@@ -673,7 +673,7 @@ class PlumberyEngine:
 
         if isinstance(names, list):
             label = ' '.join(names)
-        else
+        else:
             label = names
 
         logging.info("Stopping nodes from blueprint '{}'".format(label))
