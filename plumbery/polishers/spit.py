@@ -76,7 +76,6 @@ class SpitPolisher(PlumberyPolisher):
         nodes = PlumberyNodes(self.facility)
 
         names = nodes.list_nodes(container.blueprint)
-        logging.info(names)
 
         waiting = False
         for name in names:
@@ -89,8 +88,6 @@ class SpitPolisher(PlumberyPolisher):
                     logging.info("Waiting for nodes to be deployed")
                     waiting = True
 
-                logging.info("Waiting for '{}'"
-                             .format(name))
                 time.sleep(20)
 
         if waiting:
