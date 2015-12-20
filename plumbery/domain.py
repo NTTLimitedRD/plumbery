@@ -101,7 +101,7 @@ class PlumberyDomain:
         else:
             port = '80'
 
-        ports = port.split(' ')
+        ports = str(port).split(' ')
         for port in ports:
             port = int(port)
             if port < 1 or port > 65535:
@@ -756,7 +756,7 @@ class PlumberyDomain:
         else:
             port = '80'
 
-        ports = port.split(' ')
+        ports = str(port).split(' ')
         for port in ports:
             port = int(port)
             if port < 1 or port > 65535:
