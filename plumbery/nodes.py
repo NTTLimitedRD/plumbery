@@ -401,7 +401,7 @@ class PlumberyNodes:
 
         return interfaces
 
-    def polish_blueprint(self, blueprint, polishers):
+    def polish_blueprint(self, blueprint, polishers, container):
         """
         Walks a named blueprint for this facility and polish related resources
 
@@ -411,13 +411,13 @@ class PlumberyNodes:
         :param polishers: polishers to be applied
         :type polishers: list of :class:`plumbery.PlumberyPolisher`
 
+        :param container: where these nodes are located
+        :type container: list of :class:`plumbery.PlumberyDomain`
+
         """
 
         if 'nodes' not in blueprint:
             return
-
-        domains = PlumberyDomain(self.facility)
-        container = domains.get_container(blueprint)
 
         for item in blueprint['nodes']:
 

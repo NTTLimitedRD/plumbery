@@ -382,11 +382,17 @@ class PlumberyFacility:
         if not blueprint:
             return
 
+        domains = PlumberyDomain(self)
+        container = domains.get_container(blueprint)
+
+        for polisher in polishers:
+            polisher.shine_container(container, settings)
+
         if 'nodes' not in blueprint:
             return
 
         nodes = PlumberyNodes(self)
-        nodes.polish_blueprint(blueprint, polishers)
+        nodes.polish_blueprint(blueprint, polishers, container)
 
     def power_on(self):
         """
