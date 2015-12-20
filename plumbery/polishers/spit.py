@@ -55,15 +55,12 @@ class SpitPolisher(PlumberyPolisher):
         self.region = facility.region
         self.nodes = PlumberyNodes(facility)
 
-    def shine_container(self, container, settings):
+    def shine_container(self, container):
         """
         Rubs a container until it shines
 
         :param container: the container to be polished
         :type container: :class:`plumbery.PlumberyDomain`
-
-        :param settings: the fittings plan for this infrastructure
-        :type settings: ``dict``
 
         This is where the hard work is done. You have to override this
         function in your own polisher. Note that you can compare the reality

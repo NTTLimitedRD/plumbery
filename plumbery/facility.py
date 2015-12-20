@@ -386,7 +386,7 @@ class PlumberyFacility:
         container = domains.get_container(blueprint)
 
         for polisher in polishers:
-            polisher.shine_container(container, settings)
+            polisher.shine_container(container)
 
         if 'nodes' not in blueprint:
             return
