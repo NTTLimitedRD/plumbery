@@ -978,6 +978,12 @@ class PlumberyDomain:
             logging.info("- not found")
             return False
 
+        if 'destroy' in blueprint['ethernet'] \
+            and blueprint['ethernet']['destroy'] == 'never':
+            logging.info("Destroying Ethernet network '{}'".format(networkName))
+            logging.info("- this network can never be destroyed")
+            return False
+
         self._destroy_firewall_rules()
 
         self._destroy_balancer()

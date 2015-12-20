@@ -233,6 +233,11 @@ class PlumberyNodes:
                     logging.info("- not found")
                     continue
 
+                if 'destroy' in settings and settings['destroy'] == 'never':
+                    logging.info("Destroying node '{}'".format(label))
+                    logging.info("- this node can never be destroyed")
+                    return False
+
                 if node.state == NodeState.RUNNING:
                     logging.info("Destroying node '{}'".format(label))
                     logging.info("- skipped - node is up and running")
