@@ -341,7 +341,7 @@ class PlumberyDomain:
 
     def build(self, blueprint):
         """
-        Creates a network domain if needed.
+        Creates the infrastructure for one blueprint
 
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
@@ -356,8 +356,11 @@ class PlumberyDomain:
         This function is looking at all fittings in the blueprint except the
         nodes. This is including:
 
-        * the network domain itself
-        * one or multiple Ethernet networks
+        * a network domain
+        * one Ethernet network
+        * eventually, several public IPv4 addresses
+        * address translation rules to private IPv4 addresses
+        * firewall rules
 
         In safe mode, the function will stop on any missing component since
         it is not in a position to add fittings, and return ``False``.
