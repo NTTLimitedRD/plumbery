@@ -81,7 +81,7 @@ class SpitPolisher(PlumberyPolisher):
         for name in names:
             while True:
                 node = nodes.get_node(name)
-                if node is not None and node.state != NodeState.PENDING:
+                if node and node.extra['status'].action is None:
                     break
 
                 if not waiting:
