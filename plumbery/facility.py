@@ -477,13 +477,10 @@ class PlumberyFacility:
 
             container = domains.get_container(blueprint)
 
+            nodes.polish_blueprint(blueprint, polishers, container)
+
             for polisher in polishers:
                 polisher.shine_container(container)
-
-            if 'nodes' not in blueprint:
-                continue
-
-            nodes.polish_blueprint(blueprint, polishers, container)
 
     def power_on(self):
         """
