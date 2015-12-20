@@ -379,6 +379,32 @@ class PlumberyNodes:
 
         return None
 
+    @classmethod
+    def list_nodes(self, blueprint):
+        """
+        Retrieves the list of nodes that have been defined for this blueprint.
+
+        :returns: ``list`` of ``str``
+            - the nodes defined for this blueprint, or []
+
+        """
+
+        labels = set()
+        if 'nodes' in blueprint:
+            for item in blueprint['nodes']:
+                if type(item) is dict:
+                    label = item.keys()[0]
+                    settings = item.values()[0]
+
+                else:
+                    label = item
+                    settings = {}
+
+                for label in PlumberyNodes.expand_labels(label):
+                    labels.add(label)
+
+        return list(labels)
+
     def _list_secondary_interfaces(self, node):
         """
         Retrieves the list of secondary interfaces

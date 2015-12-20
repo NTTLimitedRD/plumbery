@@ -347,11 +347,81 @@ class PlumberyFacility:
 
         """
 
-        labels = []
+        labels = set()
         for blueprint in self.fittings.blueprints:
-            labels.append(blueprint.keys()[0])
+            labels.add(blueprint.keys()[0])
 
-        return labels
+        return list(labels)
+
+    def list_domains(self):
+        """
+        Retrieves the list of network domains that have been defined across
+        blueprints for this facility
+
+        :returns: ``list`` of ``str``
+            - the domains defined for this facility, or []
+
+        Domains are defined in blueprints. Usually fittings plan are using at
+        least one network domain, sometimes several.
+
+        """
+
+        labels = set()
+        for blueprint in self.fittings.blueprints:
+            name = blueprint.keys()[0]
+            labels.add(blueprint[name]['domain'])
+
+        return list(labels)
+
+    def list_ethernets(self):
+        """
+        Retrieves the list of Ethernet networks that have been defined across
+        blueprints for this facility
+
+        :returns: ``list`` of ``str``
+            - the Ethernet networks defined for this facility, or []
+
+        Ethernet networks are defined in blueprints. Usually fittings plan are
+        using at least one Ethernet network, often several.
+
+        """
+
+        labels = set()
+        for blueprint in self.fittings.blueprints:
+            name = blueprint.keys()[0]
+            labels.add(blueprint[name]['ethernet'])
+
+        return list(labels)
+
+    def list_nodes(self):
+        """
+        Retrieves the list of nodes that have been defined across
+        blueprints for this facility
+
+        :returns: ``list`` of ``str``
+            - the nodes defined for this facility, or []
+
+        Nodes are defined in blueprints.
+
+        """
+
+        labels = set()
+        for blueprint in self.fittings.blueprints:
+            name = blueprint.keys()[0]
+            if 'nodes' in blueprint[name]:
+                for item in blueprint[name]['nodes']:
+                    if type(item) is dict:
+                        label = item.keys()[0]
+                        settings = item.values()[0]
+
+                    else:
+                        label = item
+                        settings = {}
+
+                    for label in PlumberyNodes.expand_labels(label):
+                        labels.add(label)
+
+        return list(labels)
 
     def polish_all_blueprints(self, polishers):
         """
