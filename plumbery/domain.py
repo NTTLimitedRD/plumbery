@@ -135,7 +135,8 @@ class PlumberyDomain:
 #                                      port=int(port),
 #                                      protocol=protocol,
 #                                      members=None)
-                logging.info("- in progress")
+                logging.info("- not implemented yet -- do it yourself")
+#                logging.info("- in progress")
 
             except Exception as feedback:
 
@@ -772,7 +773,7 @@ class PlumberyDomain:
                 "for the blueprint '{}'!".format(self.blueprint['target']))
 
         if 'algorithm' in self.blueprint['balancer']:
-            algorithm = self.blueprint['balancer']['algorithm']
+            algorithm = self.blueprint['balancer']['algorithm'].lower()
         else:
             algorithm = 'round_robin'
 
@@ -877,9 +878,6 @@ class PlumberyDomain:
 
         """
 
-        if 'balancer' not in self.blueprint['ethernet']:
-            return True
-
         if 'balancer' not in self.blueprint:
             return True
 
@@ -888,7 +886,7 @@ class PlumberyDomain:
         else:
             port = '80'
 
-        ports = port.split(' ')
+        ports = str(port).split(' ')
         for port in ports:
             port = int(port)
             if port < 1 or port > 65535:
@@ -908,15 +906,12 @@ class PlumberyDomain:
         candidates = []
         for port in ports:
             candidates.append(self._name_load_balancer(port))
-        logging.info(candidates)
 
-        logger.info("balancers")
         balancers = driver.list_balancers()
-        print(balancers)
         for balancer in balancers:
-            logger.info("balancer")
-            logger.info(balancer)
-            continue
+
+            if balancer.name not in candidates:
+                continue
 
             if self.plumbery.safeMode:
                 logging.info("Would have destroyed load balancer '{}' "
@@ -1512,8 +1507,8 @@ class PlumberyDomain:
 
         """
 
-        source = ''.join(e for e in source.title() if e.isalnum())
-        destination = ''.join(e for e in destination.title() if e.isalnum())
+        source = ''.join(e for e in source.title() if e.isalnum() or e == '_')
+        destination = ''.join(e for e in destination.title() if e.isalnum() or e == '_')
 
         if source == 'Internet':
             return "plumbery.{}{}".format(
@@ -1582,6 +1577,7 @@ class PlumberyDomain:
 
     def _remove_from_balancer(self, node):
         logging.info("Removing '{}' from load balancer".format(node.name))
+        logging.info("- not implemented yet -- do it yourself")
 
     def _reserve_ipv4(self):
         """
