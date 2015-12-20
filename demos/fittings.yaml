@@ -216,7 +216,7 @@ blueprints:
         description: '#us #ops'
         subnet: 10.2.0.0
         accept:
-          - EU7::gigafox.control
+          - NA9::gigafox.control
         destroy: never
       nodes:
         - web[1..2]_na12:
@@ -252,7 +252,7 @@ blueprints:
         description: '#us'
         subnet: 10.3.0.0
         accept:
-          - EU7::gigafox.control
+          - NA9::gigafox.control
         destroy: never
       nodes:
         - docker[1..5]_na12:
@@ -281,7 +281,7 @@ blueprints:
         description: '#us'
         subnet: 10.4.0.0
         accept:
-          - EU7::gigafox.control
+          - NA9::gigafox.control
         destroy: never
       nodes:
         - slaveSQL_na12:
