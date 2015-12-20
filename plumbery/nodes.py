@@ -321,11 +321,12 @@ class PlumberyNodes:
 
         return True
 
+    @classmethod
     def expand_labels(self, label):
         """
         Designate multiple nodes with a simple label
 
-        :param label: the label to be expanded, e.g., ``mongodb[0..5]``
+        :param label: the label to be expanded, e.g., ``mongodb[1..5]``
         :type label: ``str``
 
         :returns: ``list`` of ``str``
@@ -334,8 +335,8 @@ class PlumberyNodes:
 
             >>>nodes.expand_labels('mongodb')
             ['mongodb']
-            >>>nodes.expand_labels('mongodb[0..3]')
-            ['mongodb0', 'mongodb1', 'mongodb2', 'mongodb3']
+            >>>nodes.expand_labels('mongodb[1..3]_eu')
+            ['mongodb1_eu', 'mongodb2_eu', 'mongodb3_eu']
 
         """
         matches = re.match(r'(.*)\[([0-9]+)..([0-9]+)\](.*)', label)
