@@ -907,6 +907,9 @@ class PlumberyDomain:
         for port in ports:
             candidates.append(self._name_load_balancer(port))
 
+        #BUG in libcloud -- cannot proceed
+        return
+
         balancers = driver.list_balancers()
         for balancer in balancers:
 
@@ -929,7 +932,7 @@ class PlumberyDomain:
                     logging.info("- already done")
 
                 else:
-                    logging.info("- unable to create load balancer")
+                    logging.info("- unable to destroy load balancer")
                     logging.info(str(feedback))
 
     def destroy_blueprint(self, blueprint):
@@ -1335,6 +1338,9 @@ class PlumberyDomain:
 
         for rule in self.region.ex_list_nat_rules(domain):
             addresses.remove(rule.external_ip)
+
+        if 'balancer' in self.blueprint:
+            addresses.pop(0)
 
         if len(addresses) < 1:
             return None
