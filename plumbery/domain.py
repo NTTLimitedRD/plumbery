@@ -846,7 +846,7 @@ class PlumberyDomain:
             else:
                 label = str(item)
 
-            sourceLabel = label
+            sourceLabel = label.split('::').pop()
 
             ruleIPv4Name = self.name_firewall_rule(
                                         sourceLabel, destinationLabel, 'IP')
