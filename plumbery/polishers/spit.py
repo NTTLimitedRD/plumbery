@@ -17,6 +17,8 @@ import logging
 import time
 import yaml
 
+from libcloud.compute.base import NodeState
+
 from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
 
@@ -68,9 +70,36 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
-        container._build_firewall_rules():
+        if container.network is None:
+            return
 
-        container._build_balancer():
+        nodes = PlumberyNodes(self.facility)
+
+        names = nodes.list_nodes(container.blueprint)
+        logging.info(names)
+
+        waiting = False
+        for name in names:
+            while True:
+                node = nodes.get_node(name)
+                if node is not None and node.state != NodeState.PENDING:
+                    break
+
+                if not waiting:
+                    logging.info("Waiting for nodes to be deployed")
+                    waiting = True
+
+                logging.info("Waiting for '{}'"
+                             .format(name))
+                time.sleep(20)
+
+        if waiting:
+            logging.info("- done")
+
+        container._build_firewall_rules()
+
+        container._reserve_ipv4()
+        container._build_balancer()
 
     def shine_node(self, node, settings, container):
         """
