@@ -411,7 +411,7 @@ class PlumberyDomain:
             # level of service
             service = 'ESSENTIALS'
             if 'service' in blueprint['domain']:
-                service = blueprint['domain']['service']
+                service = blueprint['domain']['service'].upper()
 
             while True:
                 try:
