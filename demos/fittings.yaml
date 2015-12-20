@@ -7,206 +7,303 @@ safeMode: False
 #
 polishers:
   - ansible:
-      reap: test_inventory.yaml
+      reap: gigafox_inventory.yaml
   - rub:
       key: ~/.ssh/id_rsa.pub
-      reap: test_rubs.yaml
-  - spit:
-      reap: test_nodes.yaml
+      reap: gigafox_rubs.yaml
 
 # each facility is described separately
 ---
-# Frankfurt in Europe - 10.1.x.y
-locationId: EU6
-regionId: dd-eu
-
-rub:
-  - beachhead: 10.1.10.9
-  - beachhead: 10.1.10.10
-
-basement: control
-
-blueprints:
-
-  # management, administration, and monitoring
-  - control:
-      domain: &vdc1
-        name: VDC1
-        service: ADVANCED
-        description: '#vdc1'
-      ethernet:
-        name: control
-        subnet: 10.1.10.0
-        description: '#vdc1'
-      nodes:
-        - stackstorm1:
-            description: 'StackStorm engine #vdc1 #ops'
-            address: 10.1.10.8
-            running: always
-        - beachhead1:
-            description: 'Plumbery engine #vdc1 #ops'
-            address: 10.1.10.9
-            running: always
-
-  # docker resources
-  - docker:
-      domain: *vdc1
-      ethernet: &containers
-        name: docker
-        subnet: 10.1.11.0
-        description: '#vdc1'
-      nodes:
-        - docker1:
-            description: 'Docker #vdc1 #docker'
-            rub: &docker
-              - rub.update.sh
-              - rub.docker.sh
-            glue: control
-        - docker2:
-            description: 'Docker #vdc1 #docker'
-            rub: *docker
-            glue: control
-        - docker3:
-            description: 'Docker #vdc1 #docker'
-            rub: *docker
-            glue: control
-
-  # secondary sql servers
-  - sql:
-      domain: *vdc1
-      ethernet: &data
-        name: data
-        subnet: 10.1.3.0
-        description: '#vdc1'
-      nodes:
-        - slaveSQL:
-            description: 'SQL #vdc1 #secondary'
-            appliance: 'RedHat 6 64-bit 4 CPU'
-
----
-# Amsterdam in Europe - 10.2.x.y
+# Amsterdam - primary site in Europe
 locationId: EU7
 regionId: dd-eu
 
+rub:
+  - beachhead: 10.10.10.9
+  - beachhead: 10.10.10.10
+
+basement: beachhead
+
 blueprints:
+
+  # root resources
+  - beachhead:
+      domain: &domain
+        name: Gigafox
+        description: '#eu #primary'
+        service: advanced
+        ipv4: 4
+      ethernet: &control
+        name: gigafox.control
+        description: '#ops'
+        subnet: 10.0.0.0
+      nodes:
+        - beachhead:
+            description: '#beachhead #eu #ops'
+            glue:
+              - internet 22
+            running: always
+            monitoring: essentials
 
   # management, administration, and monitoring
   - control:
-      domain: &vdc2
-        name: VDC2
-        description: '#vdc2'
-      ethernet:
-        name: control
-        subnet: 10.2.10.0
-        description: '#vdc2'
+      domain: *domain
+      ethernet: *control
       nodes:
-        - stackstorm2:
-            description: 'StackStorm engine #vdc2 #ops'
-            appliance: 'RedHat 6 64-bit 4 CPU'
-        - zabbix2:
-            description: 'Zabbix dashboard #vdc2 #ops'
+        - stackstorm:
+            description: '#stackstorm #eu #ops'
+            glue:
+              - internet 22 80 443
+            running: always
+            monitoring: essentials
+        - zabbix:
+            description: '#dashboard #eu #ops'
             appliance: 'RedHat 6 64-bit 2 CPU'
-        - scom1:
+            monitoring: essentials
+        - scom:
+            description: 'Microsoft System Center Operation Manager #scom #eu #ops'
             appliance: 'Win2012 R2 Std 4 CPU'
-            description: 'Microsoft System Center Operation Manager #vdc2 #ops'
-        - scom2:
-            appliance: 'Win2012 R2 Std 4 CPU'
-            description: 'Microsoft System Center Operation Manager #vdc2 #ops'
-
-  # workloads dealing directly with end-user devices
-  - web:
-      domain: *vdc2
-      ethernet: &prod
-        name: production
-        subnet: 10.2.2.0
-        description: '#vdc2'
-      nodes:
-        - web1:
-            description: 'Stateless web #vdc2 #primary'
-        - web2:
-            description: 'Stateless web #vdc2 #primary'
-        - web3:
-            description: 'Stateless web #vdc2 #primary'
-        - web4:
-            description: 'Stateless web #vdc2 #primary'
-        - web5:
-            description: 'Stateless web #vdc2 #primary'
-
-  # workloads dealing with short-term memory
-  - memcache:
-      domain: *vdc2
-      ethernet: *prod
-      nodes:
-        - redis1:
-            description: 'Redis #vdc2 #primary'
-        - redis2:
-            description: 'Redis #vdc2 #primary'
-
-  # workloads dedicated to data records
-  - sql:
-      domain: *vdc2
-      ethernet: &data
-        name: data
-        subnet: 10.2.3.0
-        description: '#vdc2'
-      nodes:
-        - masterSQL:
-            description: 'SQL #vdc2 #primary'
-            appliance: 'RedHat 6 64-bit 4 CPU'
-
-  # workloads dedicated to big data
-  - cassandra:
-      domain: *vdc2
-      ethernet: *data
-      nodes:
-        - cassandra1:
-            description: 'Cassandra #vdc2 #primary'
-        - cassandra2:
-            description: 'Cassandra #vdc2 #primary'
-        - cassandra3:
-            description: 'Cassandra #vdc2 #primary'
-
-  # workloads dedicated to BLOBs
-  - mongodb:
-      domain: *vdc2
-      ethernet: *data
-      nodes:
-        - mongo1:
-            description: 'MongoDB #vdc2 #primary'
-        - mongo2:
-            description: 'MongoDB #vdc2 #primary'
-        - mongo3:
-            description: 'MongoDB #vdc2 #primary'
-
-  # workloads devoted to object-based storage
-  - s3:
-      domain: *vdc2
-      ethernet: *data
-      nodes:
-        - ceph1:
-            description: 'Ceph #vdc2 #primary'
-        - ceph2:
-            description: 'Ceph #vdc2 #primary'
-        - ceph3:
-            description: 'Ceph #vdc2 #primary'
+            monitoring: essentials
 
   # workloads dedicated to source code and related
   - source:
-      domain: *vdc2
+      domain: *domain
       ethernet:
-        name: source
-        subnet: 10.0.4.0
-        description: '#vdc2'
+        name: gigafox.source
+        description: '#eu #dev'
+        subnet: 10.1.0.0
       nodes:
         - gitlab:
-            description: 'GitLab #vdc2 #dev'
+            description: '#gitlab #eu #dev'
+            glue:
+              - internet 80 443
+              - gigafox.control
+            monitoring: essentials
 
-# some network domains may have been created manually - they are considered part of these fittings
-domains:
+  # workloads dealing directly with end-user devices
+  - web:
+      domain: *domain
+      ethernet: &bastion
+        name: gigafox.web
+        description: '#eu #ops'
+        subnet: 10.2.0.0
+        accept:
+          - gigafox.control
+      nodes:
+        - web[1..2]_eu7:
+            description: '#apache #eu #ops #primary'
+#            cpu: 4
+#            memory: 8
+#            disks:
+#              - 500 STANDARD
+#              - 100 HIGHPERFORMANCE
+            glue:
+              - internet 22 80 443
+            monitoring: essentials
+            rub:
+              - run rub.update.sh
+              - put rub.puppet.apache.pp /root/apache.pp
+              - run rub.puppet.sh /root/apache.pp
+      balancer:
+        port: 80
+        protocol: http
 
-# some nodes may have been created manually - they are considered part of these fittings
-nodes:
+  # workloads dealing with short-term memory
+  - memcache:
+      domain: *domain
+      ethernet: *bastion
+      nodes:
+        - redis[1..2]_eu7:
+            description: '#redis #eu #ops #primary'
+            monitoring: essentials
 
+  # docker resources
+  - docker:
+      domain: *domain
+      ethernet: &compute
+        name: gigafox.compute
+        description: '#eu'
+        subnet: 10.3.0.0
+        accept:
+          - gigafox.web
+      nodes:
+        - docker[1..5]_eu7:
+            description: '#docker #eu #dev #ops #primary'
+            glue:
+              - gigafox.control
+            monitoring: essentials
+            rub:
+              - run rub.update.sh
+              - run rub.docker.sh
 
+  # nodejs resources
+  - nodejs:
+      domain: *domain
+      ethernet: *compute
+      nodes:
+        - nodejs[1..5]_eu7:
+            description: '#nodejs #eu #ops #primary'
+            glue:
+              - gigafox.control
+            monitoring: essentials
+            rub:
+              - run rub.update.sh
 
+  # workloads dedicated to data records
+  - sql:
+      domain: *domain
+      ethernet: &data
+        name: data
+        description: '#eu'
+        subnet: 10.4.0.0
+        accept:
+          - gigafox.control
+          - gigafox.compute
+      nodes:
+        - masterSQL_eu7:
+            description: '#mysql #eu #ops #primary'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+            monitoring: advanced
 
+  # workloads dedicated to big data
+  - cassandra:
+      domain: *domain
+      ethernet: *data
+      nodes:
+        - cassandra[1..3]_eu7:
+            description: '#cassandra #eu #ops #primary'
+            monitoring: essentials
+
+  # workloads dedicated to BLOBs
+  - mongodb:
+      domain: *domain
+      ethernet: *data
+      nodes:
+        - mongodb[1..7]_eu7:
+            description: '#mongodb #eu #ops #primary'
+            monitoring: essentials
+
+  # workloads devoted to object-based storage
+  - s3:
+      domain: *domain
+      ethernet: *data
+      nodes:
+        - ceph[1..5]_eu7:
+            description: '#ceph #eu #ops #primary'
+            monitoring: essentials
+
+---
+# Frankfurt - secondary site in Europe
+locationId: EU6
+regionId: dd-eu
+
+blueprints:
+
+  # workloads dealing directly with end-user devices
+  - web:
+      domain: &domain
+        name: Gigafox
+        description: '#eu #secondary'
+        service: advanced
+        ipv4: 4
+      ethernet: &bastion
+        name: gigafox.web
+        description: '#eu #ops'
+        subnet: 10.2.0.0
+        accept:
+          - EU7::gigafox.control
+      nodes:
+        - web[1..2]_eu6:
+            description: '#apache #eu #ops #secondary'
+#            cpu: 4
+#            memory: 8
+#            disks:
+#              - 500 STANDARD
+#              - 100 HIGHPERFORMANCE
+            monitoring: essentials
+            rub:
+              - run rub.update.sh
+              - put rub.puppet.apache.pp /root/apache.pp
+              - run rub.puppet.sh /root/apache.pp
+      balancer:
+        port: 80
+        protocol: http
+
+  # workloads dealing with short-term memory
+  - memcache:
+      domain: *domain
+      ethernet: *bastion
+      nodes:
+        - redis[1..2]_eu6:
+            description: '#redis #eu #ops #secondary'
+            monitoring: essentials
+
+  # docker resources
+  - docker:
+      domain: *domain
+      ethernet: &compute
+        name: gigafox.compute
+        description: '#eu'
+        subnet: 10.3.0.0
+        accept:
+          - EU7::gigafox.control
+      nodes:
+        - docker[1..5]_eu6:
+            description: '#docker #eu #dev #ops #secondary'
+            monitoring: essentials
+            rub:
+              - run rub.update.sh
+              - run rub.docker.sh
+
+  # nodejs resources
+  - nodejs:
+      domain: *domain
+      ethernet: *compute
+      nodes:
+        - nodejs[1..5]_eu6:
+            description: '#nodejs #eu #ops #secondary'
+            monitoring: essentials
+            rub:
+              - run rub.update.sh
+
+  # workloads dedicated to data records
+  - sql:
+      domain: *domain
+      ethernet: &data
+        name: data
+        description: '#eu'
+        subnet: 10.4.0.0
+        accept:
+          - EU7::gigafox.control
+      nodes:
+        - slaveSQL_eu6:
+            description: '#mysql #eu #ops #secondary'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+            monitoring: advanced
+
+  # workloads dedicated to big data
+  - cassandra:
+      domain: *domain
+      ethernet: *data
+      nodes:
+        - cassandra[1..3]_eu6:
+            description: '#cassandra #eu #ops #secondary'
+            monitoring: essentials
+
+  # workloads dedicated to BLOBs
+  - mongodb:
+      domain: *domain
+      ethernet: *data
+      nodes:
+        - mongodb[1..7]_eu6:
+            description: '#mongodb #eu #ops #secondary'
+            monitoring: essentials
+
+  # workloads devoted to object-based storage
+  - s3:
+      domain: *domain
+      ethernet: *data
+      nodes:
+        - ceph[1..5]_eu6:
+            description: '#ceph #eu #ops #secondary'
+            monitoring: essentials
