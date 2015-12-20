@@ -338,13 +338,13 @@ class PlumberyNodes:
             ['mongodb0', 'mongodb1', 'mongodb2', 'mongodb3']
 
         """
-        matches = re.match(r'(.*)\[([0-9]+)..([0-9]+)\]', label)
+        matches = re.match(r'(.*)\[([0-9]+)..([0-9]+)\](.*)', label)
         if matches is None:
             return [label]
 
         labels = []
         for index in range(int(matches.group(2)), int(matches.group(3))+1):
-            labels.append(matches.group(1)+str(index))
+            labels.append(matches.group(1)+str(index)+matches.group(4))
         return labels
 
     def get_node(self, name):
