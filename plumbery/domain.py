@@ -398,7 +398,6 @@ class PlumberyDomain:
                          "if not in safe mode".format(domainName))
             logging.info("Would have created Ethernet network '{}' "
                          "if not in safe mode".format(networkName))
-            self._build_accept()
             return False
 
         else:
@@ -461,7 +460,6 @@ class PlumberyDomain:
         elif self.plumbery.safeMode:
             logging.info("Would have created Ethernet network '{}' "
                          "if not in safe mode".format(networkName))
-            self._build_accept()
             return False
 
         else:
@@ -516,15 +514,9 @@ class PlumberyDomain:
 
                 break
 
-        if not self._build_accept():
-            return False
-
-        if not self._build_balancer():
-            return False
-
         return True
 
-    def _build_accept(self):
+    def _build_firewall_rules(self):
         """
         Changes firewall settings to accept incoming traffic
 
@@ -836,7 +828,7 @@ class PlumberyDomain:
 
         return True
 
-    def _destroy_accept(self):
+    def _destroy_firewall_rules(self):
         """
         Destroys firewall rules
 
@@ -988,7 +980,7 @@ class PlumberyDomain:
             logging.info("- not found")
             return False
 
-        self._destroy_accept()
+        self._destroy_firewall_rules()
 
         self._destroy_balancer()
 
