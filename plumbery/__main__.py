@@ -30,7 +30,8 @@ To get some help, you can type::
 import sys
 import argparse
 
-from engine import PlumberyEngine
+from plumbery.engine import PlumberyEngine
+from plumbery import __version__
 
 parser = argparse.ArgumentParser(
                     prog='plumbery',
@@ -53,7 +54,15 @@ parser.add_argument(
                     'If omitted, all blueprints will be considered',
                 default=None)
 
+parser.add_argument(
+                '-v', '--version',
+                action='version',
+                version='%(prog)s ' + __version__)
+
 args = parser.parse_args()
+
+if 'version' in args:
+    print(args.version)
 
 engine = PlumberyEngine(args.fittings[0])
 
