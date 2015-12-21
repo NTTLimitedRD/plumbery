@@ -16,10 +16,6 @@
 import logging
 import time
 
-import yaml
-
-from libcloud.compute.base import NodeState
-
 from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
 
