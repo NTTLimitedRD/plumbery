@@ -1375,8 +1375,8 @@ class PlumberyInfrastructure:
         :param node: node that has to be reachable from the internet
         :type node: :class:`libcloud.common.Node`
 
-        :param ports: the ports that have to be opened
-        :type ports: a list of ``str``
+        :param ports: the ports that have to be opened, or ``any``
+        :type ports: a ``list`` of ``str``
 
         """
 
