@@ -28,24 +28,25 @@ help:
 clean: clean-build clean-pyc clean-test
 
 clean-build:
-	rm -fr build/
-	rm -fr dist/
-	rm -fr .eggs/
-	find . -name '*.egg-info' -exec rm -fr {} +
-	find . -name '*.egg' -exec rm -f {} +
+	@rm -fr build/
+	@rm -fr dist/
+	@rm -fr .eggs/
+	@find . -name '*.egg-info' -exec rm -fr {} +
+	@find . -name '*.egg' -exec rm -f {} +
 
 clean-pyc:
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
-	find . -name '__pycache__' -exec rm -fr {} +
+	@find . -name '*.pyc' -exec rm -f {} +
+	@find . -name '*.pyo' -exec rm -f {} +
+	@find . -name '*~' -exec rm -f {} +
+	@find . -name '__pycache__' -exec rm -fr {} +
 
 clean-test:
-	rm -fr .tox/
-	rm -f .coverage
-	rm -fr htmlcov/
-	rm -fr demos/test_*.yaml
-	rm -fr tests/test_*.yaml
+	@rm -fr .tox/
+	@rm -f .coverage
+	@rm -fr htmlcov/
+	@rm -fr demos/test_*.yaml
+	@rm -fr tests/test_*.yaml
+	@rm -fr test_*.yaml
 
 lint:
 	flake8 plumbery tests
@@ -63,8 +64,8 @@ coverage:
 	$(BROWSER) htmlcov/index.html
 
 docs:
-	rm -f docs/plumbery.rst
-	rm -f docs/modules.rst
+	@rm -f docs/plumbery.rst
+	@rm -f docs/modules.rst
 	sphinx-apidoc -o docs/ plumbery
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
