@@ -15,8 +15,8 @@
 
 import logging
 
-from domain import PlumberyDomain
 from nodes import PlumberyNodes
+from infrastructure import PlumberyInfrastructure
 
 __all__ = ['PlumberyFacility']
 
@@ -83,31 +83,31 @@ class PlumberyFacility:
         """
 
         self.power_on()
-        domains = PlumberyDomain(self)
+        infrastructure = PlumberyInfrastructure(self)
         nodes = PlumberyNodes(self)
 
         for name in self.list_basement():
             blueprint = self.get_blueprint(name)
             if blueprint is not None:
-                domains.build(blueprint)
+                infrastructure.build(blueprint)
 
         for name in self.list_blueprints():
-            if label not in self.list_basement():
+            if name not in self.list_basement():
                 blueprint = self.get_blueprint(name)
                 if blueprint is not None:
-                    domains.build(blueprint)
+                    infrastructure.build(blueprint)
 
         for name in self.list_basement():
             blueprint = self.get_blueprint(name)
             if blueprint is not None:
-                container = domains.get_container(blueprint)
+                container = infrastructure.get_container(blueprint)
                 nodes.build_blueprint(blueprint, container)
 
         for name in self.list_blueprints():
-            if label not in self.list_basement():
+            if name not in self.list_basement():
                 blueprint = self.get_blueprint(name)
                 if blueprint is not None:
-                    container = domains.get_container(blueprint)
+                    container = infrastructure.get_container(blueprint)
                     nodes.build_blueprint(blueprint, container)
 
     def build_blueprint(self, names):
@@ -149,13 +149,13 @@ class PlumberyFacility:
         """
 
         self.power_on()
-        domains = PlumberyDomain(self)
+        infrastructure = PlumberyInfrastructure(self)
         nodes = PlumberyNodes(self)
 
         for name in self.list_basement():
             blueprint = self.get_blueprint(name)
             if blueprint is not None:
-                domains.build(blueprint)
+                infrastructure.build(blueprint)
 
         if isinstance(names, str):
             names = names.split(' ')
@@ -167,9 +167,11 @@ class PlumberyFacility:
                 continue
 
             if name not in self.list_basement():
-                domains.build(blueprint)
+                infrastructure.build(blueprint)
 
-            nodes.build_blueprint(blueprint, domains.get_container(blueprint))
+            nodes.build_blueprint(
+                                blueprint,
+                                infrastructure.get_container(blueprint))
 
     def destroy_all_blueprints(self):
         """
@@ -179,14 +181,14 @@ class PlumberyFacility:
 
         self.power_on()
         nodes = PlumberyNodes(self)
-        domains = PlumberyDomain(self)
+        infrastructure = PlumberyInfrastructure(self)
 
         for name in self.list_blueprints():
             blueprint = self.get_blueprint(name)
             if blueprint is not None:
                 logging.info("Destroying blueprint '{}'".format(name))
                 nodes.destroy_blueprint(blueprint)
-                domains.destroy_blueprint(blueprint)
+                infrastructure.destroy_blueprint(blueprint)
 
     def destroy_all_nodes(self):
         """
@@ -214,7 +216,7 @@ class PlumberyFacility:
 
         self.power_on()
         nodes = PlumberyNodes(self)
-        domains = PlumberyDomain(self)
+        infrastructure = PlumberyInfrastructure(self)
 
         if isinstance(names, str):
             names = names.split(' ')
@@ -226,7 +228,7 @@ class PlumberyFacility:
                 continue
 
             nodes.destroy_blueprint(blueprint)
-            domains.destroy_blueprint(blueprint)
+            infrastructure.destroy_blueprint(blueprint)
 
     def destroy_nodes(self, names):
         """
@@ -486,7 +488,7 @@ class PlumberyFacility:
         """
 
         self.power_on()
-        domains = PlumberyDomain(self)
+        infrastructure = PlumberyInfrastructure(self)
         nodes = PlumberyNodes(self)
 
         if isinstance(names, str):
@@ -498,7 +500,7 @@ class PlumberyFacility:
             if not blueprint:
                 continue
 
-            container = domains.get_container(blueprint)
+            container = infrastructure.get_container(blueprint)
 
             for polisher in polishers:
                 polisher.shine_container(container)

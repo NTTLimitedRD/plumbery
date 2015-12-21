@@ -66,7 +66,7 @@ class InventoryPolisher(PlumberyPolisher):
         :type settings: ``dict``
 
         :param container: the container of this node
-        :type container: :class:`plumbery.PlumberyDomain`
+        :type container: :class:`plumbery.PlumberyInfrastructure`
 
         Please note that the information saved here is a combination of
         attributes exposed by Apache Libcloud and of extra fields

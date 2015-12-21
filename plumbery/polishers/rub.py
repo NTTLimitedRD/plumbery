@@ -321,7 +321,7 @@ class RubPolisher(PlumberyPolisher):
         :type settings: ``dict``
 
         :param container: the container of this node
-        :type container: :class:`plumbery.PlumberyDomain`
+        :type container: :class:`plumbery.PlumberyInfrastructure`
 
         """
 

@@ -28,8 +28,8 @@ from libcloud.utils.xml import fixxpath, findtext, findall
 from libcloud.common.dimensiondata import TYPES_URN
 #from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
-from domain import PlumberyDomain
 from exceptions import PlumberyException
+from infrastructure import PlumberyInfrastructure
 
 __all__ = ['PlumberyNodes']
 
@@ -84,7 +84,7 @@ class PlumberyNodes:
         :type blueprint: ``dict``
 
         :param container: the container where nodes will be built
-        :type container: :class:`plumbery.PlumberyDomain`
+        :type container: :class:`plumbery.PlumberyInfrastructure`
 
         """
 
@@ -204,8 +204,8 @@ class PlumberyNodes:
 
         self.facility.power_on()
 
-        domains = PlumberyDomain(self.facility)
-        container = domains.get_container(blueprint)
+        infrastructure = PlumberyInfrastructure(self.facility)
+        container = infrastructure.get_container(blueprint)
 
         if 'nodes' not in blueprint or not isinstance(blueprint['nodes'], list):
             return
@@ -375,15 +375,9 @@ class PlumberyNodes:
         node = None
         for node in self.region.list_nodes():
 
-            # skip nodes from other locations
             if node.extra['datacenterId'] != self.facility.get_location_id():
                 continue
 
-#           # skip nodes from other network domains
-#           if node.extra['networkDomainId'] != self.domain.id:
-#               continue
-
-            # found a node with this name
             if node.name == name:
                 self._update_ipv6(node)
                 return node
@@ -449,7 +443,7 @@ class PlumberyNodes:
         :type polishers: list of :class:`plumbery.PlumberyPolisher`
 
         :param container: where these nodes are located
-        :type container: list of :class:`plumbery.PlumberyDomain`
+        :type container: list of :class:`plumbery.PlumberyInfrastructure`
 
         """
 

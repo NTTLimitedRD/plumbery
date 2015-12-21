@@ -36,27 +36,27 @@ from libcloud.utils.xml import fixxpath, findtext, findall
 
 from exceptions import PlumberyException
 
-__all__ = ['PlumberyDomain']
+__all__ = ['PlumberyInfrastructure']
 
 
-class PlumberyDomain:
+class PlumberyInfrastructure:
     """
-    Cloud automation for a network domain
+    Infrastructure as code, for network and security
 
     :param facility: the underlying physical facility
     :type facility: :class:`plumbery.PlumberyFacility`
 
-    A network domain is similar to a virtual data center. It is a secured
+    This abstraction to a virtual data center. It is a secured
     container for multiple nodes.
 
     Example::
 
-        from plumbery.domain import PlumberyDomain
-        domain = PlumberyDomain(facility)
-        domain.build(blueprint)
+        from plumbery.infrastructure import PlumberyInfrastructure
+        infrastrucure = PlumberyInfrastructure(facility)
+        infrastructure.build(blueprint)
 
-    In this example a domain is initialised at the given facility, and then
-    it is asked to create the pipes and the plumbery mentioned in the
+    In this example an infrastructure is initialised at the given facility, and
+    then it is asked to create pipes and plumbing described in the
     provided blueprint. This is covering solely the network and the security,
     not the nodes themselves.
 
@@ -71,7 +71,7 @@ class PlumberyDomain:
     facility = None
 
     def __init__(self, facility=None):
-        """Put network domains in context"""
+        """A virtual data centre attached to a physical data centre"""
 
         # handle to parent parameters and functions
         self.facility = facility
@@ -1192,17 +1192,19 @@ class PlumberyDomain:
         :type blueprint: ``dict``
 
         :return: the infrastructure associated to the provided blueprint
-        :rtype: :class:`plumbery.PlumberyDomain` or `None``
+        :rtype: :class:`plumbery.PlumberyInfrastructure` or `None``
 
         The returned object has at least a network domain and an Ethernet
         network, like in the following example::
 
-            container = domains.get_container(blueprint)
-            print(container.domain.name)
-            print(container.network.name)
+            >>>container = infrastructure.get_container(blueprint)
+            >>>print(container.domain.name)
+            ...
+            >>>print(container.network.name)
+            ...
 
         """
-        target = PlumberyDomain(self.facility)
+        target = PlumberyInfrastructure(self.facility)
 
         target.blueprint = blueprint
 
@@ -1242,11 +1244,11 @@ class PlumberyDomain:
         For example if ``MyNetwork`` has been defined in a data centre in
         Europe::
 
-            >>>domains.get_ethernet('MyNetwork')
-            >>>domains.get_ethernet(['EU6', 'MyNetwork'])
+            >>>infrastructure.get_ethernet('MyNetwork')
+            >>>infrastructure.get_ethernet(['EU6', 'MyNetwork'])
             Looking for remote Ethernet network 'EU6::MyNetwork'
             - found it
-            >>>domains.get_ethernet(['dd-eu', 'EU6', 'MyNetwork'])
+            >>>infrastructure.get_ethernet(['dd-eu', 'EU6', 'MyNetwork'])
             Looking for offshore Ethernet network 'dd-eu::EU6::MyNetwork'
             - found it
 

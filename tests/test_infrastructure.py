@@ -6,7 +6,7 @@ Tests for `domain` module.
 
 import unittest
 
-from plumbery.domain import PlumberyDomain
+from plumbery.infrastructure import PlumberyInfrastructure
 
 
 class FakeDomain:
@@ -65,17 +65,15 @@ fakeBluePrint = {'domain': {'name': 'fake',
                             'description': '#vdc1'}}
 
 
-class TestPlumberyDomain(unittest.TestCase):
+class TestPlumberyInfrastructure(unittest.TestCase):
 
     def setUp(self):
         facility = FakeFacility()
-        self.domain = PlumberyDomain(facility=facility)
+        self.infrastructure = PlumberyInfrastructure(facility=facility)
+        self.infrastructure.build(fakeBluePrint)
 
     def tearDown(self):
-        self.domain = None
-
-    def test_000(self):
-        self.domain.build(fakeBluePrint)
+        self.infrastructure = None
 
 
 if __name__ == '__main__':

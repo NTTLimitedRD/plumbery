@@ -179,7 +179,7 @@ class PlumberyPolisher:
         Rubs a container until it shines
 
         :param container: the container to be polished
-        :type container: :class:`plumbery.PlumberyDomain`
+        :type container: :class:`plumbery.PlumberyInfrastructure`
 
         This is where the hard work is done. You have to override this
         function in your own polisher. Note that you can compare the reality
@@ -200,7 +200,7 @@ class PlumberyPolisher:
         :type settings: ``dict``
 
         :param container: the container of this node
-        :type container: :class:`plumbery.PlumberyDomain`
+        :type container: :class:`plumbery.PlumberyInfrastructure`
 
         This is where the hard work is done. You have to override this
         function in your own polisher. Note that you can compare the reality
