@@ -52,12 +52,12 @@ class PlumberyEngine:
     in preparation of subsequent processing. The software is not trying to guess
     a name by default, so if you do not provide a name, no configuration file
     is loaded. You can load the plan at any stage, or restart the engine
-    with an updated plan, by invoking the member function ``parse_layout()`
+    with an updated plan, by invoking the member function ``parse_layout()``
 
     Note:
         While plumbery is not making assumptions for your configuration files,
         if your infrastructure is simple enough to fit in one single file then
-        you are highly encouraged to name it ``fittings.yaml`
+        you are highly encouraged to name it ``fittings.yaml``
 
     Beyond the plan for your fittings, plumbery is also requiring some specific
     credentials to connect to cloud providers. To preserve the confidentiality
@@ -69,7 +69,7 @@ class PlumberyEngine:
     it creates. For obvious security reasons this is not taken from the fittings
     plan but from the environment, or it can be set in code.
 
-    Under Linux, you may want to edit `~/.bash_profile` like this::
+    Under Linux, you may want to edit ``~/.bash_profile`` like this::
 
         # credentials to access cloud resources from Dimension Data
         export MCP_USERNAME='foo.bar'
@@ -133,7 +133,7 @@ class PlumberyEngine:
         Extends the scope of this plumbing engine
 
         :param facility: description of an additional facility
-        :type facility: ``dict`` or class:`plumbery.PlumberyFacility`
+        :type facility: ``dict`` or :class:`plumbery.PlumberyFacility`
 
         """
 
@@ -166,10 +166,10 @@ class PlumberyEngine:
 
     def build_blueprint(self, names):
         """
-        Builds a named blueprint from fittings plan
+        Builds named blueprint from fittings plan
 
         :param names: the name(s) of the blueprint(s) to deploy
-        :type names: ``str`` of list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to build one single blueprint there.
@@ -196,7 +196,7 @@ class PlumberyEngine:
 
     def configure(self, settings):
         """
-        Changes running settings of the engine
+        Changes the settings of the engine
 
         :param settings: the new settings
         :type settings: ``dict``
@@ -270,7 +270,7 @@ class PlumberyEngine:
         Destroys one or several blueprint(s) from fittings plan
 
         :param names: the name(s) of the blueprint(s) to destroy
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to destroy one single blueprint.
@@ -298,7 +298,7 @@ class PlumberyEngine:
         Destroys nodes for one or several blueprint(s) of the fittings plan
 
         :param names: the name(s) of the blueprint(s) to destroy
-        :type names: ``str`` or list of ``str``
+        :type names: ``str`` or ``list`` of ``str``
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to destroy nodes from one single blueprint.
@@ -345,13 +345,13 @@ class PlumberyEngine:
         The shared secret is not put in the fittings plan, but is normally taken
         from the environment variable ``SHARED_SECRET``.
 
-        Under Linux, you may want to edit ``~/.bash_profile` like this::
+        Under Linux, you may want to edit ``~/.bash_profile`` like this::
 
             # password to access nodes remotely
             export SHARED_SECRET='*you really want to use a tricky password*'
 
-        Alternatively, you can use the member function ``set_shared_secret`` to
-        set this important attribute via code.
+        Alternatively, you can use the member function ``set_shared_secret()``
+        to set this important attribute via code.
 
         """
 
@@ -376,7 +376,7 @@ class PlumberyEngine:
         The user name is not put in the fittings plan, but is normally taken
         from the environment variable ``MCP_USERNAME``.
 
-        Under Linux, you may want to edit ``~/.bash_profile` like this::
+        Under Linux, you may want to edit ``~/.bash_profile`` like this::
 
             # credentials to access cloud resources from Dimension Data
             export MCP_USERNAME='foo.bar'
@@ -405,7 +405,7 @@ class PlumberyEngine:
         The user password is not put in the fittings plan, but is normally taken
         from the environment variable ``MCP_PASSWORD``.
 
-        Under Linux, you may want to edit ``~/.bash_profile` like this::
+        Under Linux, you may want to edit ``~/.bash_profile`` like this::
 
             # credentials to access cloud resources from Dimension Data
             export MCP_USERNAME='foo.bar'
@@ -461,7 +461,7 @@ class PlumberyEngine:
         Walks resources from the target blueprint and polishes them
 
         :param names: the name(s) of the blueprint(s) to polish
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         :param filter: the name of a single polisher to apply. If this
             parameter is missing, all polishers declared in the fittings plan
@@ -546,7 +546,7 @@ class PlumberyEngine:
         Reads the fittings plan
 
         :param plan: the plan for the fittings
-        :type plan: ``str`` or ``file`
+        :type plan: ``str`` or ``file``
 
         The fittings plan is expected to follow YAML specifications, and it
         must have multiple documents in it. The first document provides
@@ -579,6 +579,7 @@ class PlumberyEngine:
         domain acting as a virtual data centre, `myDC`. The blueprint has a
         name, `myBluePrint`, so that it can be handled independently from
         other blueprints.
+
         """
 
         if plan is None:
@@ -622,7 +623,7 @@ class PlumberyEngine:
         Starts nodes of one blueprint of the fittings plan
 
         :param names: the name(s) of the blueprint(s) to start
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to start nodes from one single blueprint.
@@ -664,7 +665,7 @@ class PlumberyEngine:
         Stops nodes of one blueprint of the fittings plan
 
         :param names: the name(s) of the blueprint(s) to stop
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to stop nodes from one single blueprint.

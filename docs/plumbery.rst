@@ -11,14 +11,6 @@ Subpackages
 Submodules
 ----------
 
-plumbery.domain module
-----------------------
-
-.. automodule:: plumbery.domain
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 plumbery.engine module
 ----------------------
 
@@ -39,6 +31,14 @@ plumbery.facility module
 ------------------------
 
 .. automodule:: plumbery.facility
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+plumbery.infrastructure module
+------------------------------
+
+.. automodule:: plumbery.infrastructure
     :members:
     :undoc-members:
     :show-inheritance:

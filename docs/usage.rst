@@ -2,6 +2,27 @@
 Infrastructure as code
 ======================
 
+Plumbery is an open-source project that supports a strange paradigm.
+Infrastructure should be handled like code. For people who have relied for years
+on the power of physical stuff, this may be a shock. So let's repeat it again.
+When interesting resources have been virtualised and accessed remotely then
+suddenly infrastructure managers have new challenges. Infrastructure should be
+treated like code is. A lot of best practices are coming with this paradigm.
+
+And issues, too. Becoming a trusted Ops --yes, the end of DevOps-- is not so
+easy. How to deal with developers while being not a software developer? Well,
+this is exactly why Plumbery has been developed.
+
+Actually we believe that every infrastructure manager should have enough skills
+to use Plumbery on his own. Here we are referring to tasks like the following:
+
+* open and edit textual files
+* understand and modify configuration files
+* connect to a Linux server via ssh
+* set environment variables
+* run a command from the prompt line
+* execute a python program
+
 One day in the life of an ordinary infrastructure manager
 ---------------------------------------------------------
 
@@ -14,7 +35,7 @@ industrialisation of the underlying virtualised iron. No more, no less.
 The Plumbery toolbox is based on a central description of servers,
 documented in a text file in YAML. If you do not know YAML yet, don't be
 afraid, this may be the most simple and user-friendly language for
-infrastructure managers. Have a look at the sample ``fittings.yaml`
+infrastructure managers. Have a look at the sample ``fittings.yaml``
 that is coming with plumbery to get an idea.
 
 Then very simple Python code is used to act on the infrastructure. For example
@@ -23,10 +44,10 @@ directly in the python interpreter:
 
 .. sourcecode:: python
 
-    from plumbery.engine import PlumberyEngine
-
-    engine = PlumberyEngine('fittings.yaml')
-    engine.build_all_blueprints()
+    >>>from plumbery.engine import PlumberyEngine
+    >>>engine = PlumberyEngine('fittings.yaml')
+    >>>engine.build_all_blueprints()
+    ...
 
 This will load the YAML file, parse it, and call the cloud API to make it
 happen. Relax, and grab some coffee while plumbery adds network domains,
@@ -37,7 +58,8 @@ Then you can start all nodes with a single statement as well:
 
 .. sourcecode:: python
 
-    plumbery.start_all_nodes()
+    >>>engine.start_all_nodes()
+    ...
 
 
 Now you can concentrate on important things, connect remotely to the nodes,
@@ -46,23 +68,11 @@ just have to stop all servers and destroy them as per following statements:
 
 .. sourcecode:: python
 
-    plumbery.stop_all_nodes()
-    plumbery.destroy_all_nodes()
+    >>>engine.stop_all_nodes()
+    ...
+    >>>engine.destroy_all_nodes()
+    ...
 
-
-In other terms, Plumbery is an open-source project that supports the
-paradigm that infrastructure should be handled like code. Of course, you can
-use Plumbery without transforming yourself to a software developer.
-
-Every infrastructure manager should have enough skills to use Plumbery on his
-own. Here we are referring to tasks like the following:
-
-* open and edit textual files
-* understand and modify configuration files
-* connect to a Linux server via ssh
-* set environment variables
-* run a command from the prompt line
-* execute a python program
 
 Infrastructure as code at Dimension Data with Apache Libcloud
 -------------------------------------------------------------
@@ -86,10 +96,44 @@ on nodes. The engine has built-in code to cover the full life cycle:
 How do I describe fittings plan?
 --------------------------------
 
-In the ``demos`` directory that is coming with Plumbery you will find a
-reference ``fittings.yaml`` file, plus many programs that are using Plumbery.
+The fittings plan is expected to follow YAML specifications, and it
+must have multiple documents in it. The first document provides
+general configuration parameters for the engine. Subsequent documents
+describe the various locations for the fittings.
+
+An example of a minimum fittings plan:
+
+.. sourcecode:: yaml
+
+    ---
+    safeMode: False
+    ---
+    # Frankfurt in Europe
+    locationId: EU6
+    regionId: dd-eu
+
+    blueprints:
+
+      - myBluePrint:
+          domain:
+            name: myDC
+          ethernet:
+            name: myVLAN
+            subnet: 10.1.10.0
+          nodes:
+            - myServer
+
+In this example, the plan is to deploy a single node in the data centre
+at Frankfurt, in Europe. The node `myServer` will be placed in a
+network named `myVLAN`, and the network will be part of a network
+domain acting as a virtual data centre, `myDC`. The blueprint has a
+name, `myBluePrint`, so that it can be handled independently from
+other blueprints.
 
 (help needed here to present YAML structure expected by Plumbery)
+
+In the ``demos`` directory that is coming with Plumbery you will find a
+reference ``fittings.yaml`` file, plus many programs that are using Plumbery.
 
 How do I handle a subset of cloud resources?
 --------------------------------------------
@@ -101,7 +145,7 @@ group of unused servers that just add to the monthly invoices.
 
 In plumbery the full fittings plan is split in multiple blueprints, and you can
 handle each of them separately. The most natural way to think about this is to
-conceive services as group of servers. For example, the blueprint ``sql`` is
+conceive services as group of servers. For example, the blueprint ``docker`` is
 actually a cluster of nodes plugged into the same network. Look at the sample
 ``fittings.yaml`` file to get an idea of what you can put in a blueprint.
 
@@ -109,17 +153,21 @@ Then you can handle a single blueprint independently from the others:
 
 .. sourcecode:: python
 
-    plumbery.build_blueprint('sql')
-    plumbery.start_nodes('sql')
-    plumbery.stop_nodes('sql')
-    plumbery.destroy_nodes('sql')
+    >>>plumbery.build_blueprint('docker')
+    ...
+    >>>plumbery.start_nodes('docker')
+    ...
+    >>>plumbery.stop_nodes('docker')
+    ...
+    >>>plumbery.destroy_nodes('docker')
+    ...
 
 Also, a blueprint can be spread across multiple data centres, and this is the
 very basis of fault tolerant services. For example for ``sql``, this blueprint
 could feature a master SQL database server at one data centre, and a slave SQL
 database at another data centre. In that case, plumbery will connect separately
 to each data centre and to the dirty job to make you happy. Look at the snippet
-below to get a better idea of simple this can be.
+below to get a better idea of how simple this can be.
 
 .. sourcecode:: yaml
 

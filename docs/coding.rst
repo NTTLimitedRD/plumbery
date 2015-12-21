@@ -4,11 +4,14 @@ How to code for or with Plumbery?
 This page describes Plumbery development process and contains general
 guidelines and information on how to contribute to the project.
 
+If you are looking for code structure, here are some quick links for you:
+:ref:`modindex` and :ref:`genindex`.
+
 We welcome contributions of any kind (ideas, code, tests, documentation,
 examples, ...).
 
 * Any non-trivial change must contain tests. For more information, refer to the
-  :doc:`Testing <test-conventions>` section below.
+  :ref:`Testing <test-conventions>` section below.
 * All the functions and methods must contain Sphinx docstrings which are used
   to generate the API documentation. For more information, refer to the
   :ref:`Docstring conventions <docstring-conventions>` section below.
@@ -241,12 +244,11 @@ For more information and examples, please refer to the following links:
 
 .. _test-conventions:
 
-
 Testing
 -------
 
 Running all tests
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 To run the tests manually, you first need to install all of the dependencies
 mentioned above. After that simply go to the root of the repository and use the
@@ -258,7 +260,7 @@ following command:
 
 
 Running one test file
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
 
 To run the tests located in a single test file, move to the root of the
 repository and run the following command:
@@ -275,7 +277,7 @@ For example:
 
 
 Generating test coverage report
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To generate the test coverage run the following command:
 

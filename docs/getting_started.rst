@@ -1,6 +1,10 @@
 Getting Started
 ===============
 
+Are you looking for a kind plumber to assist you in daily cloud deployment and
+operations? Here is the most vital information that you need to install and
+to use the software.
+
 Install stable version
 ----------------------
 
@@ -38,15 +42,22 @@ If you used pip to install the software then you can also use it to upgrade it:
 Configure and test your installation
 ------------------------------------
 
-This section describes a standard workflow which you follow when working
+This section describes the standard workflow which you follow when working
 with Plumbery.
 
 Put secrets into local environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default Plumbery reads credentials and other secrets from the environment
-of the computer where it is running. If you are running Ubuntu you could do
-``nano ~/.bash_profile`` and type text like the following:
+of the computer where it is running.
+
+If you are running Ubuntu you could do:
+
+.. sourcecode:: bash
+
+    nano ~/.bash_profile
+
+and type text like the following:
 
 .. sourcecode:: bash
 

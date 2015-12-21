@@ -115,7 +115,7 @@ class PlumberyFacility:
         Builds a named blueprint for this facility
 
         :param names: the name(s) of the blueprint(s) to build
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         This function builds the named blueprint in two steps: the
         infrastructure comes first, and then the nodes themselves.
@@ -210,7 +210,7 @@ class PlumberyFacility:
         Destroys a given blueprint at this facility
 
         :param names: the name(s) of the blueprint(s) to destroy
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         """
 
@@ -235,7 +235,7 @@ class PlumberyFacility:
         Destroys nodes of a given blueprint at this facility
 
         :param names: the names of the blueprint to destroy
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         """
 
@@ -480,7 +480,7 @@ class PlumberyFacility:
         Walks a named blueprint for this facility and polish related resources
 
         :param names: the name(s) of the blueprint(s) to polish
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         :param polishers: polishers to be applied
         :type polishers: list of :class:`plumbery.PlumberyPolisher`
@@ -537,7 +537,7 @@ class PlumberyFacility:
         Starts nodes from a given blueprint at this facility
 
         :param names: the name(s) of the target blueprint(s)
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         """
 
@@ -571,7 +571,7 @@ class PlumberyFacility:
         Stops nodes of the given blueprint at this facility
 
         :param names: the name(s) of the target blueprint(s)
-        :type names: ``str`` or list of ``str`
+        :type names: ``str`` or ``list`` of ``str``
 
         You can use the following setting to prevent plumbery from stopping a
         node::

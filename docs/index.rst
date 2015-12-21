@@ -1,8 +1,6 @@
 
-Welcome to plumbery's documentation!
-======================================
-
-Contents:
+The documentation of Plumbery
+=============================
 
 .. toctree::
    :maxdepth: 2
@@ -12,13 +10,11 @@ Contents:
    usage
    contributing
    coding
-   authors
    history
 
-Indices and tables
-==================
+Documentation extracted from the code itself
+============================================
 
-* :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
+* :ref:`genindex`
 

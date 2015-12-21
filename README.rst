@@ -1,5 +1,5 @@
 ===============================
-plumbery
+Plumbery
 ===============================
 
 .. image:: https://img.shields.io/pypi/v/plumbery.svg
@@ -15,7 +15,7 @@ plumbery
 
 Infrastructure as code at Dimension Data with Apache Libcloud
 
-* Documentation: https://plumbery.readthedocs.org.
+* Documentation: https://plumbery.readthedocs.org
 * Free software: Apache License (2.0)
 
 Features
@@ -45,8 +45,15 @@ Features
 * Many demonstration scripts are provided
 * You can extend plumbery with your own polishers, it has been designed for that
 
+Contributors
+------------
+
+* `Bernard Paques`_ [Dimension Data employee] (development lead)
+* `Anthony Shaw`_ [Dimension Data employee]
+* Olivier Grosjeanne [Dimension Data employee]
+
 Credits
----------
+-------
 
 *  `Apache Libcloud`_
 *  netifaces_
@@ -54,6 +61,8 @@ Credits
 *  Cookiecutter_
 *  `cookiecutter-pypackage`_
 
+.. _`Bernard Paques`: https://github.com/bernard357
+.. _`Anthony Shaw`: https://github.com/tonybaloney
 .. _`Apache Libcloud`: https://libcloud.apache.org/
 .. _netifaces: https://pypi.python.org/pypi/netifaces
 .. _PyYAML: https://pypi.python.org/pypi/PyYAML

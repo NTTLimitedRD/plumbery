@@ -4,7 +4,7 @@ History
 -------
 
 0.2.4 (2015-12-13)
----------------------
+~~~~~~~~~~~~~~~~~~
 
 * Extend coverage of the Gigafox project
 * Add monitoring to nodes created
@@ -20,7 +20,7 @@ History
 * Test coverage 46%
 
 0.2.3 (2015-12-07)
----------------------
+~~~~~~~~~~~~~~~~~~
 
 * Introduce Gigafox project, to demonstrate deployment across multiple places
 * Create firewall rules to allow traffic between networks
@@ -30,7 +30,7 @@ History
 * Test coverage 48%
 
 0.2.2 (2015-12-05)
----------------------
+~~~~~~~~~~~~~~~~~~
 
 * Use ipv6 when possible to connect to remote nodes
 * Manual tests to improve usage on specific conditions, e.g., against MCP 1.0
@@ -40,7 +40,7 @@ History
 * Test coverage 55%
 
 0.2.1 (2015-12-02)
----------------------
+~~~~~~~~~~~~~~~~~~~
 
 * Code refactoring into a new module for nodes
 * fake8 complains only about long lines and line termination
@@ -48,7 +48,7 @@ History
 * Test coverage 59%
 
 0.2.0 (2015-11-29)
----------------------
+~~~~~~~~~~~~~~~~~~
 
 * Allow for node bootstrapping via SSH
 * Push SSH public key
@@ -64,19 +64,14 @@ History
 * Test coverage 59%
 
 0.1.2 (2015-11-27)
----------------------
+~~~~~~~~~~~~~~~~~~
 
 * First pull request fully processed
 * Docstring for all modules
 * Passing Travis CI
 * Test coverage 62%
 
-0.1.1 (2015-11-23)
----------------------
-
-* Minor modifications
-
 0.1.0 (2015-11-20)
----------------------
+~~~~~~~~~~~~~~~~~~
 
 * First release on PyPI.
