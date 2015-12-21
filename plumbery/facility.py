@@ -89,22 +89,38 @@ class PlumberyFacility:
         This function builds all network domains across all blueprints, then
         it builds all nodes across all blueprints.
 
+        If the keyword ``basement`` mentions one or several blueprints,
+        then these are built before the other blueprints.
+
         """
 
+        self.power_on()
         domains = PlumberyDomain(self)
-        for label in self.list_blueprints():
-            logging.info("Building network domain of blueprint '{}'"
-                                .format(label))
-            blueprint = self.get_blueprint(label)
-            domains.build(blueprint)
-
         nodes = PlumberyNodes(self)
-        for label in self.list_blueprints():
-            logging.info("Building nodes of blueprint '{}'"
-                                .format(label))
-            blueprint = self.get_blueprint(label)
-            domain = domains.get_container(blueprint)
-            nodes.build_blueprint(blueprint, domain)
+
+        for name in self.list_basement():
+            blueprint = self.get_blueprint(name)
+            if blueprint is not None:
+                domains.build(blueprint)
+
+        for name in self.list_blueprints():
+            if label not in self.list_basement():
+                blueprint = self.get_blueprint(name)
+                if blueprint is not None:
+                    domains.build(blueprint)
+
+        for name in self.list_basement():
+            blueprint = self.get_blueprint(name)
+            if blueprint is not None:
+                container = domains.get_container(blueprint)
+                nodes.build_blueprint(blueprint, container)
+
+        for name in self.list_blueprints():
+            if label not in self.list_basement():
+                blueprint = self.get_blueprint(name)
+                if blueprint is not None:
+                    container = domains.get_container(blueprint)
+                    nodes.build_blueprint(blueprint, container)
 
     def build_blueprint(self, names):
         """
