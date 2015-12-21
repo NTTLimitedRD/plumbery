@@ -13,21 +13,29 @@ plumbery
         :alt: Documentation Status
 
 
-Cloud automation at Dimension Data with Apache Libcloud
+Infrastructure as code at Dimension Data with Apache Libcloud
 
-* Free software: Apache License (2.0)
 * Documentation: https://plumbery.readthedocs.org.
+* Free software: Apache License (2.0)
 
 Features
 --------
 
 * Read fittings plan in YAML
 * Use cloud API to create the network infrastructure, and to build nodes
+* Create network domains and Ethernet networks
+* Reserve public IPv4 addresses
+* Manage network address translation rules
+* Manage firewall rules
+* All images in libraries are available to new nodes
+* Add multiple network interfaces to nodes
+* Add public IPv4 addresses to nodes
+* Add monitoring to nodes
 * Build all blueprints
-* Build one single blueprint across multiple locations
+* Build a blueprint across multiple locations
 * Start all nodes
 * Start nodes belonging to the same blueprint
-* Polish all Linux nodes for quick bootstrapping
+* Polish Linux nodes for quick bootstrapping
 * Build a full inventory of nodes that have been deployed
 * Reflect fittings into a ready-to-use inventory for ansible
 * Stop all nodes
