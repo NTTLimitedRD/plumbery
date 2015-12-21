@@ -86,12 +86,6 @@ class PlumberyEngine:
     shared across some people.
 
     Attributes:
-        provider (libcloud.base.NodeDriver):
-            A handle to the underlying Apache Libcloud instance
-
-        facilities (list of PlumberyFacility objects):
-            Breakdown of the overall plan over multiple facilities. This global
-            attribute results from the parsing of the fittings plan.
 
         safeMode (boolean):
             If True, which is the default, then no actual change
@@ -100,19 +94,7 @@ class PlumberyEngine:
 
     """
 
-    facilities = []
-
-    polishers = []
-
-    provider = None
-
     safeMode = True
-
-    _sharedSecret = None
-
-    _userName = None
-
-    _userPassword = None
 
     def __init__(self, fileName=None):
         """
@@ -123,10 +105,22 @@ class PlumberyEngine:
 
         """
 
+        self.facilities = []
+
+        self.polishers = []
+
+        self._buildPolisher = None
+
         self.provider = self.get_provider()
 
         if fileName:
             self.setup(fileName)
+
+        self._sharedSecret = None
+
+        self._userName = None
+
+        self._userPassword = None
 
     def add_facility(self, facility):
         """
