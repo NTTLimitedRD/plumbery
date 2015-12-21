@@ -34,7 +34,7 @@ from libcloud.loadbalancer.providers import get_driver as get_balancer_factory
 
 from libcloud.utils.xml import fixxpath, findtext, findall
 
-from exceptions import PlumberyException
+from exception import PlumberyException
 
 __all__ = ['PlumberyInfrastructure']
 

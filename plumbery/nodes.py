@@ -28,7 +28,7 @@ from libcloud.utils.xml import fixxpath, findtext, findall
 from libcloud.common.dimensiondata import TYPES_URN
 #from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
-from exceptions import PlumberyException
+from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
 
 __all__ = ['PlumberyNodes']

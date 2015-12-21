@@ -15,7 +15,7 @@
 
 import logging
 
-from exceptions import PlumberyException
+from exception import PlumberyException
 
 __all__ = ['PlumberyPolisher']
 

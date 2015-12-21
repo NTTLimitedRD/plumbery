@@ -20,7 +20,7 @@ import yaml
 from libcloud.compute.providers import get_driver
 from libcloud.compute.types import Provider
 
-from exceptions import PlumberyException
+from exception import PlumberyException
 from facility import PlumberyFacility
 from polisher import PlumberyPolisher
 

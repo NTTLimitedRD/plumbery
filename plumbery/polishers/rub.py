@@ -25,7 +25,7 @@ from libcloud.compute.deployment import ScriptDeployment
 from libcloud.compute.deployment import SSHKeyDeployment
 from libcloud.compute.ssh import SSHClient
 
-from plumbery.exceptions import PlumberyException
+from plumbery.exception import PlumberyException
 from plumbery.polisher import PlumberyPolisher
 
 
