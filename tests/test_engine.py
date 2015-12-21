@@ -117,11 +117,17 @@ class TestPlumberyEngine(unittest.TestCase):
             self.engine.start_all_nodes()
             self.engine.start_nodes('myBlueprint')
 
+            self.engine.polish_all_blueprints()
+            self.engine.polish_blueprint('myBlueprint')
+
             self.engine.stop_all_nodes()
             self.engine.stop_nodes('myBlueprint')
 
             self.engine.destroy_all_nodes()
             self.engine.destroy_nodes('myBlueprint')
+
+            self.engine.destroy_all_blueprints()
+            self.engine.destroy_blueprint('myBlueprint')
 
         except socket.gaierror:
             pass
