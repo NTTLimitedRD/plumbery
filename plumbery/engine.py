@@ -52,12 +52,12 @@ class PlumberyEngine:
     in preparation of subsequent processing. The software is not trying to guess
     a name by default, so if you do not provide a name, no configuration file
     is loaded. You can load the plan at any stage, or restart the engine
-    with an updated plan, by invoking the member function `parse_layout()`
+    with an updated plan, by invoking the member function ``parse_layout()`
 
     Note:
         While plumbery is not making assumptions for your configuration files,
         if your infrastructure is simple enough to fit in one single file then
-        you are highly encouraged to name it `fittings.yaml`
+        you are highly encouraged to name it ``fittings.yaml`
 
     Beyond the plan for your fittings, plumbery is also requiring some specific
     credentials to connect to cloud providers. To preserve the confidentiality
@@ -267,7 +267,7 @@ class PlumberyEngine:
 
     def destroy_blueprint(self, names):
         """
-        Destroys one blueprint from fittings plan
+        Destroys one or several blueprint(s) from fittings plan
 
         :param names: the name(s) of the blueprint(s) to destroy
         :type names: ``str`` or list of ``str`
@@ -295,7 +295,7 @@ class PlumberyEngine:
 
     def destroy_nodes(self, names):
         """
-        Destroys nodes for one blueprint of the fittings plan
+        Destroys nodes for one or several blueprint(s) of the fittings plan
 
         :param names: the name(s) of the blueprint(s) to destroy
         :type names: ``str`` or list of ``str``
@@ -345,7 +345,7 @@ class PlumberyEngine:
         The shared secret is not put in the fittings plan, but is normally taken
         from the environment variable ``SHARED_SECRET``.
 
-        Under Linux, you may want to edit `~/.bash_profile` like this::
+        Under Linux, you may want to edit ``~/.bash_profile` like this::
 
             # password to access nodes remotely
             export SHARED_SECRET='*you really want to use a tricky password*'
@@ -375,7 +375,7 @@ class PlumberyEngine:
         The user name is not put in the fittings plan, but is normally taken
         from the environment variable ``MCP_USERNAME``.
 
-        Under Linux, you may want to edit `~/.bash_profile` like this::
+        Under Linux, you may want to edit ``~/.bash_profile` like this::
 
             # credentials to access cloud resources from Dimension Data
             export MCP_USERNAME='foo.bar'
@@ -403,7 +403,7 @@ class PlumberyEngine:
         The user password is not put in the fittings plan, but is normally taken
         from the environment variable ``MCP_PASSWORD``.
 
-        Under Linux, you may want to edit `~/.bash_profile` like this::
+        Under Linux, you may want to edit ``~/.bash_profile` like this::
 
             # credentials to access cloud resources from Dimension Data
             export MCP_USERNAME='foo.bar'
