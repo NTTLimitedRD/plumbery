@@ -51,17 +51,6 @@ class PlumberyFacility:
 
     """
 
-    fittings = None
-
-    _images = []
-
-    location = None
-
-    plumbery = None
-
-    # handle to the Apache Libcloud driver
-    region = None
-
     def __init__(self, plumbery=None, fittings=None):
         """Puts this facility in context"""
 
@@ -69,12 +58,11 @@ class PlumberyFacility:
 
         self.fittings = fittings
 
-        # Dimension Data provides a federation of regions
-        self.region = plumbery.provider(
-            plumbery.get_user_name(),
-            plumbery.get_user_password(),
-            region=self.fittings.regionId)
+        # first call to the API is done in self.power_on()
+        self.region = None
+        self.location = None
 
+        self._cache_images = []
         self._cache_network_domains = []
         self._cache_vlans = []
 
@@ -129,8 +117,8 @@ class PlumberyFacility:
         :param names: the name(s) of the blueprint(s) to build
         :type names: ``str`` or list of ``str`
 
-        This function builds the named blueprint in two steps: the network
-        domain first, and then the nodes themselves.
+        This function builds the named blueprint in two steps: the
+        infrastructure comes first, and then the nodes themselves.
 
             >>>facility.build_blueprint('sql')
 
@@ -160,9 +148,12 @@ class PlumberyFacility:
 
         """
 
+        self.power_on()
         domains = PlumberyDomain(self)
-        for label in self.list_basement():
-            blueprint = self.get_blueprint(label)
+        nodes = PlumberyNodes(self)
+
+        for name in self.list_basement():
+            blueprint = self.get_blueprint(name)
             if blueprint is not None:
                 domains.build(blueprint)
 
@@ -171,15 +162,14 @@ class PlumberyFacility:
 
         for name in names:
 
-            target = self.get_blueprint(name)
-            if not target:
-                return
+            blueprint = self.get_blueprint(name)
+            if not blueprint:
+                continue
 
             if name not in self.list_basement():
-                domains.build(target)
+                domains.build(blueprint)
 
-            nodes = PlumberyNodes(self)
-            nodes.build_blueprint(target, domains.get_container(target))
+            nodes.build_blueprint(blueprint, domains.get_container(blueprint))
 
     def destroy_all_blueprints(self):
         """
@@ -191,13 +181,12 @@ class PlumberyFacility:
         nodes = PlumberyNodes(self)
         domains = PlumberyDomain(self)
 
-        for blueprint in self.fittings.blueprints:
-            name = blueprint.keys()[0]
-            blueprint = blueprint[name]
-            blueprint['target'] = name
-            logging.info("Destroying blueprint '{}'".format(name))
-            nodes.destroy_blueprint(blueprint)
-            domains.destroy_blueprint(blueprint)
+        for name in self.list_blueprints():
+            blueprint = self.get_blueprint(name)
+            if blueprint is not None:
+                logging.info("Destroying blueprint '{}'".format(name))
+                nodes.destroy_blueprint(blueprint)
+                domains.destroy_blueprint(blueprint)
 
     def destroy_all_nodes(self):
         """
@@ -208,12 +197,11 @@ class PlumberyFacility:
         self.power_on()
         nodes = PlumberyNodes(self)
 
-        for blueprint in self.fittings.blueprints:
-            name = blueprint.keys()[0]
-            blueprint = blueprint[name]
-            blueprint['target'] = name
-            logging.info("Destroying nodes of blueprint '{}'".format(name))
-            nodes.destroy_blueprint(blueprint)
+        for name in self.list_blueprints():
+            blueprint = self.get_blueprint(name)
+            if blueprint is not None:
+                logging.info("Destroying nodes of blueprint '{}'".format(name))
+                nodes.destroy_blueprint(blueprint)
 
     def destroy_blueprint(self, names):
         """
@@ -238,7 +226,6 @@ class PlumberyFacility:
                 continue
 
             nodes.destroy_blueprint(blueprint)
-
             domains.destroy_blueprint(blueprint)
 
     def destroy_nodes(self, names):
@@ -306,7 +293,12 @@ class PlumberyFacility:
 
         """
 
-        for image in self._images:
+        # cache images to limit API calls
+        if len(self._cache_images) < 1:
+            self.power_on()
+            self._cache_images = self.region.list_images(location=self.location)
+
+        for image in self._cache_images:
             if name in image.name:
                 return image
 
@@ -320,6 +312,7 @@ class PlumberyFacility:
 
         """
 
+        self.power_on()
         return self.location.id
 
     def list_basement(self):
@@ -400,7 +393,8 @@ class PlumberyFacility:
         labels = set()
         for blueprint in self.fittings.blueprints:
             name = blueprint.keys()[0]
-            labels.add(blueprint[name]['domain'])
+            if 'domain' in blueprint[name]:
+                labels.add(blueprint[name]['domain'])
 
         return list(labels)
 
@@ -420,7 +414,8 @@ class PlumberyFacility:
         labels = set()
         for blueprint in self.fittings.blueprints:
             name = blueprint.keys()[0]
-            labels.add(blueprint[name]['ethernet'])
+            if 'ethernet' in blueprint[name]:
+                labels.add(blueprint[name]['ethernet'])
 
         return list(labels)
 
@@ -443,11 +438,9 @@ class PlumberyFacility:
                 for item in blueprint[name]['nodes']:
                     if type(item) is dict:
                         label = item.keys()[0]
-                        settings = item.values()[0]
 
                     else:
                         label = item
-                        settings = {}
 
                     for label in PlumberyNodes.expand_labels(label):
                         labels.add(label)
@@ -463,9 +456,9 @@ class PlumberyFacility:
 
         """
 
-        for blueprint in self.fittings.blueprints:
-            logging.info("Polishing blueprint '{}'".format(blueprint.keys()[0]))
-            self.polish_blueprint(blueprint.keys()[0], polishers)
+        for name in self.list_blueprints():
+            logging.info("Polishing blueprint '{}'".format(name))
+            self.polish_blueprint(name, polishers)
 
     def polish_blueprint(self, names, polishers):
         """
@@ -479,6 +472,7 @@ class PlumberyFacility:
 
         """
 
+        self.power_on()
         domains = PlumberyDomain(self)
         nodes = PlumberyNodes(self)
 
@@ -504,13 +498,15 @@ class PlumberyFacility:
 
         """
 
+        if not self.region:
+            self.region = self.plumbery.provider(
+                self.plumbery.get_user_name(),
+                self.plumbery.get_user_password(),
+                region=self.fittings.regionId)
+
         if not self.location:
             self.location = self.region.ex_get_location_by_id(
                                                     self.fittings.locationId)
-
-        # cache images to limit API calls
-        if len(self._images) < 1:
-            self._images = self.region.list_images(location=self.location)
 
     def start_all_nodes(self):
         """
@@ -518,8 +514,8 @@ class PlumberyFacility:
 
         """
 
-        for blueprint in self.fittings.blueprints:
-            self.start_nodes(blueprint.keys()[0])
+        for name in self.list_blueprints():
+            self.start_nodes(name)
 
     def start_nodes(self, names):
         """
@@ -552,8 +548,8 @@ class PlumberyFacility:
 
         """
 
-        for blueprint in self.fittings.blueprints:
-            self.stop_nodes(blueprint.keys()[0])
+        for name in self.list_blueprints():
+            self.stop_nodes(name)
 
     def stop_nodes(self, names):
         """
