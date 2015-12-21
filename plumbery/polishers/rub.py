@@ -118,8 +118,8 @@ class RubPolisher(PlumberyPolisher):
         :param steps: the various steps of the rubbing
         :type steps: :class:`libcloud.compute.deployment.MultiStepDeployment`
 
-        :returns: ``bool``
-            - ``True`` if everything went fine, ``False`` otherwise
+        :return: ``True`` if everything went fine, ``False`` otherwise
+        :rtype: ``bool``
 
         """
 
@@ -169,7 +169,8 @@ class RubPolisher(PlumberyPolisher):
         :param settings: the fittings plan for this node
         :type settings: ``dict``
 
-        :returns: a list of { 'description': ..., 'genius': ... }
+        :return: a list of actions to be performed, and related descriptions
+        :rtype: a ``list`` of `{ 'description': ..., 'genius': ... }``
 
         """
 

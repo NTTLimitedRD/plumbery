@@ -331,10 +331,11 @@ class PlumberyNodes:
         """
         Designate multiple nodes with a simple label
 
-        :param label: the label to be expanded, e.g., ``mongodb[1..5]``
+        :param label: the label to be expanded, e.g., ``server[1..2]_eu``
         :type label: ``str``
 
-        :returns: ``list`` of ``str``
+        :return: a list of labels, e.g., ``['server1_eu', 'server2_eu']``
+        :rtype: ``list`` of ``str``
 
         This function creates multiple names where applicable::
 
@@ -360,8 +361,12 @@ class PlumberyNodes:
         :param name: the name of the target node
         :type name: ``str``
 
-        :returns: :class:`libcloud.compute.base.Node`
-            - the target node, or None
+        :return: the target node, or None
+        :rtype: :class:`libcloud.compute.base.Node`
+
+        This function always make a real API call to get fresh state of the
+        target node. Therefore, it can be used in loops where you monitor
+        the evolution of the node during build or other change operation.
 
         """
 
@@ -390,8 +395,8 @@ class PlumberyNodes:
         """
         Retrieves the list of nodes that have been defined for this blueprint.
 
-        :returns: ``list`` of ``str``
-            - the nodes defined for this blueprint, or []
+        :return: names of nodes defined for this blueprint
+        :rtype: ``list`` of ``str`` or []
 
         """
 

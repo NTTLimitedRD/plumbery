@@ -15,6 +15,7 @@
 
 import logging
 import time
+
 import yaml
 
 from libcloud.compute.base import NodeState

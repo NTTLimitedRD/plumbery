@@ -347,9 +347,9 @@ class PlumberyDomain:
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
 
-        :returns: ``bool``
-            - True if the network has been created or is already there,
-            False otherwise
+        :return: ``True`` if the network has been created or is already there,
+            ``False`` otherwise
+        :rtype: ``bool``
 
         :raises: :class:`plumbery.PlumberyException`
             - if some unrecoverable error occurs
@@ -942,8 +942,6 @@ class PlumberyDomain:
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
 
-        :returns: ``bool``
-
         This function looks after following service elements:
 
         * it releases public IPv4 addresses
@@ -979,7 +977,7 @@ class PlumberyDomain:
             logging.info("- not found")
             logging.info("Destroying network domain '{}'".format(domainName))
             logging.info("- not found")
-            return False
+            return
 
         self._destroy_firewall_rules()
 
@@ -1036,24 +1034,24 @@ class PlumberyDomain:
                             continue
 
                         logging.info("- not now - stuff on it")
-                        return False
+                        return
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
                         logging.info("- not now - locked")
                         logging.info(feedback)
-                        return False
+                        return
 
                     else:
                         logging.info("- unable to destroy Ethernet network")
                         logging.info(str(feedback))
-                        return False
+                        return
 
                 break
 
         if self.plumbery.safeMode:
             logging.info("Would have destroyed network domain '{}' "
                          "if not in safe mode".format(domainName))
-            return False
+            return
 
         logging.info("Destroying network domain '{}'".format(domainName))
 
@@ -1073,20 +1071,18 @@ class PlumberyDomain:
 
                 elif 'HAS_DEPENDENCY' in str(feedback):
                     logging.info("- not now - stuff on it")
-                    return False
+                    return
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
                     logging.info("- not now - locked")
-                    return False
+                    return
 
                 else:
                     logging.info("- unable to destroy Ethernet network")
                     logging.info(str(feedback))
-                    return False
+                    return
 
             break
-
-        return True
 
     def _detach_node_from_internet(self, node):
         """
@@ -1195,14 +1191,15 @@ class PlumberyDomain:
         :param blueprint: the various attributes of the target fittings
         :type blueprint: ``dict``
 
-        :returns: :class:`plumbery.PlumberyDomain` or `None``
+        :return: the infrastructure associated to the provided blueprint
+        :rtype: :class:`plumbery.PlumberyDomain` or `None``
 
         The returned object has at least a network domain and an Ethernet
         network, like in the following example::
 
             container = domains.get_container(blueprint)
-            print container.domain.name
-            print container.network.name
+            print(container.domain.name)
+            print(container.network.name)
 
         """
         target = PlumberyDomain(self.facility)
@@ -1234,7 +1231,8 @@ class PlumberyDomain:
         :param label: the name of the target Ethernet network
         :type label: ``str`` or ``list``of ``str``
 
-        :returns: :class:`VLAN` or None
+        :return: an instance of an Ethernet network
+        :rtype: :class:`VLAN` or ``None``
 
         This function searches firstly at the current facility. If the
         name is a complete path to a remote network, then plumbery looks
@@ -1462,8 +1460,9 @@ class PlumberyDomain:
         """
         Lists public IPv4 addresses that have been assigned to a domain
 
-        :returns: list of ``str``
-           - the full list of public IPv4 addresses, or []
+        :return: the full list of public IPv4 addresses assigned to the domain
+        :rtype: ``list`` of ``str`` or ``[]``
+
         """
 
         addresses = []

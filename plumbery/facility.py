@@ -270,7 +270,8 @@ class PlumberyFacility:
         :param name: the name of the target blueprint
         :type name: ``str``
 
-        :returns: ``dict`` - the target blueprint, or None
+        :return: the blueprint with this name
+        :rtype: ``dict`` or ``None``
 
         """
 
@@ -289,7 +290,18 @@ class PlumberyFacility:
         :param name: the name of the target image
         :type name: ``str``
 
-        :returns: :class:`Image` - the target image, or None
+        :return: a suitable image
+        :rtype: :class:`Image` or ``None``
+
+        This function looks at the library of available images and picks up
+        the first image that has the name in it.
+
+        Some examples::
+
+            >>>facility.get_image('RedHat')
+            ...
+            >>>facility.get_image('RedHat 6 64-bit 4 CPU')
+            ...
 
         """
 
@@ -308,7 +320,8 @@ class PlumberyFacility:
         """
         Retrieves the id of the current location
 
-        :return: ``str``- the id of the current location
+        :return:  the id of the current location, e.g., 'EU7' or 'NA9'
+        :rtype: ``str``
 
         """
 
@@ -320,8 +333,8 @@ class PlumberyFacility:
         Retrieves a list of blueprints that, together, constitute the basement
         of this facility
 
-        :returns: ``list`` of ``str``
-            - the basement blueprints, or []
+        :return: names of basement blueprints
+        :rtype: ``list`` of ``str`` or ``[]``
 
         Basement is a list of blueprints defined in the fittings plan, as per
         following example::
@@ -349,8 +362,8 @@ class PlumberyFacility:
         """
         Retrieves a list of blueprints that have been defined
 
-        :returns: ``list`` of ``str``
-            - the blueprints defined for this facility, or []
+        :return: names of blueprints defined for this facility
+        :rtype: ``list`` of ``str`` or ``[]``
 
         Blueprints are defined in the fittings plan, as per
         following example::
@@ -382,8 +395,8 @@ class PlumberyFacility:
         Retrieves the list of network domains that have been defined across
         blueprints for this facility
 
-        :returns: ``list`` of ``str``
-            - the domains defined for this facility, or []
+        :return: names of network domains defined for this facility
+        :rtype: ``list`` of ``str`` or ``[]``
 
         Domains are defined in blueprints. Usually fittings plan are using at
         least one network domain, sometimes several.
@@ -403,8 +416,8 @@ class PlumberyFacility:
         Retrieves the list of Ethernet networks that have been defined across
         blueprints for this facility
 
-        :returns: ``list`` of ``str``
-            - the Ethernet networks defined for this facility, or []
+        :return: names of Ethernet networks defined for this facility
+        :rtype: ``list`` of ``str`` or ``[]``
 
         Ethernet networks are defined in blueprints. Usually fittings plan are
         using at least one Ethernet network, often several.
@@ -424,8 +437,8 @@ class PlumberyFacility:
         Retrieves the list of nodes that have been defined across
         blueprints for this facility
 
-        :returns: ``list`` of ``str``
-            - the nodes defined for this facility, or []
+        :return: names of nodes defined for this facility
+        :rtype: ``list`` of ``str`` or ``[]``
 
         Nodes are defined in blueprints.
 

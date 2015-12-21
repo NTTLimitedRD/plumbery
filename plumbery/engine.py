@@ -336,8 +336,8 @@ class PlumberyEngine:
         """
         Retrieves the secret that is communicated to new nodes during setup
 
-        :returns: ``str``
-            - the shared secret to be given to the driver
+        :return: the shared secret to be given to the driver
+        :rtype: ``str``
 
         :raises: :class:`plumbery.PlumberyException`
             - if no shared secret can be found
@@ -367,8 +367,9 @@ class PlumberyEngine:
         """
         Retrieves user name to authenticate to the API
 
-        :returns: ``str``
-            - the user name to be used with the driver
+        :return: the user name to be used with the driver
+        :rtype: ``str``
+
         :raises: :class:`plumbery.PlumberyException`
             - if no user name can be found
 
@@ -395,8 +396,9 @@ class PlumberyEngine:
         """
         Retrieves user password to authenticate to the API
 
-        :returns: ``str``
-            - the user password to be used with the driver
+        :return: the user password to be used with the driver
+        :rtype: ``str``
+
         :raises: :class:`plumbery.PlumberyException`
             - if no user password can be found
 

@@ -22,7 +22,7 @@ __all__ = ['PlumberyPolisher']
 
 class PlumberyPolisher:
     """
-    Polishes all these nodes
+    Polishes elements of the fittings plan
 
     :param settings: specific settings for this polisher
     :type param: ``dict``
@@ -36,60 +36,6 @@ class PlumberyPolisher:
 
     This is exactly what plumbery is offering to you in a straightforward
     extensible mechanism.
-
-    """
-
-    def __init__(self, settings):
-        self.settings = settings
-
-    @classmethod
-    def filter(cls, polishers, filter=None):
-        """
-        Selects only the polisher you want, or take them all
-
-        :param polishers: polishers to be applied
-        :type polishers: list of :class:`plumbery.PlumberyPolisher`
-
-        :param filter: the name of a single polisher to apply. If this
-            parameter is missing, all polishers declared in the fittings plan
-            will be applied
-        :type filter: ``str``
-
-        :returns: list of :class:`plumbery.PlumberyPolisher` or []
-
-        """
-
-        if not filter:
-            for polisher in polishers:
-                logging.info("Using polisher '{}'"
-                                            .format(polisher.settings['name']))
-            return polishers
-
-        for polisher in polishers:
-            if polisher.settings['name'] == filter:
-                logging.info("Using polisher '{}'".format(filter))
-                filtered = [polisher]
-                return filtered
-
-        logging.info("Using polisher '{}'".format(filter))
-        return [PlumberyPolisher.from_shelf(filter)]
-
-    @classmethod
-    def from_shelf(cls, polishId, settings={}):
-        """
-        Picks up a polisher from the shelf
-
-        :param polishId: name of the polisher to use, e.g., ``spit``
-        :type polishId: ``str``
-
-        :param settings: specific settings for this polisher
-        :type param: ``dict``
-
-        :returns: :class:`plumbery.PlumberyPolisher`
-            - instance of a polisher ready to use
-
-        :raises: :class:`plumbery.PlumberyException`
-            if no polisher can be found
 
         You can create polishers of your own, or use polishers from other
         persons. All polishers have to be placed in the directory
@@ -128,6 +74,61 @@ class PlumberyPolisher:
             from plumbery.engine import PlumberyEngine
             PlumberyEngine('fittings.yaml').polish_all_nodes()
 
+    """
+
+    def __init__(self, settings):
+        self.settings = settings
+
+    @classmethod
+    def filter(cls, polishers, filter=None):
+        """
+        Selects only the polisher you want, or take them all
+
+        :param polishers: polishers to be applied
+        :type polishers: list of :class:`plumbery.PlumberyPolisher`
+
+        :param filter: the name of a single polisher to apply. If this
+            parameter is missing, all polishers declared in the fittings plan
+            will be applied
+        :type filter: ``str``
+
+        :return: a list of filtered polishers
+        :rtype: ``list`` of :class:`plumbery.PlumberyPolisher` or []
+
+        """
+
+        if not filter:
+            for polisher in polishers:
+                logging.info("Using polisher '{}'"
+                                            .format(polisher.settings['name']))
+            return polishers
+
+        for polisher in polishers:
+            if polisher.settings['name'] == filter:
+                logging.info("Using polisher '{}'".format(filter))
+                filtered = [polisher]
+                return filtered
+
+        logging.info("Using polisher '{}'".format(filter))
+        return [PlumberyPolisher.from_shelf(filter)]
+
+    @classmethod
+    def from_shelf(cls, polishId, settings={}):
+        """
+        Picks up a polisher from the shelf
+
+        :param polishId: name of the polisher to use, e.g., ``inventory``
+        :type polishId: ``str``
+
+        :param settings: specific settings for this polisher
+        :type param: ``dict``
+
+        :return: instance of a polisher ready to use
+        :rtype: :class:`plumbery.PlumberyPolisher`
+
+        :raises: :class:`plumbery.PlumberyException`
+            if no polisher can be found
+
         """
 
         try:
@@ -145,6 +146,9 @@ class PlumberyPolisher:
             raise PlumberyException(
                 "Error: unable to load polisher '{0}' {1}!".format(
                     polishId, feedback))
+
+        raise PlumberyException(
+            "Error: unable to find polisher '{0}'!".format(polishId))
 
     def go(self, engine):
         """
