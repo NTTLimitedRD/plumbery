@@ -139,6 +139,8 @@ class TestPlumberyEngine(unittest.TestCase):
         try:
             engine = PlumberyEngine()
             engine.setup(io.TextIOWrapper(io.BytesIO(myPlan)))
+            self.engine.set_user_name('fake_name')
+            self.engine.set_user_password('fake_password')
             main(['fittings.yaml', 'build', 'web'], engine)
             main(['fittings.yaml', 'start', 'web'], engine)
             main(['fittings.yaml', 'polish', 'web'], engine)
