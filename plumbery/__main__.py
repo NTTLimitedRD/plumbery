@@ -89,7 +89,7 @@ elif verb == 'stop':
     if args.blueprint is None:
         engine.stop_all_nodes()
     else:
-        engine.stop_node(args.blueprint)
+        engine.stop_nodes(args.blueprint)
 
 elif verb == 'destroy':
     if args.blueprint is None:
