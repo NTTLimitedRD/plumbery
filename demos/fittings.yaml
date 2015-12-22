@@ -37,7 +37,7 @@ blueprints:
         ipv4: 6
       ethernet: &control
         name: gigafox.control
-        description: '#ops'
+        description: '#us #ops'
         subnet: 10.0.0.0
         destroy: never
       nodes:
@@ -89,14 +89,14 @@ blueprints:
       domain: *domain
       ethernet: &bastion
         name: gigafox.web
-        description: '#us #ops'
+        description: '#us'
         subnet: 10.2.0.0
         accept:
           - gigafox.control
         destroy: never
       nodes:
         - web[1..2]_na9:
-            description: '#apache #us #ops #primary'
+            description: '#apache #us #primary'
 #            cpu: 4
 #            memory: 8
 #            disks:
@@ -118,7 +118,7 @@ blueprints:
       ethernet: *bastion
       nodes:
         - redis[1..2]_na9:
-            description: '#redis #us #ops #primary'
+            description: '#redis #us #primary'
             monitoring: essentials
 
   # docker resources
@@ -133,7 +133,7 @@ blueprints:
         destroy: never
       nodes:
         - docker[1..5]_na9:
-            description: '#docker #us #dev #ops #primary'
+            description: '#docker #us #primary'
             glue:
               - gigafox.control
             monitoring: essentials
@@ -147,7 +147,7 @@ blueprints:
       ethernet: *compute
       nodes:
         - nodejs[1..5]_na9:
-            description: '#nodejs #us #ops #primary'
+            description: '#nodejs #us #primary'
             glue:
               - gigafox.control
             monitoring: essentials
@@ -158,7 +158,7 @@ blueprints:
   - sql:
       domain: *domain
       ethernet: &data
-        name: data
+        name: gigafox.data
         description: '#us'
         subnet: 10.4.0.0
         accept:
@@ -167,7 +167,7 @@ blueprints:
         destroy: never
       nodes:
         - masterSQL_na9:
-            description: '#mysql #us #ops #primary'
+            description: '#mysql #us #primary'
             appliance: 'RedHat 6 64-bit 4 CPU'
             monitoring: advanced
 
@@ -177,7 +177,7 @@ blueprints:
       ethernet: *data
       nodes:
         - cassandra[1..3]_na9:
-            description: '#cassandra #us #ops #primary'
+            description: '#cassandra #us #primary'
             monitoring: essentials
 
   # workloads dedicated to BLOBs
@@ -186,7 +186,7 @@ blueprints:
       ethernet: *data
       nodes:
         - mongodb[1..7]_na9:
-            description: '#mongodb #us #ops #primary'
+            description: '#mongodb #us #primary'
             monitoring: essentials
 
   # workloads devoted to object-based storage
@@ -195,7 +195,7 @@ blueprints:
       ethernet: *data
       nodes:
         - ceph[1..5]_na9:
-            description: '#ceph #us #ops #primary'
+            description: '#ceph #us #primary'
             monitoring: essentials
 
 ---
@@ -214,14 +214,14 @@ blueprints:
         ipv4: 4
       ethernet: &bastion
         name: gigafox.web
-        description: '#us #ops'
+        description: '#us'
         subnet: 10.2.0.0
         accept:
           - NA9::gigafox.control
         destroy: never
       nodes:
         - web[1..2]_na12:
-            description: '#apache #us #ops #secondary'
+            description: '#apache #us #secondary'
 #            cpu: 4
 #            memory: 8
 #            disks:
@@ -241,7 +241,7 @@ blueprints:
       ethernet: *bastion
       nodes:
         - redis[1..2]_na12:
-            description: '#redis #us #ops #secondary'
+            description: '#redis #us #secondary'
             monitoring: essentials
 
   # docker resources
@@ -256,7 +256,7 @@ blueprints:
         destroy: never
       nodes:
         - docker[1..5]_na12:
-            description: '#docker #us #dev #ops #secondary'
+            description: '#docker #us #secondary'
             monitoring: essentials
             rub:
               - run rub.update.sh
@@ -268,7 +268,7 @@ blueprints:
       ethernet: *compute
       nodes:
         - nodejs[1..5]_na12:
-            description: '#nodejs #us #ops #secondary'
+            description: '#nodejs #us #secondary'
             monitoring: essentials
             rub:
               - run rub.update.sh
@@ -277,7 +277,7 @@ blueprints:
   - sql:
       domain: *domain
       ethernet: &data
-        name: data
+        name: gigafox.data
         description: '#us'
         subnet: 10.4.0.0
         accept:
@@ -285,7 +285,7 @@ blueprints:
         destroy: never
       nodes:
         - slaveSQL_na12:
-            description: '#mysql #us #ops #secondary'
+            description: '#mysql #us #secondary'
             appliance: 'RedHat 6 64-bit 4 CPU'
             monitoring: advanced
 
@@ -295,7 +295,7 @@ blueprints:
       ethernet: *data
       nodes:
         - cassandra[1..3]_na12:
-            description: '#cassandra #us #ops #secondary'
+            description: '#cassandra #us #secondary'
             monitoring: essentials
 
   # workloads dedicated to BLOBs
@@ -304,7 +304,7 @@ blueprints:
       ethernet: *data
       nodes:
         - mongodb[1..7]_na12:
-            description: '#mongodb #us #ops #secondary'
+            description: '#mongodb #us #secondary'
             monitoring: essentials
 
   # workloads devoted to object-based storage
@@ -313,5 +313,5 @@ blueprints:
       ethernet: *data
       nodes:
         - ceph[1..5]_na12:
-            description: '#ceph #us #ops #secondary'
+            description: '#ceph #us #secondary'
             monitoring: essentials
