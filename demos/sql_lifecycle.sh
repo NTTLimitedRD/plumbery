@@ -3,17 +3,17 @@
 # demonstrate the full lifecycle for sql blueprint, across multiple facilities
 
 # now - create all missing parts for the 'sql' fittings
-python sql_build.py
+python -m plumbery fittings.yaml build sql
 
 # immediately after - start all nodes of 'sql'
-python sql_start.py
+python -m plumbery fittings.yaml start sql
 
 # polish all nodes in 'sql' blueprint
-python sql_polish.py
+python -m plumbery fittings.yaml polish sql
 
 # time to recycle resources - stop all nodes of 'sql', and reduce the bill
-python sql_stop.py
+python -m plumbery fittings.yaml stop sql
 
 # stop the bill - destroy all nodes of 'sql', and strip related storage
-python sql_destroy.py
+python -m plumbery fittings.yaml destroy sql
 
