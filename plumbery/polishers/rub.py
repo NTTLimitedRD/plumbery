@@ -125,7 +125,7 @@ class RubPolisher(PlumberyPolisher):
         """
 
         if node is None or node.state != NodeState.RUNNING:
-            logging.info("- '{}' is not running".format(node.name))
+            logging.info("- skipped - node is not running")
             return False
 
         # select the address to use
@@ -152,6 +152,7 @@ class RubPolisher(PlumberyPolisher):
             logging.info("Error: unable to rub '{}' at '{}'!".format(node.name,
                                                              target_ip))
             logging.info(str(feedback))
+            logging.info("- failed")
             result = False
 
         else:
@@ -394,7 +395,6 @@ class RubPolisher(PlumberyPolisher):
                 }})
 
         else:
-            logging.info('- failed')
             self.report.append({node.name: {
                 'status': 'failed',
                 'rubs': descriptions
