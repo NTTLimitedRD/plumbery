@@ -10,6 +10,7 @@ import unittest
 
 from libcloud.common.types import InvalidCredsError
 
+from plumbery.__main__ import main
 from plumbery.engine import PlumberyEngine
 
 myPlan = """
@@ -133,6 +134,25 @@ class TestPlumberyEngine(unittest.TestCase):
             pass
         except InvalidCredsError:
             pass
+
+    def test_main(self):
+        try:
+            engine = PlumberyEngine()
+            engine.setup(io.TextIOWrapper(io.BytesIO(myPlan)))
+            main(['fittings.yaml', 'build', 'web'], engine)
+            main(['fittings.yaml', 'start', 'web'], engine)
+            main(['fittings.yaml', 'polish', 'web'], engine)
+            main(['fittings.yaml', 'rub', 'web'], engine)
+            main(['fittings.yaml', 'stop', 'web'], engine)
+            main(['fittings.yaml', 'destroy', 'web'], engine)
+            main(['fittings.yaml', 'build'], engine)
+            main(['fittings.yaml', 'start'], engine)
+            main(['fittings.yaml', 'polish'], engine)
+            main(['fittings.yaml', 'rub'], engine)
+            main(['fittings.yaml', 'stop'], engine)
+            main(['fittings.yaml', 'destroy'], engine)
+        except IOError:
+            print("Missing fittings plan")
 
 if __name__ == '__main__':
     import sys

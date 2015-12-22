@@ -17,18 +17,88 @@ class FakeNetwork:
     id = 123
 
 
+class FakeEngine():
+
+    def get_shared_secret(self):
+        return 'nuts'
+
+
+class FakeRegion:
+
+    def create_node(self, name, image, auth, ex_network_domain, ex_vlan, ex_is_started, ex_description):
+        return True
+
+    def ex_create_network_domain(self, location, name, service_plan, description):
+        return FakeDomain()
+
+    def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
+        return FakeNetwork()
+
+    def ex_get_location_by_id(self, location):
+        return FakeLocation()
+
+    def ex_get_network_domain(self, location, network_domain):
+        return []
+
+    def ex_get_vlan(self, vlan_id):
+        return FakeNetwork()
+
+    def ex_list_nat_rules(self, domain):
+        return []
+
+    def ex_list_network_domains(self, location):
+        return []
+
+    def ex_list_vlans(self, location):
+        return []
+
+    def ex_start_node(self, node):
+        return True
+
+    def ex_shutdown_graceful(self, node):
+        return True
+
+    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):
+        return []
+
+    def destroy_node(self, node):
+        return True
+
+    def list_images(self, location):
+        return [FakeImage()]
+
+    def list_nodes(self):
+        return [FakeNode()]
+
+
 class FakeContainer:
 
     id = 123
     domain = 'fake'
     network = FakeNetwork()
 
+    region = FakeRegion()
 
-class FakeEngine():
+    blueprint = {
+        'target': 'fake',
+        'domain': {
+                'name': 'VDC1',
+                'service': 'ADVANCED',
+                'description': 'fake'},
+        'ethernet': {
+                'name': 'vlan1',
+                'subnet': '10.0.10.0',
+                'description': 'fake'},
+         'nodes': [{
+                'stackstorm': {
+                        'description': 'fake',
+                        'appliance': 'RedHat 6 64-bit 4 CPU'
+                        }
+                }]
+        }
 
-    def get_shared_secret(self):
-        return 'nuts'
-
+    def get_network_domain(self, blueprint):
+        return None
 
 fakeFacilitySettings = {
     'locationId': 'EU6',
