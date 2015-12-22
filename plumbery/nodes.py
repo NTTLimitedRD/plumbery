@@ -644,6 +644,7 @@ class PlumberyNodes:
 
                 else:
 
+                    retry = True
                     while True:
 
                         try:
@@ -655,6 +656,17 @@ class PlumberyNodes:
                             if 'RESOURCE_BUSY' in str(feedback):
                                 time.sleep(10)
                                 continue
+
+                            elif 'VMWARE_TOOLS_INVALID_STATUS' in str(feedback):
+
+                                # prevent transient errors
+                                if retry:
+                                    retry = False
+                                    time.sleep(30)
+                                    continue
+
+                                logging.info("- unable to stop node "
+                                            "- invalid VMware tools")
 
                             elif 'UNEXPECTED_ERROR' in str(feedback):
                                 time.sleep(10)
