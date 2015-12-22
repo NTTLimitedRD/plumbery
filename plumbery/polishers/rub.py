@@ -288,9 +288,15 @@ class RubPolisher(PlumberyPolisher):
                 addresses = netifaces.ifaddresses(interface)
                 if netifaces.AF_INET in addresses.keys():
                     for address in addresses[netifaces.AF_INET]:
+                        if address['addr'].startswith('127.0.0.1'):
+                            continue
                         self.addresses.append(address['addr'])
                 if netifaces.AF_INET6 in addresses.keys():
                     for address in addresses[netifaces.AF_INET6]:
+                        if address['addr'].startswith('::1'):
+                            continue
+                        if address['addr'].startswith('fe80::'):
+                            continue
                         self.addresses.append(address['addr'])
 
         except Exception as feedback:
