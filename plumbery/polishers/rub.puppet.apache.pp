@@ -1,13 +1,14 @@
 class { '::ntp':
     servers => ['pool.ntp.org'],
   }
-  
+
 #install and configure Apache
 class { 'apache':
 	default_vhost => false,
+    mpm_module => 'prefork',
 }
 
-include apache::mod::php   
+include apache::mod::php
 
 apache::vhost { 'vhost01.example.com':
   port    => '8080',
@@ -18,4 +19,4 @@ apache::vhost { 'vhost01.example.com':
 file { '/var/www/vhost01/index.php':
   ensure => file,
   content => '<?php  phpinfo(); ?>',    # phpinfo code
-} 
+}

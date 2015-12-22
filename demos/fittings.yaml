@@ -104,9 +104,8 @@ blueprints:
               - internet 22 80 443
             monitoring: essentials
             rub:
-              - run rub.update.sh
               - put rub.puppet.apache.pp /root/apache.pp
-              - run rub.puppet.sh /root/apache.pp
+              - run rub.puppet.apache.sh /root/apache.pp
       balancer:
         port: 80
         protocol: http
@@ -228,9 +227,8 @@ blueprints:
 #              - 100 HIGHPERFORMANCE
             monitoring: essentials
             rub:
-              - run rub.update.sh
               - put rub.puppet.apache.pp /root/apache.pp
-              - run rub.puppet.sh /root/apache.pp
+              - run rub.puppet.apache.sh /root/apache.pp
       balancer:
         port: 80
         protocol: http

@@ -206,7 +206,8 @@ class RubPolisher(PlumberyPolisher):
                                 rubs.append({
                                     'description': ' '.join(tokens),
                                     'genius': ScriptDeployment(script=text,
-                                                                 args=args)})
+                                                            args=args,
+                                                            name=script)})
 
                     except IOError:
                         raise PlumberyException("Error: cannot read '{}'"
@@ -405,7 +406,7 @@ class RubPolisher(PlumberyPolisher):
         else:
             fileName = 'rub.yaml'
 
-        logging.info("Reporting in '{}'".format(fileName))
+        logging.info("Reporting on rubs in '{}'".format(fileName))
         with open(fileName, 'w') as stream:
             stream.write(yaml.dump(self.report, default_flow_style=False))
             stream.close()
