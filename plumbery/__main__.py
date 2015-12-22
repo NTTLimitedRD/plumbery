@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import sys
 import argparse
 
 from plumbery.engine import PlumberyEngine
@@ -149,6 +149,7 @@ def main(args=[], engine=None):
             print("{}: error: unrecognised action '{}'"
                   .format('plumbery', verb))
             parser.print_help()
+            sys.exit(2)
 
 if __name__ == "__main__":
     main()

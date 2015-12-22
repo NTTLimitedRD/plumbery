@@ -136,25 +136,34 @@ class TestPlumberyEngine(unittest.TestCase):
             pass
 
     def test_main(self):
-        try:
-            engine = PlumberyEngine()
-            engine.setup(io.TextIOWrapper(io.BytesIO(myPlan)))
-            engine.set_user_name('fake_name')
-            engine.set_user_password('fake_password')
+        engine = PlumberyEngine()
+        engine.setup(io.TextIOWrapper(io.BytesIO(myPlan)))
+        engine.set_user_name('fake_name')
+        engine.set_user_password('fake_password')
+        with self.assertRaises(SystemExit):
+            main(['bad args'])
+        with self.assertRaises(InvalidCredsError):
             main(['fittings.yaml', 'build', 'web'], engine)
+        with self.assertRaises(InvalidCredsError):
             main(['fittings.yaml', 'start', 'web'], engine)
-            main(['fittings.yaml', 'polish', 'web'], engine)
+        main(['fittings.yaml', 'polish', 'web'], engine)
+        with self.assertRaises(SystemExit):
             main(['fittings.yaml', 'rub', 'web'], engine)
+        with self.assertRaises(InvalidCredsError):
             main(['fittings.yaml', 'stop', 'web'], engine)
+        with self.assertRaises(InvalidCredsError):
             main(['fittings.yaml', 'destroy', 'web'], engine)
+        with self.assertRaises(InvalidCredsError):
             main(['fittings.yaml', 'build'], engine)
+        with self.assertRaises(InvalidCredsError):
             main(['fittings.yaml', 'start'], engine)
-            main(['fittings.yaml', 'polish'], engine)
+        main(['fittings.yaml', 'polish'], engine)
+        with self.assertRaises(SystemExit):
             main(['fittings.yaml', 'rub'], engine)
+        with self.assertRaises(InvalidCredsError):
             main(['fittings.yaml', 'stop'], engine)
+        with self.assertRaises(InvalidCredsError):
             main(['fittings.yaml', 'destroy'], engine)
-        except IOError:
-            print("Missing fittings plan")
 
 if __name__ == '__main__':
     import sys
