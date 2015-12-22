@@ -103,7 +103,13 @@ def main(args=[], engine=None):
         print(args.version)
 
     if engine is None:
-        engine = PlumberyEngine(args.fittings[0])
+        try:
+            engine = PlumberyEngine(args.fittings[0])
+
+        except:
+            print("{}: error: cannot read fittings plan from '{}'"
+                  .format('plumbery', args.fittings[0]))
+            sys.exit(2)
 
     verb = args.action[0].lower()
     if verb == 'build':
