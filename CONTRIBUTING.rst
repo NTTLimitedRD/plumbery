@@ -62,17 +62,21 @@ Implement Features
 Look through the GitHub issues for features. Anything tagged with "feature"
 is open to whoever wants to implement it.
 
-Get Started!
-------------
+Ready to contribute? Here's how to set up Plumbery for local development
+------------------------------------------------------------------------
 
-Ready to contribute? Here's how to set up Plumbery for local development.
+1. Fork the `plumbery` repo on `GitHub`_. If you do not have an account there
+   yet, you have to create one, really. This is provided for free, and will
+   make you a proud member of a global community that matters. Once you have
+   authenticated, visit the `Plumbery repository at GitHub`_ and click
+   on the `Fork` link.
 
-1. Fork the `plumbery` repo on GitHub.
 2. Clone your fork locally::
 
     $ git clone git@github.com:your_name_here/plumbery.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper
+   installed, this is how you set up your fork for local development::
 
     $ mkvirtualenv plumbery
     $ cd plumbery/
@@ -104,11 +108,15 @@ Pull Request Guidelines
 Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
+
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in ``README.rst``.
+
 3. Check `Plumbery continuous integration at Travis CI`_
    and make sure that the tests pass there.
 
+.. _`GitHub`: https://github.com/
+.. _`Plumbery repository at GitHub`: https://github.com/bernard357/plumbery
 .. _`Plumbery issues at GitHub`: https://github.com/bernard357/plumbery/issues
-.. _`Plumbery continuous integration at Travis CI`: https://travis-ci.org/bernard357/plumbery/pull_requests
+.. _`Plumbery continuous integration at Travis CI`: https://travis-ci.org/bernard357/plumbery

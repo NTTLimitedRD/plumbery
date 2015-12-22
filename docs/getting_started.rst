@@ -5,8 +5,14 @@ Are you looking for a kind plumber to assist you in daily cloud deployment and
 operations? Here is the most vital information that you need to install and
 to use the software.
 
-Install stable version
-----------------------
+If you want to use plumbery
+---------------------------
+
+Plumbery is available as a python package, so the installation, the upgrade,
+and the removal of the software are really easy.
+
+Install the plumbery package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Plumbery is `available on PyPi`_. You can install latest stable version using pip:
 
@@ -18,26 +24,74 @@ Plumbery is `available on PyPi`_. You can install latest stable version using pi
 The installation of `python-dev` is required for the installation of the module
 `netifaces`, that is used by Plumbery to get information about network interfaces.
 
-Install development version
----------------------------
+Upgrade the plumbery package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can install latest development version from `Plumbery repository at GitHub`_:
+Use the following command to retrieve the version of plumbery that has been
+installed on a computer:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery -v
+
+You can compare this information with reference information posted at
+`Plumbery package at PiPy`_. If you have used pip to install the software,
+then you can use it again to upgrade the package:
+
+.. sourcecode:: bash
+
+    $ sudo pip install --upgrade plumbery
+
+Remove the plumbery package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Why would you bother about a small set of files at a computer? Anyway, if needed
+here is the command to remove plumbery from a python environment:
+
+.. sourcecode:: bash
+
+    $ sudo pip uninstall plumbery
+
+If you need the full development environment
+--------------------------------------------
+
+Maybe you want to upgrade the on-line documentation of Plumbery. For this
+you have to edit the `.rst` files that are in the `docs` directory. Or you
+want to add a new polisher in `plumbery\polishers`, for a new or special usage.
+Or you would like to troubleshoot an issue and put some `print()` statements in
+the code. And why not fix a bug or even implement a new feature?
+
+In all these situations, you would like to get a full copy of all files, and
+change them at will on your own computer.
+
+Install the plumbery development environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some precautions are needed if you really want to contribute to the Plumbery project.
+This is not really difficult, if you follow comprehensive instructions provided
+at :doc:`contributing`
+
+On the other hand, to dump a full copy of the software then you can clone
+the latest development version from `Plumbery repository at GitHub`_:
 
 .. sourcecode:: bash
 
     $ sudo apt-get install python-pip python-dev git
     $ sudo git clone https://github.com/bernard357/plumbery.git
     $ cd plumbery
-    $ python setup.py install
+    $ python setup.py develop
 
-Upgrade
--------
+Remove the plumbery development environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you used pip to install the software then you can also use it to upgrade it:
+Type the following command to clean the python runtime:
 
 .. sourcecode:: bash
 
-    $ sudo pip install --upgrade plumbery
+    $ python setup.py develop --uninstall
+
+Then you have to go back to the directory where plumbery was downloaded,
+and remove files by yourself.
 
 Configure and test your installation
 ------------------------------------
@@ -91,8 +145,9 @@ on nodes. The engine has built-in code to cover the full life cycle:
 Check your installation with demonstration files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In the ``demos`` directory that is coming with Plumbery you will find a
-reference ``fittings.yaml`` file, plus many programs that are using Plumbery.
+In the ``demos`` directory that is coming with the plumbery development
+environment you will find a reference ``fittings.yaml`` file. Else you
+can `download the reference fittings plan`_ and use it at will.
 
 To check your installation, you would like to ask plumbery to build a first
 inventory of your fittings:
@@ -205,6 +260,8 @@ extracted from the code, at :ref:`modindex` and :ref:`genindex`. And of course
 the source code is available on-line, check the `Plumbery repository at GitHub`_.
 
 .. _`available on PyPi`: https://pypi.python.org/pypi/plumbery
+.. _`Plumbery package at PiPy`: https://pypi.python.org/pypi/plumbery
 .. _`Plumbery repository at GitHub`: https://github.com/bernard357/plumbery
+.. _`download the reference fittings plan`: https://raw.githubusercontent.com/bernard357/plumbery/master/demos/fittings.yaml
 
 

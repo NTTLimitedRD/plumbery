@@ -8,8 +8,10 @@ you.
 
 ## Infrastructure as code at Dimension Data with Apache Libcloud
 
-* [Documentation of plumbery at ReadTheDocs](https://plumbery.readthedocs.org)
-* Free software: Apache License (2.0)
+* Documentation: [Plumbery at ReadTheDocs](https://plumbery.readthedocs.org)
+* Python package: [Plumbery at PiPy](https://pypi.python.org/pypi/plumbery)
+* Source code: [Plumbery at GitHub](https://github.com/bernard357/plumbery)
+* Free software: [Apache License (2.0)](http://www.apache.org/licenses/LICENSE-2.0)
 
 ## Features
 

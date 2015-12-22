@@ -16,8 +16,9 @@ Plumbery
 Infrastructure as code at Dimension Data with Apache Libcloud
 
 * Documentation: `Plumbery at ReadTheDocs`_
+* Python package: `Plumbery at PiPy`_
 * Source code: `Plumbery at GitHub`_
-* Free software: Apache License (2.0)
+* Free software: `Apache License (2.0)`_
 
 Features
 --------
@@ -64,7 +65,9 @@ Credits
 *  `cookiecutter-pypackage`_
 
 .. _`Plumbery at ReadTheDocs`: https://plumbery.readthedocs.org
+.. _`Plumbery at PiPy`: https://pypi.python.org/pypi/plumbery
 .. _`Plumbery at GitHub`: https://github.com/bernard357/plumbery
+.. _`Apache License (2.0)`: http://www.apache.org/licenses/LICENSE-2.0
 .. _`Bernard Paques`: https://github.com/bernard357
 .. _`Anthony Shaw`: https://github.com/tonybaloney
 .. _`Apache Libcloud`: https://libcloud.apache.org/

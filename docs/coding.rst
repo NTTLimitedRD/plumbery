@@ -9,7 +9,8 @@ extracted from pyton source files: :ref:`modindex` and :ref:`genindex`. And then
 of course there is the `Plumbery repository at GitHub`_ to browse everything.
 
 We welcome contributions of any kind (ideas, code, tests, documentation,
-examples, ...).
+examples, ...). Everything that is given to the community will be governed
+by the `Apache License (2.0)`_.
 
 * Any non-trivial change must contain tests. For more information, refer to the
   :ref:`Testing <test-conventions>` section below.
@@ -291,5 +292,5 @@ contains the test coverage.
 
 
 .. _`PEP8 Python Style Guide`: http://www.python.org/dev/peps/pep-0008/
-.. _`Plumbery repository at GitHub`: https://github.com/apache/plumbery
-.. _`Apache website`: https://www.apache.org/licenses/#clas
+.. _`Plumbery repository at GitHub`: https://github.com/bernard357/plumbery
+.. _`Apache License (2.0)`: http://www.apache.org/licenses/LICENSE-2.0
