@@ -5,16 +5,19 @@ Tests for `facility` module.
 """
 
 import unittest
-
+from mock_api import DimensionDataMockHttp
+from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 from plumbery.engine import PlumberyFittings, PlumberyEngine
 from plumbery.facility import PlumberyFacility
 
+DIMENSIONDATA_PARAMS = ('user', 'password')
 
 class FakeElement:
 
     def find(self, dummy):
         return {'ipv6': 'nuts'}
 
+# should be removed - head
 
 class FakeConnection:
 
@@ -100,9 +103,11 @@ class FakeRegion:
         return [FakeNode()]
 
 
+# should be removed - end
+
 fakeFittings = {
-    'regionId': 'dd-eu',
-    'locationId': 'EU7',
+    'regionId': 'dd-na',
+    'locationId': 'NA9',
     'blueprints': [{
             'fake': {
                     'domain': {
@@ -131,8 +136,10 @@ class TestPlumberyFacility(unittest.TestCase):
         self.plumbery.set_user_name('fake_user')
         self.plumbery.set_user_password('fake_password')
         self.fittings = PlumberyFittings(**fakeFittings)
+        DimensionDataNodeDriver.connectionCls.conn_classes = (None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
         self.facility = PlumberyFacility(plumbery=self.plumbery, fittings=self.fittings)
-        self.facility.region = FakeRegion()
+        self.facility.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
     def tearDown(self):
         self.facility = None
