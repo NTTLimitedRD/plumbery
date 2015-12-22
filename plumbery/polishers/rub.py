@@ -19,6 +19,7 @@ import yaml
 
 import netifaces
 
+from libcloud.compute.base import NodeState
 from libcloud.compute.deployment import FileDeployment
 from libcloud.compute.deployment import MultiStepDeployment
 from libcloud.compute.deployment import ScriptDeployment
@@ -122,6 +123,10 @@ class RubPolisher(PlumberyPolisher):
         :rtype: ``bool``
 
         """
+
+        if node is None or node.state != NodeState.RUNNING:
+            logging.info("- '{}' is not running".format(node.name))
+            return False
 
         # select the address to use
         if len(node.public_ips) > 0:
