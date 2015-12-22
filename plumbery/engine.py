@@ -424,6 +424,10 @@ class PlumberyEngine:
             will be applied
         :type filter: ``str``
 
+        :return: ``True`` if some polisher has been applied,
+            ``False`` otherwise
+        :rtype: ``bool``
+
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to apply custom polishers there.
 
@@ -434,9 +438,12 @@ class PlumberyEngine:
 
         """
 
-        logging.info("Polishing all blueprints")
-
         polishers = PlumberyPolisher.filter(self.polishers, filter)
+
+        if len(polishers) < 1:
+            return False
+
+        logging.info("Polishing all blueprints")
 
         for polisher in polishers:
             polisher.go(self)
@@ -450,6 +457,8 @@ class PlumberyEngine:
         for polisher in polishers:
             polisher.reap()
 
+        return True
+
     def polish_blueprint(self, names, filter=None):
         """
         Walks resources from the target blueprint and polishes them
@@ -462,6 +471,10 @@ class PlumberyEngine:
             will be applied
         :type filter: ``str``
 
+        :return: ``True`` if some polisher has been applied,
+            ``False`` otherwise
+        :rtype: ``bool``
+
         This function checks all facilities, one at a time and in the order
         defined in fittings plan, to apply custom polishers there.
 
@@ -472,14 +485,17 @@ class PlumberyEngine:
 
         """
 
+        polishers = PlumberyPolisher.filter(self.polishers, filter)
+
+        if len(polishers) < 1:
+            return False
+
         if isinstance(names, list):
             label = ' '.join(names)
         else:
             label = names
 
         logging.info("Polishing blueprint '{}'".format(label))
-
-        polishers = PlumberyPolisher.filter(self.polishers, filter)
 
         for polisher in polishers:
             polisher.go(self)
@@ -492,6 +508,8 @@ class PlumberyEngine:
 
         for polisher in polishers:
             polisher.reap()
+
+        return True
 
     def set_shared_secret(self, secret):
         """

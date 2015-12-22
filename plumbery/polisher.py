@@ -93,7 +93,7 @@ class PlumberyPolisher:
         :type filter: ``str``
 
         :return: a list of filtered polishers
-        :rtype: ``list`` of :class:`plumbery.PlumberyPolisher` or []
+        :rtype: ``list`` of :class:`plumbery.PlumberyPolisher` or ``[]``
 
         """
 
@@ -109,8 +109,11 @@ class PlumberyPolisher:
                 filtered = [polisher]
                 return filtered
 
+        # generate an exception if no implementation is available
+        polisher = PlumberyPolisher.from_shelf(filter)
+
         logging.info("Using polisher '{}'".format(filter))
-        return [PlumberyPolisher.from_shelf(filter)]
+        return [polisher]
 
     @classmethod
     def from_shelf(cls, polishId, settings={}):

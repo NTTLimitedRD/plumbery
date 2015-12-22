@@ -34,8 +34,8 @@ from plumbery.engine import PlumberyEngine
 from plumbery import __version__
 
 parser = argparse.ArgumentParser(
-                    prog='plumbery',
-                    description='Plumbing infrastructure with Apache Libcloud.')
+                prog='plumbery',
+                description='Plumbing infrastructure with Apache Libcloud.')
 
 parser.add_argument(
                 'fittings',
@@ -45,7 +45,8 @@ parser.add_argument(
 parser.add_argument(
                 'action',
                 nargs=1,
-                help="Either 'build', 'start', 'polish', 'stop' or 'destroy'")
+                help="Either 'build', 'start', 'polish', 'stop', 'destroy'"
+                    " or the name of a polisher, e.g., 'ansible', 'rub', etc.")
 
 parser.add_argument(
                 'blueprint',
@@ -98,6 +99,16 @@ elif verb == 'destroy':
         engine.destroy_blueprint(args.blueprint)
 
 else:
-    print("{}: error: unrecognised action '{}'".format('plumbery', args.action[0]))
-    parser.print_help()
-    sys.exit(2)
+    try:
+        if args.blueprint is None:
+            polished = engine.polish_all_blueprints(verb)
+        else:
+            polished = engine.polish_blueprint(args.blueprint, verb)
+    except:
+        polished = False
+
+    if not polished:
+        print("{}: error: unrecognised action '{}'"
+              .format('plumbery', args.action[0]))
+        parser.print_help()
+        sys.exit(2)

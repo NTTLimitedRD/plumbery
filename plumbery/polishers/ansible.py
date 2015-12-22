@@ -151,7 +151,7 @@ class AnsiblePolisher(InventoryPolisher):
         else:
             fileName = 'ansible.yaml'
 
-        logging.info("Writing the inventory for ansible in '{}'".format(fileName))
+        logging.info("Writing inventory for ansible in '{}'".format(fileName))
         with open(fileName, 'w') as stream:
 
             for line in sorted(hosts):

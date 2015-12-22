@@ -83,6 +83,8 @@ class InventoryPolisher(PlumberyPolisher):
         data.update(node.extra)
         data.pop('status')
 
+        data['private_host'] = node.private_ips[0].replace('.', '-')
+
         self.inventory.append(data)
 
     def reap(self):
