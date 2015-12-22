@@ -47,6 +47,8 @@ blueprints:
               - internet 22
             running: always
             monitoring: essentials
+            rub:
+              - run rub.update.sh
 
   # management, administration, and monitoring
   - control:
@@ -129,13 +131,12 @@ blueprints:
         description: '#us'
         subnet: 10.3.0.0
         accept:
+          - gigafox.control
           - gigafox.web
         destroy: never
       nodes:
         - docker[1..5]_na9:
             description: '#docker #us #primary'
-            glue:
-              - gigafox.control
             monitoring: essentials
             rub:
               - run rub.update.sh
@@ -148,8 +149,6 @@ blueprints:
       nodes:
         - nodejs[1..5]_na9:
             description: '#nodejs #us #primary'
-            glue:
-              - gigafox.control
             monitoring: essentials
             rub:
               - run rub.update.sh
