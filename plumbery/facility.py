@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
+import socket
 import logging
 
 from nodes import PlumberyNodes
@@ -513,15 +515,18 @@ class PlumberyFacility:
 
         """
 
-        if not self.region:
-            self.region = self.plumbery.provider(
-                self.plumbery.get_user_name(),
-                self.plumbery.get_user_password(),
-                region=self.fittings.regionId)
+        try:
+            if not self.region:
+                self.region = self.plumbery.provider(
+                    self.plumbery.get_user_name(),
+                    self.plumbery.get_user_password(),
+                    region=self.fittings.regionId)
 
-        if not self.location:
-            self.location = self.region.ex_get_location_by_id(
+            if not self.location:
+                self.location = self.region.ex_get_location_by_id(
                                                     self.fittings.locationId)
+        except socket.gaierror:
+            raise PlumberyException("Cannot communicate with the API endpoint")
 
     def start_all_nodes(self):
         """
