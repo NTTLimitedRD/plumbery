@@ -625,6 +625,7 @@ class PlumberyNodes:
                 node = self.get_node(label)
 
                 if 'running' in settings and settings['running'] == 'always'  \
+                    and node is not None \
                     and node.state == NodeState.RUNNING:
 
                     logging.info("Stopping node '{}'".format(label))
