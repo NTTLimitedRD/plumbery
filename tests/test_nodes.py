@@ -7,6 +7,10 @@ Tests for `nodes` module.
 import unittest
 
 from plumbery.nodes import PlumberyNodes
+from mock_api import DimensionDataMockHttp
+from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
+
+DIMENSIONDATA_PARAMS = ('user', 'password')
 
 
 class FakeNetwork:
@@ -26,19 +30,6 @@ class FakeImage:
     name = 'RedHat 6 64-bit 4 CPU'
 
 
-class FakeLocation:
-
-    id = 'EU7'
-    name = 'data centre in Amsterdam'
-    country = 'Netherlands'
-
-
-class FakeNode:
-
-    name = 'stackstorm'
-    extra = {'datacenterId': 'EU7'}
-
-
 class FakePlumbery:
 
     safeMode = False
@@ -46,6 +37,7 @@ class FakePlumbery:
     def get_shared_secret(self):
         return 'foo'
 
+# should be removed - head
 
 class FakeRegion:
 
@@ -77,14 +69,17 @@ class FakeRegion:
         return []
 
 
+# should be removed - end
+
 class FakeFacility:
 
     _cache_network_domains = []
     _cache_vlans = []
 
     plumbery = FakePlumbery()
-
-    region = FakeRegion()
+    DimensionDataNodeDriver.connectionCls.conn_classes = (None, DimensionDataMockHttp)
+    DimensionDataMockHttp.type = None
+    region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
     location = 1
 
