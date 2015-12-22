@@ -28,14 +28,8 @@ class FakeRegion:
     def create_node(self, name, image, auth, ex_network_domain, ex_vlan, ex_is_started, ex_description):
         return True
 
-    def ex_create_network_domain(self, location, name, service_plan, description):
-        return FakeDomain()
-
     def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
         return FakeNetwork()
-
-    def ex_get_location_by_id(self, location):
-        return FakeLocation()
 
     def ex_get_network_domain(self, location, network_domain):
         return []
@@ -63,9 +57,6 @@ class FakeRegion:
 
     def destroy_node(self, node):
         return True
-
-    def list_images(self, location):
-        return [FakeImage()]
 
     def list_nodes(self):
         return [FakeNode()]

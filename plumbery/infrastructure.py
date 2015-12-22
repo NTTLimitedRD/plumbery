@@ -310,7 +310,7 @@ class PlumberyInfrastructure:
                 logging.info("Creating firewall rule '{}'"
                              .format(rule.name))
                 logging.info("- already done")
-                candidates = {k:candidates[k] for k in candidates if k != rule.name}
+                candidates = {k: candidates[k] for k in candidates if k != rule.name}
 
         for name, rule in candidates.items():
 

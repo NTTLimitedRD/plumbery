@@ -14,11 +14,11 @@
 # limitations under the License.
 
 
-import sys
 import argparse
 
 from plumbery.engine import PlumberyEngine
 from plumbery import __version__
+
 
 def main(args=[], engine=None):
     """

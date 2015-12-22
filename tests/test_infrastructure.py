@@ -65,6 +65,7 @@ class FakePlumbery:
     def get_user_password(self):
         return 'fake'
 
+
 class FakeFacility:
 
     plumbery = FakePlumbery()
@@ -102,9 +103,9 @@ class TestPlumberyInfrastructure(unittest.TestCase):
         self.assertEqual(container.network.name, 'fake')
 
     def test_get_ethernet(self):
-        network = self.infrastructure.get_ethernet('MyNetwork')
-        network = self.infrastructure.get_ethernet(['EU6', 'MyNetwork'])
-        network = self.infrastructure.get_ethernet(['dd-eu', 'EU6', 'MyNetwork'])
+        self.infrastructure.get_ethernet('MyNetwork')
+        self.infrastructure.get_ethernet(['EU6', 'MyNetwork'])
+        self.infrastructure.get_ethernet(['dd-eu', 'EU6', 'MyNetwork'])
 
     def test_get_ipv4(self):
         self.infrastructure.blueprint = fakeBluePrint
