@@ -4,8 +4,9 @@ How to code for or with Plumbery?
 This page describes Plumbery development process and contains general
 guidelines and information on how to contribute to the project.
 
-If you are looking for code structure, here are some quick links for you:
-:ref:`modindex` and :ref:`genindex`.
+If you are looking for the code itself, you could look at documentation
+extracted from pyton source files: :ref:`modindex` and :ref:`genindex`. And then
+of course there is the `Plumbery repository at GitHub`_ to browse everything.
 
 We welcome contributions of any kind (ideas, code, tests, documentation,
 examples, ...).
@@ -290,8 +291,5 @@ contains the test coverage.
 
 
 .. _`PEP8 Python Style Guide`: http://www.python.org/dev/peps/pep-0008/
-.. _`Issue tracker`: https://issues.apache.org/jira/browse/plumbery
-.. _`Github git repository`: https://github.com/apache/plumbery
+.. _`Plumbery repository at GitHub`: https://github.com/apache/plumbery
 .. _`Apache website`: https://www.apache.org/licenses/#clas
-.. _`Lessons learned while porting plumbery to Python 3`: http://www.tomaz.me/2011/12/03/lessons-learned-while-porting-plumbery-to-python-3.html
-.. _`squashing commits with rebase`: http://gitready.com/advanced/2009/02/10/squashing-commits-with-rebase.html

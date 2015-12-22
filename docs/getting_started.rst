@@ -8,20 +8,20 @@ to use the software.
 Install stable version
 ----------------------
 
-Plumbery is available on PyPi. You can install latest stable version using pip:
+Plumbery is `available on PyPi`_. You can install latest stable version using pip:
 
 .. sourcecode:: bash
 
     $ sudo apt-get install python-pip python-dev
     $ sudo pip install plumbery
 
-The installation of python-dev is required for the installation of the module
-netifaces, that is used by Plumbery to get information about network interfaces.
+The installation of `python-dev` is required for the installation of the module
+`netifaces`, that is used by Plumbery to get information about network interfaces.
 
 Install development version
 ---------------------------
 
-You can install latest development version from our Git repository:
+You can install latest development version from `Plumbery repository at GitHub`_:
 
 .. sourcecode:: bash
 
@@ -55,7 +55,7 @@ If you are running Ubuntu you could do:
 
 .. sourcecode:: bash
 
-    nano ~/.bash_profile
+    $ nano ~/.bash_profile
 
 and type text like the following:
 
@@ -202,8 +202,9 @@ the engine and use it, as with any other python module. For example:
 
 To go deeper into the code itself, you could have a look at the documentation
 extracted from the code, at :ref:`modindex` and :ref:`genindex`. And of course
-the source code is available on-line, check `Plumbery at GitHub`_
+the source code is available on-line, check the `Plumbery repository at GitHub`_.
 
-.. _`Plumbery at GitHub`: https://github.com/bernard357/plumbery
+.. _`available on PyPi`: https://pypi.python.org/pypi/plumbery
+.. _`Plumbery repository at GitHub`: https://github.com/bernard357/plumbery
 
 
