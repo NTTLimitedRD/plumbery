@@ -78,12 +78,18 @@ class SpitPolisher(PlumberyPolisher):
         for name in names:
             while True:
                 node = nodes.get_node(name)
-                if node and node.extra['status'].action is None:
+                if node is not None and node.extra['status'].action is None:
                     break
 
                 if not waiting:
                     logging.info("Waiting for nodes to be deployed")
                     waiting = True
+
+                if node is not None \
+                    and node.extra['status'].failure_reason is not None:
+
+                    logging.info("- aborted - failed deployment of node '{}'".format(name))
+                    return
 
                 time.sleep(20)
 

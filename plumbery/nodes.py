@@ -533,6 +533,9 @@ class PlumberyNodes:
                     elif 'NO_CHANGE' in str(feedback):
                         logging.info("- already done")
 
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- unable to start monitoring - node has been locked")
+
                     else:
                         logging.info("- unable to start monitoring")
                         logging.info(str(feedback))
