@@ -274,7 +274,12 @@ class RubPolisher(PlumberyPolisher):
         :param facility: access to local parameters and functions
         :type facility: :class:`plumbery.PlumberyFacility`
 
-
+        This function lists all addresses of the computer that is running
+        plumbery. If there is at least one routable IPv6 address, then
+        it assumes that communication with nodes is possible. If no suitable
+        IPv6 address can be found, then plumbery falls back to IPv4.
+        Beachheading is granted only if the address of the computer running
+        plumbery matches the fitting parameter ``beachhead``.
         """
 
         self.facility = facility
@@ -284,20 +289,32 @@ class RubPolisher(PlumberyPolisher):
         try:
 
             self.addresses = []
+
             for interface in netifaces.interfaces():
                 addresses = netifaces.ifaddresses(interface)
+
                 if netifaces.AF_INET in addresses.keys():
                     for address in addresses[netifaces.AF_INET]:
+
+                        # strip local loop
                         if address['addr'].startswith('127.0.0.1'):
                             continue
+
                         self.addresses.append(address['addr'])
+
                 if netifaces.AF_INET6 in addresses.keys():
                     for address in addresses[netifaces.AF_INET6]:
+
+                        # strip local loop
                         if address['addr'].startswith('::1'):
                             continue
+
+                        # strip local link addresses
                         if address['addr'].startswith('fe80::'):
                             continue
-                        self.addresses.append(address['addr'])
+
+                        # we have a routable ipv6, so let's go
+                        self.beachheading = True
 
         except Exception as feedback:
             logging.info(str(feedback))
@@ -331,16 +348,29 @@ class RubPolisher(PlumberyPolisher):
 
         """
 
-        if not self.beachheading:
+        rubs = self._get_rubs(node, settings)
+        if len(rubs) < 1:
+            logging.info('- nothing to do')
             self.report.append({node.name: {
-                'status': 'unreachable'
+                'status': 'skipped - nothing to do'
                 }})
             return
 
-        rubs = self._get_rubs(node, settings)
-        if len(rubs) < 1:
+        # hack because the driver does not report public ipv4 accurately
+        if len(node.public_ips) < 1:
+            domain = container.get_network_domain(container.blueprint['domain']['name'])
+            for rule in container.region.ex_list_nat_rules(domain):
+                if rule.internal_ip == node.private_ips[0]:
+                    node.public_ips.append(rule.external_ip)
+                    break
+
+        if len(node.public_ips) > 0:
+            logging.info("- node is reachable at '{}'".format(node.public_ips[0]))
+
+        elif not self.beachheading:
+            logging.info('- node is unreachable')
             self.report.append({node.name: {
-                'status': 'skipped - nothing to do'
+                'status': 'unreachable'
                 }})
             return
 
