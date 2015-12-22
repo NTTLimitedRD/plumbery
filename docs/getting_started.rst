@@ -88,13 +88,24 @@ on nodes. The engine has built-in code to cover the full life cycle:
 * destroy the infrastructure and release all resources
 
 
-Check your installation with a demonstration program
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Check your installation with demonstration files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In the ``demos`` directory that is coming with Plumbery you will find a
 reference ``fittings.yaml`` file, plus many programs that are using Plumbery.
 
-To check your installation, you would like to pass through a full life cycle
+To check your installation, you would like to ask plumbery to build a first
+inventory of your fittings:
+
+.. sourcecode:: bash
+
+    $ cd demos
+    $ python -m plumbery fittings.yaml inventory
+
+If plumbery reports interactively where it is plumbing and what it is doing,
+then your installation is working great. Congratulations!
+
+Then your next ambition may be to pass through a full life cycle, for example
 with the following command:
 
 .. sourcecode:: bash
@@ -106,9 +117,66 @@ then destroys everything. It takes about 30 minutes to execute in total. A lot
 of information is reported on screen, so you have the ability to monitor what
 Plumbery is doing, and to understand any problem eventually.
 
+Run Plumbery from the command line
+----------------------------------
+
+As exposed before, plumbery can be run directly from the command line.
+Move first to the directory that contains your fittings plan, and then run:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery fittings.yaml build
+
+Plumbery will load ``fittings.yaml``, then build all blueprints there.
+
+As you can expect, plumbery can be invoked through the entire life cycle of
+your fittings:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery fittings.yaml build
+    $ python -m plumbery fittings.yaml start
+    $ python -m plumbery fittings.yaml polish
+
+    ... nodes are up and running here ...
+
+    $ python -m plumbery fittings.yaml stop
+    $ python -m plumbery fittings.yaml destroy
+
+To apply a polisher just mention its name on the command line. For example,
+if fittings plan has a blueprint for nodes running Docker, then you may
+use following statements to bootstrap each node:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery fittings.yaml build docker
+    $ python -m plumbery fittings.yaml start docker
+    $ python -m plumbery fittings.yaml rub docker
+
+    ... Docker is up and running at multiple nodes ...
+
+If you create a new polisher and put it in the directory ``plumbery\polishers``,
+then it will become automatically available:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery fittings.yaml my_special_stuff
+
+To get some help, you can type:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery -h
+
+
+As a next step, you are encouraged to have a deep look at the various files
+put in the ``demos`` directory. There is a sophisticated ``fittings.yaml`` file
+that demonstrates most advanced features supported by Plumbery. Many python
+snippets and scripts are provided as well.
+
 
 Use Plumbery as a python library
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 Since Plumbery is easy to load, you can use it interactively like in the
 following example:
@@ -119,8 +187,23 @@ following example:
     >>>PlumberyEngine('fittings.yaml').build_blueprint('beachhead control')
     ...
 
-As a next step, you are encouraged to have a deep look at the various files
-put in the ``demos`` directory. There is a sophisticated ``fittings.yaml`` file
-that demonstrates most advanced features supported by Plumbery. Many python
-snippets are provided as well.
+If you are writing some code using Plumbery as a library, you would import
+the engine and use it, as with any other python module. For example:
+
+.. sourcecode:: python
+
+    from plumbery.engine import PlumberyEngine
+
+    engine = PlumberyEngine('fittings.yaml')
+    engine.build_blueprint('docker')
+    engine.start_nodes('docker')
+    engine.polish_blueprint('docker', 'rub')
+
+
+To go deeper into the code itself, you could have a look at the documentation
+extracted from the code, at :ref:`modindex` and :ref:`genindex`. And of course
+the source code is available on-line, check `Plumbery at GitHub`_
+
+.. _`Plumbery at GitHub`: https://github.com/bernard357/plumbery
+
 

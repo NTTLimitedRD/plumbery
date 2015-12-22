@@ -51,7 +51,7 @@ def main(args=[], engine=None):
 
     To apply a polisher just mention its name on the command line. For example,
     if fittings plan has a blueprint for nodes running Docker, then you may
-    use follwing statements to bootstrap each node::
+    use following statements to bootstrap each node::
 
         $ python -m plumbery fittings.yaml build docker
         $ python -m plumbery fittings.yaml start docker
@@ -59,8 +59,8 @@ def main(args=[], engine=None):
 
         ... Docker is up and running at multiple nodes ...
 
-    If you create a new polisher and put it in the ``plumbery\polishers``
-    directory, then it will become automatically available::
+    If you create a new polisher and put it in the directory
+    ``plumbery\polishers``, then it will become automatically available::
 
         $ python -m plumbery fittings.yaml my_special_stuff
 

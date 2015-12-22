@@ -13,6 +13,7 @@ you.
 
 ## Features
 
+* Run from the command line, or as a python library
 * Read fittings plan in YAML
 * Use cloud API to create the network infrastructure, and to build nodes
 * Create network domains and Ethernet networks

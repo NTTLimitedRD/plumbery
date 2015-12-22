@@ -40,38 +40,32 @@ that is coming with plumbery to get an idea.
 
 Then very simple Python code is used to act on the infrastructure. For example
 you can build the entire set of resources described in the fittings plan
-directly in the python interpreter:
+directly from the command line:
 
-.. sourcecode:: python
+.. sourcecode:: bash
 
-    >>>from plumbery.engine import PlumberyEngine
-    >>>engine = PlumberyEngine('fittings.yaml')
-    >>>engine.build_all_blueprints()
-    ...
+    $ python -m plumbery fittings.yaml build
 
 This will load the YAML file, parse it, and call the cloud API to make it
 happen. Relax, and grab some coffee while plumbery adds network domains,
 Ethernet networks, and servers as per your specifications. The engine may plumb
 at various data centres spread on Earth, thanks to the power of Apache Libcloud.
 
-Then you can start all nodes with a single statement as well:
+Then you can start and bootstrap all nodes with simple statements as well:
 
-.. sourcecode:: python
+.. sourcecode:: bash
 
-    >>>engine.start_all_nodes()
-    ...
-
+    $ python -m plumbery fittings.yaml start
+    $ python -m plumbery fittings.yaml polish
 
 Now you can concentrate on important things, connect remotely to the nodes,
 play with them, run different tests, etc. At the end of the game, you would
 just have to stop all servers and destroy them as per following statements:
 
-.. sourcecode:: python
+.. sourcecode:: bash
 
-    >>>engine.stop_all_nodes()
-    ...
-    >>>engine.destroy_all_nodes()
-    ...
+    $ python -m plumbery fittings.yaml stop
+    $ python -m plumbery fittings.yaml destroy
 
 
 Infrastructure as code at Dimension Data with Apache Libcloud
@@ -151,16 +145,16 @@ actually a cluster of nodes plugged into the same network. Look at the sample
 
 Then you can handle a single blueprint independently from the others:
 
-.. sourcecode:: python
+.. sourcecode:: bash
 
-    >>>plumbery.build_blueprint('docker')
-    ...
-    >>>plumbery.start_nodes('docker')
-    ...
-    >>>plumbery.stop_nodes('docker')
-    ...
-    >>>plumbery.destroy_nodes('docker')
-    ...
+    $ python -m plumbery fittings.yaml build docker
+    $ python -m plumbery fittings.yaml start docker
+    $ python -m plumbery fittings.yaml rub docker
+
+    ... Docker is up and running at multiple nodes ...
+
+    $ python -m plumbery fittings.yaml stop docker
+    $ python -m plumbery fittings.yaml destroy docker
 
 Also, a blueprint can be spread across multiple data centres, and this is the
 very basis of fault tolerant services. For example for ``sql``, this blueprint
@@ -171,6 +165,8 @@ below to get a better idea of how simple this can be.
 
 .. sourcecode:: yaml
 
+    ---
+    safeMode: False
     ---
     # Amsterdam in Europe
     locationId: EU7

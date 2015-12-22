@@ -15,12 +15,14 @@ Plumbery
 
 Infrastructure as code at Dimension Data with Apache Libcloud
 
-* Documentation: https://plumbery.readthedocs.org
+* Documentation: `Plumbery at ReadTheDocs`_
+* Source code: `Plumbery at GitHub`_
 * Free software: Apache License (2.0)
 
 Features
 --------
 
+* Run from the command line, or as a python library
 * Read fittings plan in YAML
 * Use cloud API to create the network infrastructure, and to build nodes
 * Create network domains and Ethernet networks
@@ -61,6 +63,8 @@ Credits
 *  Cookiecutter_
 *  `cookiecutter-pypackage`_
 
+.. _`Plumbery at ReadTheDocs`: https://plumbery.readthedocs.org
+.. _`Plumbery at GitHub`: https://github.com/bernard357/plumbery
 .. _`Bernard Paques`: https://github.com/bernard357
 .. _`Anthony Shaw`: https://github.com/tonybaloney
 .. _`Apache Libcloud`: https://libcloud.apache.org/
