@@ -3,6 +3,27 @@
 History
 -------
 
+0.3.0 (2015-12-22)
+~~~~~~~~~~~~~~~~~~
+
+* Run plumbery from the command-line
+* Accept custom polisher from the command line too
+* Release the first comprehensive on-line documentation at ReadTheDocs
+* Illustrate new features in one demonstration fittings plan (the Gigafox project)
+* Consolidate sample scripts and python programs for demonstrations
+* Allow multiple network interfaces per node
+* Reserve and manage pools of public IPv4 addresses
+* Add address translation to nodes equipped with public IPv4 addresses
+* Add firewall rules for nodes directly visible from the internet
+* Wait for nodes to be deployed before polishing them
+* Add new strategies to communicate with nodes over the network
+* Fix the usage of puppet for Apache nodes
+* Improve reporting messages
+* Enhance code documentation
+* Fix behaviour on new abnormal conditions
+* Passing Travis CI
+* Test coverage 42%
+
 0.2.4 (2015-12-13)
 ~~~~~~~~~~~~~~~~~~
 
