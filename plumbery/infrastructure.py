@@ -869,8 +869,18 @@ class PlumberyInfrastructure:
                     else:
                         logging.info("Destroying firewall rule '{}'"
                                      .format(rule.name))
-                        self.region.ex_delete_firewall_rule(rule)
-                        logging.info("- in progress")
+                        try:
+                            self.region.ex_delete_firewall_rule(rule)
+                            logging.info("- in progress")
+
+                        except Exception as feedback:
+
+                            if 'RESOURCE_NOT_FOUND' in str(feedback):
+                                logging.info("- not found")
+
+                            else:
+                                logging.info("- unable to destroy firewall rule")
+                                logging.info(str(feedback))
 
     def _destroy_balancer(self):
         """
