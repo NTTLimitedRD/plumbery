@@ -292,7 +292,9 @@ class PlumberyNodes:
         if node is None:
             return True
 
-        if 'running' in settings and settings['running'] == 'always':
+        if 'running' in settings and settings['running'] == 'always'  \
+            and node.state == NodeState.RUNNING:
+
             return True
 
         for interface in self._list_secondary_interfaces(node):
@@ -617,16 +619,19 @@ class PlumberyNodes:
 
             for label in self.expand_labels(label):
 
-                if 'running' in settings and settings['running'] == 'always':
-                    logging.info("Node '{}' has to stay always on".format(label))
+                node = self.get_node(label)
+
+                if 'running' in settings and settings['running'] == 'always'  \
+                    and node.state == NodeState.RUNNING:
+
+                    logging.info("Stopping node '{}'".format(label))
+                    logging.info("- skipped - node has to stay always on")
                     continue
 
                 if self.plumbery.safeMode:
                     logging.info("Would have stopped node '{}' "
                                     "if not in safe mode".format(label))
                     continue
-
-                node = self.get_node(label)
 
                 logging.info("Stopping node '{}'".format(label))
 
@@ -653,7 +658,7 @@ class PlumberyNodes:
                                 continue
 
                             elif 'SERVER_STOPPED' in str(feedback):
-                                logging.info("- skipped - node is already stopped")
+                                logging.info("- already stopped")
 
                             else:
                                 logging.info("- unable to stop node")
@@ -673,7 +678,9 @@ class PlumberyNodes:
         if node is None:
             return
 
-        if 'running' in settings and settings['running'] == 'always':
+        if 'running' in settings and settings['running'] == 'always'  \
+            and node.state == NodeState.RUNNING:
+
             return
 
         while True:
