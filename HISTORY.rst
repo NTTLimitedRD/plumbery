@@ -3,7 +3,7 @@
 History
 -------
 
-0.3.1 (2015-12-23)
+0.3.2 (2015-12-23)
 ~~~~~~~~~~~~~~~~~~
 
 * Run plumbery from the command-line
@@ -21,7 +21,8 @@ History
 * Improve reporting messages
 * Enhance code documentation
 * Fix behaviour on multiple abnormal conditions
-* Test coverage 42%
+* Passing Travis CI
+* Test coverage 40%
 
 0.2.4 (2015-12-13)
 ~~~~~~~~~~~~~~~~~~
