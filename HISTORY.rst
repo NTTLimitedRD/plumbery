@@ -3,7 +3,7 @@
 History
 -------
 
-0.3.0 (2015-12-22)
+0.3.1 (2015-12-23)
 ~~~~~~~~~~~~~~~~~~
 
 * Run plumbery from the command-line
@@ -20,8 +20,7 @@ History
 * Fix the usage of puppet for Apache nodes
 * Improve reporting messages
 * Enhance code documentation
-* Fix behaviour on new abnormal conditions
-* Passing Travis CI
+* Fix behaviour on multiple abnormal conditions
 * Test coverage 42%
 
 0.2.4 (2015-12-13)
