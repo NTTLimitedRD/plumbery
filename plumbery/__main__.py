@@ -17,6 +17,7 @@ import sys
 import argparse
 
 from plumbery.engine import PlumberyEngine
+from plumbery.exception import PlumberyException
 from plumbery import __version__
 
 
@@ -148,7 +149,7 @@ def main(args=[], engine=None):
                 polished = engine.polish_all_blueprints(verb)
             else:
                 polished = engine.polish_blueprint(args.blueprint, verb)
-        except:
+        except PlumberyException as feedback:
             polished = False
 
         if not polished:
