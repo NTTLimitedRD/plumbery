@@ -1361,6 +1361,8 @@ class PlumberyInfrastructure:
             addresses = self._list_ipv4()
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
+        if domain is None:
+            return None
 
         for rule in self.region.ex_list_nat_rules(domain):
             addresses.remove(rule.external_ip)

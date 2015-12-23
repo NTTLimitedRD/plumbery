@@ -1,78 +1,46 @@
 #!/usr/bin/env python
 
 """
-Tests for `domain` module.
+Tests for `infrastructure` module.
 """
 
 import unittest
 
+from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
+from mock_api import DimensionDataMockHttp
+
 from plumbery.infrastructure import PlumberyInfrastructure
+
+DIMENSIONDATA_PARAMS = ('user', 'password')
 
 
 class FakeDomain:
 
-    name = 'fake'
     id = 123
 
 
 class FakeNetwork:
 
-    name = 'fake'
     id = 123
-
-
-class FakeRegion:
-
-    def __call__(self, *args, **kwargs):
-        return FakeRegion()
-
-    def ex_create_network_domain(self, location, name, service_plan, description):
-        return FakeDomain()
-
-    def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
-        return FakeNetwork()
-
-    def ex_get_location_by_id(self, id):
-        return None
-
-    def ex_get_network_domain(self, location, network_domain):
-        return []
-
-    def ex_get_vlan(self, vlan_id):
-        return FakeNetwork()
-
-    def ex_list_nat_rules(self, domain):
-        return []
-
-    def ex_list_network_domains(self, location):
-        return [FakeDomain()]
-
-    def ex_list_vlans(self, location):
-        return [FakeNetwork()]
-
-    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):
-        return []
 
 
 class FakePlumbery:
 
     safeMode = False
-    provider = FakeRegion()
 
-    def get_user_name(self):
-        return 'fake'
+class FakeLocation:
 
-    def get_user_password(self):
-        return 'fake'
-
+    id = 'EU6'
 
 class FakeFacility:
 
     plumbery = FakePlumbery()
 
-    region = FakeRegion()
+    DimensionDataNodeDriver.connectionCls.conn_classes = (None, DimensionDataMockHttp)
+    DimensionDataMockHttp.type = None
+    region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
-    location = 1
+    location = FakeLocation()
 
     _cache_network_domains = []
     _cache_vlans = []
@@ -99,13 +67,13 @@ class TestPlumberyInfrastructure(unittest.TestCase):
 
     def test_get_container(self):
         container = self.infrastructure.get_container(fakeBluePrint)
-        self.assertEqual(container.domain.name, 'fake')
-        self.assertEqual(container.network.name, 'fake')
+        self.assertEqual(container.domain, None)
+        self.assertEqual(container.network, None)
 
     def test_get_ethernet(self):
         self.infrastructure.get_ethernet('MyNetwork')
-        self.infrastructure.get_ethernet(['EU6', 'MyNetwork'])
-        self.infrastructure.get_ethernet(['dd-eu', 'EU6', 'MyNetwork'])
+#        self.infrastructure.get_ethernet(['XY6', 'MyNetwork'])
+#        self.infrastructure.get_ethernet(['dd-eu', 'EU6', 'MyNetwork'])
 
     def test_get_ipv4(self):
         self.infrastructure.blueprint = fakeBluePrint

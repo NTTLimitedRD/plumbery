@@ -142,27 +142,27 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         with self.assertRaises(SystemExit):
             main(['bad args'])
-        with self.assertRaises(InvalidCredsError):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'build', 'web'], engine)
-        with self.assertRaises(InvalidCredsError):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'start', 'web'], engine)
         main(['fittings.yaml', 'polish', 'web'], engine)
         with self.assertRaises(SystemExit):
             main(['fittings.yaml', 'rub', 'web'], engine)
-        with self.assertRaises(InvalidCredsError):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'stop', 'web'], engine)
-        with self.assertRaises(InvalidCredsError):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'destroy', 'web'], engine)
-        with self.assertRaises(InvalidCredsError):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'build'], engine)
-        with self.assertRaises(InvalidCredsError):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'start'], engine)
         main(['fittings.yaml', 'polish'], engine)
         with self.assertRaises(SystemExit):
             main(['fittings.yaml', 'rub'], engine)
-        with self.assertRaises(InvalidCredsError):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'stop'], engine)
-        with self.assertRaises(InvalidCredsError):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'destroy'], engine)
 
 if __name__ == '__main__':
