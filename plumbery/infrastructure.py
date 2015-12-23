@@ -710,6 +710,23 @@ class PlumberyInfrastructure:
                             logging.info("- unable to create firewall rule")
                             logging.info(str(feedback))
 
+        ruleName = 'CCDEFAULT.DenyExternalInboundIPv6'
+        for rule in self._list_firewall_rules():
+            if rule.name.lower() == ruleName.lower():
+                logging.info("Disabling firewall rule '{}'".format(ruleName))
+
+                try:
+                    if rule.enabled:
+                        self.region.ex_set_firewall_rule_state(rule, False)
+                        logging.info("- in progress")
+
+                    else:
+                        logging.info("- already done")
+
+                except Exception as feedback:
+                    logging.info("- unable to disable firewall rule")
+                    logging.info(str(feedback))
+
         return True
 
     def _build_balancer(self):
