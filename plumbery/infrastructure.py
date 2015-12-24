@@ -1836,7 +1836,7 @@ class PlumberyInfrastructure:
                         continue
 
                     elif 'HAS_DEPENDENCY' in str(feedback):
-                        logging.info("- not now - stuff on it")
+                        logging.info("- not now - stuff at '{}' and beyond".format(block.base_ip))
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
                         logging.info("- not now - locked")
