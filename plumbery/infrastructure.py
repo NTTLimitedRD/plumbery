@@ -1807,6 +1807,10 @@ class PlumberyInfrastructure:
 
         """
 
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        if len(self.region.ex_list_nat_rules(domain)) > 0:
+            return
+
         blocks = self.region.ex_list_public_ip_blocks(
             self.get_network_domain(self.blueprint['domain']['name']))
 
