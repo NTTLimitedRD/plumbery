@@ -74,16 +74,16 @@ class SpitPolisher(PlumberyPolisher):
 
         names = nodes.list_nodes(container.blueprint)
 
-        waiting = False
+        logging.info("Waiting for nodes to be deployed")
         for name in names:
             while True:
                 node = nodes.get_node(name)
-                if node is not None and node.extra['status'].action is None:
-                    break
+                if node is None:
+                    logging.info("- aborted - missing node '{}'".format(name))
+                    return
 
-                if not waiting:
-                    logging.info("Waiting for nodes to be deployed")
-                    waiting = True
+                if node.extra['status'].action is None:
+                    break
 
                 if node is not None \
                     and node.extra['status'].failure_reason is not None:
@@ -93,12 +93,12 @@ class SpitPolisher(PlumberyPolisher):
 
                 time.sleep(20)
 
-        if waiting:
-            logging.info("- done")
+        logging.info("- done")
 
         container._build_firewall_rules()
 
         container._reserve_ipv4()
+
         container._build_balancer()
 
     def shine_node(self, node, settings, container):
