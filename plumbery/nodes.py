@@ -143,12 +143,11 @@ class PlumberyNodes:
                     raise PlumberyException("Error: unable to find image "
                                                 "for '{}'!".format(imageName))
 
-                if self.plumbery.safeMode:
-                    logging.info("Would have created node '{}' "
-                                    "if not in safe mode".format(label))
-                    continue
-
                 logging.info("Creating node '{}'".format(label))
+
+                if self.plumbery.safeMode:
+                    logging.info("- not in safe mode")
+                    continue
 
                 if not container.domain:
                     logging.info("- missing network domain")
@@ -222,11 +221,6 @@ class PlumberyNodes:
 
             for label in self.expand_labels(label):
 
-                if self.plumbery.safeMode:
-                    logging.info("Would have destroyed node '{}' "
-                                    "if not in safe mode".format(label))
-                    continue
-
                 node = self.get_node(label)
                 if node is None:
                     logging.info("Destroying node '{}'".format(label))
@@ -241,6 +235,11 @@ class PlumberyNodes:
                 if node.state == NodeState.RUNNING:
                     logging.info("Destroying node '{}'".format(label))
                     logging.info("- skipped - node is up and running")
+                    continue
+
+                if self.plumbery.safeMode:
+                    logging.info("Destroying node '{}'".format(label))
+                    logging.info("- not in safe mode")
                     continue
 
                 self._stop_monitoring(node, settings)
@@ -555,14 +554,13 @@ class PlumberyNodes:
 
         node = self.get_node(name)
 
-        if self.plumbery.safeMode:
-            logging.info("Would have started node '{}' if not in safe mode"
-                                                                .format(name))
-            return
-
         logging.info("Starting node '{}'".format(name))
         if node is None:
             logging.info("- not found")
+            return
+
+        if self.plumbery.safeMode:
+            logging.info("- not in safe mode")
             return
 
         while True:
@@ -624,23 +622,20 @@ class PlumberyNodes:
 
                 node = self.get_node(label)
 
-                if 'running' in settings and settings['running'] == 'always'  \
-                    and node is not None \
-                    and node.state == NodeState.RUNNING:
-
-                    logging.info("Stopping node '{}'".format(label))
-                    logging.info("- skipped - node has to stay always on")
-                    continue
-
-                if self.plumbery.safeMode:
-                    logging.info("Would have stopped node '{}' "
-                                    "if not in safe mode".format(label))
-                    continue
-
                 logging.info("Stopping node '{}'".format(label))
 
                 if node is None:
                     logging.info("- not found")
+                    continue
+
+                elif 'running' in settings and settings['running'] == 'always'  \
+                    and node.state == NodeState.RUNNING:
+
+                    logging.info("- skipped - node has to stay always on")
+                    continue
+
+                elif self.plumbery.safeMode:
+                    logging.info("- not in safe mode")
                     continue
 
                 else:
@@ -699,12 +694,15 @@ class PlumberyNodes:
 
             return
 
+        if self.plumbery.safeMode:
+            return
+
+        logging.info("Stopping monitoring of node '{}'".format(node.name))
+
         while True:
 
             try:
                 self.region.ex_disable_monitoring(node)
-                logging.info("Stopping monitoring of node '{}'"
-                                                        .format(node.name))
                 logging.info("- in progress")
 
             except Exception as feedback:
@@ -720,13 +718,9 @@ class PlumberyNodes:
                     continue
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("Stopping monitoring of node '{}'"
-                                                        .format(node.name))
                     logging.info("- not now - locked")
 
                 else:
-                    logging.info("Stopping monitoring of node '{}'"
-                                                        .format(node.name))
                     logging.info("- unable to stop monitoring")
                     logging.info(str(feedback))
 

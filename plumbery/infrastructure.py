@@ -143,8 +143,9 @@ class PlumberyInfrastructure:
             label = tokens.pop(0)
 
             if self.plumbery.safeMode:
-                logging.info("Would have glued node '{}' to network '{}' "
-                             "if not in safe mode".format(node.name, label))
+                logging.info("Glueing node '{}' to network '{}'"
+                             .format(node.name, label))
+                logging.info("- not in safe mode")
                 continue
 
             if label == 'internet':
@@ -254,13 +255,13 @@ class PlumberyInfrastructure:
 
         for name, rule in candidates.items():
 
+            logging.info("Creating firewall rule '{}'"
+                         .format(name))
+
             if self.plumbery.safeMode:
-                logging.info("Would have created firewall rule '{}' "
-                             "if not in safe mode".format(name))
+                logging.info("- not in safe mode")
 
             else:
-                logging.info("Creating firewall rule '{}'"
-                             .format(name))
 
                 try:
 
@@ -338,10 +339,11 @@ class PlumberyInfrastructure:
             logging.info("- already there")
 
         elif self.plumbery.safeMode:
-            logging.info("Would have created network domain '{}' "
-                         "if not in safe mode".format(domainName))
-            logging.info("Would have created Ethernet network '{}' "
-                         "if not in safe mode".format(networkName))
+            logging.info("Creating network domain '{}'".format(domainName))
+            logging.info("- not in safe mode")
+            logging.info("Creating Ethernet network '{}'"
+                         .format(networkName))
+            logging.info("- not in safe mode")
             return False
 
         else:
@@ -402,8 +404,9 @@ class PlumberyInfrastructure:
             logging.info("- already there")
 
         elif self.plumbery.safeMode:
-            logging.info("Would have created Ethernet network '{}' "
-                         "if not in safe mode".format(networkName))
+            logging.info("Creating Ethernet network '{}'"
+                         .format(networkName))
+            logging.info("- not in safe mode")
             return False
 
         else:
@@ -556,13 +559,13 @@ class PlumberyInfrastructure:
 
             if shouldCreateRuleIPv4:
 
+                logging.info("Creating firewall rule '{}'"
+                             .format(ruleIPv4Name))
+
                 if self.plumbery.safeMode:
-                    logging.info("Would have created firewall rule '{}' "
-                                 "if not in safe mode".format(ruleIPv4Name))
+                    logging.info("- not in safe mode")
 
                 else:
-                    logging.info("Creating firewall rule '{}'"
-                                 .format(ruleIPv4Name))
 
                     sourceIPv4 = DimensionDataFirewallAddress(
                                 any_ip=False,
@@ -604,13 +607,13 @@ class PlumberyInfrastructure:
 
             if shouldCreateRuleIPv6:
 
+                logging.info("Creating firewall rule '{}'"
+                             .format(ruleIPv6Name))
+
                 if self.plumbery.safeMode:
-                    logging.info("Would have created firewall rule '{}' "
-                                 "if not in safe mode".format(ruleIPv4Name))
+                    logging.info("- not in safe mode")
 
                 else:
-                    logging.info("Creating firewall rule '{}'"
-                                 .format(ruleIPv6Name))
 
                     sourceIPv6 = DimensionDataFirewallAddress(
                                     any_ip=False,
@@ -753,13 +756,13 @@ class PlumberyInfrastructure:
                     "Error: unknown algorithm has been defined "
                     "for the pool '{}'!".format(name))
 
+            logging.info("Creating pool '{}'".format(name))
+
             if self.plumbery.safeMode:
-                logging.info("Would have created pool '{}' "
-                             "if not in safe mode".format(name))
+                logging.info("- not in safe mode")
 
             else:
                 try:
-                    logging.info("Creating pool '{}'".format(name))
                     pool = driver.ex_create_pool(
                                    network_domain_id=domain.id,
                                    name=name,
@@ -823,13 +826,13 @@ class PlumberyInfrastructure:
                     "Error: unknown protocol has been defined "
                     "for the listener '{}'!".format(label))
 
+            logging.info("Creating listener '{}'".format(name))
+
             if self.plumbery.safeMode:
-                logging.info("Would have created listener '{}' "
-                             "if not in safe mode".format(name))
+                logging.info("- not in safe mode")
                 continue
 
             try:
-                logging.info("Creating listener '{}'".format(name))
                 listener = driver.ex_create_virtual_listener(
                                    network_domain_id=domain.id,
                                    name=name,
@@ -894,18 +897,18 @@ class PlumberyInfrastructure:
             name = self.name_listener(label, settings)
 
             listener = self._get_listener(name)
+
+            logging.info("Destroying listener '{}'".format(name))
+
             if listener is None:
-                logging.info("Destroying listener '{}'".format(name))
                 logging.info("- not found")
                 continue
 
             if self.plumbery.safeMode:
-                logging.info("Would have destroyed listener '{}' "
-                             "if not in safe mode".format(name))
+                logging.info("- not in safe mode")
                 continue
 
             try:
-                logging.info("Destroying listener '{}'".format(name))
                 driver.destroy_balancer(listener)
                 logging.info("- in progress")
 
@@ -920,17 +923,16 @@ class PlumberyInfrastructure:
 
         pool = self._get_pool()
 
+        logging.info("Destroying pool '{}'".format(self._name_pool()))
+
         if pool is None:
-            logging.info("Destroying pool '{}'".format(self._name_pool()))
             logging.info("- not found")
 
         elif self.plumbery.safeMode:
-            logging.info("Would have destroyed pool '{}' "
-                         "if not in safe mode".format(pool.name))
+            logging.info("- not in safe mode")
 
         else:
             try:
-                logging.info("Destroying pool '{}'".format(pool.name))
                 driver.ex_destroy_pool(pool)
                 logging.info("- in progress")
 
@@ -1036,25 +1038,21 @@ class PlumberyInfrastructure:
         domain = self.get_network_domain(self.blueprint['domain']['name'])
         driver.ex_set_current_network_domain(domain.id)
 
+        logging.info("Adding '{}' to pool '{}'".format(node.name, pool.name))
+
         name = self.name_member(node)
         members = driver.ex_get_pool_members(pool.id)
         for member in members:
 
             if member.name == name:
-                logging.info("Adding '{}' to pool '{}'".format(node.name,
-                                                               pool.name))
                 logging.info("- already there")
                 return
 
         if self.plumbery.safeMode:
-            logging.info("Would have added '{}' to pool '{}' "
-                         "if not in safe mode".format(node.name,
-                                                      pool.name))
+            logging.info("- not in safe mode")
             return
 
         try:
-            logging.info("Adding '{}' to pool '{}'".format(node.name,
-                                                           pool.name))
             member = driver.ex_create_node(
                 network_domain_id=domain.id,
                 name=name,
@@ -1099,6 +1097,9 @@ class PlumberyInfrastructure:
         pool = self._get_pool()
         if pool is not None:
 
+            logging.info("Removing '{}' from pool '{}'".format(node.name,
+                                                               pool.name))
+
             members = driver.ex_get_pool_members(pool.id)
 
             found = False
@@ -1107,14 +1108,10 @@ class PlumberyInfrastructure:
                 if member.name == self.name_member(node):
 
                     if self.plumbery.safeMode:
-                        logging.info("Would have removed '{}' from pool '{}'"
-                                     "if not in safe mode".format(node.name,
-                                                                  pool.name))
+                        logging.info("- not in safe mode")
                         return
 
                     try:
-                        logging.info("Removing '{}' from pool '{}'".format(node.name,
-                                                                           pool.name))
                         driver.balancer_detach_member(
                             balancer='*unused*',
                             member=member)
@@ -1133,8 +1130,6 @@ class PlumberyInfrastructure:
                     break
 
             if not found:
-                logging.info("Removing '{}' from pool".format(node.name,
-                                                              pool.name))
                 logging.info("- already there")
 
         try:
@@ -1188,13 +1183,13 @@ class PlumberyInfrastructure:
 
                 if rule.name == ruleIPv4Name or rule.name == ruleIPv6Name:
 
+                    logging.info("Destroying firewall rule '{}'"
+                                 .format(rule.name))
+
                     if self.plumbery.safeMode:
-                        logging.info("Would have destroyed firewall rule '{}' "
-                                     "if not in safe mode".format(rule.name))
+                        logging.info("- not in safe mode")
 
                     else:
-                        logging.info("Destroying firewall rule '{}'"
-                                     .format(rule.name))
                         try:
                             self.region.ex_delete_firewall_rule(rule)
                             logging.info("- in progress")
@@ -1258,22 +1253,20 @@ class PlumberyInfrastructure:
 
         self._release_ipv4()
 
+        logging.info("Destroying Ethernet network '{}'".format(networkName))
+
         network = self.get_ethernet(networkName)
         if network is None:
-            logging.info("Destroying Ethernet network '{}'".format(networkName))
             logging.info("- not found")
 
         elif 'destroy' in blueprint['ethernet'] \
             and blueprint['ethernet']['destroy'] == 'never':
-            logging.info("Destroying Ethernet network '{}'".format(networkName))
             logging.info("- this network can never be destroyed")
 
         elif self.plumbery.safeMode:
-            logging.info("Would have destroyed Ethernet network '{}' "
-                         "if not in safe mode".format(networkName))
+            logging.info("- not in safe mode")
 
         else:
-            logging.info("Destroying Ethernet network '{}'".format(networkName))
 
             retry = True
             while True:
@@ -1321,12 +1314,11 @@ class PlumberyInfrastructure:
 
                 break
 
-        if self.plumbery.safeMode:
-            logging.info("Would have destroyed network domain '{}' "
-                         "if not in safe mode".format(domainName))
-            return
-
         logging.info("Destroying network domain '{}'".format(domainName))
+
+        if self.plumbery.safeMode:
+            logging.info("- not in safe mode")
+            return
 
         while True:
             try:
@@ -1397,13 +1389,13 @@ class PlumberyInfrastructure:
 
             if '_'+node.name.lower() in rule.name.lower():
 
+                logging.info("Destroying firewall rule '{}'"
+                             .format(rule.name))
+
                 if self.plumbery.safeMode:
-                    logging.info("Would have destroyed firewall rule '{}' "
-                                 "if not in safe mode".format(rule.name))
+                    logging.info("- not in safe mode")
 
                 else:
-                    logging.info("Destroying firewall rule '{}'"
-                                 .format(rule.name))
                     self.region.ex_delete_firewall_rule(rule)
                     logging.info("- in progress")
 
@@ -1821,12 +1813,11 @@ class PlumberyInfrastructure:
         if len(blocks) < 1:
             return
 
-        if self.plumbery.safeMode:
-            logging.info("Would have released public IPv4 addresses "
-                         "if not in safe mode")
-            return
-
         logging.info('Releasing public IPv4 addresses')
+
+        if self.plumbery.safeMode:
+            logging.info("- not in safe mode")
+            return
 
         for block in blocks:
             while True:
@@ -1881,12 +1872,11 @@ class PlumberyInfrastructure:
         if actual >= count:
             return True
 
-        if self.plumbery.safeMode:
-            logging.info("Would have reserved {} public IPv4 addresses "
-                         "if not in safe mode".format(count-actual))
-            return True
-
         logging.info('Reserving additional public IPv4 addresses')
+
+        if self.plumbery.safeMode:
+            logging.info("- not in safe mode")
+            return True
 
         while actual < count:
             try:
