@@ -110,9 +110,15 @@ blueprints:
             rub:
               - put rub.puppet.apache.pp /root/apache.pp
               - run rub.puppet.apache.sh /root/apache.pp
-      balancer:
-        port: 80
-        protocol: http
+      listeners:
+        - http:
+            port: 80
+            protocol: http
+            algorithm: round_robin
+        - https:
+            port: 443
+            protocol: http
+            algorithm: round_robin
 
   # workloads dealing with short-term memory
   - memcache:
@@ -230,9 +236,15 @@ blueprints:
             rub:
               - put rub.puppet.apache.pp /root/apache.pp
               - run rub.puppet.apache.sh /root/apache.pp
-      balancer:
-        port: 80
-        protocol: http
+      listeners:
+        - http:
+            port: 80
+            protocol: http
+            algorithm: round_robin
+        - https:
+            port: 443
+            protocol: http
+            algorithm: round_robin
 
   # workloads dealing with short-term memory
   - memcache:

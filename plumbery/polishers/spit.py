@@ -178,4 +178,4 @@ class SpitPolisher(PlumberyPolisher):
         if 'glue' in settings:
             container._attach_node(node, settings['glue'])
 
-        container._add_to_balancer(node)
+        container._add_to_pool(node)

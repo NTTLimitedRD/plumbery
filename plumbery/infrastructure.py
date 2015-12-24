@@ -83,74 +83,14 @@ class PlumberyInfrastructure:
         self._cache_remote_vlan = []
         self._cache_offshore_vlan = []
         self._cache_firewall_rules = []
+        self._cache_listeners = None
+        self._cache_pools = None
 
         self._network_domains_already_built = []
         self._vlans_already_built = []
 
-    def _add_to_balancer(self, node):
-        """
-        Adds a node to a load balancer
-
-        """
-
-        if 'balancer' not in self.blueprint:
-            return True
-
-        if 'port' in self.blueprint['balancer']:
-            port = self.blueprint['balancer']['port']
-        else:
-            port = '80'
-
-        ports = str(port).split(' ')
-        for port in ports:
-            port = int(port)
-            if port < 1 or port > 65535:
-                raise PlumberyException(
-                    "Error: invalid balancer port has been defined "
-                    "for the blueprint '{}'!".format(self.blueprint['target']))
-
-        factory = get_balancer_factory(Provider.DIMENSIONDATA)
-        driver = factory(
-            self.plumbery.get_user_name(),
-            self.plumbery.get_user_password(),
-            region=self.facility.fittings.regionId)
-
-        domain = self.get_network_domain(self.blueprint['domain']['name'])
-        driver.ex_set_current_network_domain(domain.id)
-
-        for port in ports:
-
-            name = self._name_load_balancer(port)
-
-            if self.plumbery.safeMode:
-                logging.info("Would have added '{}' to load balancer '{}' "
-                             "if not in safe mode".format(node.name, name))
-                continue
-
-            try:
-                logging.info("Adding '{}' to load balancer '{}'"
-                             .format(node.name, name))
-#                driver.create_balancer(name=name,
-#                                      algorithm=algorithms[algorithm],
-#                                      port=int(port),
-#                                      protocol=protocol,
-#                                      members=None)
-                logging.info("- not implemented yet -- do it yourself")
-#                logging.info("- in progress")
-
-            except Exception as feedback:
-
-                if 'NAME_NOT_UNIQUE' in str(feedback):
-                    logging.info("- already done")
-
-                elif 'NO_IP_ADDRESS_AVAILABLE' in str(feedback):
-                    logging.info("- no more ipv4 address available -- assign more")
-
-                else:
-                    logging.info("- unable to create load balancer")
-                    logging.info(str(feedback))
-
-        return True
+    def get_region_id(self):
+        return self.facility.fittings.regionId
 
     def _attach_node(self, node, networks):
         """
@@ -740,99 +680,174 @@ class PlumberyInfrastructure:
               ethernet: *data
               nodes:
                 - apache[10..19]
+              listeners:
+                - http:
+                    port: 80
+                    protocol: http
+                - https:
+                    port: 443
+                    protocol: http
               balancer:
-                port: 80 443
-                protocol: http
-                members: apache[10..19]
                 algorithm: round_robin
 
         In this example, the load balancer is configured to accept web traffic
         and to distribute the workload across multiple web engines.
 
-        The algorithm can take any value among followings:
+        One listener is configured for regular http protocol on port 80. The
+        other listener is for secured web protocol, aka, https, on port 443.
 
-        * random
-        * round_robin
-        * least_connections
-        * weighted_round_robin
-        * weighted_least_connections
-        * shortest_response
-        * persistent_ip
+        The algorithm used by default is ``round_robin``. This parameter
+        can take any value among followings:
+
+        * ``random``
+        * ``round_robin``
+        * ``least_connections``
+        * ``weighted_round_robin``
+        * ``weighted_least_connections``
+        * ``shortest_response``
+        * ``persistent_ip``
 
         """
 
-        if 'balancer' not in self.blueprint:
+        if 'listeners' not in self.blueprint:
             return True
-
-        if 'port' in self.blueprint['balancer']:
-            port = self.blueprint['balancer']['port']
-        else:
-            port = '80'
-
-        ports = str(port).split(' ')
-        for port in ports:
-            port = int(port)
-            if port < 1 or port > 65535:
-                raise PlumberyException(
-                    "Error: invalid balancer port has been defined "
-                    "for the blueprint '{}'!".format(self.blueprint['target']))
-
-        if 'protocol' in self.blueprint['balancer']:
-            protocol = self.blueprint['balancer']['protocol']
-        else:
-            protocol = 'http'
-
-        protocols = ['http', 'https', 'tcp', 'udp']
-
-        if protocol not in protocols:
-            raise PlumberyException(
-                "Error: unknown balancer protocol has been defined "
-                "for the blueprint '{}'!".format(self.blueprint['target']))
-
-        if 'algorithm' in self.blueprint['balancer']:
-            algorithm = self.blueprint['balancer']['algorithm'].lower()
-        else:
-            algorithm = 'round_robin'
-
-        algorithms = {
-            'random': Algorithm.RANDOM,
-            'round_robin': Algorithm.ROUND_ROBIN,
-            'least_connections': Algorithm.LEAST_CONNECTIONS,
-            'weighted_round_robin': Algorithm.WEIGHTED_ROUND_ROBIN,
-            'weighted_least_connections': Algorithm.WEIGHTED_LEAST_CONNECTIONS,
-            'shortest_response': Algorithm.SHORTEST_RESPONSE,
-            'persistent_ip': Algorithm.PERSISTENT_IP}
-
-        if algorithm not in algorithms.keys():
-            raise PlumberyException(
-                "Error: unknown balancer algorithm has been defined "
-                "for the blueprint '{}'!".format(self.blueprint['target']))
 
         factory = get_balancer_factory(Provider.DIMENSIONDATA)
         driver = factory(
             self.plumbery.get_user_name(),
             self.plumbery.get_user_password(),
-            region=self.facility.fittings.regionId)
+            region=self.get_region_id())
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
         driver.ex_set_current_network_domain(domain.id)
 
-        for port in ports:
+        pool = self._get_pool()
 
-            name = self._name_load_balancer(port)
+        if pool is None:
+
+            if 'balancer' in self.blueprint:
+                settings = self.blueprint['balancer']
+                if not isinstance(settings, dict):
+                    settings = {}
+            else:
+                settings = {}
+
+            name = self._name_pool()
+
+            if 'algorithm' in settings:
+                algorithm = settings['algorithm'].lower()
+            else:
+                algorithm = 'round_robin'
+
+            algorithms = [
+                'random',
+                'round_robin',
+                'least_connections',
+                'weighted_round_robin',
+                'weighted_least_connections',
+                'shortest_response',
+                'persistent_ip']
+
+            if algorithm not in algorithms:
+                raise PlumberyException(
+                    "Error: unknown algorithm has been defined "
+                    "for the pool '{}'!".format(name))
 
             if self.plumbery.safeMode:
-                logging.info("Would have created load balancer '{}' "
+                logging.info("Would have created pool '{}' "
+                             "if not in safe mode".format(name))
+
+            else:
+                try:
+                    logging.info("Creating pool '{}'".format(name))
+                    pool = driver.ex_create_pool(
+                                   network_domain_id=domain.id,
+                                   name=name,
+                                   balancer_method=algorithm,
+                                   ex_description="#plumbery",
+                                   health_monitors=None,
+                                   service_down_action='NONE',
+                                   slow_ramp_time=30)
+
+                    if self._cache_pools is None:
+                        self._cache_pools = []
+                    self._cache_pools.append(pool)
+
+                    logging.info("- in progress")
+
+                except Exception as feedback:
+
+                    if 'NAME_NOT_UNIQUE' in str(feedback):
+                        logging.info("- already done")
+
+                    else:
+                        logging.info("- unable to create pool")
+                        logging.info(str(feedback))
+
+        for item in self.blueprint['listeners']:
+
+            if isinstance(item, dict):
+                label = item.keys()[0]
+                settings = item[label]
+            else:
+                label = str(item)
+                settings = {}
+
+            name = self.name_listener(label, settings)
+
+            if self._get_listener(name):
+                logging.info("Creating listener '{}'".format(name))
+                logging.info("- already done")
+                continue
+
+            if 'port' in settings:
+                port = settings['port']
+            else:
+                port = '80'
+
+            port = int(port)
+            if port < 1 or port > 65535:
+                raise PlumberyException(
+                    "Error: invalid port has been defined "
+                    "for the listener '{}'!".format(label))
+
+            if 'protocol' in settings:
+                protocol = settings['protocol']
+            else:
+                protocol = 'http'
+
+            protocols = ['http', 'https', 'tcp', 'udp']
+
+            if protocol not in protocols:
+                raise PlumberyException(
+                    "Error: unknown protocol has been defined "
+                    "for the listener '{}'!".format(label))
+
+            if self.plumbery.safeMode:
+                logging.info("Would have created listener '{}' "
                              "if not in safe mode".format(name))
                 continue
 
             try:
-                logging.info("Creating load balancer '{}'".format(name))
-                driver.create_balancer(name=name,
-                                      algorithm=algorithms[algorithm],
-                                      port=int(port),
-                                      protocol=protocol,
-                                      members=None)
+                logging.info("Creating listener '{}'".format(name))
+                listener = driver.ex_create_virtual_listener(
+                                   network_domain_id=domain.id,
+                                   name=name,
+                                   ex_description="#plumbery",
+                                   port=port,
+                                   pool=pool,
+                                   persistence_profile=None,
+                                   fallback_persistence_profile=None,
+                                   irule=None,
+                                   protocol='TCP',
+                                   connection_limit=25000,
+                                   connection_rate_limit=2000,
+                                   source_port_preservation='PRESERVE')
+
+                if self._cache_listeners is None:
+                    self._cache_listeners = []
+                self._cache_listeners.append(listener)
+
                 logging.info("- in progress")
 
             except Exception as feedback:
@@ -844,10 +859,304 @@ class PlumberyInfrastructure:
                     logging.info("- no more ipv4 address available -- assign more")
 
                 else:
-                    logging.info("- unable to create load balancer")
+                    logging.info("- unable to create listener")
                     logging.info(str(feedback))
 
         return True
+
+    def _destroy_balancer(self):
+        """
+        Destroys load balancer
+
+        """
+
+        if 'listeners' not in self.blueprint:
+            return True
+
+        factory = get_balancer_factory(Provider.DIMENSIONDATA)
+        driver = factory(
+            self.plumbery.get_user_name(),
+            self.plumbery.get_user_password(),
+            region=self.get_region_id())
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver.ex_set_current_network_domain(domain.id)
+
+        for item in self.blueprint['listeners']:
+
+            if isinstance(item, dict):
+                label = item.keys()[0]
+                settings = item[label]
+            else:
+                label = str(item)
+                settings = {}
+
+            name = self.name_listener(label, settings)
+
+            listener = self._get_listener(name)
+            if listener is None:
+                logging.info("Destroying listener '{}'".format(name))
+                logging.info("- not found")
+                continue
+
+            if self.plumbery.safeMode:
+                logging.info("Would have destroyed listener '{}' "
+                             "if not in safe mode".format(name))
+                continue
+
+            try:
+                logging.info("Destroying listener '{}'".format(name))
+                driver.destroy_balancer(listener)
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'NOT_FOUND' in str(feedback):
+                    logging.info("- not found")
+
+                else:
+                    logging.info("- unable to destroy listener")
+                    logging.info(str(feedback))
+
+        pool = self._get_pool()
+
+        if pool is None:
+            logging.info("Destroying pool '{}'".format(self._name_pool()))
+            logging.info("- not found")
+
+        elif self.plumbery.safeMode:
+            logging.info("Would have destroyed pool '{}' "
+                         "if not in safe mode".format(pool.name))
+
+        else:
+            try:
+                logging.info("Destroying pool '{}'".format(pool.name))
+                driver.ex_destroy_pool(pool)
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'NAME_NOT_UNIQUE' in str(feedback):
+                    logging.info("- already done")
+
+                else:
+                    logging.info("- unable to destroy pool")
+                    logging.info(str(feedback))
+
+    def name_listener(self, label, settings={}):
+        return self.blueprint['target']                 \
+               +'_'+self.facility.get_location_id().lower()      \
+               +'.'+label+'.listener'
+
+    def _get_listener(self, name):
+        """
+        Retrieves a listener attached to this blueprint
+
+        """
+
+        factory = get_balancer_factory(Provider.DIMENSIONDATA)
+        driver = factory(
+            self.plumbery.get_user_name(),
+            self.plumbery.get_user_password(),
+            region=self.get_region_id())
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver.ex_set_current_network_domain(domain.id)
+
+        if self._cache_listeners is None:
+            logging.info("Listing listeners")
+            self._cache_listeners = driver.list_balancers()
+            logging.info("- found {} listeners".format(len(self._cache_listeners)))
+
+        for listener in self._cache_listeners:
+
+            if listener.name.lower() == name.lower():
+                return listener
+
+        return None
+
+    def _name_pool(self):
+        return self.blueprint['target']                     \
+               +'_'+self.facility.get_location_id().lower()+'.pool'
+
+    def _get_pool(self):
+        """
+        Retrieves the pool attached to this blueprint
+
+        """
+
+        if 'listeners' not in self.blueprint:
+            return None
+
+        factory = get_balancer_factory(Provider.DIMENSIONDATA)
+        driver = factory(
+            self.plumbery.get_user_name(),
+            self.plumbery.get_user_password(),
+            region=self.get_region_id())
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver.ex_set_current_network_domain(domain.id)
+
+        name = self._name_pool()
+
+        if self._cache_pools is None:
+            logging.info("Listing pools")
+            self._cache_pools = driver.ex_get_pools()
+            logging.info("- found {} pools".format(len(self._cache_pools)))
+
+        for pool in self._cache_pools:
+
+            if pool.name.lower() == name.lower():
+                return pool
+
+        return None
+
+    def name_member(self, node):
+        return node.name+'.plumbery'
+
+    def _add_to_pool(self, node):
+        """
+        Makes a node a new member of the pool
+
+        """
+
+        if 'listeners' not in self.blueprint:
+            return
+
+        pool = self._get_pool()
+        if pool is None:
+            return
+
+        factory = get_balancer_factory(Provider.DIMENSIONDATA)
+        driver = factory(
+            self.plumbery.get_user_name(),
+            self.plumbery.get_user_password(),
+            region=self.get_region_id())
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver.ex_set_current_network_domain(domain.id)
+
+        name = self.name_member(node)
+        members = driver.ex_get_pool_members(pool.id)
+        for member in members:
+
+            if member.name == name:
+                logging.info("Adding '{}' to pool '{}'".format(node.name,
+                                                               pool.name))
+                logging.info("- already done")
+                return
+
+        if self.plumbery.safeMode:
+            logging.info("Would have added '{}' to pool '{}' "
+                         "if not in safe mode".format(node.name,
+                                                      pool.name))
+            return
+
+        try:
+            logging.info("Adding '{}' to pool '{}'".format(node.name,
+                                                           pool.name))
+            member = driver.ex_create_node(
+                network_domain_id=domain.id,
+                name=name,
+                ip=node.private_ips[0],
+                ex_description='#plumbery')
+
+            driver.ex_create_pool_member(
+                pool=pool,
+                node=member,
+                port='*padding*')
+
+            logging.info("- in progress")
+
+        except Exception as feedback:
+
+            if 'NAME_NOT_UNIQUE' in str(feedback):
+                logging.info("- already done")
+                logging.info(str(feedback))
+
+            else:
+                logging.info("- unable to add to pool")
+                logging.info(str(feedback))
+
+    def _remove_from_pool(self, node):
+        """
+        Removes a node from the pool
+
+        """
+
+        if 'listeners' not in self.blueprint:
+            return
+
+        factory = get_balancer_factory(Provider.DIMENSIONDATA)
+        driver = factory(
+            self.plumbery.get_user_name(),
+            self.plumbery.get_user_password(),
+            region=self.get_region_id())
+
+        domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver.ex_set_current_network_domain(domain.id)
+
+        pool = self._get_pool()
+        if pool is not None:
+
+            members = driver.ex_get_pool_members(pool.id)
+
+            found = False
+            for member in members:
+
+                if member.name == self.name_member(node):
+
+                    if self.plumbery.safeMode:
+                        logging.info("Would have removed '{}' from pool '{}'"
+                                     "if not in safe mode".format(node.name,
+                                                                  pool.name))
+                        return
+
+                    try:
+                        logging.info("Removing '{}' from pool '{}'".format(node.name,
+                                                                           pool.name))
+                        driver.balancer_detach_member(
+                            balancer='*unused*',
+                            member=member)
+                        logging.info("- in progress")
+
+                    except Exception as feedback:
+
+                        if 'RESOURCE_NOT_FOUND' in str(feedback):
+                            logging.info("- not found")
+
+                        else:
+                            logging.info("- unable to remove from pool")
+                            logging.info(str(feedback))
+
+                    found = True
+                    break
+
+            if not found:
+                logging.info("Removing '{}' from pool".format(node.name,
+                                                              pool.name))
+                logging.info("- already done")
+
+        try:
+            logging.info("Destroying membership of '{}'".format(node.name))
+
+            members = driver.ex_get_nodes()
+            for member in members:
+                if member.name == self.name_member(node):
+                    driver.ex_destroy_node(member.id)
+                    break
+
+            logging.info("- in progress")
+
+        except Exception as feedback:
+
+            if 'RESOURCE_NOT_FOUND' in str(feedback):
+                logging.info("- not found")
+
+            else:
+                logging.info("- unable to destroy membership")
+                logging.info(str(feedback))
+
 
     def _destroy_firewall_rules(self):
         """
@@ -898,69 +1207,6 @@ class PlumberyInfrastructure:
                             else:
                                 logging.info("- unable to destroy firewall rule")
                                 logging.info(str(feedback))
-
-    def _destroy_balancer(self):
-        """
-        Destroys load balancer
-
-        """
-
-        if 'balancer' not in self.blueprint:
-            return True
-
-        if 'port' in self.blueprint['balancer']:
-            port = self.blueprint['balancer']['port']
-        else:
-            port = '80'
-
-        ports = str(port).split(' ')
-        for port in ports:
-            port = int(port)
-            if port < 1 or port > 65535:
-                raise PlumberyException(
-                    "Error: invalid balancer port has been defined "
-                    "for the blueprint '{}'!".format(self.blueprint['target']))
-
-        factory = get_balancer_factory(Provider.DIMENSIONDATA)
-        driver = factory(
-            self.plumbery.get_user_name(),
-            self.plumbery.get_user_password(),
-            region=self.facility.fittings.regionId)
-
-        domain = self.get_network_domain(self.blueprint['domain']['name'])
-        driver.ex_set_current_network_domain(domain.id)
-
-        candidates = []
-        for port in ports:
-            candidates.append(self._name_load_balancer(port))
-
-        #BUG in libcloud -- cannot proceed
-        return
-
-        balancers = driver.list_balancers()
-        for balancer in balancers:
-
-            if balancer.name not in candidates:
-                continue
-
-            if self.plumbery.safeMode:
-                logging.info("Would have destroyed load balancer '{}' "
-                             "if not in safe mode".format(balancer.name))
-                continue
-
-            try:
-                logging.info("Destroying load balancer '{}'".format(balancer.name))
-                driver.destroy_balancer(balancer)
-                logging.info("- in progress")
-
-            except Exception as feedback:
-
-                if 'NAME_NOT_UNIQUE' in str(feedback):
-                    logging.info("- already done")
-
-                else:
-                    logging.info("- unable to destroy load balancer")
-                    logging.info(str(feedback))
 
     def destroy_blueprint(self, blueprint):
         """
@@ -1562,63 +1808,48 @@ class PlumberyInfrastructure:
                                                 source,
                                                 destination)
 
-    def _name_load_balancer(self, port):
-        """
-        Provides a name for the load balancer attached to a blueprint
-
-        Use this function to ensure consistent naming across load balancers.
-
-        """
-
-        return 'Balancer.'+self.blueprint['target'].title()+'.'+str(port)
-
     def _release_ipv4(self):
         """
-        Releases all public IPv4 addresses assigned to the blueprint
+        Releases public IPv4 addresses assigned to the blueprint
 
         """
 
-        while True:
-            try:
-                blocks = self.region.ex_list_public_ip_blocks(
-                    self.get_network_domain(self.blueprint['domain']['name']))
+        blocks = self.region.ex_list_public_ip_blocks(
+            self.get_network_domain(self.blueprint['domain']['name']))
 
-                if len(blocks) < 1:
-                    return
+        if len(blocks) < 1:
+            return
 
-                if self.plumbery.safeMode:
-                    logging.info("Would have released public IPv4 addresses "
-                                 "if not in safe mode")
-                    return
+        if self.plumbery.safeMode:
+            logging.info("Would have released public IPv4 addresses "
+                         "if not in safe mode")
+            return
 
-                logging.info('Releasing public IPv4 addresses')
+        logging.info('Releasing public IPv4 addresses')
 
-                for block in blocks:
+        for block in blocks:
+            while True:
+                try:
                     self.region.ex_delete_public_ip_block(block)
+                    logging.info('- in progress')
 
-                logging.info('- in progress')
+                except Exception as feedback:
 
-            except Exception as feedback:
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
 
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
+                    elif 'HAS_DEPENDENCY' in str(feedback):
+                        logging.info("- not now - stuff on it")
 
-                elif 'HAS_DEPENDENCY' in str(feedback):
-                    logging.info("- not now - stuff on it")
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
 
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
+                    else:
+                        logging.info("- unable to release IPv4 public addresses ")
+                        logging.info(str(feedback))
 
-                else:
-                    logging.info("- unable to release IPv4 public addresses ")
-                    logging.info(str(feedback))
-
-            break
-
-    def _remove_from_balancer(self, node):
-        logging.info("Removing '{}' from load balancer".format(node.name))
-        logging.info("- not implemented yet -- do it yourself")
+                break
 
     def _reserve_ipv4(self):
         """
