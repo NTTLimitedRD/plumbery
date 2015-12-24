@@ -147,7 +147,7 @@ class TestPlumberyEngine(unittest.TestCase):
         with self.assertRaises(IndexError):
             main(['fittings.yaml', 'start', 'web'], engine)
         main(['fittings.yaml', 'polish', 'web'], engine)
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'rub', 'web'], engine)
         with self.assertRaises(IndexError):
             main(['fittings.yaml', 'stop', 'web'], engine)
@@ -158,7 +158,7 @@ class TestPlumberyEngine(unittest.TestCase):
         with self.assertRaises(IndexError):
             main(['fittings.yaml', 'start'], engine)
         main(['fittings.yaml', 'polish'], engine)
-        with self.assertRaises(SystemExit):
+        with self.assertRaises(IndexError):
             main(['fittings.yaml', 'rub'], engine)
         with self.assertRaises(IndexError):
             main(['fittings.yaml', 'stop'], engine)
