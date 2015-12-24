@@ -46,13 +46,13 @@ class PlumberyInfrastructure:
     :param facility: the underlying physical facility
     :type facility: :class:`plumbery.PlumberyFacility`
 
-    This abstraction to a virtual data center. It is a secured
+    This is an abstraction of a virtual data center. It is a secured
     container for multiple nodes.
 
     Example::
 
         from plumbery.infrastructure import PlumberyInfrastructure
-        infrastrucure = PlumberyInfrastructure(facility)
+        infrastructure = PlumberyInfrastructure(facility)
         infrastructure.build(blueprint)
 
     In this example an infrastructure is initialised at the given facility, and
@@ -1632,8 +1632,9 @@ class PlumberyInfrastructure:
 
         if len(self.facility._cache_network_domains) < 1:
             logging.info("Listing network domains")
-            self.facility._cache_network_domains = self.region.ex_list_network_domains(
-                                                        self.facility.location)
+            self.facility._cache_network_domains                        \
+                    = self.region.ex_list_network_domains(
+                                            self.facility.location)
             logging.info("- found {} network domains"
                          .format(len(self.facility._cache_network_domains)))
 
@@ -1891,8 +1892,8 @@ class PlumberyInfrastructure:
             try:
                 block = self.region.ex_add_public_ip_block_to_network_domain(
                     self.get_network_domain(self.blueprint['domain']['name']))
-                actual += block.size
-                logging.debug("- reserved {} addresses".format(block.size))
+                actual += int(block.size)
+                logging.debug("- reserved {} addresses".format(int(block.size)))
 
             except Exception as feedback:
 
