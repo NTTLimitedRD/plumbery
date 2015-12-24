@@ -108,7 +108,7 @@ class PlumberyNodes:
 
                 if self.get_node(label):
                     logging.info("Creating node '{}'".format(label))
-                    logging.info("- already done")
+                    logging.info("- already there")
                     continue
 
                 description = '#plumbery'
@@ -317,7 +317,7 @@ class PlumberyNodes:
                         logging.info("- not now - locked")
 
                     elif 'NO_CHANGE' in str(feedback):
-                        logging.info("- already done")
+                        logging.info("- already there")
 
                     else:
                         logging.info("- unable to detach node")
@@ -531,7 +531,7 @@ class PlumberyNodes:
                         continue
 
                     elif 'NO_CHANGE' in str(feedback):
-                        logging.info("- already done")
+                        logging.info("- already there")
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
                         logging.info("- unable to start monitoring - node has been locked")

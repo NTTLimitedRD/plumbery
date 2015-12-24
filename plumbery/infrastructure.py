@@ -174,7 +174,7 @@ class PlumberyInfrastructure:
                         logging.info("- not now - locked")
 
                     elif 'INVALID_INPUT_DATA' in str(feedback):
-                        logging.info("- already done")
+                        logging.info("- already there")
 
                     else:
                         logging.info("- unable to glue node")
@@ -249,7 +249,7 @@ class PlumberyInfrastructure:
             if rule.name in candidates.keys():
                 logging.info("Creating firewall rule '{}'"
                              .format(rule.name))
-                logging.info("- already done")
+                logging.info("- already there")
                 candidates = {k: candidates[k] for k in candidates if k != rule.name}
 
         for name, rule in candidates.items():
@@ -274,7 +274,7 @@ class PlumberyInfrastructure:
                 except Exception as feedback:
 
                     if 'NAME_NOT_UNIQUE' in str(feedback):
-                        logging.info("- already done")
+                        logging.info("- already there")
 
                     else:
                         logging.info("- unable to create firewall rule")
@@ -335,7 +335,7 @@ class PlumberyInfrastructure:
         self.domain = self.get_network_domain(domainName)
         if self.domain is not None:
             logging.info("Creating network domain '{}'".format(domainName))
-            logging.info("- already done")
+            logging.info("- already there")
 
         elif self.plumbery.safeMode:
             logging.info("Would have created network domain '{}' "
@@ -399,7 +399,7 @@ class PlumberyInfrastructure:
         if self.network is not None:
             logging.info("Creating Ethernet network '{}'"
                          .format(networkName))
-            logging.info("- already done")
+            logging.info("- already there")
 
         elif self.plumbery.safeMode:
             logging.info("Would have created Ethernet network '{}' "
@@ -543,14 +543,14 @@ class PlumberyInfrastructure:
                 if shouldCreateRuleIPv4 and rule.name.lower() == ruleIPv4Name.lower():
                     logging.info("Creating firewall rule '{}'"
                                  .format(rule.name))
-                    logging.info("- already done")
+                    logging.info("- already there")
                     shouldCreateRuleIPv4 = False
                     continue
 
                 if shouldCreateRuleIPv6 and rule.name.lower() == ruleIPv6Name.lower():
                     logging.info("Creating firewall rule '{}'"
                                  .format(rule.name))
-                    logging.info("- already done")
+                    logging.info("- already there")
                     shouldCreateRuleIPv6 = False
                     continue
 
@@ -596,7 +596,7 @@ class PlumberyInfrastructure:
                     except Exception as feedback:
 
                         if 'NAME_NOT_UNIQUE' in str(feedback):
-                            logging.info("- already done")
+                            logging.info("- already there")
 
                         else:
                             logging.info("- unable to create firewall rule")
@@ -644,7 +644,7 @@ class PlumberyInfrastructure:
                     except Exception as feedback:
 
                         if 'NAME_NOT_UNIQUE' in str(feedback):
-                            logging.info("- already done")
+                            logging.info("- already there")
 
                         else:
                             logging.info("- unable to create firewall rule")
@@ -661,7 +661,7 @@ class PlumberyInfrastructure:
                         logging.info("- in progress")
 
                     else:
-                        logging.info("- already done")
+                        logging.info("- already there")
 
                 except Exception as feedback:
                     logging.info("- unable to disable firewall rule")
@@ -778,7 +778,7 @@ class PlumberyInfrastructure:
                 except Exception as feedback:
 
                     if 'NAME_NOT_UNIQUE' in str(feedback):
-                        logging.info("- already done")
+                        logging.info("- already there")
 
                     else:
                         logging.info("- unable to create pool")
@@ -797,7 +797,7 @@ class PlumberyInfrastructure:
 
             if self._get_listener(name):
                 logging.info("Creating listener '{}'".format(name))
-                logging.info("- already done")
+                logging.info("- already there")
                 continue
 
             if 'port' in settings:
@@ -853,7 +853,7 @@ class PlumberyInfrastructure:
             except Exception as feedback:
 
                 if 'NAME_NOT_UNIQUE' in str(feedback):
-                    logging.info("- already done")
+                    logging.info("- already there")
 
                 elif 'NO_IP_ADDRESS_AVAILABLE' in str(feedback):
                     logging.info("- no more ipv4 address available -- assign more")
@@ -937,7 +937,7 @@ class PlumberyInfrastructure:
             except Exception as feedback:
 
                 if 'NAME_NOT_UNIQUE' in str(feedback):
-                    logging.info("- already done")
+                    logging.info("- already there")
 
                 else:
                     logging.info("- unable to destroy pool")
@@ -1043,7 +1043,7 @@ class PlumberyInfrastructure:
             if member.name == name:
                 logging.info("Adding '{}' to pool '{}'".format(node.name,
                                                                pool.name))
-                logging.info("- already done")
+                logging.info("- already there")
                 return
 
         if self.plumbery.safeMode:
@@ -1071,7 +1071,7 @@ class PlumberyInfrastructure:
         except Exception as feedback:
 
             if 'NAME_NOT_UNIQUE' in str(feedback):
-                logging.info("- already done")
+                logging.info("- already there")
                 logging.info(str(feedback))
 
             else:
@@ -1135,7 +1135,7 @@ class PlumberyInfrastructure:
             if not found:
                 logging.info("Removing '{}' from pool".format(node.name,
                                                               pool.name))
-                logging.info("- already done")
+                logging.info("- already there")
 
         try:
             logging.info("Destroying membership of '{}'".format(node.name))
