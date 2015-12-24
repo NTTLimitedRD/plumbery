@@ -1363,10 +1363,11 @@ class PlumberyInfrastructure:
         for rule in self.region.ex_list_nat_rules(domain):
             if rule.internal_ip == internal_ip:
 
+                logging.info("Detaching node '{}' from the internet"
+                             .format(node.name))
+
                 while True:
                     try:
-                        logging.info("Detaching node '{}' from the internet"
-                                     .format(node.name))
                         self.region.ex_delete_nat_rule(rule)
                         logging.info("- in progress")
 
@@ -1387,7 +1388,7 @@ class PlumberyInfrastructure:
 
         for rule in self._list_firewall_rules():
 
-            if '_'+node.name.lower() in rule.name.lower():
+            if rule.name.lower().startswith(node.name.lower()):
 
                 logging.info("Destroying firewall rule '{}'"
                              .format(rule.name))
@@ -1683,7 +1684,7 @@ class PlumberyInfrastructure:
 
             ruleIPv4Name = self.name_firewall_rule(
                                     'Internet',
-                                    node.name, 'TCPv4_'+port+'_')
+                                    node.name, 'TCPv4_'+port)
 
             sourceIPv4 = DimensionDataFirewallAddress(
                         any_ip=True,
@@ -1791,15 +1792,12 @@ class PlumberyInfrastructure:
         destination = ''.join(e for e in destination.title() if e.isalnum() or e == '_')
 
         if source == 'Internet':
-            return "plumbery.{}{}".format(
-                                                protocol,
-                                                destination)
+            return "{}.{}.plumbery".format(destination, protocol)
 
         else:
-            return "plumbery.{}From{}To{}".format(
-                                                protocol,
-                                                source,
-                                                destination)
+            return "From{}To{}.{}.plumbery".format(source,
+                                                   destination,
+                                                   protocol)
 
     def _release_ipv4(self):
         """
