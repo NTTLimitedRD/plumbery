@@ -4,7 +4,6 @@
 Tests for `plumbery` module.
 """
 
-import io
 import socket
 import unittest
 
@@ -90,7 +89,7 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(self.engine.safeMode, False)
 
         try:
-            self.engine.setup(io.TextIOWrapper(io.BytesIO(myPlan)))
+            self.engine.from_text(myPlan)
             self.engine.add_facility(myFacility)
             self.assertEqual(len(self.engine.facilities), 2)
 
@@ -137,7 +136,7 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_main(self):
         engine = PlumberyEngine()
-        engine.setup(io.TextIOWrapper(io.BytesIO(myPlan)))
+        engine.from_text(myPlan)
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
         with self.assertRaises(SystemExit):

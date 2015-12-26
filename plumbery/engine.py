@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
 import logging
 import os
 import yaml
@@ -113,14 +114,122 @@ class PlumberyEngine:
 
         self.provider = self.get_provider()
 
-        if fileName:
-            self.setup(fileName)
-
         self._sharedSecret = None
 
         self._userName = None
 
         self._userPassword = None
+
+        if fileName:
+            self.from_file(fileName)
+
+    def from_file(self, plan=None):
+        """
+        Reads the fittings plan from a file
+
+        :param plan: the file that contains fittings plan
+        :type plan: ``str`` or ``file``
+
+        The fittings plan is expected to follow YAML specifications, and it
+        must have multiple documents in it. The first document provides
+        general configuration parameters for the engine. Subsequent documents
+        describe the various locations for the fittings.
+
+        An example of a minimum fittings plan::
+
+            ---
+            safeMode: False
+            ---
+            # Frankfurt in Europe
+            locationId: EU6
+            regionId: dd-eu
+
+            blueprints:
+
+              - myBluePrint:
+                  domain:
+                    name: myDC
+                  ethernet:
+                    name: myVLAN
+                    subnet: 10.1.10.0
+                  nodes:
+                    - myServer
+
+        In this example, the plan is to deploy a single node in the data centre
+        at Frankfurt, in Europe. The node `myServer` will be placed in a
+        network named `myVLAN`, and the network will be part of a network
+        domain acting as a virtual data centre, `myDC`. The blueprint has a
+        name, `myBluePrint`, so that it can be handled independently from
+        other blueprints.
+
+        """
+
+        if plan is None:
+            plan = os.getenv('PLUMBERY')
+
+        if isinstance(plan, str):
+            plan = open(plan, 'r')
+
+        documents = yaml.load_all(plan)
+
+        # first document contains engine settings
+        self.set(documents.next())
+
+        # then one document per facility
+        for document in documents:
+            self.add_facility(document)
+
+        if self.safeMode:
+            logging.info("Running in safe mode"
+                " - no actual change will be made to the fittings")
+
+    def from_text(self, plan):
+        """
+        Reads the fittings plan
+
+        :param plan: the fittings plan
+        :type plan: ``str``
+
+        The fittings plan is expected to follow YAML specifications, and it
+        must have multiple documents in it. The first document provides
+        general configuration parameters for the engine. Subsequent documents
+        describe the various locations for the fittings.
+
+        Example of use::
+
+            myPlan = \"\"\"
+            ---
+            safeMode: True
+            ---
+            # Frankfurt in Europe
+            locationId: EU6
+            regionId: dd-eu
+
+            blueprints:
+
+              - myBlueprint:
+                  domain:
+                    name: myDC
+                  ethernet:
+                    name: myVLAN
+                    subnet: 10.1.10.0
+                  nodes:
+                    - myServer
+            \"\"\"
+
+            engine = PlumberyEngine()
+            engine.from_text(myPlan)
+
+        In this example, the plan is to deploy a single node in the data centre
+        at Frankfurt, in Europe. The node `myServer` will be placed in a
+        network named `myVLAN`, and the network will be part of a network
+        domain acting as a virtual data centre, `myDC`. The blueprint has a
+        name, `myBluePrint`, so that it can be handled independently from
+        other blueprints.
+
+        """
+
+        self.from_file(io.TextIOWrapper(io.BytesIO(plan)))
 
     def add_facility(self, facility):
         """
@@ -187,37 +296,6 @@ class PlumberyEngine:
             facility.build_blueprint(names)
 
         self.polish_blueprint(names=names, filter=self._buildPolisher)
-
-    def configure(self, settings):
-        """
-        Changes the settings of the engine
-
-        :param settings: the new settings
-        :type settings: ``dict``
-
-        """
-
-        if not isinstance(settings, dict):
-            raise TypeError('settings should be a dictionary')
-
-        if 'safeMode' not in settings:
-            raise LookupError('safeMode is not defined')
-
-        self.safeMode = settings['safeMode']
-        if self.safeMode not in [True, False]:
-            raise ValueError('safeMode should be either True or False')
-
-        if 'polishers' in settings:
-            for item in settings['polishers']:
-                key = item.keys()[0]
-                value = item[key]
-                self.polishers.append(
-                    PlumberyPolisher.from_shelf(key, value))
-
-        if 'buildPolisher' in settings:
-            self._buildPolisher = settings['buildPolisher']
-        else:
-            self._buildPolisher = 'spit'
 
     def destroy_all_blueprints(self):
         """
@@ -552,66 +630,6 @@ class PlumberyEngine:
         """
 
         self._userPassword = password
-
-    def setup(self, plan=None):
-        """
-        Reads the fittings plan
-
-        :param plan: the plan for the fittings
-        :type plan: ``str`` or ``file``
-
-        The fittings plan is expected to follow YAML specifications, and it
-        must have multiple documents in it. The first document provides
-        general configuration parameters for the engine. Subsequent documents
-        describe the various locations for the fittings.
-
-        An example of a minimum fittings plan::
-
-            ---
-            safeMode: False
-            ---
-            # Frankfurt in Europe
-            locationId: EU6
-            regionId: dd-eu
-
-            blueprints:
-
-              - myBluePrint:
-                  domain:
-                    name: myDC
-                  ethernet:
-                    name: myVLAN
-                    subnet: 10.1.10.0
-                  nodes:
-                    - myServer
-
-        In this example, the plan is to deploy a single node in the data centre
-        at Frankfurt, in Europe. The node `myServer` will be placed in a
-        network named `myVLAN`, and the network will be part of a network
-        domain acting as a virtual data centre, `myDC`. The blueprint has a
-        name, `myBluePrint`, so that it can be handled independently from
-        other blueprints.
-
-        """
-
-        if plan is None:
-            plan = os.getenv('PLUMBERY')
-
-        if isinstance(plan, str):
-            plan = open(plan, 'r')
-
-        documents = yaml.load_all(plan)
-
-        # first document contains engine settings
-        self.configure(documents.next())
-
-        # then one document per facility
-        for document in documents:
-            self.add_facility(document)
-
-        if self.safeMode:
-            logging.info("Running in safe mode"
-                " - no actual change will be made to the fittings")
 
     def start_all_nodes(self):
         """
