@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import argparse
+import logging
+import sys
 
 from plumbery.engine import PlumberyEngine
 from plumbery.exception import PlumberyException
@@ -93,12 +94,31 @@ def main(args=[], engine=None):
                     'If omitted, all blueprints will be considered',
                 default=None)
 
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument(
+                '-d', '--debug',
+                help='Log as much information as possible',
+                action='store_true')
+
+    group.add_argument(
+                '-q', '--quiet',
+                help='Silent mode, log only warnings and errors',
+                action='store_true')
+
     parser.add_argument(
                 '-v', '--version',
                 action='version',
                 version='%(prog)s ' + __version__)
 
     args = parser.parse_args(args)
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+    elif args.quiet:
+        logging.getLogger().setLevel(logging.WARNING)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
 
     if 'version' in args:
         print(args.version)
@@ -153,6 +173,7 @@ def main(args=[], engine=None):
             polished = False
 
         if not polished:
+            logging.getLogger().setLevel(logging.INFO)
             print("{}: error: unrecognised action '{}'"
                   .format('plumbery', verb))
             parser.print_help()
