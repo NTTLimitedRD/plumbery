@@ -433,7 +433,6 @@ class PlumberyInfrastructure:
                                                 poll_interval=5, timeout=1200,
                                                 vlan_id=self.network.id)
 
-                    self._update_ipv6(self.network)
                     self.facility._cache_vlans.append(self.network)
 
                 except Exception as feedback:
@@ -1529,8 +1528,6 @@ class PlumberyInfrastructure:
                 logging.info("Listing Ethernet networks")
                 self.facility._cache_vlans = self.region.ex_list_vlans(
                                             location=self.facility.location)
-                for network in self.facility._cache_vlans:
-                    self._update_ipv6(network)
                 logging.info("- found {} Ethernet networks"
                              .format(len(self.facility._cache_vlans)))
 
@@ -1553,7 +1550,6 @@ class PlumberyInfrastructure:
             vlans = self.region.ex_list_vlans(location=remoteLocation)
             for network in vlans:
                 if network.name == path[1]:
-                    self._update_ipv6(network)
                     self._cache_remote_vlan += path
                     self._cache_remote_vlan.append(network)
                     logging.info("- found it")
@@ -1580,7 +1576,6 @@ class PlumberyInfrastructure:
             vlans = offshore.ex_list_vlans(location=remoteLocation)
             for network in vlans:
                 if network.name == path[2]:
-                    self._update_ipv6(network, offshore)
                     self._cache_offshore_vlan += path
                     self._cache_offshore_vlan.append(network)
                     logging.info("- found it")
@@ -1908,34 +1903,3 @@ class PlumberyInfrastructure:
                     return False
 
         logging.info("- reserved {} addresses in total".format(actual))
-
-    def _update_ipv6(self, network, region=None):
-        """
-        Retrieves the ipv6 address for this network
-
-        This is a hack. Code here should really go to the Libcloud driver in
-        libcloud.compute.drivers.dimensiondata.py _to_vlan()
-
-        """
-
-        if region is None:
-            region = self.region
-
-        try:
-            element = region.connection.request_with_orgId_api_2(
-                'network/vlan/%s' % network.id).object
-
-            ip_range = element.find(fixxpath('ipv6Range', TYPES_URN))
-
-            network.ipv6_range_address = ip_range.get('address')
-            network.ipv6_range_size = str(ip_range.get('prefixSize'))
-
-        except Exception as feedback:
-
-            if 'RESOURCE_NOT_FOUND' in str(feedback):
-                network.ipv6_range_address = ''
-                network.ipv6_range_size = ''
-
-            else:
-                logging.info("Error: unable to retrieve IPv6 addresses ")
-                logging.info(str(feedback))
