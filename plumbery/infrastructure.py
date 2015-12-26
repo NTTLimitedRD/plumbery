@@ -155,7 +155,7 @@ class PlumberyInfrastructure:
             logging.info("Glueing node '{}' to network '{}'"
                          .format(node.name, label))
             target = self.get_ethernet(label.split('::'))
-            if not target:
+            if target is None:
                 logging.info("- network '{}' is unknown".format(label))
                 continue
 
@@ -497,7 +497,7 @@ class PlumberyInfrastructure:
             return True
 
         destination = self.get_ethernet(self.blueprint['ethernet']['name'])
-        if not destination:
+        if destination is None:
             return True
 
         destinationIPv4 = DimensionDataFirewallAddress(
@@ -522,7 +522,7 @@ class PlumberyInfrastructure:
                 label = str(item)
 
             source = self.get_ethernet(label.split('::'))
-            if not source:
+            if source is None:
                 logging.info("Source network '{}' is unknown".format(label))
                 continue
 

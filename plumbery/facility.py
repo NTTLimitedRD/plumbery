@@ -165,7 +165,7 @@ class PlumberyFacility:
         for name in names:
 
             blueprint = self.get_blueprint(name)
-            if not blueprint:
+            if blueprint is None:
                 continue
 
             if name not in self.list_basement():
@@ -226,7 +226,7 @@ class PlumberyFacility:
         for name in names:
 
             blueprint = self.get_blueprint(name)
-            if not blueprint:
+            if blueprint is None:
                 continue
 
             nodes.destroy_blueprint(blueprint)
@@ -250,7 +250,7 @@ class PlumberyFacility:
         for name in names:
 
             blueprint = self.get_blueprint(name)
-            if not blueprint:
+            if blueprint is None:
                 continue
 
             nodes.destroy_blueprint(blueprint)
@@ -499,7 +499,7 @@ class PlumberyFacility:
         for name in names:
 
             blueprint = self.get_blueprint(name)
-            if not blueprint:
+            if blueprint is None:
                 continue
 
             container = infrastructure.get_container(blueprint)
@@ -516,13 +516,13 @@ class PlumberyFacility:
         """
 
         try:
-            if not self.region:
+            if self.region is None:
                 self.region = self.plumbery.provider(
                     self.plumbery.get_user_name(),
                     self.plumbery.get_user_password(),
                     region=self.fittings.regionId)
 
-            if not self.location:
+            if self.location is None:
                 self.location = self.region.ex_get_location_by_id(
                                                     self.fittings.locationId)
         except socket.gaierror:
@@ -554,7 +554,7 @@ class PlumberyFacility:
         for name in names:
 
             blueprint = self.get_blueprint(name)
-            if not blueprint:
+            if blueprint is None:
                 continue
 
             if 'nodes' not in blueprint:
@@ -598,7 +598,7 @@ class PlumberyFacility:
         for name in names:
 
             blueprint = self.get_blueprint(name)
-            if not blueprint:
+            if blueprint is None:
                 continue
 
             if 'nodes' not in blueprint:

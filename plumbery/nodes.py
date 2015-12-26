@@ -149,10 +149,10 @@ class PlumberyNodes:
                     logging.info("- not in safe mode")
                     continue
 
-                if not container.domain:
+                if container.domain is None:
                     logging.info("- missing network domain")
                     continue
-                if not container.network:
+                if container.network is None:
                     logging.info("- missing Ethernet network")
                     continue
 

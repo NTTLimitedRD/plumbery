@@ -349,7 +349,7 @@ class PlumberyEngine:
 
         """
 
-        if not self._sharedSecret:
+        if self._sharedSecret is None:
             self._sharedSecret = os.getenv('SHARED_SECRET')
             if self._sharedSecret is None or len(self._sharedSecret) < 3:
                 raise PlumberyException(
@@ -378,7 +378,7 @@ class PlumberyEngine:
 
         """
 
-        if not self._userName:
+        if self._userName is None:
             self._userName = os.getenv('MCP_USERNAME')
             if self._userName is None or len(self._userName) < 3:
                 raise PlumberyException(
@@ -407,7 +407,7 @@ class PlumberyEngine:
 
         """
 
-        if not self._userPassword:
+        if self._userPassword is None:
             self._userPassword = os.getenv('MCP_PASSWORD')
             if self._userPassword is None or len(self._userPassword) < 3:
                 raise PlumberyException(

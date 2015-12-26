@@ -97,7 +97,7 @@ class PlumberyPolisher:
 
         """
 
-        if not filter:
+        if filter is None:
             for polisher in polishers:
                 logging.info("Using polisher '{}'"
                                             .format(polisher.settings['name']))
