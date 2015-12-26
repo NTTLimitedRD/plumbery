@@ -151,7 +151,7 @@ class RubPolisher(PlumberyPolisher):
         except Exception as feedback:
             logging.info("Error: unable to rub '{}' at '{}'!".format(node.name,
                                                              target_ip))
-            logging.info(str(feedback))
+            logging.error(str(feedback))
             logging.info("- failed")
             result = False
 
@@ -324,7 +324,7 @@ class RubPolisher(PlumberyPolisher):
                         self.beachheading = True
 
         except Exception as feedback:
-            logging.info(str(feedback))
+            logging.error(str(feedback))
 
         for item in self.facility.fittings.rub:
             if not isinstance(item, dict):

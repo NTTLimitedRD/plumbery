@@ -168,7 +168,7 @@ class SpitPolisher(PlumberyPolisher):
 
                             else:
                                 logging.info("- unable to add disk {}GB '{}'".format(size, speed))
-                                logging.info(str(feedback))
+                                logging.error(str(feedback))
 
                         break
 

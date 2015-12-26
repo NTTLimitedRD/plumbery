@@ -180,15 +180,15 @@ class PlumberyNodes:
 
                         elif 'RESOURCE_NOT_FOUND' in str(feedback):
                             logging.info("- not now")
-                            logging.info(str(feedback))
+                            logging.error(str(feedback))
 
                         elif 'RESOURCE_LOCKED' in str(feedback):
                             logging.info("- not now - locked")
-                            logging.info(str(feedback))
+                            logging.error(str(feedback))
 
                         else:
                             logging.info("- unable to create node")
-                            logging.info(str(feedback))
+                            logging.error(str(feedback))
 
                     break
 
@@ -272,7 +272,7 @@ class PlumberyNodes:
 
                         else:
                             logging.info("- unable to destroy node")
-                            logging.info(str(feedback))
+                            logging.error(str(feedback))
 
                     break
 
@@ -320,7 +320,7 @@ class PlumberyNodes:
 
                     else:
                         logging.info("- unable to detach node")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
                         return False
 
                 break
@@ -537,7 +537,7 @@ class PlumberyNodes:
 
                     else:
                         logging.info("- unable to start monitoring")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
 
                 break
 
@@ -580,7 +580,7 @@ class PlumberyNodes:
 
                 else:
                     logging.info("- unable to start node")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
 
             break
 
@@ -673,7 +673,7 @@ class PlumberyNodes:
 
                             else:
                                 logging.info("- unable to stop node")
-                                logging.info(str(feedback))
+                                logging.error(str(feedback))
 
                         break
 
@@ -722,7 +722,7 @@ class PlumberyNodes:
 
                 else:
                     logging.info("- unable to stop monitoring")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
 
             break
 
@@ -757,4 +757,4 @@ class PlumberyNodes:
 
             else:
                 logging.info("Error: unable to retrieve IPv6 addresses ")
-                logging.info(str(feedback))
+                logging.error(str(feedback))

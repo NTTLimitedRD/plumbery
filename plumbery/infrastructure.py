@@ -177,7 +177,7 @@ class PlumberyInfrastructure:
 
                     else:
                         logging.info("- unable to glue node")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
 
                 break
 
@@ -237,7 +237,7 @@ class PlumberyInfrastructure:
 
                     else:
                         logging.info("- unable to add address translation")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
 
                 break
 
@@ -277,7 +277,7 @@ class PlumberyInfrastructure:
 
                     else:
                         logging.info("- unable to create firewall rule")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
 
     def build(self, blueprint):
         """
@@ -390,7 +390,7 @@ class PlumberyInfrastructure:
 
                     else:
                         logging.info("- unable to create network domain")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
                         return False
 
                 break
@@ -453,7 +453,7 @@ class PlumberyInfrastructure:
 
                     else:
                         logging.info("- unable to create Ethernet network")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
                         return False
 
                 break
@@ -600,7 +600,7 @@ class PlumberyInfrastructure:
 
                         else:
                             logging.info("- unable to create firewall rule")
-                            logging.info(str(feedback))
+                            logging.error(str(feedback))
 
             if shouldCreateRuleIPv6:
 
@@ -648,7 +648,7 @@ class PlumberyInfrastructure:
 
                         else:
                             logging.info("- unable to create firewall rule")
-                            logging.info(str(feedback))
+                            logging.error(str(feedback))
 
         ruleName = 'CCDEFAULT.DenyExternalInboundIPv6'
         for rule in self._list_firewall_rules():
@@ -665,7 +665,7 @@ class PlumberyInfrastructure:
 
                 except Exception as feedback:
                     logging.info("- unable to disable firewall rule")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
 
         return True
 
@@ -777,7 +777,7 @@ class PlumberyInfrastructure:
 
                     else:
                         logging.info("- unable to create pool")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
 
         for item in self.blueprint['listeners']:
 
@@ -855,7 +855,7 @@ class PlumberyInfrastructure:
 
                 else:
                     logging.info("- unable to create listener")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
 
         return True
 
@@ -906,7 +906,7 @@ class PlumberyInfrastructure:
 
                 else:
                     logging.info("- unable to destroy listener")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
 
         pool = self._get_pool()
 
@@ -930,7 +930,7 @@ class PlumberyInfrastructure:
 
                 else:
                     logging.info("- unable to destroy pool")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
 
     def name_listener(self, label, settings={}):
         return self.blueprint['target']                 \
@@ -1042,11 +1042,11 @@ class PlumberyInfrastructure:
 
             if 'NAME_NOT_UNIQUE' in str(feedback):
                 logging.info("- already there")
-                logging.info(str(feedback))
+                logging.error(str(feedback))
 
             else:
                 logging.info("- unable to add to pool")
-                logging.info(str(feedback))
+                logging.error(str(feedback))
 
     def _remove_from_pool(self, node):
         """
@@ -1091,7 +1091,7 @@ class PlumberyInfrastructure:
 
                         else:
                             logging.info("- unable to remove from pool")
-                            logging.info(str(feedback))
+                            logging.error(str(feedback))
 
                     found = True
                     break
@@ -1117,7 +1117,7 @@ class PlumberyInfrastructure:
 
             else:
                 logging.info("- unable to destroy membership")
-                logging.info(str(feedback))
+                logging.error(str(feedback))
 
 
     def _destroy_firewall_rules(self):
@@ -1168,7 +1168,7 @@ class PlumberyInfrastructure:
 
                             else:
                                 logging.info("- unable to destroy firewall rule")
-                                logging.info(str(feedback))
+                                logging.error(str(feedback))
 
     def destroy_blueprint(self, blueprint):
         """
@@ -1276,7 +1276,7 @@ class PlumberyInfrastructure:
 
                     else:
                         logging.info("- unable to destroy Ethernet network")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
                         return
 
                 break
@@ -1311,7 +1311,7 @@ class PlumberyInfrastructure:
 
                 else:
                     logging.info("- unable to destroy Ethernet network")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
                     return
 
             break
@@ -1349,7 +1349,7 @@ class PlumberyInfrastructure:
 
                         else:
                             logging.info("- unable to remove address translation")
-                            logging.info(str(feedback))
+                            logging.error(str(feedback))
 
                     break
 
@@ -1716,7 +1716,7 @@ class PlumberyInfrastructure:
 
                 else:
                     logging.info("Unable to list IPv4 public addresses")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
                     return []
 
             break
@@ -1801,7 +1801,7 @@ class PlumberyInfrastructure:
 
                     else:
                         logging.info("- unable to release IPv4 public addresses ")
-                        logging.info(str(feedback))
+                        logging.error(str(feedback))
 
                 break
 
@@ -1864,7 +1864,7 @@ class PlumberyInfrastructure:
 
                 else:
                     logging.info("- unable to reserve IPv4 public addresses")
-                    logging.info(str(feedback))
+                    logging.error(str(feedback))
                     return False
 
         logging.info("- reserved {} addresses in total".format(actual))
