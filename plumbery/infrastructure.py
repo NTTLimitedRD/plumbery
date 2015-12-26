@@ -28,9 +28,7 @@ from libcloud.common.dimensiondata import DimensionDataNatRule
 from libcloud.common.dimensiondata import TYPES_URN
 from libcloud.loadbalancer.base import Algorithm
 from libcloud.loadbalancer.base import Member
-from libcloud.loadbalancer.types import Provider
 from libcloud.loadbalancer.types import State
-from libcloud.loadbalancer.providers import get_driver as get_balancer_factory
 
 from libcloud.utils.xml import fixxpath, findtext, findall
 
@@ -714,13 +712,8 @@ class PlumberyInfrastructure:
         if 'listeners' not in self.blueprint:
             return True
 
-        factory = get_balancer_factory(Provider.DIMENSIONDATA)
-        driver = factory(
-            self.plumbery.get_user_name(),
-            self.plumbery.get_user_password(),
-            region=self.get_region_id())
-
         domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
         pool = self._get_pool()
@@ -875,13 +868,8 @@ class PlumberyInfrastructure:
         if 'listeners' not in self.blueprint:
             return True
 
-        factory = get_balancer_factory(Provider.DIMENSIONDATA)
-        driver = factory(
-            self.plumbery.get_user_name(),
-            self.plumbery.get_user_password(),
-            region=self.get_region_id())
-
         domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
         for item in self.blueprint['listeners']:
@@ -955,13 +943,8 @@ class PlumberyInfrastructure:
 
         """
 
-        factory = get_balancer_factory(Provider.DIMENSIONDATA)
-        driver = factory(
-            self.plumbery.get_user_name(),
-            self.plumbery.get_user_password(),
-            region=self.get_region_id())
-
         domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
         if self._cache_listeners is None:
@@ -989,13 +972,8 @@ class PlumberyInfrastructure:
         if 'listeners' not in self.blueprint:
             return None
 
-        factory = get_balancer_factory(Provider.DIMENSIONDATA)
-        driver = factory(
-            self.plumbery.get_user_name(),
-            self.plumbery.get_user_password(),
-            region=self.get_region_id())
-
         domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
         name = self._name_pool()
@@ -1028,13 +1006,8 @@ class PlumberyInfrastructure:
         if pool is None:
             return
 
-        factory = get_balancer_factory(Provider.DIMENSIONDATA)
-        driver = factory(
-            self.plumbery.get_user_name(),
-            self.plumbery.get_user_password(),
-            region=self.get_region_id())
-
         domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
         logging.info("Adding '{}' to pool '{}'".format(node.name, pool.name))
@@ -1084,13 +1057,8 @@ class PlumberyInfrastructure:
         if 'listeners' not in self.blueprint:
             return
 
-        factory = get_balancer_factory(Provider.DIMENSIONDATA)
-        driver = factory(
-            self.plumbery.get_user_name(),
-            self.plumbery.get_user_password(),
-            region=self.get_region_id())
-
         domain = self.get_network_domain(self.blueprint['domain']['name'])
+        driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
         pool = self._get_pool()
@@ -1566,10 +1534,7 @@ class PlumberyInfrastructure:
             logging.info("Looking for offshore Ethernet network '{}'"
                          .format('::'.join(path)))
 
-            offshore = self.plumbery.provider(
-                self.plumbery.get_user_name(),
-                self.plumbery.get_user_password(),
-                region=path[0])
+            offshore = self.plumbery.get_compute_driver(region=path[0])
 
             remoteLocation = offshore.ex_get_location_by_id(path[1])
 

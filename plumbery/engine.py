@@ -18,8 +18,10 @@ import logging
 import os
 import yaml
 
-from libcloud.compute.providers import get_driver
-from libcloud.compute.types import Provider
+from libcloud.compute.providers import get_driver as get_compute_driver
+from libcloud.compute.types import Provider as ComputeProvider
+from libcloud.loadbalancer.providers import get_driver as get_balancer_driver
+from libcloud.loadbalancer.types import Provider as BalancerProvider
 
 from exception import PlumberyException
 from facility import PlumberyFacility
@@ -111,8 +113,6 @@ class PlumberyEngine:
         self.polishers = []
 
         self._buildPolisher = None
-
-        self.provider = self.get_provider()
 
         self._sharedSecret = None
 
@@ -392,17 +392,6 @@ class PlumberyEngine:
         for facility in self.facilities:
             facility.focus()
             facility.destroy_nodes(names)
-
-    def get_provider(self):
-        """
-        Loads a provider from Apache Libcloud
-
-        This is the function to override if you want to use plumbery with
-        any cloud service provider known by libcloud.
-
-        """
-
-        return get_driver(Provider.DIMENSIONDATA)
 
     def get_shared_secret(self):
         """
@@ -714,6 +703,32 @@ class PlumberyEngine:
         for facility in self.facilities:
             facility.focus()
             facility.stop_nodes(names)
+
+    def get_compute_driver(self, region):
+        """
+        Loads a compute driver from Apache Libcloud
+
+        """
+
+        driver = get_compute_driver(ComputeProvider.DIMENSIONDATA)
+
+        return driver(
+                self.get_user_name(),
+                self.get_user_password(),
+                region)
+
+    def get_balancer_driver(self, region):
+        """
+        Loads a load balancer driver from Apache Libcloud
+
+        """
+
+        driver = get_balancer_driver(BalancerProvider.DIMENSIONDATA)
+
+        return driver(
+                self.get_user_name(),
+                self.get_user_password(),
+                region)
 
 
 class PlumberyFittings:

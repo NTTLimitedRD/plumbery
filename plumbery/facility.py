@@ -517,10 +517,8 @@ class PlumberyFacility:
 
         try:
             if self.region is None:
-                self.region = self.plumbery.provider(
-                    self.plumbery.get_user_name(),
-                    self.plumbery.get_user_password(),
-                    region=self.fittings.regionId)
+                self.region = self.plumbery.get_compute_driver(
+                                                region=self.fittings.regionId)
 
             if self.location is None:
                 self.location = self.region.ex_get_location_by_id(
