@@ -99,12 +99,12 @@ class PlumberyEngine:
 
     safeMode = True
 
-    def __init__(self, fileName=None):
+    def __init__(self, plan=None):
         """
         Ignites the plumbing engine
 
-        :param   fileName: The file path of the blueprints
-        :type    fileName: ``str``
+        :param plan: the file that contains fittings plan
+        :type plan: ``str`` or ``file``
 
         """
 
@@ -120,8 +120,8 @@ class PlumberyEngine:
 
         self._userPassword = None
 
-        if fileName:
-            self.from_file(fileName)
+        if plan is not None:
+            self.from_file(plan)
 
     def from_file(self, plan=None):
         """
