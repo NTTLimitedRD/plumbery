@@ -65,7 +65,7 @@ class FakeLocation:
 
 class TestPlumberyEngine(unittest.TestCase):
 
-    def test_configure(self):
+    def test_set(self):
 
         settings = {
             'safeMode': False,
@@ -85,7 +85,7 @@ class TestPlumberyEngine(unittest.TestCase):
         self.engine.set_user_password('fake_password')
         self.assertEqual(self.engine.get_user_password(), 'fake_password')
 
-        self.engine.configure(settings)
+        self.engine.set(settings)
         self.assertEqual(self.engine.safeMode, False)
 
         try:
