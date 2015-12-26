@@ -407,37 +407,94 @@ class PlumberyEngine:
 
         self.facilities.append(facility)
 
-    def build_all_blueprints(self):
+    def list_facility(self, location):
+        """
+        Retrieves facilities by their location
+
+        :param location: the target location, e.g., 'EU6'
+        :type location: ``str`` or ``list`` of ``str``
+
+        :return: the list of matching facilities
+        :rtype: ``list`` of :class:`plumbery.PlumberyFacility` or ``[]``
+
+        Examples::
+
+            >>>engine.list_facility(location='EU6')
+            ...
+
+            >>>engine.list_facility(location='EU6 NA9')
+            ...
+
+            >>>engine.list_facility(location=['EU6', 'NA9'])
+            ...
+
+        """
+
+        if isinstance(location, str):
+            location = location.split(' ')
+
+        matches = []
+
+        for item in location:
+            if isinstance(item, PlumberyFacility):
+                matches.append(item)
+
+        for facility in self.facilities:
+            if facility.fittings.locationId in location:
+                matches.append(facility)
+
+        return matches
+
+    def build_all_blueprints(self, facilities=None):
         """
         Builds all blueprints described in fittings plan
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to build all blueprints there.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
 
-        Example::
+        This function checks facilities to build all blueprints there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
+
+        Examples::
 
             from plumbery.engine import PlumberyEngine
             PlumberyEngine('fittings.yaml').build_all_blueprints()
+
+            from plumbery.engine import PlumberyEngine
+            PlumberyEngine('fittings.yaml').build_all_blueprints('EU6 NA9')
 
         """
 
         logging.info("Building all blueprints")
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.build_all_blueprints()
 
-        self.polish_all_blueprints(filter=self._buildPolisher)
+        self.polish_all_blueprints(filter=self._buildPolisher,
+                                   facilities=facilities)
 
-    def build_blueprint(self, names):
+    def build_blueprint(self, names, facilities=None):
         """
         Builds named blueprint from fittings plan
 
         :param names: the name(s) of the blueprint(s) to deploy
         :type names: ``str`` or ``list`` of ``str``
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to build one single blueprint there.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to build one single blueprint there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         Example::
 
@@ -453,18 +510,30 @@ class PlumberyEngine:
 
         logging.info("Building blueprint '{}'".format(label))
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.build_blueprint(names)
 
-        self.polish_blueprint(names=names, filter=self._buildPolisher)
+        self.polish_blueprint(names=names,
+                              filter=self._buildPolisher,
+                              facilities=facilities)
 
-    def destroy_all_blueprints(self):
+    def destroy_all_blueprints(self, facilities=None):
         """
         Destroys all blueprints from fittings plan
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to destroy all blueprints there.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to destroy all blueprints there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         Note:
             Running nodes are always preserved from destruction.
@@ -475,16 +544,26 @@ class PlumberyEngine:
 
         logging.info("Destroying all blueprints")
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.destroy_all_blueprints()
 
-    def destroy_all_nodes(self):
+    def destroy_all_nodes(self, facilities=None):
         """
         Destroys all nodes from fittings plan
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to destroy all nodes there.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to destroy all nodes there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         Note:
             Running nodes are always preserved from destruction.
@@ -495,19 +574,29 @@ class PlumberyEngine:
 
         logging.info("Destroying nodes from all blueprints")
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.destroy_all_nodes()
 
-    def destroy_blueprint(self, names):
+    def destroy_blueprint(self, names, facilities=None):
         """
         Destroys one or several blueprint(s) from fittings plan
 
         :param names: the name(s) of the blueprint(s) to destroy
         :type names: ``str`` or ``list`` of ``str``
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to destroy one single blueprint.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to destroy one single blueprint.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         Note:
             Running nodes are always preserved from destruction.
@@ -523,19 +612,29 @@ class PlumberyEngine:
 
         logging.info("Destroying blueprint '{}'".format(label))
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.destroy_blueprint(names)
 
-    def destroy_nodes(self, names):
+    def destroy_nodes(self, names, facilities=None):
         """
         Destroys nodes for one or several blueprint(s) of the fittings plan
 
         :param names: the name(s) of the blueprint(s) to destroy
         :type names: ``str`` or ``list`` of ``str``
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to destroy nodes from one single blueprint.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to destroy nodes from one blueprint.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         Note:
             Running nodes are always preserved from destruction.
@@ -551,11 +650,16 @@ class PlumberyEngine:
 
         logging.info("Destroying nodes from blueprint '{}'".format(label))
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.destroy_nodes(names)
 
-    def polish_all_blueprints(self, filter=None):
+    def polish_all_blueprints(self, filter=None, facilities=None):
         """
         Walks all resources and polishes them
 
@@ -564,12 +668,13 @@ class PlumberyEngine:
             will be applied
         :type filter: ``str``
 
-        :return: ``True`` if some polisher has been applied,
-            ``False`` otherwise
-        :rtype: ``bool``
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to apply custom polishers there.
+        This function checks facilities to apply polishers there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         Example::
 
@@ -588,7 +693,12 @@ class PlumberyEngine:
         for polisher in polishers:
             polisher.go(self)
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             for polisher in polishers:
                 polisher.move_to(facility)
@@ -597,9 +707,7 @@ class PlumberyEngine:
         for polisher in polishers:
             polisher.reap()
 
-        return True
-
-    def polish_blueprint(self, names, filter=None):
+    def polish_blueprint(self, names, filter=None, facilities=None):
         """
         Walks resources from the target blueprint and polishes them
 
@@ -611,12 +719,13 @@ class PlumberyEngine:
             will be applied
         :type filter: ``str``
 
-        :return: ``True`` if some polisher has been applied,
-            ``False`` otherwise
-        :rtype: ``bool``
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to apply custom polishers there.
+        This function checks facilities to apply one polisher to one blueprint.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         Example::
 
@@ -640,7 +749,12 @@ class PlumberyEngine:
         for polisher in polishers:
             polisher.go(self)
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             for polisher in polishers:
                 polisher.move_to(facility)
@@ -649,14 +763,17 @@ class PlumberyEngine:
         for polisher in polishers:
             polisher.reap()
 
-        return True
-
-    def start_all_nodes(self):
+    def start_all_nodes(self, facilities=None):
         """
         Starts all nodes described in the fittings plan
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to start all nodes there.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to start all nodes there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         This function has no effect on nodes that are already up and running.
 
@@ -664,19 +781,29 @@ class PlumberyEngine:
 
         logging.info("Starting nodes from all blueprints")
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.start_all_nodes()
 
-    def start_nodes(self, names):
+    def start_nodes(self, names, facilities=None):
         """
         Starts nodes of one blueprint of the fittings plan
 
         :param names: the name(s) of the blueprint(s) to start
         :type names: ``str`` or ``list`` of ``str``
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to start nodes from one single blueprint.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to start nodes from some blueprint.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         This function has no effect on nodes that are already up and running.
 
@@ -689,16 +816,26 @@ class PlumberyEngine:
 
         logging.info("Starting nodes from blueprint '{}'".format(label))
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.start_nodes(names)
 
-    def stop_all_nodes(self):
+    def stop_all_nodes(self, facilities=None):
         """
         Stops all nodes of the fittings plan
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to stop all nodes there.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to stop all nodes there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         This function has no effect on nodes that are already stopped.
 
@@ -706,19 +843,29 @@ class PlumberyEngine:
 
         logging.info("Stopping nodes from all blueprints")
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.stop_all_nodes()
 
-    def stop_nodes(self, names):
+    def stop_nodes(self, names, facilities=None):
         """
         Stops nodes of one blueprint of the fittings plan
 
         :param names: the name(s) of the blueprint(s) to stop
         :type names: ``str`` or ``list`` of ``str``
 
-        This function checks all facilities, one at a time and in the order
-        defined in fittings plan, to stop nodes from one single blueprint.
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to stop nodes from some blueprint.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
 
         This function has no effect on nodes that are already stopped.
 
@@ -731,7 +878,12 @@ class PlumberyEngine:
 
         logging.info("Stopping nodes from blueprint '{}'".format(label))
 
-        for facility in self.facilities:
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
             facility.focus()
             facility.stop_nodes(names)
 

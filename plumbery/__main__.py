@@ -51,6 +51,11 @@ def main(args=[], engine=None):
         $ python -m plumbery fittings.yaml stop
         $ python -m plumbery fittings.yaml destroy
 
+    To focus at a single location, put the character '@' followed by the id.
+    For example, to build fittings only at 'NA12' you would type::
+
+        $ python -m plumbery fittings.yaml build @NA12
+
     To apply a polisher just mention its name on the command line. For example,
     if fittings plan has a blueprint for nodes running Docker, then you may
     use following statements to bootstrap each node::
@@ -88,10 +93,12 @@ def main(args=[], engine=None):
                     " or the name of a polisher, e.g., 'ansible', 'rub', etc.")
 
     parser.add_argument(
-                'blueprint',
-                nargs='?',
-                help='Name of the selected blueprint. '
-                    'If omitted, all blueprints will be considered',
+                'tokens',
+                nargs='*',
+                help="One blueprint, or several, e.g., 'web' or 'web sql'."
+                    'If omitted, all blueprints will be considered. '
+                    "Zero or more locations, e.g., 'NA12'. "
+                    'If omitted, all locations will be considered.',
                 default=None)
 
     group = parser.add_mutually_exclusive_group()
@@ -127,48 +134,65 @@ def main(args=[], engine=None):
         try:
             engine = PlumberyEngine(args.fittings[0])
 
-        except:
-            print("{}: error: cannot read fittings plan from '{}'"
+        except Exception as feedback:
+            logging.info("{}: error: cannot read fittings plan from '{}'"
                   .format('plumbery', args.fittings[0]))
+            logging.debug(str(feedback))
             sys.exit(2)
+
+    blueprints = []
+    facilities = []
+    for token in args.tokens:
+        if token[0] == '@':
+            facilities.append(token[1:])
+        else:
+            blueprints.append(token)
+    logging.debug('blueprints: '+' '.join(blueprints))
+    if len(facilities) < 1:
+        facilities = None
+    else:
+        logging.debug('facilities: '+' '.join(facilities))
 
     verb = args.action[0].lower()
     if verb == 'build':
-        if args.blueprint is None:
-            engine.build_all_blueprints()
+        if len(blueprints) < 1:
+            engine.build_all_blueprints(facilities)
         else:
-            engine.build_blueprint(args.blueprint)
+            engine.build_blueprint(blueprints, facilities)
 
     elif verb == 'start':
-        if args.blueprint is None:
-            engine.start_all_nodes()
+        if len(blueprints) < 1:
+            engine.start_all_nodes(facilities)
         else:
-            engine.start_nodes(args.blueprint)
+            engine.start_nodes(blueprints, facilities)
 
     elif verb == 'polish':
-        if args.blueprint is None:
-            engine.polish_all_blueprints()
+        if len(blueprints) < 1:
+            engine.polish_all_blueprints(filter=None, facilities=facilities)
         else:
-            engine.polish_blueprint(args.blueprint)
+            engine.polish_blueprint(blueprints, facilities)
 
     elif verb == 'stop':
-        if args.blueprint is None:
-            engine.stop_all_nodes()
+        if len(blueprints) < 1:
+            engine.stop_all_nodes(facilities)
         else:
-            engine.stop_nodes(args.blueprint)
+            engine.stop_nodes(blueprints, facilities)
 
     elif verb == 'destroy':
-        if args.blueprint is None:
-            engine.destroy_all_blueprints()
+        if len(blueprints) < 1:
+            engine.destroy_all_blueprints(facilities)
         else:
-            engine.destroy_blueprint(args.blueprint)
+            engine.destroy_blueprint(blueprints, facilities)
 
     else:
         try:
-            if args.blueprint is None:
-                polished = engine.polish_all_blueprints(verb)
+            if len(blueprints) < 1:
+                polished = engine.polish_all_blueprints(filter=verb,
+                                                        facilities=facilities)
             else:
-                polished = engine.polish_blueprint(args.blueprint, verb)
+                polished = engine.polish_blueprint(blueprints,
+                                                   filter=verb,
+                                                   facilities=facilities)
         except PlumberyException as feedback:
             polished = False
 
