@@ -22,6 +22,94 @@ from plumbery.exception import PlumberyException
 from plumbery import __version__
 
 
+def parse_args(args=[]):
+    """
+    Attempts to guess the intention of the runner of this program
+
+    You have to run the following command to know more::
+
+        $ python -m plumbery fittings.yaml -h
+
+    """
+
+    parser = argparse.ArgumentParser(
+                prog='plumbery',
+                description='Plumbing infrastructure with Apache Libcloud.')
+
+    parser.add_argument(
+                'fittings',
+                nargs=1,
+                help='File that is containing fittings plan')
+
+    parser.add_argument(
+                'action',
+                nargs=1,
+                help="Either 'build', 'start', 'polish', 'stop', 'destroy'"
+                    " or the name of a polisher, e.g., 'ansible', 'rub', etc.")
+
+    parser.add_argument(
+                'tokens',
+                nargs='*',
+                help="One blueprint, or several, e.g., 'web' or 'web sql'."
+                    'If omitted, all blueprints will be considered. '
+                    "Zero or more locations, e.g., 'NA12'. "
+                    'If omitted, all locations will be considered.',
+                default=None)
+
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument(
+                '-d', '--debug',
+                help='Log as much information as possible',
+                action='store_true')
+
+    group.add_argument(
+                '-q', '--quiet',
+                help='Silent mode, log only warnings and errors',
+                action='store_true')
+
+    parser.add_argument(
+                '-v', '--version',
+                help='Print version of this software',
+                action='version',
+                version='%(prog)s ' + __version__)
+
+    args = parser.parse_args(args)
+
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+    elif args.quiet:
+        logging.getLogger().setLevel(logging.WARNING)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
+
+    if 'version' in args:
+        print(args.version)
+
+    args.fittings = args.fittings[0]
+
+    args.action = args.action[0].lower()
+
+    args.blueprints = []
+    args.facilities = []
+    for token in args.tokens:
+        if token[0] == '@':
+            args.facilities.append(token[1:])
+        else:
+            args.blueprints.append(token)
+
+    if len(args.blueprints) < 1:
+        args.blueprints = None
+    else:
+        logging.debug('blueprints: '+' '.join(args.blueprints))
+
+    if len(args.facilities) < 1:
+        args.facilities = None
+    else:
+        logging.debug('facilities: '+' '.join(args.facilities))
+
+    return args
+
 def main(args=[], engine=None):
     """
     Runs plumbery from the command line
@@ -77,131 +165,26 @@ def main(args=[], engine=None):
 
     """
 
-    parser = argparse.ArgumentParser(
-                prog='plumbery',
-                description='Plumbing infrastructure with Apache Libcloud.')
-
-    parser.add_argument(
-                'fittings',
-                nargs=1,
-                help='File that is containing fittings plan')
-
-    parser.add_argument(
-                'action',
-                nargs=1,
-                help="Either 'build', 'start', 'polish', 'stop', 'destroy'"
-                    " or the name of a polisher, e.g., 'ansible', 'rub', etc.")
-
-    parser.add_argument(
-                'tokens',
-                nargs='*',
-                help="One blueprint, or several, e.g., 'web' or 'web sql'."
-                    'If omitted, all blueprints will be considered. '
-                    "Zero or more locations, e.g., 'NA12'. "
-                    'If omitted, all locations will be considered.',
-                default=None)
-
-    group = parser.add_mutually_exclusive_group()
-
-    group.add_argument(
-                '-d', '--debug',
-                help='Log as much information as possible',
-                action='store_true')
-
-    group.add_argument(
-                '-q', '--quiet',
-                help='Silent mode, log only warnings and errors',
-                action='store_true')
-
-    parser.add_argument(
-                '-v', '--version',
-                action='version',
-                version='%(prog)s ' + __version__)
-
-    args = parser.parse_args(args)
-
-    if args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
-    elif args.quiet:
-        logging.getLogger().setLevel(logging.WARNING)
-    else:
-        logging.getLogger().setLevel(logging.INFO)
-
-    if 'version' in args:
-        print(args.version)
+    args = parse_args(args)
 
     if engine is None:
         try:
-            engine = PlumberyEngine(args.fittings[0])
+            engine = PlumberyEngine(args.fittings)
 
         except Exception as feedback:
             logging.info("{}: error: cannot read fittings plan from '{}'"
-                  .format('plumbery', args.fittings[0]))
+                  .format('plumbery', args.fittings))
             logging.debug(str(feedback))
             sys.exit(2)
 
-    blueprints = []
-    facilities = []
-    for token in args.tokens:
-        if token[0] == '@':
-            facilities.append(token[1:])
-        else:
-            blueprints.append(token)
-    logging.debug('blueprints: '+' '.join(blueprints))
-    if len(facilities) < 1:
-        facilities = None
-    else:
-        logging.debug('facilities: '+' '.join(facilities))
+    try:
+        engine.do(args.action, args.blueprints, args.facilities)
 
-    verb = args.action[0].lower()
-    if verb == 'build':
-        if len(blueprints) < 1:
-            engine.build_all_blueprints(facilities)
-        else:
-            engine.build_blueprint(blueprints, facilities)
-
-    elif verb == 'start':
-        if len(blueprints) < 1:
-            engine.start_all_nodes(facilities)
-        else:
-            engine.start_nodes(blueprints, facilities)
-
-    elif verb == 'polish':
-        if len(blueprints) < 1:
-            engine.polish_all_blueprints(filter=None, facilities=facilities)
-        else:
-            engine.polish_blueprint(blueprints, facilities)
-
-    elif verb == 'stop':
-        if len(blueprints) < 1:
-            engine.stop_all_nodes(facilities)
-        else:
-            engine.stop_nodes(blueprints, facilities)
-
-    elif verb == 'destroy':
-        if len(blueprints) < 1:
-            engine.destroy_all_blueprints(facilities)
-        else:
-            engine.destroy_blueprint(blueprints, facilities)
-
-    else:
-        try:
-            if len(blueprints) < 1:
-                polished = engine.polish_all_blueprints(filter=verb,
-                                                        facilities=facilities)
-            else:
-                polished = engine.polish_blueprint(blueprints,
-                                                   filter=verb,
-                                                   facilities=facilities)
-        except PlumberyException as feedback:
-            polished = False
-
-        if not polished:
-            logging.getLogger().setLevel(logging.INFO)
-            print("{}: error: unrecognised action '{}'"
-                  .format('plumbery', verb))
-            parser.print_help()
-            sys.exit(2)
+    except PlumberyException as feedback:
+        logging.getLogger().setLevel(logging.INFO)
+        print("{}: error: unrecognised action '{}'"
+              .format('plumbery', args.action))
+        sys.exit(2)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

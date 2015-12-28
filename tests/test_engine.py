@@ -9,7 +9,7 @@ import unittest
 
 from libcloud.common.types import InvalidCredsError
 
-from plumbery.__main__ import main
+from plumbery.__main__ import parse_args
 from plumbery.engine import PlumberyEngine
 
 myPlan = """
@@ -134,35 +134,37 @@ class TestPlumberyEngine(unittest.TestCase):
         except InvalidCredsError:
             pass
 
+    def test_parser(self):
+        with self.assertRaises(SystemExit):
+            args = parse_args(['bad args'])
+        with self.assertRaises(SystemExit):
+            args = parse_args(['fittings.yaml'])
+        args = parse_args(['fittings.yaml', 'build', 'web'])
+        self.assertEqual(args.fittings, 'fittings.yaml')
+        self.assertEqual(args.action, 'build')
+        self.assertEqual(args.blueprints, ['web'])
+        self.assertEqual(args.facilities, None)
+        args = parse_args(['fittings.yaml', 'start', '@NA12'])
+        self.assertEqual(args.fittings, 'fittings.yaml')
+        self.assertEqual(args.action, 'start')
+        self.assertEqual(args.blueprints, None)
+        self.assertEqual(args.facilities, ['NA12'])
+        args = parse_args(['fittings.yaml', 'rub', 'web', 'sql', '@NA9', '@NA12'])
+        self.assertEqual(args.fittings, 'fittings.yaml')
+        self.assertEqual(args.action, 'rub')
+        self.assertEqual(args.blueprints, ['web', 'sql'])
+        self.assertEqual(args.facilities, ['NA9', 'NA12'])
+        args = parse_args(['fittings.yaml', 'polish'])
+        self.assertEqual(args.fittings, 'fittings.yaml')
+        self.assertEqual(args.action, 'polish')
+        self.assertEqual(args.blueprints, None)
+        self.assertEqual(args.facilities, None)
+
     def test_main(self):
         engine = PlumberyEngine()
         engine.from_text(myPlan)
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
-        with self.assertRaises(SystemExit):
-            main(['bad args'])
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'build', 'web'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'start', 'web'], engine)
-        main(['fittings.yaml', 'polish', 'web'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'rub', 'web'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'stop', 'web'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'destroy', 'web'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'build'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'start'], engine)
-        main(['fittings.yaml', 'polish'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'rub'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'stop'], engine)
-        with self.assertRaises(IndexError):
-            main(['fittings.yaml', 'destroy'], engine)
 
 if __name__ == '__main__':
     import sys

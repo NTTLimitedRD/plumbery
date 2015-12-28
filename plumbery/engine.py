@@ -445,6 +445,48 @@ class PlumberyEngine:
 
         return matches
 
+    def do(self, action, blueprints=None, facilities=None):
+
+        if action == 'build':
+            if blueprints is None:
+                self.build_all_blueprints(facilities)
+            else:
+                self.build_blueprint(blueprints, facilities)
+
+        elif action == 'start':
+            if blueprints is None:
+                self.start_all_nodes(facilities)
+            else:
+                self.start_nodes(blueprints, facilities)
+
+        elif action == 'polish':
+            if blueprints is None:
+                self.polish_all_blueprints(filter=None,
+                                             facilities=facilities)
+            else:
+                self.polish_blueprint(blueprints, facilities)
+
+        elif action == 'stop':
+            if blueprints is None:
+                self.stop_all_nodes(facilities)
+            else:
+                self.stop_nodes(blueprints, facilities)
+
+        elif action == 'destroy':
+            if blueprints is None:
+                self.destroy_all_blueprints(facilities)
+            else:
+                self.destroy_blueprint(blueprints, facilities)
+
+        else:
+            if blueprints is None:
+                self.polish_all_blueprints(filter=action,
+                                             facilities=facilities)
+            else:
+                self.polish_blueprint(blueprints,
+                                        filter=action,
+                                        facilities=facilities)
+
     def build_all_blueprints(self, facilities=None):
         """
         Builds all blueprints described in fittings plan
