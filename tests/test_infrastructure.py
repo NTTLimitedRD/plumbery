@@ -61,6 +61,7 @@ fakeFittings = {
         }]
     }
 
+
 class FakeFacility:
 
     plumbery = FakePlumbery()
@@ -134,15 +135,6 @@ class TestPlumberyInfrastructure(unittest.TestCase):
     def test_get_ipv4(self):
         self.infrastructure.blueprint = fakeBluePrint
         self.infrastructure._get_ipv4()
-
-    def test_get_pool(self):
-        self.infrastructure.blueprint = fakeBluePrint
-        self.infrastructure._get_pool()
-
-    def test_get_listener(self):
-        self.infrastructure.blueprint = fakeBluePrint
-        listener = self.infrastructure._get_listener('fakeListener')
-        self.assertEqual(listener, None)
 
 if __name__ == '__main__':
     import sys
