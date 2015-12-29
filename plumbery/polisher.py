@@ -51,8 +51,8 @@ class PlumberyPolisher:
             ...
 
         Once this is done properly, you can use the polisher by mentioning it
-        if the fittings plan used by plumbery. Also, you can pass any parameters
-        that the polisher would require.
+        if the fittings plan used by plumbery. Also, you can pass any
+        parameters that the polisher would require.
 
         Example of configuration of ``fittings.yaml``::
 
@@ -99,8 +99,8 @@ class PlumberyPolisher:
 
         if filter is None:
             for polisher in polishers:
-                logging.info("Using polisher '{}'"
-                                            .format(polisher.settings['name']))
+                logging.info("Using polisher '{}'".format(
+                    polisher.settings['name']))
             return polishers
 
         for polisher in polishers:
@@ -140,8 +140,11 @@ class PlumberyPolisher:
             moduleName = 'polishers.' + polishId
             polisherName = polishId.capitalize() + 'Polisher'
 
-            polisherModule = __import__(moduleName,
-                    globals(), locals(), [polisherName])
+            polisherModule = __import__(
+                moduleName,
+                globals(),
+                locals(),
+                [polisherName])
             polisherClass = getattr(polisherModule, polisherName)
             return polisherClass(settings)
 

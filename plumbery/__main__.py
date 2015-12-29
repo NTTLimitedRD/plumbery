@@ -33,46 +33,46 @@ def parse_args(args=[]):
     """
 
     parser = argparse.ArgumentParser(
-                prog='plumbery',
-                description='Plumbing infrastructure with Apache Libcloud.')
+        prog='plumbery',
+        description='Plumbing infrastructure with Apache Libcloud.')
 
     parser.add_argument(
-                'fittings',
-                nargs=1,
-                help='File that is containing fittings plan')
+        'fittings',
+        nargs=1,
+        help='File that is containing fittings plan')
 
     parser.add_argument(
-                'action',
-                nargs=1,
-                help="Either 'build', 'start', 'polish', 'stop', 'destroy'"
-                    " or the name of a polisher, e.g., 'ansible', 'rub', etc.")
+        'action',
+        nargs=1,
+        help="Either 'build', 'start', 'polish', 'stop', 'destroy'"
+             " or the name of a polisher, e.g., 'ansible', 'rub', etc.")
 
     parser.add_argument(
-                'tokens',
-                nargs='*',
-                help="One blueprint, or several, e.g., 'web' or 'web sql'."
-                    'If omitted, all blueprints will be considered. '
-                    "Zero or more locations, e.g., 'NA12'. "
-                    'If omitted, all locations will be considered.',
-                default=None)
+        'tokens',
+        nargs='*',
+        help="One blueprint, or several, e.g., 'web' or 'web sql'."
+             "If omitted, all blueprints will be considered. "
+             "Zero or more locations, e.g., 'NA12'. "
+             "If omitted, all locations will be considered.",
+        default=None)
 
     group = parser.add_mutually_exclusive_group()
 
     group.add_argument(
-                '-d', '--debug',
-                help='Log as much information as possible',
-                action='store_true')
+        '-d', '--debug',
+        help='Log as much information as possible',
+        action='store_true')
 
     group.add_argument(
-                '-q', '--quiet',
-                help='Silent mode, log only warnings and errors',
-                action='store_true')
+        '-q', '--quiet',
+        help='Silent mode, log only warnings and errors',
+        action='store_true')
 
     parser.add_argument(
-                '-v', '--version',
-                help='Print version of this software',
-                action='version',
-                version='%(prog)s ' + __version__)
+        '-v', '--version',
+        help='Print version of this software',
+        action='version',
+        version='%(prog)s ' + __version__)
 
     args = parser.parse_args(args)
 
@@ -109,6 +109,7 @@ def parse_args(args=[]):
         logging.debug('facilities: '+' '.join(args.facilities))
 
     return args
+
 
 def main(args=[], engine=None):
     """
@@ -173,7 +174,7 @@ def main(args=[], engine=None):
 
         except Exception as feedback:
             logging.info("{}: error: cannot read fittings plan from '{}'"
-                  .format('plumbery', args.fittings))
+                         .format('plumbery', args.fittings))
             logging.debug(str(feedback))
             sys.exit(2)
 

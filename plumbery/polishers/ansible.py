@@ -140,7 +140,8 @@ class AnsiblePolisher(InventoryPolisher):
             groups[group].append(host)
 
             description = item['description']
-            tags = {tag.strip("#") for tag in description.split() if tag.startswith("#")}
+            tags = {tag.strip("#") for tag in description.split()
+                    if tag.startswith("#")}
             for tag in tags:
                 if tag not in groups.keys():
                     groups[tag] = []

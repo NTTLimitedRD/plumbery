@@ -172,8 +172,8 @@ class PlumberyFacility:
                 infrastructure.build(blueprint)
 
             nodes.build_blueprint(
-                                blueprint,
-                                infrastructure.get_container(blueprint))
+                blueprint,
+                infrastructure.get_container(blueprint))
 
     def destroy_all_blueprints(self):
         """
@@ -263,9 +263,9 @@ class PlumberyFacility:
 
         self.power_on()
         logging.info("Plumbing at '{}' {} ({})".format(
-                                                    self.location.id,
-                                                    self.location.name,
-                                                    self.location.country))
+            self.location.id,
+            self.location.name,
+            self.location.country))
 
     def get_blueprint(self, name):
         """
@@ -312,7 +312,8 @@ class PlumberyFacility:
         # cache images to limit API calls
         if len(self._cache_images) < 1:
             self.power_on()
-            self._cache_images = self.region.list_images(location=self.location)
+            self._cache_images = \
+                self.region.list_images(location=self.location)
 
         for image in self._cache_images:
             if name in image.name:
@@ -518,11 +519,12 @@ class PlumberyFacility:
         try:
             if self.region is None:
                 self.region = self.plumbery.get_compute_driver(
-                                                region=self.fittings.regionId)
+                    region=self.fittings.regionId)
 
             if self.location is None:
                 self.location = self.region.ex_get_location_by_id(
-                                                    self.fittings.locationId)
+                    self.fittings.locationId)
+
         except socket.gaierror:
             raise PlumberyException("Cannot communicate with the API endpoint")
 

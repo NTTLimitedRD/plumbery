@@ -4,12 +4,13 @@
 Tests for `plumbery` module.
 """
 
+import logging
 import socket
 import unittest
 
 from libcloud.common.types import InvalidCredsError
 
-from plumbery.__main__ import parse_args
+from plumbery.__main__ import parse_args, main
 from plumbery.engine import PlumberyEngine
 
 myPlan = """
@@ -36,23 +37,23 @@ myFacility = {
     'regionId': 'dd-eu',
     'locationId': 'EU7',
     'blueprints': [{
-            'fake': {
-                    'domain': {
-                            'name': 'VDC1',
-                            'service': 'ADVANCED',
-                            'description': 'fake'},
-                    'ethernet': {
-                            'name': 'vlan1',
-                            'subnet': '10.0.10.0',
-                            'description': 'fake'},
-                     'nodes': [{
-                            'stackstorm': {
-                                    'description': 'fake',
-                                    'appliance': 'RedHat 6 64-bit 4 CPU'
-                                    }
-                            }]
+        'fake': {
+            'domain': {
+                'name': 'VDC1',
+                'service': 'ADVANCED',
+                'description': 'fake'},
+            'ethernet': {
+                'name': 'vlan1',
+                'subnet': '10.0.10.0',
+                'description': 'fake'},
+            'nodes': [{
+                'stackstorm': {
+                    'description': 'fake',
+                    'appliance': 'RedHat 6 64-bit 4 CPU'
                     }
-            }]
+                }]
+            }
+        }]
     }
 
 
@@ -111,21 +112,26 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(self.engine.get_user_password(), 'fake_password')
 
         try:
+            self.engine.do('build')
             self.engine.build_all_blueprints()
             self.engine.build_blueprint('myBlueprint')
 
+            self.engine.do('start')
             self.engine.start_all_nodes()
             self.engine.start_nodes('myBlueprint')
 
+            self.engine.do('polish')
             self.engine.polish_all_blueprints()
             self.engine.polish_blueprint('myBlueprint')
 
+            self.engine.do('stop')
             self.engine.stop_all_nodes()
             self.engine.stop_nodes('myBlueprint')
 
             self.engine.destroy_all_nodes()
             self.engine.destroy_nodes('myBlueprint')
 
+            self.engine.do('destroy')
             self.engine.destroy_all_blueprints()
             self.engine.destroy_blueprint('myBlueprint')
 
@@ -135,21 +141,30 @@ class TestPlumberyEngine(unittest.TestCase):
             pass
 
     def test_parser(self):
-        with self.assertRaises(SystemExit):
-            args = parse_args(['bad args'])
-        with self.assertRaises(SystemExit):
-            args = parse_args(['fittings.yaml'])
         args = parse_args(['fittings.yaml', 'build', 'web'])
         self.assertEqual(args.fittings, 'fittings.yaml')
         self.assertEqual(args.action, 'build')
         self.assertEqual(args.blueprints, ['web'])
         self.assertEqual(args.facilities, None)
+        args = parse_args(['fittings.yaml', 'build', 'web', '-d'])
+        self.assertEqual(
+            logging.getLogger().getEffectiveLevel(), logging.DEBUG)
+        args = parse_args(['fittings.yaml', 'build', 'web', '-q'])
+        self.assertEqual(
+            logging.getLogger().getEffectiveLevel(), logging.WARNING)
         args = parse_args(['fittings.yaml', 'start', '@NA12'])
         self.assertEqual(args.fittings, 'fittings.yaml')
         self.assertEqual(args.action, 'start')
         self.assertEqual(args.blueprints, None)
         self.assertEqual(args.facilities, ['NA12'])
-        args = parse_args(['fittings.yaml', 'rub', 'web', 'sql', '@NA9', '@NA12'])
+        args = parse_args([
+            'fittings.yaml', 'rub', 'web', 'sql', '@NA9', '@NA12'])
+        self.assertEqual(args.fittings, 'fittings.yaml')
+        self.assertEqual(args.action, 'rub')
+        self.assertEqual(args.blueprints, ['web', 'sql'])
+        self.assertEqual(args.facilities, ['NA9', 'NA12'])
+        args = parse_args([
+            'fittings.yaml', 'rub', 'web', '@NA9', 'sql', '@NA12'])
         self.assertEqual(args.fittings, 'fittings.yaml')
         self.assertEqual(args.action, 'rub')
         self.assertEqual(args.blueprints, ['web', 'sql'])
@@ -165,6 +180,16 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.from_text(myPlan)
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
+        with self.assertRaises(SystemExit):
+            main(['bad args'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'xyz123', 'web'], engine)
+        with self.assertRaises(SystemExit):
+            main(['-v'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web', '-v'], engine)
 
 if __name__ == '__main__':
     import sys

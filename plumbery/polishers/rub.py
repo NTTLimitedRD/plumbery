@@ -149,8 +149,8 @@ class RubPolisher(PlumberyPolisher):
             node = steps.run(node, session)
 
         except Exception as feedback:
-            logging.info("Error: unable to rub '{}' at '{}'!".format(node.name,
-                                                             target_ip))
+            logging.info("Error: unable to rub '{}' at '{}'!".format(
+                node.name, target_ip))
             logging.error(str(feedback))
             logging.info("- failed")
             result = False
@@ -206,18 +206,20 @@ class RubPolisher(PlumberyPolisher):
                         args = None
 
                     try:
-                        with open(os.path.dirname(__file__)+'/'+script) as stream:
+                        path = os.path.dirname(__file__)+'/'+script
+                        with open(path) as stream:
                             text = stream.read()
                             if text:
                                 rubs.append({
                                     'description': ' '.join(tokens),
-                                    'genius': ScriptDeployment(script=text,
-                                                            args=args,
-                                                            name=script)})
+                                    'genius': ScriptDeployment(
+                                        script=text,
+                                        args=args,
+                                        name=script)})
 
                     except IOError:
                         raise PlumberyException("Error: cannot read '{}'"
-                                                            .format(script))
+                                                .format(script))
 
                 elif tokens[0] == 'put':
 
@@ -234,16 +236,17 @@ class RubPolisher(PlumberyPolisher):
                             if text:
                                 rubs.append({
                                     'description': ' '.join(tokens),
-                                    'genius': FileDeployment(source=source,
-                                                         target=destination)})
+                                    'genius': FileDeployment(
+                                        source=source,
+                                        target=destination)})
 
                     except IOError:
                         raise PlumberyException("Error: cannot read '{}'"
-                                                            .format(file))
+                                                .format(file))
 
                 else:
                     raise PlumberyException("Error: unknown directive '{}'"
-                                                    .format(' '.join(tokens)))
+                                            .format(' '.join(tokens)))
 
         return rubs
 
@@ -336,9 +339,11 @@ class RubPolisher(PlumberyPolisher):
                 break
 
         if self.beachheading:
-            logging.info("- beachheading at '{}'".format(self.facility.fittings.locationId))
+            logging.info("- beachheading at '{}'".format(
+                self.facility.fittings.locationId))
         else:
-            logging.info("- '{}' is unreachable".format(self.facility.fittings.locationId))
+            logging.info("- '{}' is unreachable".format(
+                self.facility.fittings.locationId))
 
     def shine_node(self, node, settings, container):
         """
@@ -365,14 +370,16 @@ class RubPolisher(PlumberyPolisher):
 
         # hack because the driver does not report public ipv4 accurately
         if len(node.public_ips) < 1:
-            domain = container.get_network_domain(container.blueprint['domain']['name'])
+            domain = container.get_network_domain(
+                container.blueprint['domain']['name'])
             for rule in container.region.ex_list_nat_rules(domain):
                 if rule.internal_ip == node.private_ips[0]:
                     node.public_ips.append(rule.external_ip)
                     break
 
         if len(node.public_ips) > 0:
-            logging.info("- node is reachable at '{}'".format(node.public_ips[0]))
+            logging.info("- node is reachable at '{}'".format(
+                node.public_ips[0]))
 
         elif not self.beachheading:
             logging.info('- node is unreachable')

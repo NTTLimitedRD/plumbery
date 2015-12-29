@@ -14,4 +14,3 @@ logging.basicConfig(
     format='%(message)s',
     level=logging.INFO,
     stream=sys.stdout)
-

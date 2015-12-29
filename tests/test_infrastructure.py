@@ -9,6 +9,7 @@ import unittest
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 from mock_api import DimensionDataMockHttp
 
+from plumbery.engine import PlumberyFittings
 from plumbery.infrastructure import PlumberyInfrastructure
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
@@ -28,15 +29,46 @@ class FakePlumbery:
 
     safeMode = False
 
+    def get_balancer_driver(self, region):
+        return None
+
+
 class FakeLocation:
 
     id = 'EU6'
+
+
+fakeFittings = {
+    'regionId': 'dd-na',
+    'locationId': 'NA9',
+    'blueprints': [{
+        'fake': {
+            'domain': {
+                'name': 'VDC1',
+                'service': 'ADVANCED',
+                'description': 'fake'},
+            'ethernet': {
+                'name': 'vlan1',
+                'subnet': '10.0.10.0',
+                'description': 'fake'},
+            'nodes': [{
+                'stackstorm': {
+                    'description': 'fake',
+                    'appliance': 'RedHat 6 64-bit 4 CPU'
+                    }
+                }]
+            }
+        }]
+    }
 
 class FakeFacility:
 
     plumbery = FakePlumbery()
 
-    DimensionDataNodeDriver.connectionCls.conn_classes = (None, DimensionDataMockHttp)
+    fittings = PlumberyFittings(**fakeFittings)
+
+    DimensionDataNodeDriver.connectionCls.conn_classes = (
+        None, DimensionDataMockHttp)
     DimensionDataMockHttp.type = None
     region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
@@ -45,12 +77,16 @@ class FakeFacility:
     _cache_network_domains = []
     _cache_vlans = []
 
-fakeBluePrint = {'domain': {'name': 'fake',
+    def get_location_id(self):
+        return 'EU6'
+
+fakeBluePrint = {'target': 'fake',
+                 'domain': {'name': 'fake',
                             'service': 'ADVANCED',
                             'description': '#vdc1'},
-                'ethernet': {'name': 'fake',
-                            'subnet': '10.0.10.0',
-                            'description': '#vdc1'}}
+                 'ethernet': {'name': 'fake',
+                              'subnet': '10.0.10.0',
+                              'description': '#vdc1'}}
 
 
 class TestPlumberyInfrastructure(unittest.TestCase):
@@ -64,6 +100,26 @@ class TestPlumberyInfrastructure(unittest.TestCase):
 
     def test_build(self):
         self.infrastructure.build(fakeBluePrint)
+
+    def test_name_listener(self):
+        self.infrastructure.blueprint = fakeBluePrint
+        name = self.infrastructure.name_listener('fake')
+        self.assertEqual(name, 'fake_eu6.fake.listener')
+
+    def test_get_listener(self):
+        self.infrastructure.blueprint = fakeBluePrint
+        listener = self.infrastructure._get_listener('fakeListener')
+        self.assertEqual(listener, None)
+
+    def test_name_pool(self):
+        self.infrastructure.blueprint = fakeBluePrint
+        name = self.infrastructure._name_pool()
+        self.assertEqual(name, 'fake_eu6.pool')
+
+    def test_get_pool(self):
+        self.infrastructure.blueprint = fakeBluePrint
+        pool = self.infrastructure._get_pool()
+        self.assertEqual(pool, None)
 
     def test_get_container(self):
         container = self.infrastructure.get_container(fakeBluePrint)
@@ -79,9 +135,14 @@ class TestPlumberyInfrastructure(unittest.TestCase):
         self.infrastructure.blueprint = fakeBluePrint
         self.infrastructure._get_ipv4()
 
-    def test_get_network_domain(self):
+    def test_get_pool(self):
         self.infrastructure.blueprint = fakeBluePrint
-        self.infrastructure.get_network_domain('fake')
+        self.infrastructure._get_pool()
+
+    def test_get_listener(self):
+        self.infrastructure.blueprint = fakeBluePrint
+        listener = self.infrastructure._get_listener('fakeListener')
+        self.assertEqual(listener, None)
 
 if __name__ == '__main__':
     import sys

@@ -90,7 +90,9 @@ class PlumberyNodes:
 
         self.facility.power_on()
 
-        if 'nodes' not in blueprint or not isinstance(blueprint['nodes'], list):
+        if ('nodes' not in blueprint
+                or not isinstance(blueprint['nodes'], list)):
+
             logging.info("No nodes have been defined")
             return
 
@@ -141,7 +143,7 @@ class PlumberyNodes:
                 image = self.facility.get_image(imageName)
                 if image is None:
                     raise PlumberyException("Error: unable to find image "
-                                                "for '{}'!".format(imageName))
+                                            "for '{}'!".format(imageName))
 
                 logging.info("Creating node '{}'".format(label))
 
@@ -206,7 +208,8 @@ class PlumberyNodes:
         infrastructure = PlumberyInfrastructure(self.facility)
         container = infrastructure.get_container(blueprint)
 
-        if 'nodes' not in blueprint or not isinstance(blueprint['nodes'], list):
+        if ('nodes' not in blueprint
+                or not isinstance(blueprint['nodes'], list)):
             return
 
         # destroy in reverse order
@@ -291,15 +294,16 @@ class PlumberyNodes:
         if node is None:
             return True
 
-        if 'running' in settings and settings['running'] == 'always'  \
-            and node.state == NodeState.RUNNING:
+        if ('running' in settings
+                and settings['running'] == 'always'
+                and node.state == NodeState.RUNNING):
 
             return True
 
         for interface in self._list_secondary_interfaces(node):
 
-            logging.info("Detaching node '{}' from network '{}'"
-                                      .format(node.name, interface['network']))
+            logging.info("Detaching node '{}' from network '{}'".format(
+                node.name, interface['network']))
 
             while True:
                 try:
@@ -400,11 +404,9 @@ class PlumberyNodes:
             for item in blueprint['nodes']:
                 if type(item) is dict:
                     label = item.keys()[0]
-                    settings = item.values()[0]
 
                 else:
-                    label = item
-                    settings = {}
+                    label = str(item)
 
                 for label in PlumberyNodes.expand_labels(label):
                     labels.add(label)
@@ -427,9 +429,11 @@ class PlumberyNodes:
             return []
 
         interfaces = []
-        for item in element.findall(fixxpath('networkInfo/additionalNic', TYPES_URN)):
+        items = element.findall(
+            fixxpath('networkInfo/additionalNic', TYPES_URN))
+        for item in items:
             interfaces.append({'id': item.get('id'),
-                'network': item.get('vlanName')})
+                               'network': item.get('vlanName')})
 
         return interfaces
 
@@ -509,10 +513,12 @@ class PlumberyNodes:
         """
 
         value = monitoring.upper()
-        logging.info("Starting {} monitoring of node '{}'".format(value.lower(), node.name))
+        logging.info("Starting {} monitoring of node '{}'".format(
+            value.lower(), node.name))
 
         if value not in ['ESSENTIALS', 'ADVANCED']:
-            logging.info("- monitoring should be either 'essentials' or 'advanced'")
+            logging.info("- monitoring should be "
+                         "either 'essentials' or 'advanced'")
         else:
             while True:
                 try:
@@ -533,7 +539,8 @@ class PlumberyNodes:
                         logging.info("- already there")
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- unable to start monitoring - node has been locked")
+                        logging.info("- unable to start monitoring "
+                                     "- node has been locked")
 
                     else:
                         logging.info("- unable to start monitoring")
@@ -628,8 +635,9 @@ class PlumberyNodes:
                     logging.info("- not found")
                     continue
 
-                elif 'running' in settings and settings['running'] == 'always'  \
-                    and node.state == NodeState.RUNNING:
+                elif ('running' in settings
+                        and settings['running'] == 'always'
+                        and node.state == NodeState.RUNNING):
 
                     logging.info("- skipped - node has to stay always on")
                     continue
@@ -653,7 +661,7 @@ class PlumberyNodes:
                                 time.sleep(10)
                                 continue
 
-                            elif 'VMWARE_TOOLS_INVALID_STATUS' in str(feedback):
+                            elif 'VMWARE_TOOLS_INVALID_STATUS' in feedback:
 
                                 # prevent transient errors
                                 if retry:
@@ -662,7 +670,7 @@ class PlumberyNodes:
                                     continue
 
                                 logging.info("- unable to stop node "
-                                            "- invalid VMware tools")
+                                             "- invalid VMware tools")
 
                             elif 'UNEXPECTED_ERROR' in str(feedback):
                                 time.sleep(10)
@@ -689,8 +697,9 @@ class PlumberyNodes:
         if node is None:
             return
 
-        if 'running' in settings and settings['running'] == 'always'  \
-            and node.state == NodeState.RUNNING:
+        if ('running' in settings
+                and settings['running'] == 'always'
+                and node.state == NodeState.RUNNING):
 
             return
 

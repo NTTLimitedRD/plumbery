@@ -52,9 +52,9 @@ class PlumberyEngine:
         engine.build_all_blueprints()
 
     In this example the overall plan, in textual format, is given to the engine
-    in preparation of subsequent processing. The software is not trying to guess
-    a name by default, so if you do not provide a name, no configuration file
-    is loaded. You can load the plan at any stage, or restart the engine
+    in preparation of subsequent processing. The software is not trying to
+    guess a name by default, so if you do not provide a name, no configuration
+    file is loaded. You can load the plan at any stage, or restart the engine
     with an updated plan, by invoking the member function ``parse_layout()``
 
     Note:
@@ -69,8 +69,8 @@ class PlumberyEngine:
     plumbery. This is part of the installation process.
 
     Last but not least, plumbery sets the root password of any new server that
-    it creates. For obvious security reasons this is not taken from the fittings
-    plan but from the environment, or it can be set in code.
+    it creates. For obvious security reasons this is not taken from the
+    fittings plan but from the environment, or it can be set in code.
 
     Under Linux, you may want to edit ``~/.bash_profile`` like this::
 
@@ -180,7 +180,8 @@ class PlumberyEngine:
             self.add_facility(document)
 
         if self.safeMode:
-            logging.info("Running in safe mode"
+            logging.info(
+                "Running in safe mode"
                 " - no actual change will be made to the fittings")
 
     def from_text(self, plan):
@@ -286,8 +287,8 @@ class PlumberyEngine:
         :raises: :class:`plumbery.PlumberyException`
             - if no shared secret can be found
 
-        The shared secret is not put in the fittings plan, but is normally taken
-        from the environment variable ``SHARED_SECRET``.
+        The shared secret is not put in the fittings plan, but is normally
+        taken from the environment variable ``SHARED_SECRET``.
 
         Under Linux, you may want to edit ``~/.bash_profile`` like this::
 
@@ -303,7 +304,8 @@ class PlumberyEngine:
             self._sharedSecret = os.getenv('SHARED_SECRET')
             if self._sharedSecret is None or len(self._sharedSecret) < 3:
                 raise PlumberyException(
-                    "Error: missing node password in environment SHARED_SECRET")
+                    "Error: missing node password "
+                    "in environment SHARED_SECRET")
 
         return self._sharedSecret
 
@@ -374,8 +376,8 @@ class PlumberyEngine:
         :raises: :class:`plumbery.PlumberyException`
             - if no user password can be found
 
-        The user password is not put in the fittings plan, but is normally taken
-        from the environment variable ``MCP_PASSWORD``.
+        The user password is not put in the fittings plan, but is normally
+        taken from the environment variable ``MCP_PASSWORD``.
 
         Under Linux, you may want to edit ``~/.bash_profile`` like this::
 
@@ -462,7 +464,7 @@ class PlumberyEngine:
         elif action == 'polish':
             if blueprints is None:
                 self.polish_all_blueprints(filter=None,
-                                             facilities=facilities)
+                                           facilities=facilities)
             else:
                 self.polish_blueprint(blueprints, facilities)
 
@@ -481,11 +483,11 @@ class PlumberyEngine:
         else:
             if blueprints is None:
                 self.polish_all_blueprints(filter=action,
-                                             facilities=facilities)
+                                           facilities=facilities)
             else:
                 self.polish_blueprint(blueprints,
-                                        filter=action,
-                                        facilities=facilities)
+                                      filter=action,
+                                      facilities=facilities)
 
     def build_all_blueprints(self, facilities=None):
         """
@@ -938,9 +940,9 @@ class PlumberyEngine:
         driver = get_compute_driver(ComputeProvider.DIMENSIONDATA)
 
         return driver(
-                self.get_user_name(),
-                self.get_user_password(),
-                region)
+            self.get_user_name(),
+            self.get_user_password(),
+            region)
 
     def get_balancer_driver(self, region):
         """
@@ -951,9 +953,9 @@ class PlumberyEngine:
         driver = get_balancer_driver(BalancerProvider.DIMENSIONDATA)
 
         return driver(
-                self.get_user_name(),
-                self.get_user_password(),
-                region)
+            self.get_user_name(),
+            self.get_user_password(),
+            region)
 
 
 class PlumberyFittings:
@@ -978,6 +980,6 @@ class PlumberyFittings:
     def __repr__(self):
 
         return "<PlumberyFittings locationId: {}, regionId: {}, "   \
-                        "rub: {}, blueprints: {}, basement: {}>"    \
-            .format(self.locationId, self.regionId, self.rub,
-                self.blueprints, self.basement)
+               "rub: {}, blueprints: {}, basement: {}>"    \
+               .format(self.locationId, self.regionId, self.rub,
+                       self.blueprints, self.basement)

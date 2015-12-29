@@ -39,15 +39,19 @@ class FakePlumbery:
 
 # should be removed - head
 
+
 class FakeRegion:
 
-    def create_node(self, name, image, auth, ex_network_domain, ex_vlan, ex_is_started, ex_description):
+    def create_node(self, name, image, auth, ex_network_domain, ex_vlan,
+                    ex_is_started, ex_description):
         return True
 
-    def ex_create_network_domain(self, location, name, service_plan, description):
+    def ex_create_network_domain(self, location, name, service_plan,
+                                 description):
         return FakeDomain()
 
-    def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
+    def ex_create_vlan(self, network_domain, name, private_ipv4_base_address,
+                       description):
         return FakeNetwork()
 
     def ex_get_network_domain(self, location, network_domain):
@@ -62,7 +66,8 @@ class FakeRegion:
     def ex_list_vlans(self, location):
         return []
 
-    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):
+    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60,
+                          *args, **kwargs):
         return []
 
     def list_nodes(self):
@@ -77,7 +82,8 @@ class FakeFacility:
     _cache_vlans = []
 
     plumbery = FakePlumbery()
-    DimensionDataNodeDriver.connectionCls.conn_classes = (None, DimensionDataMockHttp)
+    DimensionDataNodeDriver.connectionCls.conn_classes = (
+        None, DimensionDataMockHttp)
     DimensionDataMockHttp.type = None
     region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
@@ -93,22 +99,21 @@ class FakeFacility:
         return 'EU6'
 
 fakeBlueprint = {
-        'domain': {
-                'name': 'VDC1',
-                'service': 'ADVANCED',
-                'description': 'fake'},
-        'ethernet': {
-                'name': 'vlan1',
-                'subnet': '10.0.10.0',
-                'description': 'fake'},
-         'nodes': [{
-                'stackstorm': {
-                        'description': 'fake',
-                        'appliance': 'RedHat 6 64-bit 4 CPU'
-                        }
-                }],
-          'target': 'fake'
-    }
+    'domain': {
+        'name': 'VDC1',
+        'service': 'ADVANCED',
+        'description': 'fake'},
+    'ethernet': {
+        'name': 'vlan1',
+        'subnet': '10.0.10.0',
+        'description': 'fake'},
+    'nodes': [{
+        'stackstorm': {
+            'description': 'fake',
+            'appliance': 'RedHat 6 64-bit 4 CPU'
+            }
+        }],
+    'target': 'fake'}
 
 
 class TestPlumberyNodes(unittest.TestCase):

@@ -12,12 +12,14 @@ from plumbery.facility import PlumberyFacility
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
 
+
 class FakeElement:
 
     def find(self, dummy):
         return {'ipv6': 'nuts'}
 
 # should be removed - head
+
 
 class FakeConnection:
 
@@ -60,13 +62,16 @@ class FakeRegion:
 
     connection = FakeConnection()
 
-    def create_node(self, name, image, auth, ex_network_domain, ex_vlan, ex_is_started, ex_description):
+    def create_node(self, name, image, auth, ex_network_domain, ex_vlan,
+                    ex_is_started, ex_description):
         return True
 
-    def ex_create_network_domain(self, location, name, service_plan, description):
+    def ex_create_network_domain(self, location, name, service_plan,
+                                 description):
         return FakeDomain()
 
-    def ex_create_vlan(self, network_domain, name, private_ipv4_base_address, description):
+    def ex_create_vlan(self, network_domain, name, private_ipv4_base_address,
+                       description):
         return FakeNetwork()
 
     def ex_get_location_by_id(self, location):
@@ -90,7 +95,8 @@ class FakeRegion:
     def ex_shutdown_graceful(self, node):
         return True
 
-    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60, *args, **kwargs):
+    def ex_wait_for_state(self, state, func, poll_interval=2, timeout=60,
+                          *args, **kwargs):
         return []
 
     def destroy_node(self, node):
@@ -109,23 +115,23 @@ fakeFittings = {
     'regionId': 'dd-na',
     'locationId': 'NA9',
     'blueprints': [{
-            'fake': {
-                    'domain': {
-                            'name': 'VDC1',
-                            'service': 'ADVANCED',
-                            'description': 'fake'},
-                    'ethernet': {
-                            'name': 'vlan1',
-                            'subnet': '10.0.10.0',
-                            'description': 'fake'},
-                     'nodes': [{
-                            'stackstorm': {
-                                    'description': 'fake',
-                                    'appliance': 'RedHat 6 64-bit 4 CPU'
-                                    }
-                            }]
+        'fake': {
+            'domain': {
+                'name': 'VDC1',
+                'service': 'ADVANCED',
+                'description': 'fake'},
+            'ethernet': {
+                'name': 'vlan1',
+                'subnet': '10.0.10.0',
+                'description': 'fake'},
+            'nodes': [{
+                'stackstorm': {
+                    'description': 'fake',
+                    'appliance': 'RedHat 6 64-bit 4 CPU'
                     }
-            }]
+                }]
+            }
+        }]
     }
 
 
@@ -136,9 +142,11 @@ class TestPlumberyFacility(unittest.TestCase):
         self.plumbery.set_user_name('fake_user')
         self.plumbery.set_user_password('fake_password')
         self.fittings = PlumberyFittings(**fakeFittings)
-        DimensionDataNodeDriver.connectionCls.conn_classes = (None, DimensionDataMockHttp)
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
         DimensionDataMockHttp.type = None
-        self.facility = PlumberyFacility(plumbery=self.plumbery, fittings=self.fittings)
+        self.facility = PlumberyFacility(
+            plumbery=self.plumbery, fittings=self.fittings)
         self.facility.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
     def tearDown(self):

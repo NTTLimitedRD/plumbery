@@ -85,10 +85,11 @@ class SpitPolisher(PlumberyPolisher):
                 if node.extra['status'].action is None:
                     break
 
-                if node is not None \
-                    and node.extra['status'].failure_reason is not None:
+                if (node is not None
+                        and node.extra['status'].failure_reason is not None):
 
-                    logging.info("- aborted - failed deployment of node '{}'".format(name))
+                    logging.info("- aborted - failed deployment "
+                                 "of node '{}'".format(name))
                     return
 
                 time.sleep(20)
@@ -154,12 +155,17 @@ class SpitPolisher(PlumberyPolisher):
                 if size < 1 or size > 1000:
                     logging.info("- disk size cannot exceed 1000")
                 elif speed not in ['STANDARD', 'HIGHPERFORMANCE', 'ECONOMIC']:
-                    logging.info("- disk speed should be 'standard' or 'highperformance' or 'economic'")
+                    logging.info("- disk speed should be 'standard' "
+                                 "or 'highperformance' or 'economic'")
                 else:
                     while True:
                         try:
-                            logging.info("- adding disk for {}GB '{}'".format(size, speed))
-                            self.region.ex_add_storage_to_node(node, amount=size, speed=speed)
+                            logging.info("- adding disk for {}GB '{}'".format(
+                                size, speed))
+                            self.region.ex_add_storage_to_node(
+                                node,
+                                amount=size,
+                                speed=speed)
 
                         except Exception as feedback:
                             if 'RESOURCE_BUSY' in str(feedback):
@@ -167,7 +173,8 @@ class SpitPolisher(PlumberyPolisher):
                                 continue
 
                             else:
-                                logging.info("- unable to add disk {}GB '{}'".format(size, speed))
+                                logging.info("- unable to add disk {}GB '{}'"
+                                             .format(size, speed))
                                 logging.error(str(feedback))
 
                         break

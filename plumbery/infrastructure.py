@@ -221,10 +221,11 @@ class PlumberyInfrastructure:
             while True:
                 try:
                     self.region.ex_create_nat_rule(
-                                            domain,
-                                            internal_ip,
-                                            external_ip)
-                    logging.info("- node is reachable at '{}'".format(external_ip))
+                        domain,
+                        internal_ip,
+                        external_ip)
+                    logging.info("- node is reachable at '{}'".format(
+                        external_ip))
 
                 except Exception as feedback:
                     if 'RESOURCE_BUSY' in str(feedback):
@@ -249,7 +250,8 @@ class PlumberyInfrastructure:
                 logging.info("Creating firewall rule '{}'"
                              .format(rule.name))
                 logging.info("- already there")
-                candidates = {k: candidates[k] for k in candidates if k != rule.name}
+                candidates = {k: candidates[k]
+                              for k in candidates if k != rule.name}
 
         for name, rule in candidates.items():
 
@@ -264,9 +266,9 @@ class PlumberyInfrastructure:
                 try:
 
                     self._ex_create_firewall_rule(
-                                network_domain=domain,
-                                rule=rule,
-                                position='LAST')
+                        network_domain=domain,
+                        rule=rule,
+                        position='LAST')
 
                     logging.info("- in progress")
 
@@ -320,8 +322,8 @@ class PlumberyInfrastructure:
         if 'ethernet' not in blueprint                                      \
            or type(blueprint['ethernet']) is not dict:
             raise PlumberyException(
-                        "Error: no ethernet network has been defined "
-                        "for the blueprint '{}'!".format(blueprint['target']))
+                "Error: no ethernet network has been defined "
+                "for the blueprint '{}'!".format(blueprint['target']))
 
         if 'subnet' not in blueprint['ethernet']:
             raise PlumberyException(
@@ -360,17 +362,17 @@ class PlumberyInfrastructure:
             while True:
                 try:
                     self.domain = self.region.ex_create_network_domain(
-                                    location=self.facility.location,
-                                    name=domainName,
-                                    service_plan=service,
-                                    description=description)
+                        location=self.facility.location,
+                        name=domainName,
+                        service_plan=service,
+                        description=description)
                     logging.info("- in progress")
 
                     # prevent locks in xops
                     self.region.ex_wait_for_state(
-                                'NORMAL', self.region.ex_get_network_domain,
-                                poll_interval=5, timeout=1200,
-                                network_domain_id=self.domain.id)
+                        'NORMAL', self.region.ex_get_network_domain,
+                        poll_interval=5, timeout=1200,
+                        network_domain_id=self.domain.id)
 
                     self.facility._cache_network_domains.append(self.domain)
 
@@ -419,17 +421,18 @@ class PlumberyInfrastructure:
             while True:
                 try:
                     self.network = self.region.ex_create_vlan(
-                      network_domain=self.domain,
-                      name=networkName,
-                      private_ipv4_base_address=blueprint['ethernet']['subnet'],
-                      description=description)
+                        network_domain=self.domain,
+                        name=networkName,
+                        private_ipv4_base_address=blueprint['ethernet']['subnet'],
+                        description=description)
                     logging.info("- in progress")
 
                     # prevent locks in xops
-                    self.region.ex_wait_for_state('NORMAL',
-                                                self.region.ex_get_vlan,
-                                                poll_interval=5, timeout=1200,
-                                                vlan_id=self.network.id)
+                    self.region.ex_wait_for_state(
+                        'NORMAL',
+                        self.region.ex_get_vlan,
+                        poll_interval=5, timeout=1200,
+                        vlan_id=self.network.id)
 
                     self.facility._cache_vlans.append(self.network)
 
@@ -499,18 +502,18 @@ class PlumberyInfrastructure:
             return True
 
         destinationIPv4 = DimensionDataFirewallAddress(
-                    any_ip=False,
-                    ip_address=destination.private_ipv4_range_address,
-                    ip_prefix_size=destination.private_ipv4_range_size,
-                    port_begin=None,
-                    port_end=None)
+            any_ip=False,
+            ip_address=destination.private_ipv4_range_address,
+            ip_prefix_size=destination.private_ipv4_range_size,
+            port_begin=None,
+            port_end=None)
 
         destinationIPv6 = DimensionDataFirewallAddress(
-                    any_ip=False,
-                    ip_address=destination.ipv6_range_address,
-                    ip_prefix_size=destination.ipv6_range_size,
-                    port_begin=None,
-                    port_end=None)
+            any_ip=False,
+            ip_address=destination.ipv6_range_address,
+            ip_prefix_size=destination.ipv6_range_size,
+            port_begin=None,
+            port_end=None)
 
         for item in self.blueprint['ethernet']['accept']:
 
@@ -525,7 +528,7 @@ class PlumberyInfrastructure:
                 continue
 
             ruleIPv4Name = self.name_firewall_rule(
-                                        source.name, destination.name, 'IP')
+                source.name, destination.name, 'IP')
 
             shouldCreateRuleIPv4 = True
             if source.location.name != destination.location.name:
@@ -534,20 +537,24 @@ class PlumberyInfrastructure:
                 shouldCreateRuleIPv4 = False
 
             ruleIPv6Name = self.name_firewall_rule(
-                                        source.name, destination.name, 'IPv6')
+                source.name, destination.name, 'IPv6')
 
             shouldCreateRuleIPv6 = True
 
             for rule in self._list_firewall_rules():
 
-                if shouldCreateRuleIPv4 and rule.name.lower() == ruleIPv4Name.lower():
+                if (shouldCreateRuleIPv4
+                        and rule.name.lower() == ruleIPv4Name.lower()):
+
                     logging.info("Creating firewall rule '{}'"
                                  .format(rule.name))
                     logging.info("- already there")
                     shouldCreateRuleIPv4 = False
                     continue
 
-                if shouldCreateRuleIPv6 and rule.name.lower() == ruleIPv6Name.lower():
+                if (shouldCreateRuleIPv6
+                        and rule.name.lower() == ruleIPv6Name.lower()):
+
                     logging.info("Creating firewall rule '{}'"
                                  .format(rule.name))
                     logging.info("- already there")
@@ -565,31 +572,31 @@ class PlumberyInfrastructure:
                 else:
 
                     sourceIPv4 = DimensionDataFirewallAddress(
-                                any_ip=False,
-                                ip_address=source.private_ipv4_range_address,
-                                ip_prefix_size=source.private_ipv4_range_size,
-                                port_begin=None,
-                                port_end=None)
+                        any_ip=False,
+                        ip_address=source.private_ipv4_range_address,
+                        ip_prefix_size=source.private_ipv4_range_size,
+                        port_begin=None,
+                        port_end=None)
 
                     ruleIPv4 = DimensionDataFirewallRule(
-                                    id=uuid4(),
-                                    action='ACCEPT_DECISIVELY',
-                                    name=ruleIPv4Name,
-                                    location=destination.location,
-                                    network_domain=destination.network_domain,
-                                    status='NORMAL',
-                                    ip_version='IPV4',
-                                    protocol='IP',
-                                    enabled='true',
-                                    source=sourceIPv4,
-                                    destination=destinationIPv4)
+                        id=uuid4(),
+                        action='ACCEPT_DECISIVELY',
+                        name=ruleIPv4Name,
+                        location=destination.location,
+                        network_domain=destination.network_domain,
+                        status='NORMAL',
+                        ip_version='IPV4',
+                        protocol='IP',
+                        enabled='true',
+                        source=sourceIPv4,
+                        destination=destinationIPv4)
 
                     try:
 
                         self._ex_create_firewall_rule(
-                                    network_domain=destination.network_domain,
-                                    rule=ruleIPv4,
-                                    position='LAST')
+                            network_domain=destination.network_domain,
+                            rule=ruleIPv4,
+                            position='LAST')
 
                         logging.info("- in progress")
 
@@ -613,31 +620,31 @@ class PlumberyInfrastructure:
                 else:
 
                     sourceIPv6 = DimensionDataFirewallAddress(
-                                    any_ip=False,
-                                    ip_address=source.ipv6_range_address,
-                                    ip_prefix_size=source.ipv6_range_size,
-                                    port_begin=None,
-                                    port_end=None)
+                        any_ip=False,
+                        ip_address=source.ipv6_range_address,
+                        ip_prefix_size=source.ipv6_range_size,
+                        port_begin=None,
+                        port_end=None)
 
                     ruleIPv6 = DimensionDataFirewallRule(
-                                    id=uuid4(),
-                                    action='ACCEPT_DECISIVELY',
-                                    name=ruleIPv6Name,
-                                    location=destination.location,
-                                    network_domain=destination.network_domain,
-                                    status='NORMAL',
-                                    ip_version='IPV6',
-                                    protocol='IP',
-                                    enabled='true',
-                                    source=sourceIPv6,
-                                    destination=destinationIPv6)
+                        id=uuid4(),
+                        action='ACCEPT_DECISIVELY',
+                        name=ruleIPv6Name,
+                        location=destination.location,
+                        network_domain=destination.network_domain,
+                        status='NORMAL',
+                        ip_version='IPV6',
+                        protocol='IP',
+                        enabled='true',
+                        source=sourceIPv6,
+                        destination=destinationIPv6)
 
                     try:
 
                         self._ex_create_firewall_rule(
-                                    network_domain=destination.network_domain,
-                                    rule=ruleIPv6,
-                                    position='LAST')
+                            network_domain=destination.network_domain,
+                            rule=ruleIPv6,
+                            position='LAST')
 
                         logging.info("- in progress")
 
@@ -756,13 +763,13 @@ class PlumberyInfrastructure:
             else:
                 try:
                     pool = driver.ex_create_pool(
-                                   network_domain_id=domain.id,
-                                   name=name,
-                                   balancer_method=algorithm,
-                                   ex_description="#plumbery",
-                                   health_monitors=None,
-                                   service_down_action='NONE',
-                                   slow_ramp_time=30)
+                        network_domain_id=domain.id,
+                        name=name,
+                        balancer_method=algorithm,
+                        ex_description="#plumbery",
+                        health_monitors=None,
+                        service_down_action='NONE',
+                        slow_ramp_time=30)
 
                     if self._cache_pools is None:
                         self._cache_pools = []
@@ -826,18 +833,18 @@ class PlumberyInfrastructure:
 
             try:
                 listener = driver.ex_create_virtual_listener(
-                                   network_domain_id=domain.id,
-                                   name=name,
-                                   ex_description="#plumbery",
-                                   port=port,
-                                   pool=pool,
-                                   persistence_profile=None,
-                                   fallback_persistence_profile=None,
-                                   irule=None,
-                                   protocol='TCP',
-                                   connection_limit=25000,
-                                   connection_rate_limit=2000,
-                                   source_port_preservation='PRESERVE')
+                    network_domain_id=domain.id,
+                    name=name,
+                    ex_description="#plumbery",
+                    port=port,
+                    pool=pool,
+                    persistence_profile=None,
+                    fallback_persistence_profile=None,
+                    irule=None,
+                    protocol='TCP',
+                    connection_limit=25000,
+                    connection_rate_limit=2000,
+                    source_port_preservation='PRESERVE')
 
                 if self._cache_listeners is None:
                     self._cache_listeners = []
@@ -851,7 +858,8 @@ class PlumberyInfrastructure:
                     logging.info("- already there")
 
                 elif 'NO_IP_ADDRESS_AVAILABLE' in str(feedback):
-                    logging.info("- no more ipv4 address available -- assign more")
+                    logging.info("- no more ipv4 address available "
+                                 "-- assign more")
 
                 else:
                     logging.info("- unable to create listener")
@@ -934,8 +942,8 @@ class PlumberyInfrastructure:
 
     def name_listener(self, label, settings={}):
         return self.blueprint['target']                 \
-               +'_'+self.facility.get_location_id().lower()      \
-               +'.'+label+'.listener'
+            + '_' + self.facility.get_location_id().lower()      \
+            + '.' + label + '.listener'
 
     def _get_listener(self, name):
         """
@@ -945,12 +953,17 @@ class PlumberyInfrastructure:
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
         driver = self.plumbery.get_balancer_driver(self.get_region_id())
+        if driver is None:
+            return None
+        if domain is None:
+            return None
         driver.ex_set_current_network_domain(domain.id)
 
         if self._cache_listeners is None:
             logging.info("Listing listeners")
             self._cache_listeners = driver.list_balancers()
-            logging.info("- found {} listeners".format(len(self._cache_listeners)))
+            logging.info("- found {} listeners"
+                         .format(len(self._cache_listeners)))
 
         for listener in self._cache_listeners:
 
@@ -961,7 +974,7 @@ class PlumberyInfrastructure:
 
     def _name_pool(self):
         return self.blueprint['target']                     \
-               +'_'+self.facility.get_location_id().lower()+'.pool'
+            + '_' + self.facility.get_location_id().lower() + '.pool'
 
     def _get_pool(self):
         """
@@ -1064,8 +1077,9 @@ class PlumberyInfrastructure:
         pool = self._get_pool()
         if pool is not None:
 
-            logging.info("Removing '{}' from pool '{}'".format(node.name,
-                                                               pool.name))
+            logging.info("Removing '{}' from pool '{}'".format(
+                node.name,
+                pool.name))
 
             members = driver.ex_get_pool_members(pool.id)
 
@@ -1119,7 +1133,6 @@ class PlumberyInfrastructure:
                 logging.info("- unable to destroy membership")
                 logging.error(str(feedback))
 
-
     def _destroy_firewall_rules(self):
         """
         Destroys firewall rules
@@ -1141,10 +1154,10 @@ class PlumberyInfrastructure:
             sourceLabel = label.split('::').pop()
 
             ruleIPv4Name = self.name_firewall_rule(
-                                        sourceLabel, destinationLabel, 'IP')
+                sourceLabel, destinationLabel, 'IP')
 
             ruleIPv6Name = self.name_firewall_rule(
-                                        sourceLabel, destinationLabel, 'IPv6')
+                sourceLabel, destinationLabel, 'IPv6')
 
             for rule in self._list_firewall_rules():
 
@@ -1167,7 +1180,8 @@ class PlumberyInfrastructure:
                                 logging.info("- not found")
 
                             else:
-                                logging.info("- unable to destroy firewall rule")
+                                logging.info("- unable to destroy "
+                                             "firewall rule")
                                 logging.error(str(feedback))
 
     def destroy_blueprint(self, blueprint):
@@ -1193,12 +1207,16 @@ class PlumberyInfrastructure:
 
         self.blueprint = blueprint
 
-        if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
+        if ('domain' not in blueprint
+                or type(blueprint['domain']) is not dict):
+
             raise PlumberyException(
                 "Error: no network domain has been defined "
                 "for the blueprint '{}'!".format(blueprint['target']))
 
-        if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
+        if ('ethernet' not in blueprint
+                or type(blueprint['ethernet']) is not dict):
+
             raise PlumberyException(
                 "Error: no ethernet network has been defined "
                 "for the blueprint '{}'!".format(blueprint['target']))
@@ -1208,7 +1226,8 @@ class PlumberyInfrastructure:
 
         domain = self.get_network_domain(domainName)
         if domain is None:
-            logging.info("Destroying Ethernet network '{}'".format(networkName))
+            logging.info("Destroying Ethernet network '{}'"
+                         .format(networkName))
             logging.info("- not found")
             logging.info("Destroying network domain '{}'".format(domainName))
             logging.info("- not found")
@@ -1226,8 +1245,8 @@ class PlumberyInfrastructure:
         if network is None:
             logging.info("- not found")
 
-        elif 'destroy' in blueprint['ethernet'] \
-            and blueprint['ethernet']['destroy'] == 'never':
+        elif ('destroy' in blueprint['ethernet']
+                and blueprint['ethernet']['destroy'] == 'never'):
             logging.info("- this network can never be destroyed")
 
         elif self.plumbery.safeMode:
@@ -1348,7 +1367,8 @@ class PlumberyInfrastructure:
                             return
 
                         else:
-                            logging.info("- unable to remove address translation")
+                            logging.info("- unable to remove "
+                                         "address translation")
                             logging.error(str(feedback))
 
                     break
@@ -1441,12 +1461,16 @@ class PlumberyInfrastructure:
 
         target.blueprint = blueprint
 
-        if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
+        if ('domain' not in blueprint
+                or type(blueprint['domain']) is not dict):
+
             raise PlumberyException(
                 "Error: no network domain has been defined "
                 "for the blueprint '{}'!".format(blueprint['target']))
 
-        if 'ethernet' not in blueprint or type(blueprint['ethernet']) is not dict:
+        if ('ethernet' not in blueprint
+                or type(blueprint['ethernet']) is not dict):
+
             raise PlumberyException(
                 "Error: no ethernet network has been defined "
                 "for the blueprint '{}'!".format(blueprint['target']))
@@ -1495,7 +1519,7 @@ class PlumberyInfrastructure:
             if len(self.facility._cache_vlans) < 1:
                 logging.info("Listing Ethernet networks")
                 self.facility._cache_vlans = self.region.ex_list_vlans(
-                                            location=self.facility.location)
+                    location=self.facility.location)
                 logging.info("- found {} Ethernet networks"
                              .format(len(self.facility._cache_vlans)))
 
@@ -1505,9 +1529,10 @@ class PlumberyInfrastructure:
 
         elif len(path) == 2:
 
-            if len(self._cache_remote_vlan) == 3                            \
-                            and self._cache_remote_vlan[0] == path[0]       \
-                            and self._cache_remote_vlan[1] == path[1]:
+            if (len(self._cache_remote_vlan) == 3
+                    and self._cache_remote_vlan[0] == path[0]
+                    and self._cache_remote_vlan[1] == path[1]):
+
                 return self._cache_remote_vlan[2]
 
             logging.info("Looking for remote Ethernet network '{}'"
@@ -1525,10 +1550,11 @@ class PlumberyInfrastructure:
 
         elif len(path) == 3:
 
-            if len(self._cache_offshore_vlan) == 4                            \
-                            and self._cache_offshore_vlan[0] == path[0]       \
-                            and self._cache_offshore_vlan[1] == path[1]       \
-                            and self._cache_offshore_vlan[2] == path[2]:
+            if (len(self._cache_offshore_vlan) == 4
+                    and self._cache_offshore_vlan[0] == path[0]
+                    and self._cache_offshore_vlan[1] == path[1]
+                    and self._cache_offshore_vlan[2] == path[2]):
+
                 return self._cache_offshore_vlan[3]
 
             logging.info("Looking for offshore Ethernet network '{}'"
@@ -1585,9 +1611,8 @@ class PlumberyInfrastructure:
 
         if len(self.facility._cache_network_domains) < 1:
             logging.info("Listing network domains")
-            self.facility._cache_network_domains                        \
-                    = self.region.ex_list_network_domains(
-                                            self.facility.location)
+            self.facility._cache_network_domains = \
+                self.region.ex_list_network_domains(self.facility.location)
             logging.info("- found {} network domains"
                          .format(len(self.facility._cache_network_domains)))
 
@@ -1643,35 +1668,35 @@ class PlumberyInfrastructure:
                 port = port_begin+'..'+port_end
 
             ruleIPv4Name = self.name_firewall_rule(
-                                    'Internet',
-                                    node.name, 'TCPv4_'+port)
+                'Internet',
+                node.name, 'TCPv4_'+port)
 
             sourceIPv4 = DimensionDataFirewallAddress(
-                        any_ip=True,
-                        ip_address=network.private_ipv4_range_address,
-                        ip_prefix_size=network.private_ipv4_range_size,
-                        port_begin=None,
-                        port_end=None)
+                any_ip=True,
+                ip_address=network.private_ipv4_range_address,
+                ip_prefix_size=network.private_ipv4_range_size,
+                port_begin=None,
+                port_end=None)
 
             destinationIPv4 = DimensionDataFirewallAddress(
-                        any_ip=False,
-                        ip_address=external_ip,
-                        ip_prefix_size=None,
-                        port_begin=port_begin,
-                        port_end=port_end)
+                any_ip=False,
+                ip_address=external_ip,
+                ip_prefix_size=None,
+                port_begin=port_begin,
+                port_end=port_end)
 
             ruleIPv4 = DimensionDataFirewallRule(
-                            id=uuid4(),
-                            action='ACCEPT_DECISIVELY',
-                            name=ruleIPv4Name,
-                            location=network.location,
-                            network_domain=network.network_domain,
-                            status='NORMAL',
-                            ip_version='IPV4',
-                            protocol='TCP',
-                            enabled='true',
-                            source=sourceIPv4,
-                            destination=destinationIPv4)
+                id=uuid4(),
+                action='ACCEPT_DECISIVELY',
+                name=ruleIPv4Name,
+                location=network.location,
+                network_domain=network.network_domain,
+                status='NORMAL',
+                ip_version='IPV4',
+                protocol='TCP',
+                enabled='true',
+                source=sourceIPv4,
+                destination=destinationIPv4)
 
             candidates[ruleIPv4Name] = ruleIPv4
 
@@ -1748,8 +1773,10 @@ class PlumberyInfrastructure:
 
         """
 
-        source = ''.join(e for e in source.title() if e.isalnum() or e == '_')
-        destination = ''.join(e for e in destination.title() if e.isalnum() or e == '_')
+        source = ''.join(e for e in source.title()
+                         if e.isalnum() or e == '_')
+        destination = ''.join(e for e in destination.title()
+                              if e.isalnum() or e == '_')
 
         if source == 'Internet':
             return "{}.{}.plumbery".format(destination, protocol)
@@ -1794,13 +1821,15 @@ class PlumberyInfrastructure:
                         continue
 
                     elif 'HAS_DEPENDENCY' in str(feedback):
-                        logging.info("- not now - stuff at '{}' and beyond".format(block.base_ip))
+                        logging.info("- not now - stuff at '{}' and beyond"
+                                     .format(block.base_ip))
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
                         logging.info("- not now - locked")
 
                     else:
-                        logging.info("- unable to release IPv4 public addresses ")
+                        logging.info("- unable to release "
+                                     "IPv4 public addresses ")
                         logging.error(str(feedback))
 
                 break
@@ -1845,7 +1874,8 @@ class PlumberyInfrastructure:
                 block = self.region.ex_add_public_ip_block_to_network_domain(
                     self.get_network_domain(self.blueprint['domain']['name']))
                 actual += int(block.size)
-                logging.debug("- reserved {} addresses".format(int(block.size)))
+                logging.debug("- reserved {} addresses"
+                              .format(int(block.size)))
 
             except Exception as feedback:
 
