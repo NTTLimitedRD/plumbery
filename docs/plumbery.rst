@@ -11,54 +11,14 @@ Subpackages
 Submodules
 ----------
 
-plumbery.engine module
-----------------------
+.. toctree::
 
-.. automodule:: plumbery.engine
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-plumbery.exceptions module
---------------------------
-
-.. automodule:: plumbery.exceptions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-plumbery.facility module
-------------------------
-
-.. automodule:: plumbery.facility
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-plumbery.infrastructure module
-------------------------------
-
-.. automodule:: plumbery.infrastructure
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-plumbery.nodes module
----------------------
-
-.. automodule:: plumbery.nodes
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-plumbery.polisher module
-------------------------
-
-.. automodule:: plumbery.polisher
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   plumbery.engine
+   plumbery.exception
+   plumbery.facility
+   plumbery.infrastructure
+   plumbery.nodes
+   plumbery.polisher
 
 Module contents
 ---------------

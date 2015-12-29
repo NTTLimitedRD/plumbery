@@ -114,6 +114,7 @@ class AnsiblePolisher(InventoryPolisher):
             [vdc2]
             masterSQL
 
+
         Ok, with two nodes it may be quite difficult to find excitment in
         a sophisticated inventory, but you get the idea.
 

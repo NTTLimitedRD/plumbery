@@ -66,7 +66,7 @@ coverage:
 docs:
 	@rm -f docs/plumbery.rst
 	@rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ plumbery
+	sphinx-apidoc -o docs/ plumbery --separate
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
