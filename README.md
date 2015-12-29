@@ -16,12 +16,15 @@ you.
 ## Features
 
 * Run from the command line, or as a python library
+* Limit plumbing to some locations if needed
+* Accept custom polisher from the command line too
 * Read fittings plan in YAML
 * Use cloud API to create the network infrastructure, and to build nodes
 * Create network domains and Ethernet networks
 * Reserve public IPv4 addresses
 * Manage network address translation rules
 * Manage firewall rules
+* Create load balancers with pools of nodes
 * All images in libraries are available to new nodes
 * Add multiple network interfaces to nodes
 * Add public IPv4 addresses to nodes
