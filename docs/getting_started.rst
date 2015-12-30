@@ -60,7 +60,7 @@ Remove the plumbery package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Why would you bother about a small set of files at a computer? Anyway, if needed
-here is the command to remove plumbery from a python environment:
+here is the command to remove Plumbery from a python environment:
 
 .. sourcecode:: bash
 
@@ -91,9 +91,7 @@ the latest development version from `Plumbery repository at GitHub`_:
 .. sourcecode:: bash
 
     $ sudo apt-get install python-pip python-dev git
-    $ sudo git clone https://github.com/bernard357/plumbery.git
-    $ cd plumbery
-    $ python setup.py develop
+    $ sudo pip install -e git+https://github.com/bernard357/plumbery.git#egg=plumbery
 
 Remove the plumbery development environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
