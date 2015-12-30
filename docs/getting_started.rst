@@ -5,6 +5,20 @@ Are you looking for a kind plumber to assist you in daily cloud deployment and
 operations? Here is the most vital information that you need to install and
 to use the software.
 
+Start with the most advanced version of Apache Libcloud
+-------------------------------------------------------
+
+The orchestration of cloud services is a hot topic these days. Apache
+Libcloud is evolving swiftly thanks to many contributions. For this reason,
+you are encouraged to install the development version of the library:
+
+.. sourcecode:: bash
+
+    $ sudo pip install -e git+https://git-wip-us.apache.org/repos/asf/libcloud.git@trunk#egg=apache-libcloud
+
+This version is the one used by Plumbery, and it may be more advanced than
+the stable version of Apache Libcloud.
+
 If you want to use plumbery
 ---------------------------
 
