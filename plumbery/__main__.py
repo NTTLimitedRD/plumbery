@@ -183,8 +183,9 @@ def main(args=[], engine=None):
 
     except PlumberyException as feedback:
         logging.getLogger().setLevel(logging.INFO)
-        print("{}: error: unrecognised action '{}'"
-              .format('plumbery', args.action))
+        logging.info("{}: error: unable to do '{}'"
+                     .format('plumbery', args.action))
+        logging.debug(str(feedback))
         sys.exit(2)
 
 if __name__ == "__main__":
