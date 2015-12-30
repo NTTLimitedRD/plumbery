@@ -231,6 +231,17 @@ then it will become automatically available:
 
     $ python -m plumbery fittings.yaml my_special_stuff
 
+
+By default Plumbery looks at every location mentioned in fittings plan.
+Sometimes you may want to limit actions performed to some locations.
+For this, mention the name of the target location, prefixed by ``@``.
+As an example, here would be the command to build SQL servers only at NA12:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery fittings.yaml build sql @NA12
+
+
 To get some help, you can type:
 
 .. sourcecode:: bash
