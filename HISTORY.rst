@@ -3,6 +3,22 @@
 History
 -------
 
+0.3.3 (2015-12-31)
+~~~~~~~~~~~~~~~~~~
+
+* Create load balancers with pools of nodes
+* Streamline messages in safe mode
+* Options to run in debug or in quiet mode
+* Load fittings plan as a string
+* Limit plumbing to some locations if needed
+* Make flake8 as happy as possible (PEP8 enforcement)
+* Add software documentation for polishers ansible, inventory and rub
+* Split software documentation in multiple pages
+* Add a first documented use case to the on-line documentation
+* Restructure code of the core engine
+* Passing Travis CI
+* Test coverage 39%
+
 0.3.2 (2015-12-23)
 ~~~~~~~~~~~~~~~~~~
 
