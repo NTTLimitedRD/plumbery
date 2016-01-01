@@ -129,32 +129,32 @@ class PlumberyPolisher:
         :return: instance of a polisher ready to use
         :rtype: :class:`plumbery.PlumberyPolisher`
 
-        :raises: :class:`plumbery.PlumberyException`
-            if no polisher can be found
-
         """
 
-        try:
-            settings['name'] = polishId
+        moduleName = 'polishers.' + polishId
+        polisherName = polishId.capitalize() + 'Polisher'
 
-            moduleName = 'polishers.' + polishId
-            polisherName = polishId.capitalize() + 'Polisher'
+        try:
 
             polisherModule = __import__(
                 moduleName,
                 globals(),
                 locals(),
                 [polisherName])
+
             polisherClass = getattr(polisherModule, polisherName)
+
+            settings['name'] = polishId
             return polisherClass(settings)
 
-        except Exception as feedback:
-            raise PlumberyException(
-                "Error: unable to load polisher '{0}' {1}!".format(
-                    polishId, feedback))
+        except ImportError as feedback:
+            logging.error("Unable to find polisher '{}'".format(polishId))
+            raise feedback
 
-        raise PlumberyException(
-            "Error: unable to find polisher '{0}'!".format(polishId))
+        except Exception as feedback:
+            logging.exception("Unable to import '{}' from '{}'".format(
+                polisherName, moduleName))
+            raise feedback
 
     def go(self, engine):
         """

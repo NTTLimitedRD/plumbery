@@ -52,7 +52,7 @@ def parse_args(args=[]):
         nargs='*',
         help="One blueprint, or several, e.g., 'web' or 'web sql'."
              "If omitted, all blueprints will be considered. "
-             "Zero or more locations, e.g., 'NA12'. "
+             "Zero or more locations, e.g., '@NA12'. "
              "If omitted, all locations will be considered.",
         default=None)
 
@@ -173,18 +173,17 @@ def main(args=[], engine=None):
             engine = PlumberyEngine(args.fittings)
 
         except Exception as feedback:
-            logging.info("{}: error: cannot read fittings plan from '{}'"
-                         .format('plumbery', args.fittings))
+            logging.error("Cannot read fittings plan from '{}'".format(
+                args.fittings))
             logging.debug(str(feedback))
             sys.exit(2)
 
     try:
         engine.do(args.action, args.blueprints, args.facilities)
 
-    except PlumberyException as feedback:
+    except Exception as feedback:
         logging.getLogger().setLevel(logging.INFO)
-        logging.info("{}: error: unable to do '{}'"
-                     .format('plumbery', args.action))
+        logging.error("Unable to do '{}'".format(args.action))
         logging.debug(str(feedback))
         sys.exit(2)
 
