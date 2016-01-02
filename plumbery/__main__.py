@@ -182,7 +182,6 @@ def main(args=[], engine=None):
         engine.do(args.action, args.blueprints, args.facilities)
 
     except Exception as feedback:
-        logging.getLogger().setLevel(logging.INFO)
         logging.error("Unable to do '{}'".format(args.action))
         logging.debug(str(feedback))
         sys.exit(2)

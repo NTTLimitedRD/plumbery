@@ -136,23 +136,25 @@ class PlumberyPolisher:
 
         try:
 
+            logging.debug("Importing '{}'".format(moduleName))
             polisherModule = __import__(
                 moduleName,
                 globals(),
                 locals(),
                 [polisherName])
 
+            logging.debug("Instanciating '{}'".format(polisherName))
             polisherClass = getattr(polisherModule, polisherName)
 
             settings['name'] = polishId
             return polisherClass(settings)
 
         except ImportError as feedback:
-            logging.error("Unable to find polisher '{}'".format(polishId))
+            logging.debug("Unable to find module '{}'".format(moduleName))
             raise feedback
 
         except Exception as feedback:
-            logging.exception("Unable to import '{}' from '{}'".format(
+            logging.debug("Unable to import '{}' from '{}'".format(
                 polisherName, moduleName))
             raise feedback
 
