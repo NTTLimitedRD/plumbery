@@ -940,9 +940,9 @@ class PlumberyEngine:
         driver = get_compute_driver(ComputeProvider.DIMENSIONDATA)
 
         return driver(
-            self.get_user_name(),
-            self.get_user_password(),
-            region)
+            key=self.get_user_name(),
+            secret=self.get_user_password(),
+            region=region)
 
     def get_balancer_driver(self, region):
         """
@@ -953,9 +953,9 @@ class PlumberyEngine:
         driver = get_balancer_driver(BalancerProvider.DIMENSIONDATA)
 
         return driver(
-            self.get_user_name(),
-            self.get_user_password(),
-            region)
+            key=self.get_user_name(),
+            secret=self.get_user_password(),
+            region=region)
 
 
 class PlumberyFittings:

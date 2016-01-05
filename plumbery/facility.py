@@ -518,12 +518,28 @@ class PlumberyFacility:
 
         try:
             if self.region is None:
+                logging.debug("Getting driver for '{}'".format(
+                    self.fittings.regionId))
                 self.region = self.plumbery.get_compute_driver(
                     region=self.fittings.regionId)
 
             if self.location is None:
-                self.location = self.region.ex_get_location_by_id(
-                    self.fittings.locationId)
+                logging.debug("Getting location '{}'".format(
+                    self.fittings.locationId))
+                locations = []
+                for location in self.region.list_locations():
+                    locations.append(location.id)
+                    if location.id == self.fittings.locationId:
+                        self.location = location
+
+                if self.location is None:
+                    logging.debug("Known locations: {}".format(locations))
+                    raise PlumberyException("Unknown location '{}'"
+                                            .format(self.fittings.locationId))
+
+        except ValueError:
+            raise PlumberyException("Unknown region '{}'"
+                                    .format(self.fittings.regionId))
 
         except socket.gaierror:
             raise PlumberyException("Cannot communicate with the API endpoint")
