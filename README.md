@@ -15,9 +15,6 @@ you.
 
 ## Features
 
-* Run from the command line, or as a python library
-* Limit plumbing to some locations if needed
-* Accept custom polisher from the command line too
 * Read fittings plan in YAML
 * Use cloud API to create the network infrastructure, and to build nodes
 * Create network domains and Ethernet networks
@@ -42,6 +39,9 @@ you.
 * Destroy nodes belonging to the same blueprint
 * Many demonstration scripts are provided
 * You can extend plumbery with your own polishers, it has been designed for that
+* Run from the command line, or as a python library
+* Accept custom polisher from the command line too
+* Limit plumbing to some locations if needed
 
 
 

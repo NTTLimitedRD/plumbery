@@ -4,48 +4,49 @@ How to beachhead on the MCP?
 
 In many cloud deployments, the appropriate strategy is to run administration
 servers directly in the cloud. This usually facilitates a lot end-to-end
-connectivity to the other nodes. For example, Dimension Data provides
-IPv6 connectivity between all data centres. However, very few companies today
-can benefit from IPv6 from corporate workstations.
+connectivity to the other nodes.
+
+For example, Dimension Data provides IPv6 connectivity to every virtual server.
+However, very few infrastructure managers do have IPv6 at their workstation.
+Therefore the recommendation to deploy a seminal server to the cloud
+infrastructure, since this machine will benefit from IPv6 end-to-end.
 
 Requirements for this use case
 ------------------------------
 
-* Deploy a Network Domain
-* Deploy a network dedicated to management servers
+* Deploy at Santa Clara in the US
+* Add a Network Domain
+* Add an Ethernet network
 * Deploy a Ubuntu server named ``beachhead``
-* Monitor this node
-* Assign a public IPv4 address to ``beachhead`` and add NAT
+* Monitor this server
+* Assign a public IPv4 address to ``beachhead``
+* Add address translation to ensure end-to-end IP connectivity
 * Add firewall rule to accept TCP traffic on port 22 (ssh)
 
 
 Fittings plan
 -------------
 
-In the example below we selected to beachhead at Frankfurt. Of course, you can
-use a different locationID, or even a different region.
-Content of ``fittings.yaml``:
+Copy the text below and put it in a text file named ``fittings.yaml``:
 
 .. sourcecode:: yaml
 
     ---
     safeMode: False
     ---
-    # Frankfurt in Europe
-    locationId: EU6
-    regionId: dd-eu
+    # Santa Clara in US West
+    locationId: NA12
+    regionId: dd-na
 
     blueprints:
 
       - beachhead:
           domain:
             name: Acme
-            service: advanced
             ipv4: 2
           ethernet:
             name: acme.control
             subnet: 10.0.0.0
-            destroy: never
           nodes:
             - beachhead:
                 description: '#beachhead #ops'
@@ -69,18 +70,13 @@ Some notes on directives used in these fittings plan:
 * ``ipv4: 2`` - This is to reserve some public IPv4 addresses. Here we anticipate
   on the public address assigned to the ``beachhead`` node.
 
-* ``destroy: never`` - This directive prevents plumbery from destroying a network.
-  In other terms, the command ``python -m plumbery destroy beachhead`` will not
-  actually destroy the network ``acme.control``. You may have to go to CloudControl
-  and to destroy the network manually if needed.
-
 * ``glue:`` - This directive adds connectivity to a node, either by assigning
   a public IPv4 address to the Internet, or by adding network interfaces to
   additional networks. With ``internet 22``, Plumbery assigns a public IPv4
   address and adds a NAT rule to the firewall.
 
 * ``running: always`` - This directive prevents plumbery from stopping the node.
-  In other terms, the command ``python -m plumbery stop beachhead`` is inoperative.
+  In other terms, the command ``python -m plumbery stop`` is inoperative.
   And because plumbery cannot destroy a running node, this directive also
   prevents the deletion of ``beachhead``.
 
@@ -92,8 +88,8 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build beachhead
-    $ python -m plumbery fittings.yaml start beachhead
+    $ python -m plumbery fittings.yaml build
+    $ python -m plumbery fittings.yaml start
 
 These two commands will build fittings as per the provided plan, and start
 the target node also.
@@ -112,7 +108,7 @@ connection.
 You will have to accept the new host, then provide the password used for the
 creation of the node ``beahhead``.
 
-After that you can do whatever you want on this first host. For example, you may
+After that you can do whatever you want on this server. For example, you may
 want to update the software, to install libcloud and plumbery:
 
 .. sourcecode:: bash

@@ -5,8 +5,8 @@ Are you looking for a kind plumber to assist you in daily cloud deployment and
 operations? Here is the most vital information that you need to install and
 to use the software.
 
-Start with the most advanced version of Apache Libcloud
--------------------------------------------------------
+Install Apache Libcloud
+-----------------------
 
 The orchestration of cloud services is a hot topic these days. Apache
 Libcloud is evolving swiftly thanks to many contributions. For this reason,
@@ -19,8 +19,8 @@ you are encouraged to install the development version of the library:
 This version is the one used by Plumbery, and it may be more advanced than
 the stable version of Apache Libcloud.
 
-If you want to use plumbery
----------------------------
+Install the plumbery package
+----------------------------
 
 Plumbery is available as a python package, so the installation, the upgrade,
 and the removal of the software are really easy.
@@ -183,104 +183,6 @@ This program creates multiple resources, configures them, starts and stops them,
 then destroys everything. It takes about 30 minutes to execute in total. A lot
 of information is reported on screen, so you have the ability to monitor what
 Plumbery is doing, and to understand any problem eventually.
-
-Run Plumbery from the command line
-----------------------------------
-
-As exposed before, plumbery can be run directly from the command line.
-Move first to the directory that contains your fittings plan, and then run:
-
-.. sourcecode:: bash
-
-    $ python -m plumbery fittings.yaml build
-
-Plumbery will load ``fittings.yaml``, then build all blueprints there.
-
-As you can expect, plumbery can be invoked through the entire life cycle of
-your fittings:
-
-.. sourcecode:: bash
-
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml polish
-
-    ... nodes are up and running here ...
-
-    $ python -m plumbery fittings.yaml stop
-    $ python -m plumbery fittings.yaml destroy
-
-To apply a polisher just mention its name on the command line. For example,
-if fittings plan has a blueprint for nodes running Docker, then you may
-use following statements to bootstrap each node:
-
-.. sourcecode:: bash
-
-    $ python -m plumbery fittings.yaml build docker
-    $ python -m plumbery fittings.yaml start docker
-    $ python -m plumbery fittings.yaml rub docker
-
-    ... Docker is up and running at multiple nodes ...
-
-If you create a new polisher and put it in the directory ``plumbery\polishers``,
-then it will become automatically available:
-
-.. sourcecode:: bash
-
-    $ python -m plumbery fittings.yaml my_special_stuff
-
-
-By default Plumbery looks at every location mentioned in fittings plan.
-Sometimes you may want to limit actions performed to some locations.
-For this, mention the name of the target location, prefixed by ``@``.
-As an example, here would be the command to build SQL servers only at NA12:
-
-.. sourcecode:: bash
-
-    $ python -m plumbery fittings.yaml build sql @NA12
-
-
-To get some help, you can type:
-
-.. sourcecode:: bash
-
-    $ python -m plumbery -h
-
-
-As a next step, you are encouraged to have a deep look at the various files
-put in the ``demos`` directory. There is a sophisticated ``fittings.yaml`` file
-that demonstrates most advanced features supported by Plumbery. Many python
-snippets and scripts are provided as well.
-
-
-Use Plumbery as a python library
---------------------------------
-
-Since Plumbery is easy to load, you can use it interactively like in the
-following example:
-
-.. sourcecode:: python
-
-    >>>from plumbery.engine import PlumberyEngine
-    >>>PlumberyEngine('fittings.yaml').build_blueprint('beachhead control')
-    ...
-
-If you are writing some code using Plumbery as a library, you would import
-the engine and use it, as with any other python module. For example:
-
-.. sourcecode:: python
-
-    from plumbery.engine import PlumberyEngine
-
-    engine = PlumberyEngine('fittings.yaml')
-    engine.build_blueprint('docker')
-    engine.start_nodes('docker')
-    engine.polish_blueprint('docker', 'rub')
-
-
-To go deeper into the code itself, you could have a look at the documentation
-extracted from the code, at :ref:`modindex` and :ref:`genindex`. And of course
-the source code is available on-line, check the `Plumbery repository at GitHub`_.
 
 .. _`available on PyPi`: https://pypi.python.org/pypi/plumbery
 .. _`Plumbery package at PiPy`: https://pypi.python.org/pypi/plumbery

@@ -8,13 +8,12 @@ The documentation of Plumbery
    readme
    getting_started
    usage
+   tutorials
    contributing
    coding
    history
+   Documentation extracted from the code <plumbery>
 
-Documentation extracted from the code itself
-============================================
 
-* :ref:`modindex`
 * :ref:`genindex`
 
