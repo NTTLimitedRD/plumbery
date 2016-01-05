@@ -32,7 +32,7 @@ __all__ = ['PlumberyEngine', 'PlumberyFittings']
 
 class PlumberyEngine:
     """
-    Cloud automation at Dimension Data with Apache Libcloud
+    Infrastructure as code at Dimension Data with Apache Libcloud
 
     :param fileName: the location of the plan for the fittings
     :type fileName: ``str``
