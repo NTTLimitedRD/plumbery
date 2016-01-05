@@ -3,6 +3,15 @@
 History
 -------
 
+0.3.4 (2016-01-06)
+~~~~~~~~~~~~~~~~~~
+
+* Add tutorials to the documentation
+* Fix some errors
+* Expand information provided in debug mode
+* Passing Travis CI
+* Test coverage 39%
+
 0.3.3 (2015-12-31)
 ~~~~~~~~~~~~~~~~~~
 
