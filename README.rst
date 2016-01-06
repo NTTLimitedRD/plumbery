@@ -31,6 +31,8 @@ Features
 * Manage firewall rules
 * Create load balancers with pools of nodes
 * All images in libraries are available to new nodes
+* Specify number of CPU, or core per CPU, and CPU speed
+* Specify node memory
 * Add multiple network interfaces to nodes
 * Add public IPv4 addresses to nodes
 * Add monitoring to nodes
