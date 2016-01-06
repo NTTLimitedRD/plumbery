@@ -117,31 +117,6 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
-        cpu = None
-        if 'cpu' in settings:
-            cpu = int(settings['cpu'])
-            if cpu < 1 or cpu > 32:
-                logging.info("- cpu should be between 1 and 32")
-                cpu = None
-
-        memory = None
-        if 'memory' in settings:
-            memory = int(settings['memory'])
-            if memory < 1 or memory > 256:
-                logging.info("- memory should be between 1 and 256")
-                memory = None
-
-        if cpu and memory:
-            logging.info("- assigning {} cpus".format(cpu))
-            logging.info("- assigning {}GB of memory".format(memory))
-            self.region.ex_update_node(node, cpu_count=cpu, ram_mb=memory)
-        elif cpu:
-            logging.info("- assigning {} cpus".format(cpu))
-            self.region.ex_update_node(node, cpu_count=cpu)
-        elif memory:
-            logging.info("- assigning {}GB of memory".format(memory))
-            self.region.ex_update_node(node, ram_mb=memory)
-
         if 'disks' in settings:
             for item in settings['disks']:
                 attributes = item.split()

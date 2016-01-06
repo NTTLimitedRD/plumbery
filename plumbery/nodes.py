@@ -26,7 +26,7 @@ from libcloud.compute.base import NodeAuthPassword
 from libcloud.compute.base import NodeState
 from libcloud.utils.xml import fixxpath, findtext, findall
 from libcloud.common.dimensiondata import TYPES_URN
-#from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
+from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
 from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
@@ -108,8 +108,9 @@ class PlumberyNodes:
 
             for label in self.expand_labels(label):
 
+                logging.info("Creating node '{}'".format(label))
+
                 if self.get_node(label):
-                    logging.info("Creating node '{}'".format(label))
                     logging.info("- already there")
                     continue
 
@@ -122,30 +123,57 @@ class PlumberyNodes:
                 else:
                     imageName = 'Ubuntu'
 
-#                if 'cpu' in settings:
-#                    tokens = settings['cpu'].split(' ')
-#                    if len(tokens) < 3:
-#                        tokens.append('1')
-#                        tokens.append('STANDARD')
-#
-#                    cpu = DimensionDataServerCpuSpecification(
-#                                        cpu_count=tokens[0],
-#                                        cores_per_socket=tokens[1],
-#                                        performance=tokens[2])
-#                else:
-#                    cpu = None
-
-                if 'memory' in settings:
-                    memory = settings['memory']
-                else:
-                    memory = None
-
                 image = self.facility.get_image(imageName)
                 if image is None:
                     raise PlumberyException("Error: unable to find image "
                                             "for '{}'!".format(imageName))
+                logging.debug("- using image '{}'".format(image.name))
 
-                logging.info("Creating node '{}'".format(label))
+                cpu = None
+                if 'cpu' in settings:
+                    tokens = settings['cpu'].split(' ')
+                    if len(tokens) < 2:
+                        tokens.append('1')
+                    if len(tokens) < 3:
+                        tokens.append('standard')
+
+                    if (int(tokens[0]) < 1
+                        or int(tokens[0]) > 32):
+
+                        logging.info("- cpu should be between 1 and 32")
+
+                    elif (int(tokens[1]) < 1
+                        or int(tokens[1]) > 2):
+
+                        logging.info("- core per cpu should be either 1 or 2")
+
+                    elif tokens[2].upper() not in ('STANDARD',
+                                                   'HIGHPERFORMANCE'):
+
+                        logging.info("- cpu speed should be either 'standard'"
+                                     " or 'highspeed'")
+
+                    else:
+                        cpu = DimensionDataServerCpuSpecification(
+                            cpu_count=tokens[0],
+                            cores_per_socket=tokens[1],
+                            performance=tokens[2].upper())
+                        logging.debug("- assigning {} cpus".format(
+                            cpu.cpu_count))
+                        logging.debug("- core per cpu: {}".format(
+                            cpu.cores_per_socket))
+                        logging.debug("- cpu performance: {}".format(
+                            cpu.performance))
+
+                memory = None
+                if 'memory' in settings:
+                    memory = int(settings['memory'])
+                    if memory < 1 or memory > 256:
+                        logging.info("- memory should be between 1 and 256")
+                        memory = None
+                    else:
+                        logging.debug("- assigning {}GB of memory".format(
+                            memory))
 
                 if self.plumbery.safeMode:
                     logging.info("- not in safe mode")
@@ -154,6 +182,7 @@ class PlumberyNodes:
                 if container.domain is None:
                     logging.info("- missing network domain")
                     continue
+
                 if container.network is None:
                     logging.info("- missing Ethernet network")
                     continue
@@ -168,8 +197,8 @@ class PlumberyNodes:
                                 self.plumbery.get_shared_secret()),
                             ex_network_domain=container.domain,
                             ex_vlan=container.network,
-#                            ex_cpu_specification=cpu,
-#                            ex_memory_gb=memory,
+                            ex_cpu_specification=cpu,
+                            ex_memory_gb=memory,
                             ex_is_started=False,
                             ex_description=description)
                         logging.info("- in progress")

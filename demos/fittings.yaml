@@ -99,8 +99,8 @@ blueprints:
       nodes:
         - web[1..2]_na12:
             description: '#apache #us #primary'
-#            cpu: 4
-#            memory: 8
+            cpu: 4 2 highperformance
+            memory: 8
 #            disks:
 #              - 500 STANDARD
 #              - 100 HIGHPERFORMANCE
@@ -127,6 +127,7 @@ blueprints:
       nodes:
         - redis[1..2]_na12:
             description: '#redis #us #primary'
+            memory: 32
             monitoring: essentials
 
   # docker resources
@@ -143,6 +144,8 @@ blueprints:
       nodes:
         - docker[1..5]_na12:
             description: '#docker #us #primary'
+            cpu: 32
+            memory: 128
             monitoring: essentials
             rub:
               - run rub.update.sh
