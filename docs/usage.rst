@@ -211,11 +211,23 @@ As an example, here would be the command to build SQL servers only at NA12:
     $ python -m plumbery fittings.yaml build sql @NA12
 
 
-To get some help, you can type:
+How to get help from the command line?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to understand the various ways to use plumbery from the command line
+then you can type:
 
 .. sourcecode:: bash
 
     $ python -m plumbery -h
+
+
+If some strange behaviour occurs, and you cannot understand what is happening,
+then you can use the debug option to get more information:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery <your_various_args> -d
 
 
 Use Plumbery as a python library
