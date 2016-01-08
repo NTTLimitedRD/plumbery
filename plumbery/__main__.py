@@ -187,4 +187,9 @@ def main(args=[], engine=None):
         sys.exit(2)
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    try:
+        main(sys.argv[1:])
+    except KeyboardInterrupt:
+        logger.info("Aborted by user")
+        sys.exit(0)
+
