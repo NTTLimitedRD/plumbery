@@ -163,7 +163,7 @@ class PlumberyNodes:
                         logging.debug("- core per cpu: {}".format(
                             cpu.cores_per_socket))
                         logging.debug("- cpu performance: {}".format(
-                            cpu.performance))
+                            cpu.performance.lower()))
 
                 memory = None
                 if 'memory' in settings:
