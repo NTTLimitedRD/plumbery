@@ -312,6 +312,9 @@ class PlumberyInfrastructure:
 
         self.blueprint = blueprint
 
+        logging.debug("Building infrastructure for blueprint '{}'".format(
+            blueprint['target']))
+
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
             raise PlumberyException(
                 "Error: no network domain has been defined "

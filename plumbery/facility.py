@@ -267,6 +267,18 @@ class PlumberyFacility:
             self.location.name,
             self.location.country))
 
+        blueprints = self.list_blueprints()
+        if len(blueprints) < 1:
+            logging.warning("- no blueprint has been found")
+        else:
+            logging.debug("- available blueprints: {}".format(
+                "'"+"', '".join(blueprints)+"'"))
+
+        basement = self.list_basement()
+        if len(basement) > 0:
+            logging.debug("- basement: {}".format(
+                "'"+"', '".join(basement)+"'"))
+
     def get_blueprint(self, name):
         """
         Retrieves a blueprint by name

@@ -407,6 +407,9 @@ class PlumberyEngine:
         if isinstance(facility, dict):
             facility = PlumberyFacility(self, PlumberyFittings(**facility))
 
+        logging.debug("Adding facility")
+        logging.debug(facility.fittings)
+
         self.facilities.append(facility)
 
     def list_facility(self, location):
@@ -979,7 +982,11 @@ class PlumberyFittings:
 
     def __repr__(self):
 
+        labels = []
+        for item in self.blueprints:
+            labels.append(item.keys()[0])
+
         return "<PlumberyFittings locationId: {}, regionId: {}, "   \
-               "rub: {}, blueprints: {}, basement: {}>"    \
-               .format(self.locationId, self.regionId, self.rub,
-                       self.blueprints, self.basement)
+               "blueprints: {}, basement: {} >"    \
+               .format(self.locationId, self.regionId,
+                       ' '.join(labels), self.basement)

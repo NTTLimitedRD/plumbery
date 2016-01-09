@@ -88,6 +88,9 @@ class PlumberyNodes:
 
         """
 
+        logging.debug("Building nodes for blueprint '{}'".format(
+            blueprint['target']))
+
         self.facility.power_on()
 
         if ('nodes' not in blueprint
