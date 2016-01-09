@@ -401,11 +401,11 @@ class PlumberyFacility:
 
         """
 
-        labels = set()
+        labels = []
         for blueprint in self.fittings.blueprints:
-            labels.add(blueprint.keys()[0])
+            labels.append(blueprint.keys()[0])
 
-        return list(labels)
+        return labels
 
     def list_domains(self):
         """
@@ -461,7 +461,7 @@ class PlumberyFacility:
 
         """
 
-        labels = set()
+        labels = []
         for blueprint in self.fittings.blueprints:
             name = blueprint.keys()[0]
             if 'nodes' in blueprint[name]:
@@ -473,9 +473,13 @@ class PlumberyFacility:
                         label = item
 
                     for label in PlumberyNodes.expand_labels(label):
-                        labels.add(label)
+                        if label in labels:
+                            logging.warning("Duplicate node name '{}'"
+                                            .format(label))
+                        else:
+                            labels.append(label)
 
-        return list(labels)
+        return labels
 
     def polish_all_blueprints(self, polishers):
         """
