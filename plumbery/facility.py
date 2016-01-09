@@ -438,22 +438,30 @@ class PlumberyFacility:
 
         basement = self.list_basement()
         for name in basement:
+            logging.debug("Building infrastructure of blueprint '{}'"
+                          .format(name))
             blueprint = self.get_blueprint(name)
             infrastructure.build(blueprint)
 
         blueprints = self.list_blueprints()
         for name in blueprints:
             if name not in basement:
+                logging.debug("Building infrastructure of blueprint '{}'"
+                              .format(name))
                 blueprint = self.get_blueprint(name)
                 infrastructure.build(blueprint)
 
         for name in basement:
+            logging.debug("Building nodes of blueprint '{}'"
+                          .format(name))
             blueprint = self.get_blueprint(name)
             container = infrastructure.get_container(blueprint)
             nodes.build_blueprint(blueprint, container)
 
         for name in blueprints:
             if name not in basement:
+                logging.debug("Building nodes of blueprint '{}'"
+                              .format(name))
                 blueprint = self.get_blueprint(name)
                 container = infrastructure.get_container(blueprint)
                 nodes.build_blueprint(blueprint, container)
