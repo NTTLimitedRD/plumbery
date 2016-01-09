@@ -550,12 +550,12 @@ class PlumberyFacility:
 
         basement = self.list_basement()
         for name in basement:
-            logging.info("Polishing blueprint '{}'".format(name))
+            logging.debug("Polishing blueprint '{}'".format(name))
             self.polish_blueprint(name, polishers)
 
         for name in self.list_blueprints():
             if name not in basement:
-                logging.info("Polishing blueprint '{}'".format(name))
+                logging.debug("Polishing blueprint '{}'".format(name))
                 self.polish_blueprint(name, polishers)
 
     def polish_blueprint(self, names, polishers):
