@@ -88,25 +88,27 @@ class PlumberyFacility:
         infrastructure = PlumberyInfrastructure(self)
         nodes = PlumberyNodes(self)
 
-        for name in self.list_basement():
+        basement = self.list_basement()
+        for name in basement:
             blueprint = self.get_blueprint(name)
             if blueprint is not None:
                 infrastructure.build(blueprint)
 
-        for name in self.list_blueprints():
-            if name not in self.list_basement():
+        blueprints = self.list_blueprints()
+        for name in blueprints:
+            if name not in basement:
                 blueprint = self.get_blueprint(name)
                 if blueprint is not None:
                     infrastructure.build(blueprint)
 
-        for name in self.list_basement():
+        for name in basement:
             blueprint = self.get_blueprint(name)
             if blueprint is not None:
                 container = infrastructure.get_container(blueprint)
                 nodes.build_blueprint(blueprint, container)
 
-        for name in self.list_blueprints():
-            if name not in self.list_basement():
+        for name in blueprints:
+            if name not in basement:
                 blueprint = self.get_blueprint(name)
                 if blueprint is not None:
                     container = infrastructure.get_container(blueprint)
@@ -154,7 +156,8 @@ class PlumberyFacility:
         infrastructure = PlumberyInfrastructure(self)
         nodes = PlumberyNodes(self)
 
-        for name in self.list_basement():
+        basement = self.list_basement()
+        for name in basement:
             blueprint = self.get_blueprint(name)
             if blueprint is not None:
                 infrastructure.build(blueprint)
@@ -168,7 +171,7 @@ class PlumberyFacility:
             if blueprint is None:
                 continue
 
-            if name not in self.list_basement():
+            if name not in basement:
                 infrastructure.build(blueprint)
 
             nodes.build_blueprint(
@@ -490,9 +493,15 @@ class PlumberyFacility:
 
         """
 
-        for name in self.list_blueprints():
+        basement = self.list_basement()
+        for name in basement:
             logging.info("Polishing blueprint '{}'".format(name))
             self.polish_blueprint(name, polishers)
+
+        for name in self.list_blueprints():
+            if name not in basement:
+                logging.info("Polishing blueprint '{}'".format(name))
+                self.polish_blueprint(name, polishers)
 
     def polish_blueprint(self, names, polishers):
         """
@@ -566,8 +575,13 @@ class PlumberyFacility:
 
         """
 
-        for name in self.list_blueprints():
+        basement = self.list_basement()
+        for name in basement:
             self.start_nodes(name)
+
+        for name in self.list_blueprints():
+            if name not in basement:
+                self.start_nodes(name)
 
     def start_nodes(self, names):
         """
@@ -600,7 +614,13 @@ class PlumberyFacility:
 
         """
 
+        basement = self.list_basement()
+
         for name in self.list_blueprints():
+            if name not in basement:
+                self.stop_nodes(name)
+
+        for name in basement:
             self.stop_nodes(name)
 
     def stop_nodes(self, names):
