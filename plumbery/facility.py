@@ -100,7 +100,8 @@ class PlumberyFacility:
 
             blueprints:
 
-              - admin: ...
+              - admin:
+                  ...
 
         In that case you would get::
 
@@ -112,7 +113,7 @@ class PlumberyFacility:
         if self.fittings.basement is None:
             return []
 
-        return self.fittings.basement.strip().split(' ')
+        return self.expand_blueprint(self.fittings.basement)
 
     def list_blueprints(self):
         """
@@ -127,24 +128,108 @@ class PlumberyFacility:
             ---
             blueprints:
 
-              - admin: ...
+              - admin:
+                  ...
 
-              - web: ...
+              - app: web data
 
-              - data: ...
+              - web:
+                  ...
+
+              - data:
+                  ...
 
         In that case you would get::
 
             >>facility.list_blueprints()
-            ['admin', 'web, 'data']
+            ['admin', 'web', 'data']
+
+        Note::
+          As shown in the example above, only actionable blueprints are
+          listed by this function.
+        """
+
+        names = []
+        for blueprint in self.fittings.blueprints:
+            name = blueprint.keys()[0]
+            if not isinstance(blueprint[name], dict):
+                continue
+            if name in names:
+                logging.warning("Duplicated blueprint name '{}'".format(name))
+            else:
+                names.append(name)
+
+        return names
+
+    def expand_blueprint(self, labels):
+        """
+        Designates multiple blueprints with a simple label
+
+        :param labels: the label(s) to be expanded
+        :type labels: ``str`` or ``list`` of ``str``
+
+        :return: a list of names
+        :rtype: ``list`` of ``str``
+
+        Blueprints are defined in the fittings plan, as per
+        following example::
+
+            ---
+            blueprints:
+
+              - mongo: mongo_config mongo_mongos mongo_shard
+
+              - mongo_config:
+                  ...
+
+              - mongo_mongos:
+                  ...
+
+              - mongo_shard:
+                  ...
+
+        In that case you would get::
+
+            >>facility.expand_blueprint('mongo')
+            ['mongo_config', 'mongo_mongos', 'mongo_shard']
+
+            >>facility.expand_blueprint('mongo_config')
+            ['mongo_config']
+
+            >>facility.expand_blueprint('mongo_config mongo_mongos')
+            ['mongo_config', 'mongo_mongos']
+
+            >>facility.expand_blueprint(['mongo_config', 'alien_mongos'])
+            ['mongo_config']
 
         """
 
-        labels = []
-        for blueprint in self.fittings.blueprints:
-            labels.append(blueprint.keys()[0])
+        names = []
 
-        return labels
+        if isinstance(labels, str):
+            labels = labels.split(' ')
+
+        for label in labels:
+
+            for blueprint in self.fittings.blueprints:
+
+                name = blueprint.keys()[0]
+                if name != label:
+                    continue
+
+                if isinstance(blueprint[name], dict):
+                    if label not in names:
+                        names.append(label)
+                else:
+                    for token in str(blueprint[name]).split(' '):
+                        if token not in names:
+                            names.append(token)
+
+        if names != labels:
+            logging.info("Expanding '{}' to '{}'".format(
+                ' '.join(labels), "', '".join(names)))
+
+        return names
 
     def get_blueprint(self, name):
         """
@@ -351,28 +436,24 @@ class PlumberyFacility:
         basement = self.list_basement()
         for name in basement:
             blueprint = self.get_blueprint(name)
-            if blueprint is not None:
-                infrastructure.build(blueprint)
+            infrastructure.build(blueprint)
 
         blueprints = self.list_blueprints()
         for name in blueprints:
             if name not in basement:
                 blueprint = self.get_blueprint(name)
-                if blueprint is not None:
-                    infrastructure.build(blueprint)
+                infrastructure.build(blueprint)
 
         for name in basement:
             blueprint = self.get_blueprint(name)
-            if blueprint is not None:
-                container = infrastructure.get_container(blueprint)
-                nodes.build_blueprint(blueprint, container)
+            container = infrastructure.get_container(blueprint)
+            nodes.build_blueprint(blueprint, container)
 
         for name in blueprints:
             if name not in basement:
                 blueprint = self.get_blueprint(name)
-                if blueprint is not None:
-                    container = infrastructure.get_container(blueprint)
-                    nodes.build_blueprint(blueprint, container)
+                container = infrastructure.get_container(blueprint)
+                nodes.build_blueprint(blueprint, container)
 
     def build_blueprint(self, names):
         """
@@ -397,7 +478,7 @@ class PlumberyFacility:
 
             blueprints:
 
-              - admin: ...
+              - admin:
                   ethernet: control
 
               - sql:
@@ -419,17 +500,11 @@ class PlumberyFacility:
         basement = self.list_basement()
         for name in basement:
             blueprint = self.get_blueprint(name)
-            if blueprint is not None:
-                infrastructure.build(blueprint)
+            infrastructure.build(blueprint)
 
-        if isinstance(names, str):
-            names = names.split(' ')
-
-        for name in names:
+        for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            if blueprint is None:
-                continue
 
             if name not in basement:
                 infrastructure.build(blueprint)
@@ -454,17 +529,15 @@ class PlumberyFacility:
             if name in basement:
                 continue
             blueprint = self.get_blueprint(name)
-            if blueprint is not None:
-                logging.info("Destroying blueprint '{}'".format(name))
-                nodes.destroy_blueprint(blueprint)
-                infrastructure.destroy_blueprint(blueprint)
+            logging.info("Destroying blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
+            infrastructure.destroy_blueprint(blueprint)
 
         for name in basement:
             blueprint = self.get_blueprint(name)
-            if blueprint is not None:
-                logging.info("Destroying blueprint '{}'".format(name))
-                nodes.destroy_blueprint(blueprint)
-                infrastructure.destroy_blueprint(blueprint)
+            logging.info("Destroying blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
+            infrastructure.destroy_blueprint(blueprint)
 
     def destroy_all_nodes(self):
         """
@@ -481,15 +554,13 @@ class PlumberyFacility:
             if name in basement:
                 continue
             blueprint = self.get_blueprint(name)
-            if blueprint is not None:
-                logging.info("Destroying nodes of blueprint '{}'".format(name))
-                nodes.destroy_blueprint(blueprint)
+            logging.info("Destroying nodes of blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
 
         for name in basement:
             blueprint = self.get_blueprint(name)
-            if blueprint is not None:
-                logging.info("Destroying nodes of blueprint '{}'".format(name))
-                nodes.destroy_blueprint(blueprint)
+            logging.info("Destroying nodes of blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
 
     def destroy_blueprint(self, names):
         """
@@ -504,15 +575,9 @@ class PlumberyFacility:
         nodes = PlumberyNodes(self)
         infrastructure = PlumberyInfrastructure(self)
 
-        if isinstance(names, str):
-            names = names.split(' ')
-
-        for name in names:
+        for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            if blueprint is None:
-                continue
-
             nodes.destroy_blueprint(blueprint)
             infrastructure.destroy_blueprint(blueprint)
 
@@ -528,15 +593,9 @@ class PlumberyFacility:
         self.power_on()
         nodes = PlumberyNodes(self)
 
-        if isinstance(names, str):
-            names = names.split(' ')
-
-        for name in names:
+        for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            if blueprint is None:
-                continue
-
             nodes.destroy_blueprint(blueprint)
 
     def polish_all_blueprints(self, polishers):
@@ -574,14 +633,9 @@ class PlumberyFacility:
         infrastructure = PlumberyInfrastructure(self)
         nodes = PlumberyNodes(self)
 
-        if isinstance(names, str):
-            names = names.split(' ')
-
-        for name in names:
+        for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            if blueprint is None:
-                continue
 
             container = infrastructure.get_container(blueprint)
 
@@ -615,14 +669,9 @@ class PlumberyFacility:
 
         nodes = PlumberyNodes(self)
 
-        if isinstance(names, str):
-            names = names.split(' ')
-
-        for name in names:
+        for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            if blueprint is None:
-                continue
 
             if 'nodes' not in blueprint:
                 continue
@@ -665,14 +714,9 @@ class PlumberyFacility:
 
         nodes = PlumberyNodes(self)
 
-        if isinstance(names, str):
-            names = names.split(' ')
-
-        for name in names:
+        for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            if blueprint is None:
-                continue
 
             if 'nodes' not in blueprint:
                 continue
