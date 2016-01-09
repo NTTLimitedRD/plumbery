@@ -20,6 +20,7 @@ import yaml
 import netifaces
 
 from libcloud.compute.base import NodeState
+from libcloud.compute.deployment import Deployment
 from libcloud.compute.deployment import FileDeployment
 from libcloud.compute.deployment import MultiStepDeployment
 from libcloud.compute.deployment import ScriptDeployment
@@ -29,6 +30,51 @@ from libcloud.compute.ssh import SSHClient
 from plumbery.exception import PlumberyException
 from plumbery.polisher import PlumberyPolisher
 
+class FileContentDeployment(Deployment):
+    """
+    Installs a file on a target node.
+    """
+
+    def __init__(self, content, target):
+        """
+        :type content: ``str``
+        :keyword content: Content of the target file to create
+
+        :type target: ``str``
+        :keyword target: Path to install file on node
+        """
+        self.content = content
+        self.target = target
+
+    def run(self, node, client):
+        """
+        Writes the file.
+
+        See also :class:`Deployment.run`
+        """
+        client.put(path=self.target, contents=self.content)
+        return node
+
+class RebootDeployment(Deployment):
+    """
+    Reboots a node and let cloud-init do the dirty job.
+    """
+
+    def __init__(self, container):
+        """
+        :param container: the container of this node
+        :type container: :class:`plumbery.PlumberyInfrastructure`
+        """
+        self.region = container.region
+
+    def run(self, node, client):
+        """
+        Reboots the node.
+
+        See also :class:`Deployment.run`
+        """
+        self.region.reboot_node(node)
+        return node
 
 class RubPolisher(PlumberyPolisher):
     """
@@ -165,7 +211,7 @@ class RubPolisher(PlumberyPolisher):
 
         return result
 
-    def _get_rubs(self, node, settings):
+    def _get_rubs(self, node, settings, container):
         """
         Defines the set of actions to be done on a node
 
@@ -175,12 +221,15 @@ class RubPolisher(PlumberyPolisher):
         :param settings: the fittings plan for this node
         :type settings: ``dict``
 
+        :param container: the container of this node
+        :type container: :class:`plumbery.PlumberyInfrastructure`
+
         :return: a list of actions to be performed, and related descriptions
         :rtype: a ``list`` of `{ 'description': ..., 'genius': ... }``
 
         """
 
-        if not isinstance(settings, dict) or 'rub' not in settings:
+        if not isinstance(settings, dict):
             return []
 
         rubs = []
@@ -190,7 +239,69 @@ class RubPolisher(PlumberyPolisher):
                 'description': 'deploy SSH public key',
                 'genius': SSHKeyDeployment(self.key)})
 
-        if settings['rub'] is not None:
+        if ('cloud-config' in settings
+            and settings['cloud-config'] is not None):
+
+            logging.info('- using cloud-config')
+
+            # mandatory else cloud-init will not consider user-data
+            meta_data = 'instance_id: dummy\n'
+
+            logging.debug('- preparing meta-data')
+            logging.debug(meta_data)
+
+            destination = '/var/lib/cloud/seed/nocloud-net/meta-data'
+            rubs.append({
+                'description': 'put meta-data',
+                'genius': FileContentDeployment(
+                    content=meta_data,
+                    target=destination)})
+
+            # put in user-data what has been found in the fittings plan
+            user_data = '#cloud-config\n'+yaml.dump(
+                settings['cloud-config'],
+                default_flow_style=False)
+
+            logging.debug('- preparing user-data')
+            logging.debug(user_data)
+
+            destination = '/var/lib/cloud/seed/nocloud-net/user-data'
+            rubs.append({
+                'description': 'put user-data',
+                'genius': FileContentDeployment(
+                    content=user_data,
+                    target=destination)})
+
+            # remote install of cloud-init
+
+            logging.debug('- preparing remote install of cloud-init')
+
+            script = 'rub.cloud-init.sh'
+            try:
+                path = os.path.dirname(__file__)+'/'+script
+                with open(path) as stream:
+                    text = stream.read()
+                    if text:
+                        rubs.append({
+                            'description': 'run '+script,
+                            'genius': ScriptDeployment(
+                                script=text,
+                                name=script)})
+
+            except IOError:
+                raise PlumberyException("Error: cannot read '{}'"
+                                        .format(script))
+
+            logging.debug('- preparing reboot to trigger cloud-init')
+
+            rubs.append({
+                'description': 'reboot node',
+                'genius': RebootDeployment(
+                    container=container)})
+
+        if ('rub' in settings
+            and settings['rub'] is not None):
+
             for script in settings['rub']:
 
                 tokens = script.split(' ')
@@ -360,7 +471,7 @@ class RubPolisher(PlumberyPolisher):
 
         """
 
-        rubs = self._get_rubs(node, settings)
+        rubs = self._get_rubs(node, settings, container)
         if len(rubs) < 1:
             logging.info('- nothing to do')
             self.report.append({node.name: {
