@@ -265,6 +265,7 @@ class PlumberyFacility:
         """
 
         labels = set()
+
         for blueprint in self.fittings.blueprints:
             name = blueprint.keys()[0]
             if 'domain' in blueprint[name]:
@@ -286,6 +287,7 @@ class PlumberyFacility:
         """
 
         labels = set()
+
         for blueprint in self.fittings.blueprints:
             name = blueprint.keys()[0]
             if 'ethernet' in blueprint[name]:
@@ -306,6 +308,7 @@ class PlumberyFacility:
         """
 
         labels = []
+
         for blueprint in self.fittings.blueprints:
             name = blueprint.keys()[0]
             if 'nodes' in blueprint[name]:
@@ -529,13 +532,13 @@ class PlumberyFacility:
             if name in basement:
                 continue
             blueprint = self.get_blueprint(name)
-            logging.info("Destroying blueprint '{}'".format(name))
+            logging.debug("Destroying blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
             infrastructure.destroy_blueprint(blueprint)
 
         for name in basement:
             blueprint = self.get_blueprint(name)
-            logging.info("Destroying blueprint '{}'".format(name))
+            logging.debug("Destroying blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
             infrastructure.destroy_blueprint(blueprint)
 
@@ -554,12 +557,12 @@ class PlumberyFacility:
             if name in basement:
                 continue
             blueprint = self.get_blueprint(name)
-            logging.info("Destroying nodes of blueprint '{}'".format(name))
+            logging.debug("Destroying nodes of blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
 
         for name in basement:
             blueprint = self.get_blueprint(name)
-            logging.info("Destroying nodes of blueprint '{}'".format(name))
+            logging.debug("Destroying nodes of blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
 
     def destroy_blueprint(self, names):
