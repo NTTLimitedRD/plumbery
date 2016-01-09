@@ -74,7 +74,9 @@ class SpitPolisher(PlumberyPolisher):
 
         names = nodes.list_nodes(container.blueprint)
 
-        logging.info("Waiting for nodes to be deployed")
+        logging.info("Waiting for nodes of '{}' to be deployed".format(
+            container.blueprint['target']))
+
         for name in names:
             while True:
                 node = nodes.get_node(name)
