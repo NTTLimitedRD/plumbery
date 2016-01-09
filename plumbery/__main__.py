@@ -184,7 +184,7 @@ def main(args=[], engine=None):
     except Exception as feedback:
         logging.error("Unable to do '{}'".format(args.action))
         if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
-            raise feedback
+            raise
         else:
             logging.error("{}: {}".format(
                 feedback.__class__.__name__,
