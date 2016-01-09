@@ -134,7 +134,7 @@ class PlumberyNodes:
 
                 cpu = None
                 if 'cpu' in settings:
-                    tokens = settings['cpu'].split(' ')
+                    tokens = str(settings['cpu']).split(' ')
                     if len(tokens) < 2:
                         tokens.append('1')
                     if len(tokens) < 3:
