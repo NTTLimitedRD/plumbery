@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
 
-# else cloud-init install may fail
-apt-get -y update
+# consider popular installers
 
-# install cloud-init itself
-apt-get -q -y install cloud-init
+apt=`command -v apt-get`
+yum=`command -v yum`
+
+if [ -n "$apt" ]; then
+    apt-get -y update
+    apt-get -q -y install cloud-init
+
+elif [ -n "$yum" ]; then
+    yum -y install cloud-init
+
+else
+    echo "Error: no path to apt-get or yum" >&2;
+    exit 1;
+fi
 
 # allow for repeated rubs
 rm -rf /var/lib/cloud/instance*
