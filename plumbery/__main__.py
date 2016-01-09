@@ -183,13 +183,18 @@ def main(args=[], engine=None):
 
     except Exception as feedback:
         logging.error("Unable to do '{}'".format(args.action))
-        logging.debug(str(feedback))
+        if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+            raise feedback
+        else:
+            logging.error("{}: {}".format(
+                feedback.__class__.__name__,
+                str(feedback)))
         sys.exit(2)
 
 if __name__ == "__main__":
     try:
         main(sys.argv[1:])
     except KeyboardInterrupt:
-        logger.info("Aborted by user")
+        logging.info("Aborted by user")
         sys.exit(0)
 
