@@ -114,6 +114,7 @@ class FakeRegion:
 fakeFittings = {
     'regionId': 'dd-na',
     'locationId': 'NA9',
+    'basement': 'fake unknown',
     'blueprints': [{
         'fake': {
             'domain': {
@@ -131,6 +132,25 @@ fakeFittings = {
                     }
                 }]
             }
+        },{
+        'fake': {
+            'domain': {
+                'name': 'VDC1',
+                'service': 'ADVANCED',
+                'description': 'fake'},
+            'ethernet': {
+                'name': 'vlan1',
+                'subnet': '10.0.10.0',
+                'description': 'fake'},
+            'nodes': [{
+                'stackstorm': {
+                    'description': 'fake',
+                    'appliance': 'RedHat 6 64-bit 4 CPU'
+                    }
+                }]
+            }
+        },{
+        'macro': 'unknown fake'
         }]
     }
 
@@ -152,6 +172,48 @@ class TestPlumberyFacility(unittest.TestCase):
     def tearDown(self):
         self.facility = None
 
+    def test_get_location_id(self):
+        self.assertEqual(self.facility.get_location_id(), 'NA9')
+
+    def test_list_basement(self):
+        self.assertEqual(self.facility.list_basement(), ['fake'])
+
+    def test_list_blueprints(self):
+        self.assertEqual(self.facility.list_blueprints(), ['fake'])
+
+    def test_expand_blueprint(self):
+        self.assertEqual(
+            self.facility.expand_blueprint('fake'), ['fake'])
+        self.assertEqual(
+            self.facility.expand_blueprint('fake unknown fake'), ['fake'])
+        self.assertEqual(
+            self.facility.expand_blueprint('macro'), ['fake'])
+        self.assertEqual(
+            self.facility.expand_blueprint('basement'), ['fake'])
+
+    def test_get_blueprint(self):
+        self.assertEqual(
+            self.facility.get_blueprint('fake')['target'], 'fake')
+        self.assertIsNone(self.facility.get_blueprint('macro'))
+        self.assertIsNone(self.facility.get_blueprint('crazyAndunknown'))
+
+    def test_list_domains(self):
+        self.assertEqual(self.facility.list_domains(), ['VDC1'])
+
+    def test_list_ethernets(self):
+        self.assertEqual(self.facility.list_ethernets(), ['vlan1'])
+
+    def test_list_nodes(self):
+        self.assertEqual(self.facility.list_nodes(), ['stackstorm'])
+
+    def test_get_image(self):
+        self.assertRegexpMatches(
+            self.facility.get_image().name, "^RedHat ")
+        self.assertIsNone(self.facility.get_image('perfectlyUnknown'))
+
+    def test_focus(self):
+        self.facility.focus()
+
     def test_build_all_blueprints(self):
         self.facility.build_all_blueprints()
 
@@ -163,12 +225,6 @@ class TestPlumberyFacility(unittest.TestCase):
 
     def test_destroy_nodes(self):
         self.facility.destroy_nodes('fake')
-
-    def test_focus(self):
-        self.facility.focus()
-
-    def test_get_blueprint(self):
-        self.facility.get_blueprint('fake')
 
     def test_start_all_nodes(self):
         self.facility.start_all_nodes()

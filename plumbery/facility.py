@@ -175,6 +175,9 @@ class PlumberyFacility:
         following example::
 
             ---
+
+            basement: control admin
+
             blueprints:
 
               - mongo: mongo_config mongo_mongos mongo_shard
@@ -202,11 +205,22 @@ class PlumberyFacility:
             >>facility.expand_blueprint(['mongo_config', 'alien_mongos'])
             ['mongo_config']
 
+        If the special label `basement` is provided, then as you can expect
+        it will be expanded as specified in the fittings plan. With the example
+        settings above, you would get::
+
+            >>facility.expand_blueprint('basement')
+            ['control', 'admin']
+
         """
 
         names = []
 
         if isinstance(labels, str):
+
+            if labels.lower() == 'basement':
+                labels = self.fittings.basement
+
             labels = labels.split(' ')
 
         for label in labels:
@@ -222,8 +236,13 @@ class PlumberyFacility:
                         names.append(label)
                 else:
                     for token in str(blueprint[name]).split(' '):
-                        if token not in names:
-                            names.append(token)
+                        if token in names:
+                            continue
+
+                        for scanning in self.fittings.blueprints:
+                            if token == scanning.keys()[0]:
+                                names.append(token)
+                                break
 
         if names != labels:
             logging.info("Expanding '{}' to '{}'".format(
@@ -245,6 +264,10 @@ class PlumberyFacility:
 
         for blueprint in self.fittings.blueprints:
             if name == blueprint.keys()[0]:
+
+                if not isinstance(blueprint[name], dict):
+                    return None
+
                 blueprint = blueprint[name]
                 blueprint['target'] = name
                 return blueprint
@@ -269,7 +292,7 @@ class PlumberyFacility:
         for blueprint in self.fittings.blueprints:
             name = blueprint.keys()[0]
             if 'domain' in blueprint[name]:
-                labels.add(blueprint[name]['domain'])
+                labels.add(blueprint[name]['domain']['name'])
 
         return list(labels)
 
@@ -291,7 +314,7 @@ class PlumberyFacility:
         for blueprint in self.fittings.blueprints:
             name = blueprint.keys()[0]
             if 'ethernet' in blueprint[name]:
-                labels.add(blueprint[name]['ethernet'])
+                labels.add(blueprint[name]['ethernet']['name'])
 
         return list(labels)
 
@@ -328,7 +351,7 @@ class PlumberyFacility:
 
         return labels
 
-    def get_image(self, name):
+    def get_image(self, name=None):
         """
         Retrieves an acceptable image
 
@@ -355,6 +378,9 @@ class PlumberyFacility:
             self.power_on()
             self._cache_images = \
                 self.region.list_images(location=self.location)
+
+        if (name is None and len(self._cache_images) > 0):
+            return self._cache_images[0]
 
         for image in self._cache_images:
             if name in image.name:
