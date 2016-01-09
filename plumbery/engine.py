@@ -25,9 +25,10 @@ from libcloud.loadbalancer.types import Provider as BalancerProvider
 
 from exception import PlumberyException
 from facility import PlumberyFacility
+from facility import PlumberyFittings
 from polisher import PlumberyPolisher
 
-__all__ = ['PlumberyEngine', 'PlumberyFittings']
+__all__ = ['PlumberyEngine']
 
 
 class PlumberyEngine:
@@ -959,34 +960,3 @@ class PlumberyEngine:
             key=self.get_user_name(),
             secret=self.get_user_password(),
             region=region)
-
-
-class PlumberyFittings:
-    """
-    Describe fittings plan for one facility
-
-    :param entries: plan of the fittings
-    :type entries: ``dict``
-
-    """
-
-    def __init__(self, **entries):
-
-        self.basement = None
-        self.blueprints = []
-        self.locationID = None
-        self.regionID = None
-        self.rub = []
-
-        self.__dict__.update(entries)
-
-    def __repr__(self):
-
-        labels = []
-        for item in self.blueprints:
-            labels.append(item.keys()[0])
-
-        return "<PlumberyFittings locationId: {}, regionId: {}, "   \
-               "blueprints: {}, basement: {} >"    \
-               .format(self.locationId, self.regionId,
-                       ' '.join(labels), self.basement)
