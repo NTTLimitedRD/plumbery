@@ -195,7 +195,12 @@ class RubPolisher(PlumberyPolisher):
 
         try:
             session.connect()
-            node = steps.run(node, session)
+
+            if self.engine.safeMode:
+                logging.info("- no actual ssh interaction in safe mode")
+
+            else:
+                node = steps.run(node, session)
 
         except Exception as feedback:
             logging.info("Error: unable to rub '{}' at '{}'!".format(
