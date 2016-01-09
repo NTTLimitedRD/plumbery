@@ -366,18 +366,19 @@ class PlumberyNodes:
     @classmethod
     def expand_labels(self, label):
         """
-        Designate multiple nodes with a simple label
+        Designates multiple nodes with a simple label
 
         :param label: the label to be expanded, e.g., ``server[1..2]_eu``
         :type label: ``str``
 
-        :return: a list of labels, e.g., ``['server1_eu', 'server2_eu']``
+        :return: a list of names, e.g., ``['server1_eu', 'server2_eu']``
         :rtype: ``list`` of ``str``
 
         This function creates multiple names where applicable::
 
             >>>nodes.expand_labels('mongodb')
             ['mongodb']
+
             >>>nodes.expand_labels('mongodb[1..3]_eu')
             ['mongodb1_eu', 'mongodb2_eu', 'mongodb3_eu']
 
