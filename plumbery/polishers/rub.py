@@ -30,6 +30,7 @@ from libcloud.compute.ssh import SSHClient
 from plumbery.exception import PlumberyException
 from plumbery.polisher import PlumberyPolisher
 
+
 class FileContentDeployment(Deployment):
     """
     Installs a file on a target node.
@@ -55,6 +56,7 @@ class FileContentDeployment(Deployment):
         client.put(path=self.target, contents=self.content)
         return node
 
+
 class RebootDeployment(Deployment):
     """
     Reboots a node and let cloud-init do the dirty job.
@@ -75,6 +77,7 @@ class RebootDeployment(Deployment):
         """
         self.region.reboot_node(node)
         return node
+
 
 class RubPolisher(PlumberyPolisher):
     """
@@ -240,7 +243,7 @@ class RubPolisher(PlumberyPolisher):
                 'genius': SSHKeyDeployment(self.key)})
 
         if ('cloud-config' in settings
-            and settings['cloud-config'] is not None):
+                and settings['cloud-config'] is not None):
 
             logging.info('- using cloud-config')
 
@@ -300,7 +303,7 @@ class RubPolisher(PlumberyPolisher):
                     container=container)})
 
         if ('rub' in settings
-            and settings['rub'] is not None):
+                and settings['rub'] is not None):
 
             for script in settings['rub']:
 

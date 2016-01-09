@@ -18,7 +18,6 @@ import logging
 import sys
 
 from plumbery.engine import PlumberyEngine
-from plumbery.exception import PlumberyException
 from plumbery import __version__
 
 
@@ -197,4 +196,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logging.info("Aborted by user")
         sys.exit(0)
-

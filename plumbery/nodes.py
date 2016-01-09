@@ -141,12 +141,12 @@ class PlumberyNodes:
                         tokens.append('standard')
 
                     if (int(tokens[0]) < 1
-                        or int(tokens[0]) > 32):
+                            or int(tokens[0]) > 32):
 
                         logging.info("- cpu should be between 1 and 32")
 
                     elif (int(tokens[1]) < 1
-                        or int(tokens[1]) > 2):
+                            or int(tokens[1]) > 2):
 
                         logging.info("- core per cpu should be either 1 or 2")
 
