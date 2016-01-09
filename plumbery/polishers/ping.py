@@ -41,6 +41,11 @@ class PingPolisher(PlumberyPolisher):
 
         """
 
+        logging.info("Pinging node '{}'".format(settings['name']))
+        if node is None:
+            logging.info("- not found")
+            return
+
         if node.state == NodeState.RUNNING:
             logging.info("- node is running")
 

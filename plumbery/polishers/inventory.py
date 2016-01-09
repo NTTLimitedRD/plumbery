@@ -74,18 +74,59 @@ class InventoryPolisher(PlumberyPolisher):
 
         """
 
+        logging.info("Examinating node '{}'".format(settings['name']))
+        if node is None:
+            logging.info("- not found")
+            return
+
+        # hack because the driver does not report public ipv4 accurately
+        if len(node.public_ips) < 1:
+            domain = container.get_network_domain(
+                container.blueprint['domain']['name'])
+            for rule in container.region.ex_list_nat_rules(domain):
+                if rule.internal_ip == node.private_ips[0]:
+                    node.public_ips.append(rule.external_ip)
+                    break
+
         data = {}
         data['type'] = 'node'
         data['id'] = node.id
         data['name'] = node.name
+
+        status = node.extra.pop('status')
+        cpu = node.extra.pop('cpu')
+        node.extra.pop('networkId')
+        data.update(node.extra)
+
+        data['action'] = str(status.action)
+
+        data['cpu'] = cpu.cpu_count
+        data['cores_per_socket'] = cpu.cores_per_socket
+        data['performance'] = cpu.performance.lower()
+
+        domain = container.get_network_domain(
+            container.blueprint['domain']['name'])
+
+        data['datacenter'] = domain.location.name
+        data['datacenterCountry'] = domain.location.country
+
+        data['networkDomain'] = domain.name
+        data['networkDomainDescription'] = domain.description
+
+        ethernet = container.get_ethernet(
+            container.blueprint['ethernet']['name'])
+        data['ethernet'] = ethernet.name
+        data['ethernetId'] = ethernet.id
+        data['ethernetDescription'] = ethernet.description
+
         data['public_ips'] = node.public_ips
         data['private_ips'] = node.private_ips
-        data.update(node.extra)
-        data.pop('status')
 
         data['private_host'] = node.private_ips[0].replace('.', '-')
 
         self.inventory.append(data)
+
+        logging.info("- done")
 
     def reap(self):
         """

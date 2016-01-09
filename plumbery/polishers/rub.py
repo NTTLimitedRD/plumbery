@@ -474,6 +474,11 @@ class RubPolisher(PlumberyPolisher):
 
         """
 
+        logging.info("Rubbing node '{}'".format(settings['name']))
+        if node is None:
+            logging.info("- not found")
+            return
+
         rubs = self._get_rubs(node, settings, container)
         if len(rubs) < 1:
             logging.info('- nothing to do')

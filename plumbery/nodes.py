@@ -496,16 +496,11 @@ class PlumberyNodes:
             else:
                 label = str(item)
                 settings = {}
-            settings['name'] = label
 
             for label in self.expand_labels(label):
 
-                logging.info("Polishing node '{}'".format(label))
-
                 node = self.get_node(label)
-                if node is None:
-                    logging.info("- not found")
-                    continue
+                settings['name'] = label
 
                 for polisher in polishers:
                     polisher.shine_node(node, settings, container)
