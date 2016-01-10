@@ -94,6 +94,9 @@ class FakeContainer:
     def get_network_domain(self, blueprint):
         return None
 
+    def get_ethernet(self, blueprint):
+        return None
+
     def _add_to_pool(self, node):
         pass
 
@@ -116,12 +119,11 @@ class FakeNode():
     name = 'fake'
     id = '1234'
     state = NodeState.RUNNING
-    private_ips = ['10.100.100.100']
+    private_ips = ['12.34.56.78']
     public_ips = []
     extra = {'datacenterId': 'EU6',
              'description': '#fake description with #tags',
-             'ipv6': '2a00:47c0:111:1208:4802:ab7:cb3c:92ec',
-             'status': {}}
+             'ipv6': 'fe80::'}
 
 fakeNodeSettings = {
     'name': 'stackstorm',
@@ -170,6 +172,15 @@ class TestPlumberyPolisher(unittest.TestCase):
     def test_spit(self):
         self.polisher = PlumberyPolisher.from_shelf(
             'spit', fakeInventoryConfiguration)
+        self.polisher.go(FakeEngine())
+        self.polisher.move_to(FakeFacility())
+        self.polisher.shine_node(
+            FakeNode(), fakeNodeSettings, FakeContainer())
+        self.polisher.reap()
+
+    def test_ping(self):
+        self.polisher = PlumberyPolisher.from_shelf(
+            'ping', fakeInventoryConfiguration)
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
         self.polisher.shine_node(
