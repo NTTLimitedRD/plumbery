@@ -193,7 +193,7 @@ class RubPolisher(PlumberyPolisher):
                             username='root',
                             password=self.secret,
                             key_files=None,
-                            timeout=6)
+                            timeout=9)
 
         try:
             session.connect()
@@ -519,6 +519,10 @@ class RubPolisher(PlumberyPolisher):
         logging.info("Rubbing node '{}'".format(settings['name']))
         if node is None:
             logging.info("- not found")
+            return
+
+        if node.state != NodeState.RUNNING:
+            logging.info("- skipped - node is not running")
             return
 
         rubs = self._get_rubs(node, settings, container)
