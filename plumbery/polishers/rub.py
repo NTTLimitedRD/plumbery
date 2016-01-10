@@ -500,15 +500,6 @@ class RubPolisher(PlumberyPolisher):
                 }})
             return
 
-        # hack because the driver does not report public ipv4 accurately
-        if len(node.public_ips) < 1:
-            domain = container.get_network_domain(
-                container.blueprint['domain']['name'])
-            for rule in container.region.ex_list_nat_rules(domain):
-                if rule.internal_ip == node.private_ips[0]:
-                    node.public_ips.append(rule.external_ip)
-                    break
-
         if len(node.public_ips) > 0:
             logging.info("- node is reachable at '{}'".format(
                 node.public_ips[0]))
