@@ -84,31 +84,39 @@ class InventoryPolisher(PlumberyPolisher):
         data['id'] = node.id
         data['name'] = node.name
 
-        status = node.extra.pop('status')
-        cpu = node.extra.pop('cpu')
-        node.extra.pop('networkId')
+        status = None
+        if 'status' in node.extra:
+            status = node.extra.pop('status')
+            data['action'] = str(status.action)
+
+        cpu = None
+        if 'cpu' in node.extra:
+            cpu = node.extra.pop('cpu')
+            data['cpu'] = cpu.cpu_count
+            data['cores_per_socket'] = cpu.cores_per_socket
+            data['performance'] = cpu.performance.lower()
+
+        if 'networkId' in node.extra:
+            node.extra.pop('networkId')
+
         data.update(node.extra)
-
-        data['action'] = str(status.action)
-
-        data['cpu'] = cpu.cpu_count
-        data['cores_per_socket'] = cpu.cores_per_socket
-        data['performance'] = cpu.performance.lower()
 
         domain = container.get_network_domain(
             container.blueprint['domain']['name'])
 
-        data['datacenter'] = domain.location.name
-        data['datacenterCountry'] = domain.location.country
-
-        data['networkDomain'] = domain.name
-        data['networkDomainDescription'] = domain.description
+        if domain is not None:
+            data['datacenter'] = domain.location.name
+            data['datacenterCountry'] = domain.location.country
+            data['networkDomain'] = domain.name
+            data['networkDomainDescription'] = domain.description
 
         ethernet = container.get_ethernet(
             container.blueprint['ethernet']['name'])
-        data['ethernet'] = ethernet.name
-        data['ethernetId'] = ethernet.id
-        data['ethernetDescription'] = ethernet.description
+
+        if ethernet is not None:
+            data['ethernet'] = ethernet.name
+            data['ethernetId'] = ethernet.id
+            data['ethernetDescription'] = ethernet.description
 
         data['public_ips'] = node.public_ips
         data['private_ips'] = node.private_ips
