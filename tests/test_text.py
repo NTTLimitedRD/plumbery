@@ -5,13 +5,117 @@ Tests for `text` module.
 """
 
 import unittest
+import yaml
 from mock_api import DimensionDataMockHttp
+
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
+
 from plumbery.engine import PlumberyFittings, PlumberyEngine
 from plumbery.facility import PlumberyFacility
 from plumbery.text import PlumberyText, PlumberyContext, PlumberyNodeContext
 from plumbery import __version__
 
+input1 = """
+var http = require('http');
+http.createServer(function (req, res) {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Hello World\n');
+}).listen(8080, '{{ node.private }}');
+console.log('Server running at http://{{ node.private }}:8080/');
+"""
+
+expected1 = input1.replace('{{ node.private }}', '12.34.56.78')
+
+input2 = {
+    'packages': ['ntp', 'nodejs', 'npm'],
+    'ssh_pwauth': True,
+    'disable_root': False,
+    'bootcmd': \
+        ['curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -'],
+    'write_files': [{
+        'content': input1,
+        'path': '/root/hello.js'}],
+    'runcmd': ['sudo npm install pm2 -g', 'pm2 start /root/hello.js']}
+
+expected2 = {
+    'packages': ['ntp', 'nodejs', 'npm'],
+    'ssh_pwauth': True,
+    'disable_root': False,
+    'bootcmd': \
+        ['curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -'],
+    'write_files': [{
+        'content': expected1,
+        'path': '/root/hello.js'}],
+    'runcmd': ['sudo npm install pm2 -g', 'pm2 start /root/hello.js']}
+
+input3 = """
+disable_root: false
+ssh_pwauth: True
+bootcmd:
+  - "curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -"
+packages:
+  - ntp
+  - nodejs
+  - npm
+write_files:
+  - content: |
+      var http = require('http');
+      http.createServer(function (req, res) {
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end('Hello World\\n');
+      }).listen(8080, '{{ node.public }}');
+      console.log('Server running at http://{{ node.public }}:8080/');
+    path: /root/hello.js
+runcmd:
+  - sudo npm install pm2 -g
+  - pm2 start /root/hello.js
+"""
+
+expected3 = input3.replace('{{ node.public }}', '12.34.56.78')
+
+input4 = """
+locationId: EU6 # Frankfurt in Europe
+regionId: dd-eu
+
+blueprints:
+
+  - nodejs:
+      domain:
+        name: NodejsFox
+        service: essentials
+        ipv4: 2
+      ethernet:
+        name: nodejsfox.servers
+        subnet: 192.168.20.0
+      nodes:
+        - nodejs01:
+            cpu: 2
+            memory: 8
+            monitoring: essentials
+            glue:
+              - internet 22 8080
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: True
+              bootcmd:
+                - "curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -"
+              packages:
+                - ntp
+                - nodejs
+                - npm
+              write_files:
+                - content: |
+                    var http = require('http');
+                    http.createServer(function (req, res) {
+                      res.writeHead(200, {'Content-Type': 'text/plain'});
+                      res.end('Hello World\\n');
+                    }).listen(8080, '{{ node.public }}');
+                    console.log('Server running at http://{{ node.public }}:8080/');
+                  path: /root/hello.js
+              runcmd:
+                - sudo npm install pm2 -g
+                - pm2 start /root/hello.js
+"""
 
 class FakeNode1:
 
@@ -74,7 +178,6 @@ class TestPlumberyText(unittest.TestCase):
         template = "little {{ test }} with multiple {{test}} and {{}} as well"
         context = PlumberyContext(dictionary={ 'test': 'toast' })
         expected = "little toast with multiple toast and {{}} as well"
-
         self.assertEqual(
             self.text.expand_variables(template, context), expected)
 
@@ -83,9 +186,46 @@ class TestPlumberyText(unittest.TestCase):
         template = "we are running plumbery {{ plumbery.version }}"
         context = PlumberyContext(context=PlumberyEngine())
         expected = "we are running plumbery "+__version__
-
         self.assertEqual(
             self.text.expand_variables(template, context), expected)
+
+    def test_input1(self):
+
+        context = PlumberyContext(dictionary={ 'node.private': '12.34.56.78' })
+        self.assertEqual(
+            self.text.expand_variables(input1, context), expected1)
+
+    def test_input2(self):
+
+        context = PlumberyContext(dictionary={})
+        transformed = yaml.load(self.text.expand_variables(input2, context))
+        unmatched = {o : (input2[o], transformed[o])
+            for o in input2.keys() if input2[o] != transformed[o]}
+        if unmatched != {}:
+            print(unmatched)
+        self.assertEqual(len(unmatched), 0)
+
+        context = PlumberyContext(dictionary={ 'node.private': '12.34.56.78' })
+        transformed = yaml.load(self.text.expand_variables(input2, context))
+        unmatched = {o : (expected2[o], transformed[o])
+            for o in expected2.keys() if expected2[o] != transformed[o]}
+        if unmatched != {}:
+            print(unmatched)
+        self.assertEqual(len(unmatched), 0)
+
+    def test_input3(self):
+
+        loaded = yaml.load(input3)
+        context = PlumberyContext(dictionary={ 'node.public': '12.34.56.78' })
+        transformed = yaml.load(self.text.expand_variables(loaded, context))
+        self.assertEqual(transformed, yaml.load(expected3))
+
+    def test_input4(self):
+
+        loaded = yaml.load(input4)
+        context = PlumberyContext(dictionary={})
+        transformed = yaml.load(self.text.expand_variables(loaded, context))
+        self.assertEqual(transformed, loaded)
 
     def test_node1(self):
 
@@ -133,7 +273,6 @@ class TestPlumberyText(unittest.TestCase):
         expected = '2a00:47c0:111:1136:47c9:5a6a:911d:6c7f'
         self.assertEqual(
             self.text.expand_variables(template, context), expected)
-
 
 if __name__ == '__main__':
     import sys

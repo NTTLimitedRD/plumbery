@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import logging
+import yaml
 
 from nodes import PlumberyNodes
 
@@ -28,7 +29,7 @@ class PlumberyText:
         Binds variables
 
         :param text: the text to be expanded
-        :type text: ``str``
+        :type text: ``str`` or ``dict``
 
         :param context: context for lookup of tokens
         :type context: :class:`PlumberyContext`
@@ -42,6 +43,11 @@ class PlumberyText:
 
         opening = '{{'
         closing = '}}'
+
+        serialized = False
+        if not isinstance(text, str): # serialize python object
+            text = str(text)
+            serialized = True
 
         expanded = ''
         index = 0
@@ -57,20 +63,114 @@ class PlumberyText:
                 expanded += text[index:]
                 break
 
-            token = text[head+len(opening):tail].strip()
+            token = text[head+len(opening):tail].strip(' \\\t')
             if len(token) < 1:
                 expanded += text[index:tail+len(closing)]
                 index = tail+len(closing)
                 continue
 
             replacement = context.lookup(token)
+            if replacement is None:  # preserve unmatched tag
+                expanded += text[index:tail+len(closing)]
+                index = tail+len(closing)
 
-            logging.debug("Expanding '{}' to '{}'".format(token, replacement))
-            expanded += text[index:head]+replacement
-            index = tail+len(closing)
+            else:
+                logging.debug("- '{}' -> '{}'".format(token, replacement))
+                expanded += text[index:head]+str(replacement)
+                index = tail+len(closing)
+
+        if serialized: # from serialized python to yaml representation
+            instanciated = yaml.load(expanded)
+            expanded = PlumberyText.dump_dict(instanciated).strip()+'\n'
 
         return expanded
 
+    @classmethod
+    def could_expand(cls, content):
+        """
+        Checks if some bytes are expandable or not
+
+        :param content: the blob to be tested
+        :type content: ``str``
+
+        :return: True if this could be expandable, False otherwise
+        :rtype: ``bool``
+
+        """
+
+        textchars = bytearray({7,8,9,10,12,13,27}
+            | set(range(0x20, 0x100)) - {0x7f})
+
+        is_binary = lambda bytes: bool(bytes.translate(None, textchars))
+
+        return not is_binary(content)
+
+    @classmethod
+    def dump_dict(cls, content, spaces=0):
+        if isinstance(content, str):
+            content = yaml.load(content)
+
+        text = ''
+        for key in content.keys():
+            text += '\n' + ' ' * spaces + key + ': '
+
+            value = content[key]
+
+            if isinstance(value, dict):
+                text += cls.dump_dict(value, spaces+2)
+
+            elif isinstance(value, (list, tuple)):
+                text += cls.dump_list(value, spaces+2)
+
+            elif isinstance(value, bool):
+                text += str(value).lower()
+
+            else:
+                text += cls.dump_str(str(value), spaces+2)
+
+        return text
+
+    @classmethod
+    def dump_list(cls, content, spaces=0):
+        if isinstance(content, str):
+            content = yaml.load(content)
+
+        text = ''
+        for item in content:
+            text += '\n' + ' ' * spaces + '- '
+
+            if isinstance(item, dict):
+                text += cls.dump_dict(item, spaces+2).lstrip()
+
+            elif isinstance(item, list):
+                text += cls.dump_list(item, spaces+2)
+
+            elif isinstance(item, tuple):
+                text += cls.dump_tuple(item, spaces+2)
+
+            elif isinstance(item, bool):
+                text += str(value).lower()
+
+            else:
+                text += cls.dump_str(str(item), spaces+2)
+
+        return text
+
+    @classmethod
+    def dump_str(cls, content, spaces=0):
+
+        lines = content.split('\n')
+        if len(lines) == 1:
+            if content[-1] in ('-', '\\', '|'):
+                return '"'+content+'"'
+            return content
+
+        text = '|'
+        spaces += 2
+        for line in lines:
+            text += '\n' + ' ' * spaces + line
+
+        return text
 
 class PlumberyContext:
 
@@ -93,7 +193,7 @@ class PlumberyContext:
         if self.context is not None:
             return self.context.lookup(token)
 
-        return ''
+        return None
 
 class PlumberyNodeContext:
 
@@ -109,8 +209,6 @@ class PlumberyNodeContext:
             node.name+'.private': node.private_ips[0],
             'node.ipv6': node.extra['ipv6'],
             node.name+'.ipv6': node.extra['ipv6'],
-            'node.public': node.public_ips[0],
-            node.name+'.public': node.public_ips[0],
             'node.id': node.id,
             node.name+'.id': node.id,
             'node.name': node.name,
@@ -119,6 +217,12 @@ class PlumberyNodeContext:
             node.name+'.private_host': node.private_ips[0].replace('.', '-')
             }
 
+        if len(node.public_ips) > 0:
+            self.cache['node.public'] = node.public_ips[0]
+            self.cache[node.name+'.public'] = node.public_ips[0]
+
+        self.inventory = None
+
     def lookup(self, token):
 
         if token in self.cache:
@@ -126,15 +230,14 @@ class PlumberyNodeContext:
 
         if self.container is not None:
 
-            if 'local_nodes_inventory' not in self.cache:
-                self.cache['local_nodes_inventory'] = \
-                    self.container.facility.list_nodes()
+            if self.inventory is None:
+                self.inventory = self.container.facility.list_nodes()
 
             tokens = token.split('.')
             if len(tokens) < 2:
                 tokens.append('private')
 
-            if tokens[0] in self.cache['local_nodes_inventory']:
+            if tokens[0] in self.inventory:
 
                 nodes = PlumberyNodes(self.container.facility)
                 node = nodes.get_node(tokens[0])
@@ -150,9 +253,13 @@ class PlumberyNodeContext:
                     return node.extra['ipv6']
 
                 if tokens[1] == 'public':
-                    return node.public_ips[0]
+                    if len(node.public_ips) > 0:
+                        return node.public_ips[0]
+                    else:
+                        return ''
+
 
         if self.context is not None:
             return self.context.lookup(token)
 
-        return ''
+        return None

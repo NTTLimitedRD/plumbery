@@ -974,5 +974,5 @@ class PlumberyEngine:
         if token == 'plumbery.version':
             return __version__
 
-        return ''
+        return None
 
