@@ -18,6 +18,7 @@ import logging
 
 from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
+from polisher import PlumberyPolisher
 from nodes import PlumberyNodes
 
 __all__ = ['PlumberyFacility', 'PlumberyFittings']
@@ -552,90 +553,39 @@ class PlumberyFacility:
                 blueprint,
                 infrastructure.get_container(blueprint))
 
-    def destroy_all_blueprints(self):
+    def start_all_blueprints(self):
         """
-        Destroys all blueprints at this facility
+        Starts all nodes at this facility
 
         """
-
-        self.power_on()
-        nodes = PlumberyNodes(self)
-        infrastructure = PlumberyInfrastructure(self)
 
         basement = self.list_basement()
+        for name in basement:
+            self.start_blueprint(name)
 
         for name in self.list_blueprints():
-            if name in basement:
-                continue
-            blueprint = self.get_blueprint(name)
-            logging.debug("Destroying blueprint '{}'".format(name))
-            nodes.destroy_blueprint(blueprint)
-            infrastructure.destroy_blueprint(blueprint)
+            if name not in basement:
+                self.start_blueprint(name)
 
-        for name in basement:
-            blueprint = self.get_blueprint(name)
-            logging.debug("Destroying blueprint '{}'".format(name))
-            nodes.destroy_blueprint(blueprint)
-            infrastructure.destroy_blueprint(blueprint)
-
-    def destroy_all_nodes(self):
+    def start_blueprint(self, names):
         """
-        Destroys all nodes at this facility
+        Starts nodes from a given blueprint at this facility
 
-        """
-
-        self.power_on()
-        nodes = PlumberyNodes(self)
-
-        basement = self.list_basement()
-
-        for name in self.list_blueprints():
-            if name in basement:
-                continue
-            blueprint = self.get_blueprint(name)
-            logging.debug("Destroying nodes of blueprint '{}'".format(name))
-            nodes.destroy_blueprint(blueprint)
-
-        for name in basement:
-            blueprint = self.get_blueprint(name)
-            logging.debug("Destroying nodes of blueprint '{}'".format(name))
-            nodes.destroy_blueprint(blueprint)
-
-    def destroy_blueprint(self, names):
-        """
-        Destroys a given blueprint at this facility
-
-        :param names: the name(s) of the blueprint(s) to destroy
+        :param names: the name(s) of the target blueprint(s)
         :type names: ``str`` or ``list`` of ``str``
 
         """
 
-        self.power_on()
-        nodes = PlumberyNodes(self)
-        infrastructure = PlumberyInfrastructure(self)
-
-        for name in self.expand_blueprint(names):
-
-            blueprint = self.get_blueprint(name)
-            nodes.destroy_blueprint(blueprint)
-            infrastructure.destroy_blueprint(blueprint)
-
-    def destroy_nodes(self, names):
-        """
-        Destroys nodes of a given blueprint at this facility
-
-        :param names: the names of the blueprint to destroy
-        :type names: ``str`` or ``list`` of ``str``
-
-        """
-
-        self.power_on()
         nodes = PlumberyNodes(self)
 
         for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            nodes.destroy_blueprint(blueprint)
+
+            if 'nodes' not in blueprint:
+                continue
+
+            nodes.start_blueprint(blueprint)
 
     def polish_all_blueprints(self, polishers):
         """
@@ -668,6 +618,10 @@ class PlumberyFacility:
 
         """
 
+        if isinstance(polishers, str):
+            polishers = PlumberyPolisher.filter(self.plumbery.polishers,
+                                                polishers)
+
         self.power_on()
         infrastructure = PlumberyInfrastructure(self)
         nodes = PlumberyNodes(self)
@@ -683,41 +637,7 @@ class PlumberyFacility:
 
             nodes.polish_blueprint(blueprint, polishers, container)
 
-    def start_all_nodes(self):
-        """
-        Starts all nodes at this facility
-
-        """
-
-        basement = self.list_basement()
-        for name in basement:
-            self.start_nodes(name)
-
-        for name in self.list_blueprints():
-            if name not in basement:
-                self.start_nodes(name)
-
-    def start_nodes(self, names):
-        """
-        Starts nodes from a given blueprint at this facility
-
-        :param names: the name(s) of the target blueprint(s)
-        :type names: ``str`` or ``list`` of ``str``
-
-        """
-
-        nodes = PlumberyNodes(self)
-
-        for name in self.expand_blueprint(names):
-
-            blueprint = self.get_blueprint(name)
-
-            if 'nodes' not in blueprint:
-                continue
-
-            nodes.start_blueprint(blueprint)
-
-    def stop_all_nodes(self):
+    def stop_all_blueprints(self):
         """
         Stops all nodes at this facility
 
@@ -727,12 +647,12 @@ class PlumberyFacility:
 
         for name in self.list_blueprints():
             if name not in basement:
-                self.stop_nodes(name)
+                self.stop_blueprint(name)
 
         for name in basement:
-            self.stop_nodes(name)
+            self.stop_blueprint(name)
 
-    def stop_nodes(self, names):
+    def stop_blueprint(self, names):
         """
         Stops nodes of the given blueprint at this facility
 
@@ -761,6 +681,91 @@ class PlumberyFacility:
                 continue
 
             nodes.stop_blueprint(blueprint)
+
+    def wipe_all_blueprints(self):
+        """
+        Destroys all nodes at this facility
+
+        """
+
+        self.power_on()
+        nodes = PlumberyNodes(self)
+
+        basement = self.list_basement()
+
+        for name in self.list_blueprints():
+            if name in basement:
+                continue
+            blueprint = self.get_blueprint(name)
+            logging.debug("Wiping blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
+
+        for name in basement:
+            blueprint = self.get_blueprint(name)
+            logging.debug("Wiping blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
+
+    def wipe_blueprint(self, names):
+        """
+        Destroys nodes of a given blueprint at this facility
+
+        :param names: the names of the blueprint to destroy
+        :type names: ``str`` or ``list`` of ``str``
+
+        """
+
+        self.power_on()
+        nodes = PlumberyNodes(self)
+
+        for name in self.expand_blueprint(names):
+
+            blueprint = self.get_blueprint(name)
+            nodes.destroy_blueprint(blueprint)
+
+    def destroy_all_blueprints(self):
+        """
+        Destroys all blueprints at this facility
+
+        """
+
+        self.power_on()
+        nodes = PlumberyNodes(self)
+        infrastructure = PlumberyInfrastructure(self)
+
+        basement = self.list_basement()
+
+        for name in self.list_blueprints():
+            if name in basement:
+                continue
+            blueprint = self.get_blueprint(name)
+            logging.debug("Destroying blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
+            infrastructure.destroy_blueprint(blueprint)
+
+        for name in basement:
+            blueprint = self.get_blueprint(name)
+            logging.debug("Destroying blueprint '{}'".format(name))
+            nodes.destroy_blueprint(blueprint)
+            infrastructure.destroy_blueprint(blueprint)
+
+    def destroy_blueprint(self, names):
+        """
+        Destroys a given blueprint at this facility
+
+        :param names: the name(s) of the blueprint(s) to destroy
+        :type names: ``str`` or ``list`` of ``str``
+
+        """
+
+        self.power_on()
+        nodes = PlumberyNodes(self)
+        infrastructure = PlumberyInfrastructure(self)
+
+        for name in self.expand_blueprint(names):
+
+            blueprint = self.get_blueprint(name)
+            nodes.destroy_blueprint(blueprint)
+            infrastructure.destroy_blueprint(blueprint)
 
     def lookup(self, token):
 

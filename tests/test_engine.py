@@ -118,19 +118,19 @@ class TestPlumberyEngine(unittest.TestCase):
             self.engine.build_blueprint('myBlueprint')
 
             self.engine.do('start')
-            self.engine.start_all_nodes()
-            self.engine.start_nodes('myBlueprint')
+            self.engine.start_all_blueprints()
+            self.engine.start_blueprint('myBlueprint')
 
             self.engine.do('polish')
             self.engine.polish_all_blueprints()
             self.engine.polish_blueprint('myBlueprint')
 
             self.engine.do('stop')
-            self.engine.stop_all_nodes()
-            self.engine.stop_nodes('myBlueprint')
+            self.engine.stop_all_blueprints()
+            self.engine.stop_blueprint('myBlueprint')
 
-            self.engine.destroy_all_nodes()
-            self.engine.destroy_nodes('myBlueprint')
+            self.engine.wipe_all_blueprints()
+            self.engine.wipe_blueprint('myBlueprint')
 
             self.engine.do('destroy')
             self.engine.destroy_all_blueprints()

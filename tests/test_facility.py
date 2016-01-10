@@ -220,27 +220,39 @@ class TestPlumberyFacility(unittest.TestCase):
     def test_build_blueprint(self):
         self.facility.build_blueprint('fake')
 
-    def test_destroy_all_nodes(self):
-        self.facility.destroy_all_nodes()
+    def test_start_all_blueprints(self):
+        self.facility.start_all_blueprints()
 
-    def test_destroy_nodes(self):
-        self.facility.destroy_nodes('fake')
+    def test_start_blueprint(self):
+        self.facility.start_blueprint('fake')
 
-    def test_start_all_nodes(self):
-        self.facility.start_all_nodes()
+    def test_polish_all_blueprints(self):
+        self.facility.polish_all_blueprints(polishers='ping')
 
-    def test_start_nodes(self):
-        self.facility.start_nodes('fake')
+    def test_polish_blueprint(self):
+        self.facility.polish_blueprint(names='fake', polishers='ping')
 
-    def test_stop_all_nodes(self):
-        self.facility.stop_all_nodes()
+    def test_stop_all_blueprints(self):
+        self.facility.stop_all_blueprints()
 
-    def test_stop_nodes(self):
-        self.facility.stop_nodes('fake')
+    def test_stop_blueprint(self):
+        self.facility.stop_blueprint('fake')
+
+    def test_wipe_all_blueprints(self):
+        self.facility.wipe_all_blueprints()
+
+    def test_wipe_blueprint(self):
+        self.facility.wipe_blueprint('fake')
+
+    def test_destroy_all_blueprints(self):
+        self.facility.destroy_all_blueprints()
+
+    def test_destroy_blueprint(self):
+        self.facility.destroy_blueprint('fake')
 
     def test_lookup(self):
 
-        self.assertEqual(self.facility.lookup('test'), '')
+        self.assertEqual(self.facility.lookup('*unknown*'), None)
 
 
 if __name__ == '__main__':

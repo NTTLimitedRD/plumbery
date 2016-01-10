@@ -32,8 +32,9 @@ def parse_args(args=[]):
     """
 
     parser = argparse.ArgumentParser(
-        prog='plumbery',
-        description='Plumbing infrastructure with Apache Libcloud.')
+        prog='python -m plumbery',
+        description='Plumbing infrastructure with Apache Libcloud.',
+        epilog='example: python -m plumbery fittings.yaml build')
 
     parser.add_argument(
         'fittings',
@@ -43,7 +44,7 @@ def parse_args(args=[]):
     parser.add_argument(
         'action',
         nargs=1,
-        help="Either 'build', 'start', 'polish', 'stop', 'destroy'"
+        help="Either 'build', 'start', 'polish', 'stop', 'wipe', 'destroy'"
              " or the name of a polisher, e.g., 'ansible', 'rub', etc.")
 
     parser.add_argument(
@@ -134,10 +135,20 @@ def main(args=[], engine=None):
         $ python -m plumbery fittings.yaml start
         $ python -m plumbery fittings.yaml polish
 
-        ... nodes are up and running here ...
+        ... nodes are up and running ...
 
         $ python -m plumbery fittings.yaml stop
+
+        ... nodes have been stopped ...
+
+        $ python -m plumbery fittings.yaml wipe
+
+        ... nodes have been destroyed, but the infrastructure remains ...
+
         $ python -m plumbery fittings.yaml destroy
+
+        ... every virtual resources has been removed ...
+
 
     To focus at a single location, put the character '@' followed by the id.
     For example, to build fittings only at 'NA12' you would type::

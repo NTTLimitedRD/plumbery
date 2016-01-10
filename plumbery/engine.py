@@ -462,9 +462,9 @@ class PlumberyEngine:
 
         elif action == 'start':
             if blueprints is None:
-                self.start_all_nodes(facilities)
+                self.start_all_blueprints(facilities)
             else:
-                self.start_nodes(blueprints, facilities)
+                self.start_blueprint(blueprints, facilities)
 
         elif action == 'polish':
             if blueprints is None:
@@ -475,9 +475,15 @@ class PlumberyEngine:
 
         elif action == 'stop':
             if blueprints is None:
-                self.stop_all_nodes(facilities)
+                self.stop_all_blueprints(facilities)
             else:
-                self.stop_nodes(blueprints, facilities)
+                self.stop_blueprint(blueprints, facilities)
+
+        elif action == 'wipe':
+            if blueprints is None:
+                self.wipe_all_blueprints(facilities)
+            else:
+                self.wipe_blueprint(blueprints, facilities)
 
         elif action == 'destroy':
             if blueprints is None:
@@ -572,26 +578,23 @@ class PlumberyEngine:
                               filter=self._buildPolisher,
                               facilities=facilities)
 
-    def destroy_all_blueprints(self, facilities=None):
+    def start_all_blueprints(self, facilities=None):
         """
-        Destroys all blueprints from fittings plan
+        Starts all nodes described in the fittings plan
 
         :param facilities: explicit list of target facilities
         :type facilities: ``str`` or ``list`` of ``str``
 
-        This function checks facilities to destroy all blueprints there.
+        This function checks facilities to start all nodes there.
         The default behaviour is to consider all facilities mentioned in the
         fittings plan. If a list of facilities is provided, than the action is
         limited to this subset only.
 
-        Note:
-            Running nodes are always preserved from destruction.
-            Therefore the need to stop nodes, in a separate command, before
-            they can be actually destroyed.
+        This function has no effect on nodes that are already up and running.
 
         """
 
-        logging.info("Destroying all blueprints")
+        logging.info("Starting nodes from all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -600,57 +603,24 @@ class PlumberyEngine:
 
         for facility in facilities:
             facility.focus()
-            facility.destroy_all_blueprints()
+            facility.start_all_blueprints()
 
-    def destroy_all_nodes(self, facilities=None):
+    def start_blueprint(self, names, facilities=None):
         """
-        Destroys all nodes from fittings plan
+        Starts nodes of one blueprint of the fittings plan
 
-        :param facilities: explicit list of target facilities
-        :type facilities: ``str`` or ``list`` of ``str``
-
-        This function checks facilities to destroy all nodes there.
-        The default behaviour is to consider all facilities mentioned in the
-        fittings plan. If a list of facilities is provided, than the action is
-        limited to this subset only.
-
-        Note:
-            Running nodes are always preserved from destruction.
-            Therefore the need to stop nodes, in a separate command, before
-            they can be actually destroyed.
-
-        """
-
-        logging.info("Destroying nodes from all blueprints")
-
-        if facilities is not None:
-            facilities = self.list_facility(facilities)
-        else:
-            facilities = self.facilities
-
-        for facility in facilities:
-            facility.focus()
-            facility.destroy_all_nodes()
-
-    def destroy_blueprint(self, names, facilities=None):
-        """
-        Destroys one or several blueprint(s) from fittings plan
-
-        :param names: the name(s) of the blueprint(s) to destroy
+        :param names: the name(s) of the blueprint(s) to start
         :type names: ``str`` or ``list`` of ``str``
 
         :param facilities: explicit list of target facilities
         :type facilities: ``str`` or ``list`` of ``str``
 
-        This function checks facilities to destroy one single blueprint.
+        This function checks facilities to start nodes from some blueprint.
         The default behaviour is to consider all facilities mentioned in the
         fittings plan. If a list of facilities is provided, than the action is
         limited to this subset only.
 
-        Note:
-            Running nodes are always preserved from destruction.
-            Therefore the need to stop nodes, in a separate command, before
-            they can be actually destroyed.
+        This function has no effect on nodes that are already up and running.
 
         """
 
@@ -659,7 +629,7 @@ class PlumberyEngine:
         else:
             label = names
 
-        logging.info("Destroying blueprint '{}'".format(label))
+        logging.info("Starting nodes from blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -668,45 +638,7 @@ class PlumberyEngine:
 
         for facility in facilities:
             facility.focus()
-            facility.destroy_blueprint(names)
-
-    def destroy_nodes(self, names, facilities=None):
-        """
-        Destroys nodes for one or several blueprint(s) of the fittings plan
-
-        :param names: the name(s) of the blueprint(s) to destroy
-        :type names: ``str`` or ``list`` of ``str``
-
-        :param facilities: explicit list of target facilities
-        :type facilities: ``str`` or ``list`` of ``str``
-
-        This function checks facilities to destroy nodes from one blueprint.
-        The default behaviour is to consider all facilities mentioned in the
-        fittings plan. If a list of facilities is provided, than the action is
-        limited to this subset only.
-
-        Note:
-            Running nodes are always preserved from destruction.
-            Therefore the need to stop nodes, in a separate command, before
-            they can be actually destroyed.
-
-        """
-
-        if isinstance(names, list):
-            label = ' '.join(names)
-        else:
-            label = names
-
-        logging.info("Destroying nodes from blueprint '{}'".format(label))
-
-        if facilities is not None:
-            facilities = self.list_facility(facilities)
-        else:
-            facilities = self.facilities
-
-        for facility in facilities:
-            facility.focus()
-            facility.destroy_nodes(names)
+            facility.start_blueprint(names)
 
     def polish_all_blueprints(self, filter=None, facilities=None):
         """
@@ -786,7 +718,8 @@ class PlumberyEngine:
         polishers = PlumberyPolisher.filter(self.polishers, filter)
 
         if len(polishers) < 1:
-            return False
+            logging.debug('No polisher has been found')
+            return
 
         if isinstance(names, list):
             label = ' '.join(names)
@@ -812,69 +745,7 @@ class PlumberyEngine:
         for polisher in polishers:
             polisher.reap()
 
-    def start_all_nodes(self, facilities=None):
-        """
-        Starts all nodes described in the fittings plan
-
-        :param facilities: explicit list of target facilities
-        :type facilities: ``str`` or ``list`` of ``str``
-
-        This function checks facilities to start all nodes there.
-        The default behaviour is to consider all facilities mentioned in the
-        fittings plan. If a list of facilities is provided, than the action is
-        limited to this subset only.
-
-        This function has no effect on nodes that are already up and running.
-
-        """
-
-        logging.info("Starting nodes from all blueprints")
-
-        if facilities is not None:
-            facilities = self.list_facility(facilities)
-        else:
-            facilities = self.facilities
-
-        for facility in facilities:
-            facility.focus()
-            facility.start_all_nodes()
-
-    def start_nodes(self, names, facilities=None):
-        """
-        Starts nodes of one blueprint of the fittings plan
-
-        :param names: the name(s) of the blueprint(s) to start
-        :type names: ``str`` or ``list`` of ``str``
-
-        :param facilities: explicit list of target facilities
-        :type facilities: ``str`` or ``list`` of ``str``
-
-        This function checks facilities to start nodes from some blueprint.
-        The default behaviour is to consider all facilities mentioned in the
-        fittings plan. If a list of facilities is provided, than the action is
-        limited to this subset only.
-
-        This function has no effect on nodes that are already up and running.
-
-        """
-
-        if isinstance(names, list):
-            label = ' '.join(names)
-        else:
-            label = names
-
-        logging.info("Starting nodes from blueprint '{}'".format(label))
-
-        if facilities is not None:
-            facilities = self.list_facility(facilities)
-        else:
-            facilities = self.facilities
-
-        for facility in facilities:
-            facility.focus()
-            facility.start_nodes(names)
-
-    def stop_all_nodes(self, facilities=None):
+    def stop_all_blueprints(self, facilities=None):
         """
         Stops all nodes of the fittings plan
 
@@ -899,9 +770,9 @@ class PlumberyEngine:
 
         for facility in facilities:
             facility.focus()
-            facility.stop_all_nodes()
+            facility.stop_all_blueprints()
 
-    def stop_nodes(self, names, facilities=None):
+    def stop_blueprint(self, names, facilities=None):
         """
         Stops nodes of one blueprint of the fittings plan
 
@@ -934,7 +805,143 @@ class PlumberyEngine:
 
         for facility in facilities:
             facility.focus()
-            facility.stop_nodes(names)
+            facility.stop_blueprint(names)
+
+    def wipe_all_blueprints(self, facilities=None):
+        """
+        Destroys all nodes from fittings plan
+
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to destroy all nodes there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
+
+        Note:
+            Running nodes are always preserved from destruction.
+            Therefore the need to stop nodes, in a separate command, before
+            they can be actually destroyed.
+
+        """
+
+        logging.info("Wiping all blueprints")
+
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
+            facility.focus()
+            facility.wipe_all_blueprints()
+
+    def wipe_blueprint(self, names, facilities=None):
+        """
+        Destroys nodes for one or several blueprint(s) of the fittings plan
+
+        :param names: the name(s) of the blueprint(s) to destroy
+        :type names: ``str`` or ``list`` of ``str``
+
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to destroy nodes from one blueprint.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
+
+        Note:
+            Running nodes are always preserved from destruction.
+            Therefore the need to stop nodes, in a separate command, before
+            they can be actually destroyed.
+
+        """
+
+        if isinstance(names, list):
+            label = ' '.join(names)
+        else:
+            label = names
+
+        logging.info("Wiping blueprint '{}'".format(label))
+
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
+            facility.focus()
+            facility.wipe_blueprint(names)
+
+    def destroy_all_blueprints(self, facilities=None):
+        """
+        Destroys all blueprints from fittings plan
+
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to destroy all blueprints there.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
+
+        Note:
+            Running nodes are always preserved from destruction.
+            Therefore the need to stop nodes, in a separate command, before
+            they can be actually destroyed.
+
+        """
+
+        logging.info("Destroying all blueprints")
+
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
+            facility.focus()
+            facility.destroy_all_blueprints()
+
+    def destroy_blueprint(self, names, facilities=None):
+        """
+        Destroys one or several blueprint(s) from fittings plan
+
+        :param names: the name(s) of the blueprint(s) to destroy
+        :type names: ``str`` or ``list`` of ``str``
+
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function checks facilities to destroy one single blueprint.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
+
+        Note:
+            Running nodes are always preserved from destruction.
+            Therefore the need to stop nodes, in a separate command, before
+            they can be actually destroyed.
+
+        """
+
+        if isinstance(names, list):
+            label = ' '.join(names)
+        else:
+            label = names
+
+        logging.info("Destroying blueprint '{}'".format(label))
+
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
+            facility.focus()
+            facility.destroy_blueprint(names)
 
     def get_compute_driver(self, region):
         """
