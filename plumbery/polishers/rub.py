@@ -242,6 +242,10 @@ class RubPolisher(PlumberyPolisher):
         if not isinstance(settings, dict):
             return []
 
+        environment = PlumberyNodeContext(node=node,
+                                          container=container,
+                                          context=self.facility)
+
         rubs = []
 
         if self.key is not None:
@@ -249,16 +253,101 @@ class RubPolisher(PlumberyPolisher):
                 'description': 'deploy SSH public key',
                 'genius': SSHKeyDeployment(self.key)})
 
+        if ('rub' in settings
+                and len(settings['rub']) > 0):
+
+            logging.info('- using rub commands')
+
+            for script in settings['rub']:
+
+                tokens = script.split(' ')
+                if len(tokens) == 1:
+                    tokens.insert(0, 'run')
+
+                if tokens[0] in ['run', 'run_raw']:
+
+                    script = tokens[1]
+                    if len(tokens) > 2:
+                        args = tokens[2:]
+                    else:
+                        args = []
+
+                    logging.debug("- {} {} {}".format(
+                        tokens[0], script, ' '.join(args)))
+
+                    try:
+                        path = os.path.dirname(__file__)+'/'+script
+                        with open(path) as stream:
+                            text = stream.read()
+
+                            if(tokens[0] == 'run'):
+                                logging.error("- expanding script '{}'"
+                                                .format(script))
+                                text = PlumberyText.expand_variables(
+                                    text, environment)
+
+                            if len(text) > 0:
+                                rubs.append({
+                                    'description': ' '.join(tokens),
+                                    'genius': ScriptDeployment(
+                                        script=text,
+                                        args=args,
+                                        name=script)})
+
+                            else:
+                                logging.error("- script '{}' is empty"
+                                                .format(script))
+
+                    except IOError:
+                        logging.error("- unable to read script '{}'"
+                                      .format(script))
+
+                elif tokens[0] in ['put', 'put_raw']:
+
+                    file = tokens[1]
+                    if len(tokens) > 2:
+                        destination = tokens[2]
+                    else:
+                        destination = './'+file
+
+                    logging.debug("- {} {} {}".format(
+                        tokens[0], file, destination))
+
+                    try:
+                        source = os.path.dirname(__file__)+'/'+file
+                        with open(source) as stream:
+                            content = stream.read()
+
+                            if(tokens[0] == 'put'
+                                    and PlumberyText.could_expand(content)):
+
+                                logging.error("- expanding file '{}'"
+                                                .format(file))
+                                content = PlumberyText.expand_variables(
+                                    content, environment)
+
+                            rubs.append({
+                                'description': ' '.join(tokens),
+                                'genius': FileContentDeployment(
+                                    content=content,
+                                    target=destination)})
+
+                    except IOError:
+                        logging.error("- unable to read file '{}'"
+                                      .format(file))
+
+                else:
+                    raise PlumberyException("Error: unknown directive '{}'"
+                                        .format(' '.join(tokens)))
+
         if ('cloud-config' in settings
-                and settings['cloud-config'] is not None):
+                and len(settings['cloud-config']) > 0):
 
             logging.info('- using cloud-config')
 
             # mandatory else cloud-init will not consider user-data
-            meta_data = 'instance_id: dummy\n'
-
             logging.debug('- preparing meta-data')
-            logging.debug(meta_data)
+            meta_data = 'instance_id: dummy\n'
 
             destination = '/var/lib/cloud/seed/nocloud-net/meta-data'
             rubs.append({
@@ -269,16 +358,10 @@ class RubPolisher(PlumberyPolisher):
 
             logging.debug('- preparing user-data')
 
-            # put in user-data what has been found in the fittings plan
-            user_data = '#cloud-config\n'+yaml.dump(
-                settings['cloud-config'],
-                default_flow_style=False)
+            expanded = PlumberyText.expand_variables(
+                settings['cloud-config'], environment)
 
-            environment = PlumberyNodeContext(node=node,
-                                              container=container,
-                                              context=self.facility)
-            user_data = PlumberyText.expand_variables(user_data, environment)
-
+            user_data = '#cloud-config\n'+expanded
             logging.debug(user_data)
 
             destination = '/var/lib/cloud/seed/nocloud-net/user-data'
@@ -287,8 +370,6 @@ class RubPolisher(PlumberyPolisher):
                 'genius': FileContentDeployment(
                     content=user_data,
                     target=destination)})
-
-            # remote install of cloud-init
 
             logging.debug('- preparing remote install of cloud-init')
 
@@ -314,66 +395,6 @@ class RubPolisher(PlumberyPolisher):
                 'description': 'reboot node',
                 'genius': RebootDeployment(
                     container=container)})
-
-        if ('rub' in settings
-                and settings['rub'] is not None):
-
-            for script in settings['rub']:
-
-                tokens = script.split(' ')
-                if len(tokens) == 1:
-                    tokens.insert(0, 'run')
-
-                if tokens[0] == 'run':
-
-                    script = tokens[1]
-                    if len(tokens) > 2:
-                        args = tokens[2:]
-                    else:
-                        args = None
-
-                    try:
-                        path = os.path.dirname(__file__)+'/'+script
-                        with open(path) as stream:
-                            text = stream.read()
-                            if text:
-                                rubs.append({
-                                    'description': ' '.join(tokens),
-                                    'genius': ScriptDeployment(
-                                        script=text,
-                                        args=args,
-                                        name=script)})
-
-                    except IOError:
-                        raise PlumberyException("Error: cannot read '{}'"
-                                                .format(script))
-
-                elif tokens[0] == 'put':
-
-                    file = tokens[1]
-                    if len(tokens) > 2:
-                        destination = tokens[2]
-                    else:
-                        destination = './'+file
-
-                    try:
-                        source = os.path.dirname(__file__)+'/'+file
-                        with open(source) as stream:
-                            text = stream.read()
-                            if text:
-                                rubs.append({
-                                    'description': ' '.join(tokens),
-                                    'genius': FileDeployment(
-                                        source=source,
-                                        target=destination)})
-
-                    except IOError:
-                        raise PlumberyException("Error: cannot read '{}'"
-                                                .format(file))
-
-                else:
-                    raise PlumberyException("Error: unknown directive '{}'"
-                                            .format(' '.join(tokens)))
 
         return rubs
 
