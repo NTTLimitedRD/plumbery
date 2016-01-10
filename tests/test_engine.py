@@ -81,6 +81,10 @@ class TestPlumberyEngine(unittest.TestCase):
         self.engine.set_shared_secret('fake_secret')
         self.assertEqual(self.engine.get_shared_secret(), 'fake_secret')
 
+        random = self.engine.get_random_secret()
+        self.assertEqual(len(random), 9)
+        self.assertEqual(self.engine.get_random_secret(), random)
+
         self.engine.set_user_name('fake_name')
         self.assertEqual(self.engine.get_user_name(), 'fake_name')
 
@@ -145,6 +149,10 @@ class TestPlumberyEngine(unittest.TestCase):
 
         self.engine = PlumberyEngine()
         self.assertEqual(self.engine.lookup('plumbery.version'), __version__)
+
+        random = self.engine.lookup('random.secret')
+        self.assertEqual(len(random), 9)
+        self.assertEqual(self.engine.lookup('random.secret'), random)
 
     def test_parser(self):
         args = parse_args(['fittings.yaml', 'build', 'web'])
