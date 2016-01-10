@@ -565,11 +565,10 @@ class RubPolisher(PlumberyPolisher):
 
         """
 
-        if 'reap' in self.settings:
-            fileName = self.settings['reap']
-        else:
-            fileName = 'rub.yaml'
+        if 'reap' not in self.settings:
+            return
 
+        fileName = self.settings['reap']
         logging.info("Reporting on rubs in '{}'".format(fileName))
         with open(fileName, 'w') as stream:
             stream.write(yaml.dump(self.report, default_flow_style=False))
