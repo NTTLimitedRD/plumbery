@@ -117,6 +117,19 @@ blueprints:
                 - pm2 start /root/hello.js
 """
 
+input5 = """
+write_files:
+  - content: |
+      #! /usr/bin/sed -i
+      s/tcp-keepalive ([0-9]+)/tcp-keepalive 60/
+      /^bind 127.0.0.1/s/^/#/
+      /^#requirepass/s/^#//
+      s/requirepass (.*)$/requirepass {{ random.secret }}/
+      /^#maxmemory-policy/s/^#//
+      s/maxmemory-policy (.*)$/maxmemory-policy noeviction/
+    path: /root/edit_redis_conf.sed
+"""
+
 class FakeNode1:
 
     id = '1234'
@@ -223,6 +236,13 @@ class TestPlumberyText(unittest.TestCase):
     def test_input4(self):
 
         loaded = yaml.load(input4)
+        context = PlumberyContext(dictionary={})
+        transformed = yaml.load(self.text.expand_variables(loaded, context))
+        self.assertEqual(transformed, loaded)
+
+    def test_input5(self):
+
+        loaded = yaml.load(input5)
         context = PlumberyContext(dictionary={})
         transformed = yaml.load(self.text.expand_variables(loaded, context))
         self.assertEqual(transformed, loaded)

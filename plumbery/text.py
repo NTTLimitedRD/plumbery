@@ -46,6 +46,7 @@ class PlumberyText:
 
         serialized = False
         if not isinstance(text, str): # serialize python object
+            logging.debug("- serializing object before expansion")
             text = str(text)
             serialized = True
 
@@ -159,7 +160,10 @@ class PlumberyText:
     @classmethod
     def dump_str(cls, content, spaces=0):
 
+        # that's a real hack...
         lines = content.split('\n')
+        if len(lines) == 1:
+            lines = content.split('\\n')
         if len(lines) == 1:
             if content[-1] in ('-', '\\', '|'):
                 return '"'+content+'"'
