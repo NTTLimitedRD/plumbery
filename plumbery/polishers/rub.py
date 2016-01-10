@@ -264,7 +264,7 @@ class RubPolisher(PlumberyPolisher):
                 if len(tokens) == 1:
                     tokens.insert(0, 'run')
 
-                if tokens[0] in ['run', 'run_raw']:
+                if tokens[0] in ['run', 'run_raw']: # send and run a script
 
                     script = tokens[1]
                     if len(tokens) > 2:
@@ -302,7 +302,7 @@ class RubPolisher(PlumberyPolisher):
                         logging.error("- unable to read script '{}'"
                                       .format(script))
 
-                elif tokens[0] in ['put', 'put_raw']:
+                elif tokens[0] in ['put', 'put_raw']: # send a file
 
                     file = tokens[1]
                     if len(tokens) > 2:
@@ -336,16 +336,22 @@ class RubPolisher(PlumberyPolisher):
                         logging.error("- unable to read file '{}'"
                                       .format(file))
 
-                else:
-                    raise PlumberyException("Error: unknown directive '{}'"
-                                        .format(' '.join(tokens)))
+                else: # echo a sensible message eventually
+
+                    if tokens[0] == 'echo':
+                        tokens.pop(0)
+                    message = ' '.join(tokens)
+                    message = PlumberyText.expand_variables(
+                        message, environment)
+                    logging.info("- {}".format(message))
+
 
         if ('cloud-config' in settings
                 and len(settings['cloud-config']) > 0):
 
             logging.info('- using cloud-config')
 
-            # mandatory else cloud-init will not consider user-data
+            # mandatory, else cloud-init will not consider user-data
             logging.debug('- preparing meta-data')
             meta_data = 'instance_id: dummy\n'
 
