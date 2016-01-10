@@ -68,6 +68,8 @@ class PlumberyFacility:
         self._cache_network_domains = []
         self._cache_vlans = []
 
+        self._cache_lookup = {}
+
     def __repr__(self):
 
         return "<PlumberyFacility fittings: {}>".format(self.fittings)
@@ -759,6 +761,13 @@ class PlumberyFacility:
                 continue
 
             nodes.stop_blueprint(blueprint)
+
+    def lookup(self, token):
+
+        if token in self._cache_lookup:
+            return self._cache_lookup[token]
+
+        return self.plumbery.lookup(token)
 
 
 class PlumberyFittings:

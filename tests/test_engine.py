@@ -12,6 +12,7 @@ from libcloud.common.types import InvalidCredsError
 
 from plumbery.__main__ import parse_args, main
 from plumbery.engine import PlumberyEngine
+from plumbery import __version__
 
 myPlan = """
 ---
@@ -139,6 +140,11 @@ class TestPlumberyEngine(unittest.TestCase):
             pass
         except InvalidCredsError:
             pass
+
+    def test_lookup(self):
+
+        self.engine = PlumberyEngine()
+        self.assertEqual(self.engine.lookup('plumbery.version'), __version__)
 
     def test_parser(self):
         args = parse_args(['fittings.yaml', 'build', 'web'])

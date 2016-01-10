@@ -27,6 +27,7 @@ from exception import PlumberyException
 from facility import PlumberyFacility
 from facility import PlumberyFittings
 from polisher import PlumberyPolisher
+from plumbery import __version__
 
 __all__ = ['PlumberyEngine']
 
@@ -960,3 +961,11 @@ class PlumberyEngine:
             key=self.get_user_name(),
             secret=self.get_user_password(),
             region=region)
+
+    def lookup(self, token):
+
+        if token == 'plumbery.version':
+            return __version__
+
+        return ''
+

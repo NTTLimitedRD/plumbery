@@ -29,6 +29,8 @@ from libcloud.compute.ssh import SSHClient
 
 from plumbery.exception import PlumberyException
 from plumbery.polisher import PlumberyPolisher
+from plumbery.text import PlumberyText
+from plumbery.text import PlumberyNodeContext
 
 
 class FileContentDeployment(Deployment):
@@ -265,12 +267,18 @@ class RubPolisher(PlumberyPolisher):
                     content=meta_data,
                     target=destination)})
 
+            logging.debug('- preparing user-data')
+
             # put in user-data what has been found in the fittings plan
             user_data = '#cloud-config\n'+yaml.dump(
                 settings['cloud-config'],
                 default_flow_style=False)
 
-            logging.debug('- preparing user-data')
+            environment = PlumberyNodeContext(node=node,
+                                              container=container,
+                                              context=self.facility)
+            user_data = PlumberyText.expand_variables(user_data, environment)
+
             logging.debug(user_data)
 
             destination = '/var/lib/cloud/seed/nocloud-net/user-data'

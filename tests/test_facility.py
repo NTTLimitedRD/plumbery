@@ -238,6 +238,10 @@ class TestPlumberyFacility(unittest.TestCase):
     def test_stop_nodes(self):
         self.facility.stop_nodes('fake')
 
+    def test_lookup(self):
+
+        self.assertEqual(self.facility.lookup('test'), '')
+
 
 if __name__ == '__main__':
     import sys
