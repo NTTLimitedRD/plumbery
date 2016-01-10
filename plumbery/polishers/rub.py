@@ -256,7 +256,7 @@ class RubPolisher(PlumberyPolisher):
         if ('rub' in settings
                 and len(settings['rub']) > 0):
 
-            logging.info('- using rub commands')
+            logging.debug('- using rub commands')
 
             for script in settings['rub']:
 
@@ -280,8 +280,10 @@ class RubPolisher(PlumberyPolisher):
                         with open(path) as stream:
                             text = stream.read()
 
-                            if(tokens[0] == 'run'):
-                                logging.error("- expanding script '{}'"
+                            if(tokens[0] == 'run'
+                                    and PlumberyText.could_expand(text)):
+
+                                logging.debug("- expanding script '{}'"
                                                 .format(script))
                                 text = PlumberyText.expand_variables(
                                     text, environment)
@@ -321,7 +323,7 @@ class RubPolisher(PlumberyPolisher):
                             if(tokens[0] == 'put'
                                     and PlumberyText.could_expand(content)):
 
-                                logging.error("- expanding file '{}'"
+                                logging.debug("- expanding file '{}'"
                                                 .format(file))
                                 content = PlumberyText.expand_variables(
                                     content, environment)
