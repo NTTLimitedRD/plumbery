@@ -151,7 +151,7 @@ class AnsiblePolisher(InventoryPolisher):
         if 'reap' in self.settings:
             fileName = self.settings['reap']
         else:
-            fileName = 'ansible.yaml'
+            return
 
         logging.info("Writing inventory for ansible in '{}'".format(fileName))
         with open(fileName, 'w') as stream:

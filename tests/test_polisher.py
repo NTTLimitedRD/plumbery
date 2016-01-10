@@ -131,30 +131,22 @@ fakeNodeSettings = {
     'appliance': 'RedHat 6 64-bit 4 CPU',
     'rub': ['rub.update.sh', 'rub.docker.sh']}
 
-fakeAnsibleConfiguration = {
-    'reap': 'test_polisher_ansible.yaml'}
-
 fakeRubConfiguration = {
-    'reap': 'test_polisher_rub.yaml',
     'key': 'test_polisher.pub'}
 
-fakeInventoryConfiguration = {
-    'reap': 'test_polisher_inventory.yaml'}
 
 
 class TestPlumberyPolisher(unittest.TestCase):
 
     def test_ansible(self):
-        self.polisher = PlumberyPolisher.from_shelf(
-            'ansible', fakeAnsibleConfiguration)
+        self.polisher = PlumberyPolisher.from_shelf('ansible', {})
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
         self.polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
         self.polisher.reap()
 
     def test_inventory(self):
-        self.polisher = PlumberyPolisher.from_shelf(
-            'inventory', fakeInventoryConfiguration)
+        self.polisher = PlumberyPolisher.from_shelf('inventory', {})
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
         self.polisher.shine_node(
@@ -170,8 +162,7 @@ class TestPlumberyPolisher(unittest.TestCase):
         self.polisher.reap()
 
     def test_spit(self):
-        self.polisher = PlumberyPolisher.from_shelf(
-            'spit', fakeInventoryConfiguration)
+        self.polisher = PlumberyPolisher.from_shelf('spit', {})
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
         self.polisher.shine_node(
@@ -179,8 +170,7 @@ class TestPlumberyPolisher(unittest.TestCase):
         self.polisher.reap()
 
     def test_ping(self):
-        self.polisher = PlumberyPolisher.from_shelf(
-            'ping', fakeInventoryConfiguration)
+        self.polisher = PlumberyPolisher.from_shelf('ping', {})
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
         self.polisher.shine_node(

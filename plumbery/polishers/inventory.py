@@ -140,7 +140,7 @@ class InventoryPolisher(PlumberyPolisher):
         if 'reap' in self.settings:
             fileName = self.settings['reap']
         else:
-            fileName = 'inventory.yaml'
+            return
 
         logging.info("Writing inventory in '{}'".format(fileName))
         with open(fileName, 'w') as stream:
