@@ -16,6 +16,8 @@
 import io
 import logging
 import os
+import random
+import string
 import yaml
 
 from libcloud.compute.providers import get_driver as get_compute_driver
@@ -117,6 +119,7 @@ class PlumberyEngine:
         self._buildPolisher = None
 
         self._sharedSecret = None
+        self._randomSecret = None
 
         self._userName = None
 
@@ -310,6 +313,33 @@ class PlumberyEngine:
                     "in environment SHARED_SECRET")
 
         return self._sharedSecret
+
+    def get_random_secret(self):
+        """
+        Retrieves a secret that is valid only during this session
+
+        :return: a transient random secret
+        :rtype: ``str``
+
+        The random secret can be used in scripts and configuration files
+        sent to nodes, for example to configure a database server.
+
+        For this you would put ``{{ random.secret }}`` in your files and let
+        plumbery provide a value for you.
+
+
+        """
+
+        if self._randomSecret is None:
+
+            self._randomSecret = ''.join(random.choice(
+                string.ascii_letters+string.digits+'.-_:!=')
+                    for i in range(9))
+
+            logging.debug("- using random secret '{}'".format(
+                self._randomSecret))
+
+        return self._randomSecret
 
     def set_user_name(self, name):
         """
@@ -973,6 +1003,12 @@ class PlumberyEngine:
 
         if token == 'plumbery.version':
             return __version__
+
+        if token == 'random.secret':
+            return self.get_random_secret()
+
+        if token == 'shared.secret':
+            return self.get_shared_secret()
 
         return None
 
