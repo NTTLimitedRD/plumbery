@@ -1,0 +1,55 @@
+---
+safeMode: false
+---
+locationId: EU7 # Amsterdam in Europe
+regionId: dd-eu
+
+blueprints:
+
+  - wordpress:
+      domain:
+        name: WordpressFox
+        description: "Demonstration of a wordpress blogging server"
+        service: essentials
+        ipv4: 2
+      ethernet:
+        name: wordpressfox.servers
+        subnet: 192.168.20.0
+      nodes:
+        - wordpress01:
+            cpu: 2
+            memory: 4
+            monitoring: essentials
+            glue:
+              - internet 22 80
+            rub:
+              - "open a browser at http://{{ node.public }}/ to view it live"
+              - "administration user name is: wpuser"
+              - "and the one-off password when asked: {{ random.secret }}"
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              packages:
+                - ntp
+                - apache2
+                - mysql-server
+                - libapache2-mod-php5
+                - php5-mysql
+              write_files:
+                - content: |
+                    create database wordpress;
+                    create user 'wpuser'@'localhost' identified by '{{ random.secret }}';
+                    grant all privileges on wordpress.* to 'wpuser'@'localhost';
+                    flush privileges;
+                    drop database test;
+                    drop user 'test'@'localhost';
+                    flush privileges;
+                  path: /root/wordpress_db.sql
+              runcmd:
+                - cp -n /var/www/html/index.html /var/www/html/index.html.deprecated
+                - wget http://wordpress.org/latest.tar.gz -P /tmp/
+                - tar -zxf /tmp/latest.tar.gz -C /tmp/
+                - sudo mv /tmp/wordpress/* /var/www/html/
+                - sudo chown -R www-data:www-data /var/www
+                - mysql -e "source /root/wordpress_db.sql"
+                - mysqladmin -u root password '{{ random.secret }}'

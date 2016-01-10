@@ -1,0 +1,88 @@
+---
+safeMode: false
+---
+locationId: EU8 # London in Europe
+regionId: dd-eu
+
+blueprints:
+
+  # after the setup, connect via ssh to redis01 to check the status of the cluster
+  #
+  # # redis-cli -h 127.0.0.1 -p 6379
+  # > AUTH {{ random.secret }}
+  # OK
+  # > INFO
+  # ...
+  # # Replication
+  # role:master
+  # connected_slaves:x
+
+  - wordpress:
+      domain:
+        name: RedisFox
+        description: "Demonstration of a redis cluster"
+        service: essentials
+        ipv4: 2
+      ethernet:
+        name: redisfox.servers
+        subnet: 192.168.20.0
+      nodes:
+
+        - redis01: # master server
+            cpu: 2
+            memory: 4
+            monitoring: essentials
+            glue:
+              - internet 22
+            rub:
+              - "use this one-off password when asked: {{ random.secret }}"
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              apt_sources:
+                - source: "ppa:chris-lea/redis-server"
+              packages:
+                - ntp
+                - redis-server
+              write_files:
+                - content: |
+                    #! /usr/bin/sed -i
+                    s/tcp-keepalive 0/tcp-keepalive 60/
+                    /^bind 127.0.0.1/s/^/#/
+                    s/# requirepass foobared/requirepass {{ random.secret }}/
+                    s/# maxmemory-policy volatile-lru/maxmemory-policy noeviction/
+                  path: /root/edit_redis_conf.sed
+              runcmd:
+                - cp -n /etc/redis/redis.conf /etc/redis/redis.conf.original
+                - sed -i -f /root/edit_redis_conf.sed /etc/redis/redis.conf
+                - sudo service redis-server restart
+
+        - redis0[2..4]: # slave servers
+            cpu: 2
+            memory: 4
+            monitoring: essentials
+            rub:
+              - "use this one-off password when asked: {{ random.secret }}"
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              apt_sources:
+                - source: "ppa:chris-lea/redis-server"
+              packages:
+                - ntp
+                - redis-server
+              write_files:
+                - content: |
+                    #! /usr/bin/sed -i
+                    s/tcp-keepalive 0/tcp-keepalive 60/
+                    /^bind 127.0.0.1/s/^/#/
+                    s/# requirepass foobared/requirepass {{ random.secret }}/
+                    s/# maxmemory-policy volatile-lru/maxmemory-policy noeviction/
+                    s/# slaveof <masterip> <masterport>/slaveof {{ redis01.private }} 6379/
+                    s/# masterauth <master-password>/masterauth {{ random.secret }}/
+
+                  path: /root/edit_redis_conf.sed
+              runcmd:
+                - cp -n /etc/redis/redis.conf /etc/redis/redis.conf.original
+                - sed -i -f /root/edit_redis_conf.sed /etc/redis/redis.conf
+                - sudo service redis-server restart
