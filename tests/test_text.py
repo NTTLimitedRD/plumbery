@@ -130,6 +130,46 @@ write_files:
     path: /root/edit_redis_conf.sed
 """
 
+input6 = """
+conf:
+   ca_cert: |
+     {{ certificate }} has multiple lines, but all of them
+     should be nicely left-aligned since variable is first element on line
+"""
+
+dict6 = {
+    'certificate': "-----BEGIN CERTIFICATE-----\n"
+     "MIICCTCCAXKgAwIBAgIBATANBgkqhkiG9w0BAQUFADANMQswCQYDVQQDDAJjYTAe\n"
+     "Fw0xMDAyMTUxNzI5MjFaFw0xNTAyMTQxNzI5MjFaMA0xCzAJBgNVBAMMAmNhMIGf\n"
+     "MA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCu7Q40sm47/E1Pf+r8AYb/V/FWGPgc\n"
+     "b014OmNoX7dgCxTDvps/h8Vw555PdAFsW5+QhsGr31IJNI3kSYprFQcYf7A8tNWu\n"
+     "1MASW2CfaEiOEi9F1R3R4Qlz4ix+iNoHiUDTjazw/tZwEdxaQXQVLwgTGRwVa+aA\n"
+     "qbutJKi93MILLwIDAQABo3kwdzA4BglghkgBhvhCAQ0EKxYpUHVwcGV0IFJ1Ynkv\n"
+     "T3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwDwYDVR0TAQH/BAUwAwEB/zAd\n"
+     "BgNVHQ4EFgQUu4+jHB+GYE5Vxo+ol1OAhevspjAwCwYDVR0PBAQDAgEGMA0GCSqG\n"
+     "SIb3DQEBBQUAA4GBAH/rxlUIjwNb3n7TXJcDJ6MMHUlwjr03BDJXKb34Ulndkpaf\n"
+     "+GAlzPXWa7bO908M9I8RnPfvtKnteLbvgTK+h+zX1XCty+S2EQWk29i2AdoqOTxb\n"
+     "hppiGMp0tT5Havu4aceCXiy2crVcudj3NFciy8X66SoECemW9UYDCb9T5D0d\n"
+     "-----END CERTIFICATE-----"}
+
+expected6 = """
+conf: \
+\n  ca_cert: |
+      -----BEGIN CERTIFICATE-----
+      MIICCTCCAXKgAwIBAgIBATANBgkqhkiG9w0BAQUFADANMQswCQYDVQQDDAJjYTAe
+      Fw0xMDAyMTUxNzI5MjFaFw0xNTAyMTQxNzI5MjFaMA0xCzAJBgNVBAMMAmNhMIGf
+      MA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCu7Q40sm47/E1Pf+r8AYb/V/FWGPgc
+      b014OmNoX7dgCxTDvps/h8Vw555PdAFsW5+QhsGr31IJNI3kSYprFQcYf7A8tNWu
+      1MASW2CfaEiOEi9F1R3R4Qlz4ix+iNoHiUDTjazw/tZwEdxaQXQVLwgTGRwVa+aA
+      qbutJKi93MILLwIDAQABo3kwdzA4BglghkgBhvhCAQ0EKxYpUHVwcGV0IFJ1Ynkv
+      T3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwDwYDVR0TAQH/BAUwAwEB/zAd
+      BgNVHQ4EFgQUu4+jHB+GYE5Vxo+ol1OAhevspjAwCwYDVR0PBAQDAgEGMA0GCSqG
+      SIb3DQEBBQUAA4GBAH/rxlUIjwNb3n7TXJcDJ6MMHUlwjr03BDJXKb34Ulndkpaf
+      +GAlzPXWa7bO908M9I8RnPfvtKnteLbvgTK+h+zX1XCty+S2EQWk29i2AdoqOTxb
+      hppiGMp0tT5Havu4aceCXiy2crVcudj3NFciy8X66SoECemW9UYDCb9T5D0d
+      -----END CERTIFICATE----- has multiple lines, but all of them
+      should be nicely left-aligned since variable is first element on line
+"""
 class FakeNode1:
 
     id = '1234'
@@ -246,6 +286,13 @@ class TestPlumberyText(unittest.TestCase):
         context = PlumberyContext(dictionary={})
         transformed = yaml.load(self.text.expand_variables(loaded, context))
         self.assertEqual(transformed, loaded)
+
+    def test_input6(self):
+
+        loaded = yaml.load(input6)
+        context = PlumberyContext(dict6)
+        transformed = self.text.expand_variables(loaded, context)
+        self.assertEqual(transformed.strip(), expected6.strip())
 
     def test_node1(self):
 

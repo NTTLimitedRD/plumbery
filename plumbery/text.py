@@ -75,14 +75,18 @@ class PlumberyText:
                 expanded += text[index:tail+len(closing)]
                 index = tail+len(closing)
 
-            else:
+            else: # actual expansion
                 logging.debug("- '{}' -> '{}'".format(token, replacement))
+
+                if serialized: #preserve line breaks
+                    replacement = replacement.replace('\n', '\\n')
+
                 expanded += text[index:head]+str(replacement)
                 index = tail+len(closing)
 
         if serialized: # from serialized python to yaml representation
             instanciated = yaml.load(expanded)
-            expanded = PlumberyText.dump_dict(instanciated).strip()+'\n'
+            expanded = PlumberyText.dump(instanciated)
 
         return expanded
 
@@ -105,6 +109,11 @@ class PlumberyText:
         is_binary = lambda bytes: bool(bytes.translate(None, textchars))
 
         return not is_binary(content)
+
+    @classmethod
+    def dump(cls, content):
+
+        return cls.dump_dict(content, spaces=0).strip()+'\n'
 
     @classmethod
     def dump_dict(cls, content, spaces=0):
@@ -160,11 +169,11 @@ class PlumberyText:
     @classmethod
     def dump_str(cls, content, spaces=0):
 
-        # that's a real hack...
         lines = content.split('\n')
-        if len(lines) == 1:
+        if len(lines) == 1:              # that's a real hack...
             lines = content.split('\\n')
-        if len(lines) == 1:
+
+        if len(lines) == 1:              # quote string if it would fool yaml
             if content[-1] in ('-', '\\', '|'):
                 return '"'+content+'"'
             return content
@@ -172,7 +181,9 @@ class PlumberyText:
         text = '|'
         spaces += 2
         for line in lines:
-            text += '\n' + ' ' * spaces + line
+            text += '\n'
+            if len(line) > 0:
+                text += ' ' * spaces + line
 
         return text
 
