@@ -19,6 +19,7 @@ Submodules
    plumbery.infrastructure
    plumbery.nodes
    plumbery.polisher
+   plumbery.text
 
 Module contents
 ---------------

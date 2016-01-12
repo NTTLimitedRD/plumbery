@@ -36,6 +36,7 @@ Features
 * Add multiple network interfaces to nodes
 * Add public IPv4 addresses to nodes
 * Add monitoring to nodes
+* Bootstrap nodes with cloud-init configuration directives
 * Build all blueprints
 * Build a blueprint across multiple locations
 * Start all nodes

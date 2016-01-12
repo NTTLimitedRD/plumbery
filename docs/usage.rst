@@ -33,7 +33,7 @@ configuration management that already exist. Our ambition is limited to the
 industrialisation of the underlying virtualised iron. No more, no less.
 
 The Plumbery toolbox is based on a central description of servers,
-documented in a text file in YAML. If you do not know YAML yet, don't be
+documented in a text file in `YAML`_. If you do not know YAML yet, don't be
 afraid, this may be the most simple and user-friendly language for
 infrastructure managers. Have a look at the sample ``fittings.yaml``
 that is coming with plumbery to get an idea.
@@ -260,7 +260,7 @@ extracted from the code, at :ref:`modindex` and :ref:`genindex`. And of course
 the source code is available on-line, check the `Plumbery repository at GitHub`_.
 
 
-
+.. _`YAML`: https://en.wikipedia.org/wiki/YAML
 .. _`available on PyPi`: https://pypi.python.org/pypi/plumbery
 .. _`Plumbery package at PiPy`: https://pypi.python.org/pypi/plumbery
 .. _`Plumbery repository at GitHub`: https://github.com/bernard357/plumbery
