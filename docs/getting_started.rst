@@ -38,6 +38,14 @@ Plumbery is `available on PyPi`_. You can install latest stable version using pi
 The installation of `python-dev` is required for the installation of the module
 `netifaces`, that is used by Plumbery to get information about network interfaces.
 
+For installation on Windows, you may need to first install the Python Compiler for VC++. https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266
+Note this only works for Python 2.7. If you get an error on installation saying "error: Unable to find vcvarsall.bat" this indicates you need to install this package.
+
+.. sourcecode:: powershell
+     
+    $ C:\Python27\Scripts\virtualenv.exe .
+    $ .\Script\pip install plumbery
+
 Upgrade the plumbery package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
