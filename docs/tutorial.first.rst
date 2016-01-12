@@ -25,29 +25,9 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. sourcecode:: yaml
-
-    ---
-    safeMode: False
-    ---
-    # Frankfurt in Europe
-    locationId: EU6
-    regionId: dd-eu
-
-    blueprints:
-
-      - simple:
-          domain:
-            name: MyDataCentre
-            ipv4: 2
-          ethernet:
-            name: MyNetwork
-            subnet: 10.0.0.0
-          nodes:
-            - MyServer:
-                glue:
-                  - internet 22
-                monitoring: essentials
+.. literalinclude:: ../demos/first.yaml
+   :language: yaml
+   :linenos:
 
 In this example the server ``MyServer`` is placed in a
 network named ``MyNetwork``, and the network is part of a network

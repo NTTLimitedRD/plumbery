@@ -28,61 +28,9 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. sourcecode:: yaml
-
-    ---
-    safeMode: False
-    ---
-    # Amsterdam in Europe
-    locationId: EU7
-    regionId: dd-eu
-
-    blueprints:
-
-      # primary sql server
-      - sql:
-          domain:
-            name: VDC1
-            ipv4: 2
-          ethernet:
-            name: databases
-            subnet: 10.0.0.0
-            accept:
-              - EU6::databases
-          nodes:
-            - masterSQL:
-                description: '#sql #vdc1 #primary'
-                appliance: 'RedHat 6 64-bit 4 CPU'
-                glue:
-                  - internet 22
-                monitoring: essentials
-                running: always
-
-    ---
-    # Frankfurt in Europe
-    locationId: EU6
-    regionId: dd-eu
-
-    blueprints:
-
-      # secondary sql server
-      - sql:
-          domain:
-            name: VDC2
-            ipv4: 2
-          ethernet:
-            name: databases
-            subnet: 10.0.0.0
-            accept:
-              - EU7::databases
-          nodes:
-            - slaveSQL:
-                description: '#sql #vdc2 #secondary'
-                appliance: 'RedHat 6 64-bit 4 CPU'
-                glue:
-                  - internet 22
-                monitoring: essentials
-
+.. literalinclude:: ../demos/sql.master.slave.yaml
+   :language: yaml
+   :linenos:
 
 Please note that in this example both servers are exposed to public Internet.
 In the real life this would probably not be the case, since database would
@@ -131,6 +79,8 @@ the two servers.
 
 Please refer to a good reference page on the topic, for example for MySQL
 systems: http://plusbryan.com/mysql-replication-without-downtime
+
+TO-DO: use cloud-init and variables to orchestrate these steps
 
 Destruction commands
 --------------------

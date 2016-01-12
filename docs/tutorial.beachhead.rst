@@ -14,7 +14,6 @@ infrastructure, since this machine will benefit from IPv6 end-to-end.
 Requirements for this use case
 ------------------------------
 
-* Deploy at Santa Clara in the US
 * Add a Network Domain
 * Add an Ethernet network
 * Deploy a Ubuntu server named ``beachhead``
@@ -22,6 +21,7 @@ Requirements for this use case
 * Assign a public IPv4 address to ``beachhead``
 * Add address translation to ensure end-to-end IP connectivity
 * Add firewall rule to accept TCP traffic on port 22 (ssh)
+* Install python, libcloud and plumbery
 
 
 Fittings plan
@@ -29,31 +29,9 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. sourcecode:: yaml
-
-    ---
-    safeMode: False
-    ---
-    # Santa Clara in US West
-    locationId: NA12
-    regionId: dd-na
-
-    blueprints:
-
-      - beachhead:
-          domain:
-            name: Acme
-            ipv4: 2
-          ethernet:
-            name: acme.control
-            subnet: 10.0.0.0
-          nodes:
-            - beachhead:
-                description: '#beachhead #ops'
-                glue:
-                  - internet 22
-                running: always
-                monitoring: essentials
+.. literalinclude:: ../demos/beachhead.yaml
+   :language: yaml
+   :linenos:
 
 In this example, the plan is to deploy a single node in the data centre
 at Frankfurt, in Europe. The node ``beachhead`` is placed in a
@@ -83,6 +61,12 @@ Some notes on directives used in these fittings plan:
 * ``monitoring: essential`` - Automatically adds monitoring to this node after
   its creation.
 
+* ``cloud-config`` - A list of statements that are passed to cloud-init so
+  that they can be applied to the node during boot sequence. In this example
+  we install a couple of packages, and run commands to install libcloud
+  and plumbery itself. There are many ways to use cloud-init, maybe you would
+  like to check `a reference page full of examples`_.
+
 Deployment commands
 -------------------
 
@@ -90,9 +74,10 @@ Deployment commands
 
     $ python -m plumbery fittings.yaml build
     $ python -m plumbery fittings.yaml start
+    $ python -m plumbery fittings.yaml rub
 
-These two commands will build fittings as per the provided plan, and start
-the target node also.
+These commands will build fittings as per the provided plan, start the target
+node, and apply all cloud-init directives.
 
 Follow-up commands
 ------------------
@@ -109,18 +94,10 @@ You will have to accept the new host, then provide the password used for the
 creation of the node ``beahhead``.
 
 After that you can do whatever you want on this server. For example, you may
-want to update the software, to install libcloud and plumbery:
-
-.. sourcecode:: bash
-
-    $ apt-get update
-    $ apt-get upgrade
-    $ apt-get install python-pip python-dev git
-    $ pip install -e git+https://git-wip-us.apache.org/repos/asf/libcloud.git@trunk#egg=apache-libcloud
-    $ pip install -e git+https://github.com/bernard357/plumbery.git#egg=plumbery
-    $ python -m plumbery -v
-
-Then follow instructions from :doc:`getting_started` to finalize the setup
+want to follow instructions from :doc:`getting_started` to finalize the setup
 of the environment at ``beachhead`` : credentials to Dimension Data cloud
 services, etc.
+
+.. _`a reference page full of examples`: http://cloudinit.readthedocs.org/en/latest/topics/examples.html
+
 

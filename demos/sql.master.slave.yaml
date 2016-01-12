@@ -1,0 +1,53 @@
+---
+safeMode: False
+---
+# Amsterdam in Europe
+locationId: EU7
+regionId: dd-eu
+
+blueprints:
+
+  # primary sql server
+  - sql:
+      domain:
+        name: VDC1
+        ipv4: 2
+      ethernet:
+        name: databases
+        subnet: 10.0.0.0
+        accept:
+          - EU6::databases
+      nodes:
+        - masterSQL:
+            description: '#sql #vdc1 #primary'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+            glue:
+              - internet 22
+            monitoring: essentials
+            running: always
+
+---
+# Frankfurt in Europe
+locationId: EU6
+regionId: dd-eu
+
+blueprints:
+
+  # secondary sql server
+  - sql:
+      domain:
+        name: VDC2
+        ipv4: 2
+      ethernet:
+        name: databases
+        subnet: 10.0.0.0
+        accept:
+          - EU7::databases
+      nodes:
+        - slaveSQL:
+            description: '#sql #vdc2 #secondary'
+            appliance: 'RedHat 6 64-bit 4 CPU'
+            glue:
+              - internet 22
+            monitoring: essentials
+

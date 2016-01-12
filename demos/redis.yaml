@@ -17,7 +17,7 @@ blueprints:
   # role:master
   # connected_slaves:x
 
-  - wordpress:
+  - redis:
       domain:
         name: RedisFox
         description: "Demonstration of a redis cluster"

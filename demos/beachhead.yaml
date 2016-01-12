@@ -1,0 +1,32 @@
+---
+safeMode: False
+---
+locationId: NA12
+regionId: dd-na
+
+blueprints:
+
+  - beachhead:
+      domain:
+        name: Acme
+        ipv4: 2
+      ethernet:
+        name: acme.control
+        subnet: 10.0.0.0
+      nodes:
+        - beachhead:
+            description: '#beachhead #ops'
+            glue:
+              - internet 22
+            running: always
+            monitoring: essentials
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: True
+              packages:
+                - python-pip
+                - python-dev
+                - git
+              runcmd:
+                - pip install -e git+https://git-wip-us.apache.org/repos/asf/libcloud.git@trunk#egg=apache-libcloud
+                - pip install -e git+https://github.com/bernard357/plumbery.git#egg=plumbery

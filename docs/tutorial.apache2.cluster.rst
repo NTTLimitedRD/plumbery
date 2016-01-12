@@ -22,37 +22,9 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. sourcecode:: yaml
-
-    ---
-    safeMode: False
-    ---
-    # London
-    locationId: EU8
-    regionId: dd-eu
-
-    blueprints:
-
-      - web:
-          domain:
-            name: Acme
-            ipv4: 2
-          ethernet:
-            name: acme.control
-            subnet: 10.0.0.0
-          nodes:
-            - web[1..10]_eu8:
-                description: '#apache #eu'
-                monitoring: essentials
-                rub:
-                  - put rub.puppet.apache.pp /root/apache.pp
-                  - run rub.puppet.apache.sh /root/apache.pp
-          listeners:
-            - http:
-                port: 80
-                protocol: http
-                algorithm: round_robin
-
+.. literalinclude:: ../demos/apache2.cluster.yaml
+   :language: yaml
+   :linenos:
 
 Some notes on directives used in these fittings plan:
 

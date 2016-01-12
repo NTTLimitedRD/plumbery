@@ -6,7 +6,7 @@ regionId: dd-eu
 
 blueprints:
 
-  - nodejs:
+  - apache2:
       domain:
         name: Apache2Fox
         description: "Demonstration of a standalone apache2 web server"
