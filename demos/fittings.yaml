@@ -1,5 +1,7 @@
 ---
 # fittings to be deployed, managed, and destroyed in the cloud infrastructure of Dimension Data
+#
+# for examples of cloud-config directives check http://cloudinit.readthedocs.org/en/latest/topics/examples.html
 
 # in safe mode no change is actually made on the infrastructure
 safeMode: False
@@ -34,7 +36,7 @@ blueprints:
         name: Gigafox
         description: '#us #primary'
         service: advanced
-        ipv4: 6
+        ipv4: 8
       ethernet: &control
         name: gigafox.control
         description: '#us #ops'
@@ -47,8 +49,16 @@ blueprints:
               - internet 22
             running: always
             monitoring: essentials
-            rub:
-              - run rub.update.sh
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: True
+              packages:
+                - python-pip
+                - python-dev
+                - git
+              runcmd:
+                - pip install -e git+https://git-wip-us.apache.org/repos/asf/libcloud.git@trunk#egg=apache-libcloud
+                - pip install -e git+https://github.com/bernard357/plumbery.git#egg=plumbery
 
   # management, administration, and monitoring
   - control:
@@ -61,10 +71,11 @@ blueprints:
               - internet 22 80 443
             running: always
             monitoring: essentials
-        - zabbix:
-            description: '#dashboard #us #ops'
-            appliance: 'RedHat 6 64-bit 2 CPU'
-            monitoring: essentials
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: True
+              runcmd:
+                - curl -sSL https://raw.githubusercontent.com/DimensionDataCBUSydney/st2_dimensiondata/master/install-eu.sh | sh
         - scom:
             description: 'Microsoft System Center Operation Manager #scom #us #ops'
             appliance: 'Win2012 R2 Std 4 CPU'
@@ -107,9 +118,20 @@ blueprints:
             glue:
               - internet 22 80 443
             monitoring: essentials
-            rub:
-              - put rub.puppet.apache.pp /root/apache.pp
-              - run rub.puppet.apache.sh /root/apache.pp
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: True
+              packages:
+                - apache2
+                - mysql-server
+                - libapache2-mod-php5
+                - php5-mysql
+              runcmd:
+                - "rm /var/www/index.html"
+              write_files:
+                - content: |
+                        echo '<?php phpinfo();' >
+                  path: /var/www/index.php
       listeners:
         - http:
             port: 80
@@ -119,6 +141,35 @@ blueprints:
             port: 443
             protocol: http
             algorithm: round_robin
+
+  - wordpress:
+      domain: *domain
+      ethernet: *bastion
+      nodes:
+        - wordpress_na12:
+            description: '#wordpress #us #primary'
+            cpu: 4 2 highperformance
+            memory: 8
+#            disks:
+#              - 500 STANDARD
+#              - 100 HIGHPERFORMANCE
+            glue:
+              - internet 22 80 443
+            monitoring: essentials
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: True
+              packages:
+                - apache2
+                - php5
+                - php5-mysql
+                - mysql-server
+              runcmd:
+                - wget http://wordpress.org/latest.tar.gz -P /tmp/
+                - tar -zxf /tmp/latest.tar.gz -C /var/www/
+                - mysql -e "create database wordpress; create user 'wpuser'@'localhost' identified by 'changemetoo'; grant all privileges on wordpress . \* to 'wpuser'@'localhost'; flush privileges;"
+                - mysql -e "drop database test; drop user 'test'@'localhost'; flush privileges;"
+                - mysqladmin -u root password 'changeme'
 
   # workloads dealing with short-term memory
   - memcache:
