@@ -254,6 +254,7 @@ class RubPolisher(PlumberyPolisher):
                 'genius': SSHKeyDeployment(self.key)})
 
         if ('rub' in settings
+                and isinstance(settings['rub'], dict)
                 and len(settings['rub']) > 0):
 
             logging.debug('- using rub commands')
@@ -349,6 +350,7 @@ class RubPolisher(PlumberyPolisher):
 
 
         if ('cloud-config' in settings
+                and isinstance(settings['cloud-config'], dict)
                 and len(settings['cloud-config']) > 0):
 
             logging.info('- using cloud-config')
