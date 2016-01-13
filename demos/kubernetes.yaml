@@ -1,0 +1,45 @@
+---
+safeMode: false
+---
+locationId: AU9
+regionId: dd-au
+
+blueprints:
+
+  - kubernetes:
+      domain:
+        name: Kubernetes
+        description: "Demonstration of a standalone kubernetes server"
+        service: essentials
+        ipv4: 2
+      ethernet:
+        name: kubernetes.servers
+        subnet: 192.168.20.0
+      nodes:
+        - kubernetes-master01:
+            cpu: 2
+            memory: 4
+            monitoring: essentials
+            glue:
+              - internet 22 80
+            rub:
+              - open a browser at http://{{ node.public }}/ to view it live
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              runcmd:
+                - apt-get remove apache2 -y
+                - apt-get autoremove -y
+                - curl https://repogen.simplylinux.ch/txt/sources_c74a15400e68208192ca8980c7a90e7b678f2822.txt | sudo tee /etc/apt/sources.list
+                - sudo apt-get update --fix-missing
+                - sudo apt-get install git docker software-properties-common gcc
+                - sudo add-apt-repository ppa:evarlast/golang1.4 -y
+                - sudo apt-get update
+                - sudo apt-get install golang -y
+                - git clone https://github.com/kubernetes/kubernetes.git
+                - cd kubernetes/
+                - sudo hack/local-up-cluster.sh
+                - cluster/kubectl.sh get pods
+                - cluster/kubectl.sh get services
+                - cluster/kubectl.sh get replicationcontrollers
+                - cluster/kubectl.sh run my-nginx --image=nginx --replicas=2 --port=80
