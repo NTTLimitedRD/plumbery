@@ -1,0 +1,31 @@
+---
+safeMode: false
+---
+locationId: NA12
+regionId: dd-na
+
+blueprints:
+
+  - docker:
+      domain:
+        name: DockerFox
+        description: "Demonstration of a standalone Docker container"
+        service: essentials
+        ipv4: 2
+      ethernet:
+        name: dockerfox.servers
+        subnet: 192.168.20.0
+      nodes:
+        - docker01:
+            cpu: 32
+            memory: 256
+            monitoring: essentials
+            glue:
+              - internet 22
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              packages:
+                - ntp
+              runcmd:
+                - curl -sSL https://get.docker.com/ | sh

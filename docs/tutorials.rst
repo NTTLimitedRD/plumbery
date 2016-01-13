@@ -13,6 +13,7 @@ The following is a growing list of use cases that can inspire you:
    tutorial.wordpress
    tutorial.nodejs
    tutorial.minio
+   tutorial.docker
    tutorial.apache2.cluster
    tutorial.redis.cluster
    tutorial.sql.master.slave
