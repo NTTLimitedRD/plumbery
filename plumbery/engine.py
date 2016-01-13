@@ -14,11 +14,15 @@
 # limitations under the License.
 
 import io
+import hashlib
 import logging
 import os
 import random
 import string
 import yaml
+
+from Crypto.Hash import MD5, SHA256
+from Crypto.PublicKey import RSA
 
 from libcloud.compute.providers import get_driver as get_compute_driver
 from libcloud.compute.types import Provider as ComputeProvider
@@ -112,6 +116,8 @@ class PlumberyEngine:
 
         """
 
+        self.fittingsFile = None
+
         self.facilities = []
 
         self.polishers = []
@@ -119,7 +125,8 @@ class PlumberyEngine:
         self._buildPolisher = None
 
         self._sharedSecret = None
-        self._randomSecret = None
+
+        self.secrets = {}
 
         self._userName = None
 
@@ -173,6 +180,7 @@ class PlumberyEngine:
             plan = os.getenv('PLUMBERY')
 
         if isinstance(plan, str):
+            self.fittingsFile = plan
             plan = open(plan, 'r')
 
         documents = yaml.load_all(plan)
@@ -183,6 +191,8 @@ class PlumberyEngine:
         # then one document per facility
         for document in documents:
             self.add_facility(document)
+
+        self.load_secrets()
 
         if self.safeMode:
             logging.info(
@@ -314,32 +324,144 @@ class PlumberyEngine:
 
         return self._sharedSecret
 
-    def get_random_secret(self):
+    def get_rsa_secret(self, id='pair.rsa_private'):
         """
-        Retrieves a secret that is valid only during this session
+        Returns a part of a RSA pair of keys
+
+        :param id: name of the key
+        :type id: ``str``
+
+        """
+
+        if id in self.secrets:
+            return self.secrets[id]
+
+        name = id.split('.')[0]
+
+        key = RSA.generate(2048)
+        self.secrets[name+'.rsa_private'] = key.exportKey('PEM')
+        logging.debug("- generating {} -> {}".format(
+            name+'.rsa_private', self.secrets[name+'.rsa_private']))
+
+        pubkey = key.publickey()
+        self.secrets[name+'.rsa_public'] = pubkey.exportKey('PEM')
+        logging.debug("- generating {} -> {}".format(
+            name+'.rsa_public', self.secrets[name+'.rsa_public']))
+
+        self.secrets[name+'.ssh.rsa_public'] = pubkey.exportKey('OpenSSH')
+        logging.debug("- generating {} -> {}".format(
+            name+'.ssh.rsa_public', self.secrets[name+'.ssh.rsa_public']))
+
+        self.save_secrets()
+        return self.secrets[id]
+
+    def get_secret(self, id='random'):
+        """
+        Returns a secret
+
+        :param id: name of this secret
+        :type id: ``str``
 
         :return: a transient random secret
         :rtype: ``str``
 
-        The random secret can be used in scripts and configuration files
+        Random secrets can be used in scripts and in configuration files
         sent to nodes, for example to configure a database server.
 
         For this you would put ``{{ random.secret }}`` in your files and let
         plumbery provide a value for you.
 
+        The `id` parameter designates one secret among several.
+
+        The `format` parameter specifies the kind of string that is expected:
+        * 'user' - to be read by a human being
+        * 'sha1' - rather long string too
+        * 'md5' - rather long string
+        * 'sha256' - longest and most secure
+
+        Some examples:
+
+            {{ master.md5.secret }}
+            {{ slave.secret }}
+            {{ server357.sha1.secret }}
+
+        In a nutshell, this function is giving you a lot of flexibility
+        in the generation of secrets.
 
         """
 
-        if self._randomSecret is None:
+        if id in self.secrets:
+            return self.secrets[id]
 
-            self._randomSecret = ''.join(random.choice(
-                string.ascii_letters+string.digits+'.-_:!=')
-                    for i in range(9))
+        print self.secrets
 
-            logging.debug("- using random secret '{}'".format(
-                self._randomSecret))
+        secret = ''.join(random.choice(
+            string.ascii_letters+string.digits+'-_!=')
+                for i in range(50))
 
-        return self._randomSecret
+        if id.endswith('.sha256.secret'):
+            secret = SHA256.new(secret).hexdigest()
+
+        elif id.endswith('.md5.secret'):
+            secret = MD5.new(secret).hexdigest()
+
+        elif id.endswith('.sha1.secret'):
+            secret = hashlib.sha1(secret).hexdigest()
+
+        else:
+            secret = secret[0:9]
+
+        logging.debug("- generating {} -> {}".format(id, secret))
+        self.secrets[id] = secret
+        self.save_secrets()
+
+        return secret
+
+    def save_secrets(self):
+        """
+        Saves secrets attached to this fittings plan
+        """
+
+        if self.fittingsFile is not None:
+
+            if self.fittingsFile.endswith('.yaml'):
+                secretsFile = self.fittingsFile[0:-len('.yaml')]+'.secrets'
+            else:
+                secretsFile = self.fittingsFile+'.secrets'
+
+            try:
+                handle = open(secretsFile, 'w')
+                for id in self.secrets:
+                    handle.write("{}: {}\n".format(id, self.secrets[id]))
+                handle.close()
+
+            except IOError:
+                logging.warning("Unable to write secrets to '{}'".format(
+                    secretsFile))
+
+    def load_secrets(self):
+        """
+        Loads secrets attached to this fittings plan
+        """
+
+        if self.fittingsFile is not None:
+
+            if self.fittingsFile.endswith('.yaml'):
+                secretsFile = self.fittingsFile[0:-len('.yaml')]+'.secrets'
+            else:
+                secretsFile = self.fittingsFile+'.secrets'
+
+            try:
+                handle = open(secretsFile, 'r')
+                self.secrets = yaml.load(handle)
+                handle.close()
+
+                logging.debug("Loading {} secrets from '{}'".format(
+                    len(self.secrets), secretsFile))
+
+            except IOError:
+                logging.warning("Unable to load secrets from '{}'".format(
+                    secretsFile))
 
     def set_user_name(self, name):
         """
@@ -1004,11 +1126,16 @@ class PlumberyEngine:
         if token == 'plumbery.version':
             return __version__
 
-        if token == 'random.secret':
-            return self.get_random_secret()
-
         if token == 'shared.secret':
             return self.get_shared_secret()
+
+        if token.endswith('.secret'):
+            return self.get_secret(token)
+
+        if token.endswith('.rsa_public'):
+            return self.get_rsa_secret(token)
+        if token.endswith('.rsa_private'):
+            return self.get_rsa_secret(token)
 
         return None
 

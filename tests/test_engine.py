@@ -8,6 +8,9 @@ import logging
 import socket
 import unittest
 
+from Crypto.PublicKey import RSA
+import ast
+
 from libcloud.common.types import InvalidCredsError
 
 from plumbery.__main__ import parse_args, main
@@ -81,9 +84,9 @@ class TestPlumberyEngine(unittest.TestCase):
         self.engine.set_shared_secret('fake_secret')
         self.assertEqual(self.engine.get_shared_secret(), 'fake_secret')
 
-        random = self.engine.get_random_secret()
+        random = self.engine.get_secret('random')
         self.assertEqual(len(random), 9)
-        self.assertEqual(self.engine.get_random_secret(), random)
+        self.assertEqual(self.engine.get_secret('random'), random)
 
         self.engine.set_user_name('fake_name')
         self.assertEqual(self.engine.get_user_name(), 'fake_name')
@@ -150,9 +153,43 @@ class TestPlumberyEngine(unittest.TestCase):
         self.engine = PlumberyEngine()
         self.assertEqual(self.engine.lookup('plumbery.version'), __version__)
 
+        self.engine.secrets = {}
         random = self.engine.lookup('random.secret')
         self.assertEqual(len(random), 9)
         self.assertEqual(self.engine.lookup('random.secret'), random)
+
+        md5 = self.engine.lookup('random.md5.secret')
+        self.assertEqual(len(md5), 32)
+        self.assertNotEqual(md5, random)
+
+        sha = self.engine.lookup('random.sha1.secret')
+        self.assertEqual(len(sha), 40)
+        self.assertNotEqual(sha, random)
+
+        sha = self.engine.lookup('random.sha256.secret')
+        self.assertEqual(len(sha), 64)
+        self.assertNotEqual(sha, random)
+
+        self.engine.lookup('application.secret')
+        self.engine.lookup('database.secret')
+        self.engine.lookup('master.secret')
+        self.engine.lookup('slave.secret')
+
+        publicKey = self.engine.lookup('pair1.ssh.rsa_public')
+        self.assertEqual(publicKey.startswith('ssh-rsa '), True)
+
+        original = 'hello world'
+        key = RSA.importKey(self.engine.lookup('pair1.rsa_public'))
+        encrypted = key.publickey().encrypt(original, 32)
+
+        privateKey = self.engine.lookup('pair1.rsa_private')
+        self.assertEqual(privateKey.startswith(
+            '-----BEGIN RSA PRIVATE KEY-----'), True)
+        key = RSA.importKey(self.engine.lookup('pair1.rsa_private'))
+        decrypted = key.decrypt(ast.literal_eval(str(encrypted)))
+        self.assertEqual(decrypted, original)
+
+        self.assertEqual(len(self.engine.secrets), 11)
 
     def test_parser(self):
         args = parse_args(['fittings.yaml', 'build', 'web'])
