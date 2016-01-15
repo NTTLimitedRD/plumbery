@@ -11,6 +11,7 @@ The following is a growing list of use cases that can inspire you:
    tutorial.beachhead
    tutorial.apache2
    tutorial.wordpress
+   tutorial.lemp
    tutorial.nodejs
    tutorial.minio
    tutorial.docker
