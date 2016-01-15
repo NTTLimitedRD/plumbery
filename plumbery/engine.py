@@ -432,7 +432,8 @@ class PlumberyEngine:
             try:
                 handle = open(secretsFile, 'w')
                 for id in self.secrets:
-                    handle.write("{}: {}\n".format(id, self.secrets[id]))
+                    handle.write("{}: '{}'\n".format(
+                        id, self.secrets[id].replace('\n', '\\n')))
                 handle.close()
 
             except IOError:
