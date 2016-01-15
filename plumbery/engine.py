@@ -461,7 +461,7 @@ class PlumberyEngine:
                     len(self.secrets), secretsFile))
 
             except IOError:
-                logging.warning("Unable to load secrets from '{}'".format(
+                logging.debug("Unable to load secrets from '{}'".format(
                     secretsFile))
 
     def set_user_name(self, name):
