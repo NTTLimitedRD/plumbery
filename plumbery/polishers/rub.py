@@ -500,7 +500,7 @@ class RubPolisher(PlumberyPolisher):
             logging.info("- beachheading at '{}'".format(
                 self.facility.fittings.locationId))
         else:
-            logging.info("- '{}' is unreachable".format(
+            logging.debug("- '{}' is unreachable".format(
                 self.facility.fittings.locationId))
 
     def shine_node(self, node, settings, container):
