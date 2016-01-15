@@ -254,7 +254,7 @@ class RubPolisher(PlumberyPolisher):
                 'genius': SSHKeyDeployment(self.key)})
 
         if ('rub' in settings
-                and isinstance(settings['rub'], dict)
+                and isinstance(settings['rub'], list)
                 and len(settings['rub']) > 0):
 
             logging.debug('- using rub commands')
