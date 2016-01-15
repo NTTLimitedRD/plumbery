@@ -15,6 +15,7 @@ The following is a growing list of use cases that can inspire you:
    tutorial.nodejs
    tutorial.minio
    tutorial.docker
+   tutorial.owncloud
    tutorial.openvpn
    tutorial.apache2.cluster
    tutorial.redis.cluster
