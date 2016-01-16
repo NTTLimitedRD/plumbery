@@ -464,6 +464,19 @@ class PlumberyEngine:
                 logging.debug("Unable to load secrets from '{}'".format(
                     secretsFile))
 
+    def list_secrets(self):
+        """
+        Lists secrets attached to this fittings plan
+        """
+
+        logging.info("Listing secrets")
+
+        if len(self.secrets.keys()) < 1:
+            logging.info("- no secret found")
+
+        for key in self.secrets.keys():
+            logging.info("- {}: {}".format(key, self.secrets[key]))
+
     def set_user_name(self, name):
         """
         Changes the name used to authenticate to the API
@@ -607,7 +620,10 @@ class PlumberyEngine:
 
     def do(self, action, blueprints=None, facilities=None):
 
-        if action == 'build':
+        if action == 'secrets':
+            self.list_secrets()
+
+        elif action == 'build':
             if blueprints is None:
                 self.build_all_blueprints(facilities)
             else:
