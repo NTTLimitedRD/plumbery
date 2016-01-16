@@ -34,14 +34,14 @@ blueprints:
                 - git
                 - nodejs
               write_files:
-                - content: |
+                - path: /root/hello.js
+                  content: |
                     var http = require('http');
                     http.createServer(function (req, res) {
                       res.writeHead(200, {'Content-Type': 'text/html'});
                       res.end('<h2>Hello World</h2>\nThis is a warm welcome from plumbery {{ plumbery.version }}');
                     }).listen(8080, '0.0.0.0');
                     console.log('Server running at http://{{ node.public }}:8080/');
-                  path: /root/hello.js
               runcmd:
                 - sudo npm install pm2 -g
                 - sudo rm /etc/init.d/pm2-init.sh

@@ -45,13 +45,13 @@ blueprints:
                 - ntp
                 - redis-server
               write_files:
-                - content: |
+                - path: /root/edit_redis_conf.sed
+                  content: |
                     #! /usr/bin/sed -i
                     s/tcp-keepalive 0/tcp-keepalive 60/
                     /^bind 127.0.0.1/s/^/#/
                     s/# requirepass foobared/requirepass {{ master.secret }}/
                     s/# maxmemory-policy volatile-lru/maxmemory-policy noeviction/
-                  path: /root/edit_redis_conf.sed
               runcmd:
                 - cp -n /etc/redis/redis.conf /etc/redis/redis.conf.original
                 - sed -i -f /root/edit_redis_conf.sed /etc/redis/redis.conf

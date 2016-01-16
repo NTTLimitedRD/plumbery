@@ -27,10 +27,10 @@ blueprints:
               packages:
                 - ntp
               write_files: # replica set for configuration servers
-                - content: |
+                - path: /etc/mongod.conf.sed
+                  content: |
                      s/#sharding:/sharding:\n\tclusterRole: configsvr\nreplication:\n\treplSetName: configReplSet/
 
-                  path: /etc/mongod.conf.sed
               runcmd:
                 - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
                 - echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
@@ -53,10 +53,10 @@ blueprints:
               packages:
                 - ntp
               write_files: # replica set for mongos servers
-                - content: |
+                - path: /etc/mongod.conf.sed
+                  content: |
                      s/#sharding:/sharding:\n\tconfigDB: "configReplSet/{{mongo_config01}}:27019,{{mongo_config02}}:27019,{{mongo_config03}}:27019"/
 
-                  path: /etc/mongod.conf.sed
               runcmd:
                 - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
                 - echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
@@ -79,10 +79,10 @@ blueprints:
               packages:
                 - ntp
               write_files: # replica set for sharding servers
-                - content: |
+                - path: /etc/mongod.conf.sed
+                  content: |
                      s/#sharding:/sharding:\n\tclusterRole: shardsvr/
 
-                  path: /etc/mongod.conf.sed
               runcmd:
                 - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
                 - echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list

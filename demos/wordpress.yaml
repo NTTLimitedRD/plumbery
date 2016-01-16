@@ -36,7 +36,8 @@ blueprints:
                 - libapache2-mod-php5
                 - php5-mysql
               write_files:
-                - content: |
+                - path: /root/wordpress_db.sql
+                  content: |
                     create database wordpress;
                     create user 'wpuser'@'localhost' identified by '{{ random.secret }}';
                     grant all privileges on wordpress.* to 'wpuser'@'localhost';
@@ -44,7 +45,6 @@ blueprints:
                     drop database test;
                     drop user 'test'@'localhost';
                     flush privileges;
-                  path: /root/wordpress_db.sql
               runcmd:
                 - cp -n /var/www/html/index.html /var/www/html/index.html.deprecated
                 - wget http://wordpress.org/latest.tar.gz -P /tmp/
