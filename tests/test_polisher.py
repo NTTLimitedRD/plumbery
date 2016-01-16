@@ -129,6 +129,7 @@ fakeNodeSettings = {
     'name': 'stackstorm',
     'description': 'fake',
     'appliance': 'RedHat 6 64-bit 4 CPU',
+    'information': ['hello world'],
     'rub': ['rub.update.sh', 'rub.docker.sh']}
 
 fakeRubConfiguration = {
@@ -137,6 +138,22 @@ fakeRubConfiguration = {
 
 
 class TestPlumberyPolisher(unittest.TestCase):
+
+    def test_information(self):
+        self.polisher = PlumberyPolisher.from_shelf('information', {})
+        self.polisher.go(FakeEngine())
+        self.polisher.move_to(FakeFacility())
+        self.polisher.shine_node(
+            FakeNode(), fakeNodeSettings, FakeContainer())
+        self.polisher.reap()
+
+    def test_ping(self):
+        self.polisher = PlumberyPolisher.from_shelf('ping', {})
+        self.polisher.go(FakeEngine())
+        self.polisher.move_to(FakeFacility())
+        self.polisher.shine_node(
+            FakeNode(), fakeNodeSettings, FakeContainer())
+        self.polisher.reap()
 
     def test_ansible(self):
         self.polisher = PlumberyPolisher.from_shelf('ansible', {})
@@ -163,14 +180,6 @@ class TestPlumberyPolisher(unittest.TestCase):
 
     def test_spit(self):
         self.polisher = PlumberyPolisher.from_shelf('spit', {})
-        self.polisher.go(FakeEngine())
-        self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(
-            FakeNode(), fakeNodeSettings, FakeContainer())
-        self.polisher.reap()
-
-    def test_ping(self):
-        self.polisher = PlumberyPolisher.from_shelf('ping', {})
         self.polisher.go(FakeEngine())
         self.polisher.move_to(FakeFacility())
         self.polisher.shine_node(

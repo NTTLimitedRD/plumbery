@@ -23,7 +23,7 @@ blueprints:
             monitoring: essentials
             glue:
               - internet 22 943
-            rub:
+            information:
               - "You can access the server at https://{{ node.public }}:943"
               - "Provide name: openvpn and password: {{ openvpn.secret }}"
             cloud-config:

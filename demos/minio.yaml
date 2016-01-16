@@ -18,7 +18,7 @@ blueprints:
         - minio01:
             glue:
               - internet 22 8080
-            rub:
+            information:
               - "connect to this server in a terminal window: ssh root@{{ node.public }}"
               - "then get AccessKey and SecretKey from minio banner: cat /root/minio_keys.txt"
             cloud-config:

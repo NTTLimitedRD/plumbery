@@ -34,7 +34,7 @@ blueprints:
             monitoring: essentials
             glue:
               - internet 22
-            rub:
+            information:
               - "use this one-off password when asked: {{ master.secret }}"
             cloud-config:
               disable_root: false

@@ -22,7 +22,7 @@ blueprints:
             monitoring: essentials
             glue:
               - internet 22 80
-            rub:
+            information:
               - "open a browser at http://{{ node.public }}/ to view it live"
               - "administration user name is: wpuser"
               - "and the one-off password when asked: {{ random.secret }}"

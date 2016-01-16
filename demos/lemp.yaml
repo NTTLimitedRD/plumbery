@@ -22,8 +22,8 @@ blueprints:
             monitoring: essentials
             glue:
               - internet 22 80
-            rub:
-              - open a browser at http://{{ node.public }}/ to view it live
+            information:
+              - "open a browser at http://{{ node.public }}/ to view it live"
             cloud-config:
               disable_root: false
               ssh_pwauth: true

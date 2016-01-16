@@ -19,5 +19,5 @@ blueprints:
             glue:
               - internet 22
             monitoring: essentials
-            rub:
+            information:
               - "connect to this server in a terminal window: ssh root@{{ node.public }}"

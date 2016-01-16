@@ -17,10 +17,10 @@ import logging
 
 from libcloud.compute.base import NodeState
 
-from plumbery.polisher import PlumberyPolisher
+from plumbery.polishers.information import InformationPolisher
 
 
-class PingPolisher(PlumberyPolisher):
+class PingPolisher(InformationPolisher):
     """
     Checks state of nodes
 
@@ -48,6 +48,9 @@ class PingPolisher(PlumberyPolisher):
 
         if node.state == NodeState.RUNNING:
             logging.info("- node is running")
+            lines = self.list_information(node, settings, container)
+            for line in lines:
+                logging.info("- {}".format(line))
 
         # hack because the driver does not report public ipv4 accurately
         if len(node.public_ips) < 1:
