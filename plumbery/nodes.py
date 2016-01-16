@@ -499,6 +499,12 @@ class PlumberyNodes:
         if 'nodes' not in blueprint:
             return
 
+        has_to_wait = False
+        for polisher in polishers:
+            if polisher.has_to_wait:
+                has_to_wait = True
+                break
+
         for item in blueprint['nodes']:
 
             if type(item) is dict:
@@ -512,6 +518,19 @@ class PlumberyNodes:
 
                 node = self.get_node(label)
                 settings['name'] = label
+
+                if has_to_wait:
+
+                    count = 30
+                    while count > 0:
+                        if (node is None
+                                or node.state == NodeState.RUNNING):
+
+                            break
+
+                        time.sleep(10)
+                        count -= 1
+                        node = self.get_node(label)
 
                 for polisher in polishers:
                     polisher.shine_node(node, settings, container)

@@ -19,6 +19,7 @@ import logging
 import os
 import random
 import string
+import time
 import yaml
 
 from Crypto.Hash import MD5, SHA256
@@ -623,6 +624,36 @@ class PlumberyEngine:
         if action == 'secrets':
             self.list_secrets()
 
+        elif action == 'deploy':
+            if blueprints is None:
+                self.build_all_blueprints(facilities)
+                self.start_all_blueprints(facilities)
+                self.polish_all_blueprints(filter='rub',
+                                           facilities=facilities,
+                                           wait=True)
+                self.polish_all_blueprints(filter='information',
+                                           facilities=facilities)
+            else:
+                self.build_blueprint(blueprints, facilities)
+                self.start_blueprint(blueprints, facilities)
+                self.polish_blueprint(blueprints,
+                                      filter='rub',
+                                      facilities=facilities,
+                                      wait=True)
+                self.polish_blueprint(blueprints,
+                                      filter='information',
+                                      facilities=facilities)
+
+        elif action == 'dispose':
+            if blueprints is None:
+                self.stop_all_blueprints(facilities)
+                time.sleep(20)
+                self.destroy_all_blueprints(facilities)
+            else:
+                self.stop_blueprint(blueprints, facilities)
+                time.sleep(20)
+                self.destroy_blueprint(blueprints, facilities)
+
         elif action == 'build':
             if blueprints is None:
                 self.build_all_blueprints(facilities)
@@ -640,7 +671,9 @@ class PlumberyEngine:
                 self.polish_all_blueprints(filter=None,
                                            facilities=facilities)
             else:
-                self.polish_blueprint(blueprints, facilities)
+                self.polish_blueprint(blueprints,
+                                      filter=None,
+                                      facilities=facilities)
 
         elif action == 'stop':
             if blueprints is None:
@@ -809,7 +842,7 @@ class PlumberyEngine:
             facility.focus()
             facility.start_blueprint(names)
 
-    def polish_all_blueprints(self, filter=None, facilities=None):
+    def polish_all_blueprints(self, filter=None, facilities=None, wait=False):
         """
         Walks all resources and polishes them
 
@@ -820,6 +853,9 @@ class PlumberyEngine:
 
         :param facilities: explicit list of target facilities
         :type facilities: ``str`` or ``list`` of ``str``
+
+        :param wait: has function to wait for nodes to run before polishing
+        :type wait: ``bool``
 
         This function checks facilities to apply polishers there.
         The default behaviour is to consider all facilities mentioned in the
@@ -841,7 +877,7 @@ class PlumberyEngine:
         logging.info("Polishing all blueprints")
 
         for polisher in polishers:
-            polisher.go(self)
+            polisher.go(self, wait=wait)
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -857,7 +893,7 @@ class PlumberyEngine:
         for polisher in polishers:
             polisher.reap()
 
-    def polish_blueprint(self, names, filter=None, facilities=None):
+    def polish_blueprint(self, names, filter=None, facilities=None, wait=False):
         """
         Walks resources from the target blueprint and polishes them
 
@@ -871,6 +907,9 @@ class PlumberyEngine:
 
         :param facilities: explicit list of target facilities
         :type facilities: ``str`` or ``list`` of ``str``
+
+        :param wait: has function to wait for nodes to run before polishing
+        :type wait: ``bool``
 
         This function checks facilities to apply one polisher to one blueprint.
         The default behaviour is to consider all facilities mentioned in the
@@ -898,7 +937,7 @@ class PlumberyEngine:
         logging.info("Polishing blueprint '{}'".format(label))
 
         for polisher in polishers:
-            polisher.go(self)
+            polisher.go(self, wait=wait)
 
         if facilities is not None:
             facilities = self.list_facility(facilities)

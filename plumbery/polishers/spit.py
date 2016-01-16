@@ -33,13 +33,6 @@ class SpitPolisher(PlumberyPolisher):
 
     """
 
-    def go(self, engine):
-        """
-        Restarts the inventory process
-        """
-
-        self.engine = engine
-
     def move_to(self, facility):
         """
         Moves to another API endpoint

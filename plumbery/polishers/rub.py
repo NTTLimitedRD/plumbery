@@ -408,16 +408,19 @@ class RubPolisher(PlumberyPolisher):
 
         return rubs
 
-    def go(self, engine):
+    def go(self, engine, wait=False):
         """
         Starts the rubbing process
 
         :param engine: access to global parameters and functions
         :type engine: :class:`plumbery.PlumberyEngine`
 
+        :param wait: if polisher should wait for nodes to be running
+        :type wait: ``bool``
+
         """
 
-        self.engine = engine
+        super(RubPolisher, self).go(engine, wait=wait)
 
         self.report = []
 
