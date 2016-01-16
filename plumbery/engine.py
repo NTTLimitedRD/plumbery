@@ -39,7 +39,7 @@ from plumbery import __version__
 __all__ = ['PlumberyEngine']
 
 
-class PlumberyEngine:
+class PlumberyEngine(object):
     """
     Infrastructure as code at Dimension Data with Apache Libcloud
 

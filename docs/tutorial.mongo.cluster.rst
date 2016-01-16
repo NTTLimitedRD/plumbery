@@ -1,6 +1,6 @@
-======================
-How to deploy MongoDB?
-======================
+========================
+Cluster of MongoDB nodes
+========================
 
 MongoDB is a database that is really well-adapted to real-time data analytics.
 In this tutorial we will deploy multiple servers, and glue them together.

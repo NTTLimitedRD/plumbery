@@ -1,6 +1,6 @@
-=================================
-How to deploy a Docker container?
-=================================
+================
+Docker container
+================
 
 This is a rather big virtual machine with Docker on it.
 

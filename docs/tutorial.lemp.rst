@@ -1,6 +1,6 @@
-=====================================================
-How to deploy a LEMP stack (Linux, Nginx, PHP, MySQL)
-=====================================================
+======================================
+LEMP server (Linux, Nginx, PHP, MySQL)
+======================================
 
 This is a basic installation of a fast web server.
 

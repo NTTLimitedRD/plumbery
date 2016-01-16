@@ -1,6 +1,6 @@
-===================================
-How to deploy an Apache2 web server
-===================================
+==================
+Apache2 web server
+==================
 
 Ok, let's start with something simple. In this tutorial we will deploy
 a basic web server with Apache2 and PHP on Linux.

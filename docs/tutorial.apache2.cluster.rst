@@ -1,6 +1,6 @@
-=======================================
-How to deploy a cluster of web servers?
-=======================================
+==============================
+Cluster of Apache2 web servers
+==============================
 
 In this tutorial we will deploy multiple web servers, and arrange
 them in a single pool driven by a load-balancer.

@@ -43,8 +43,8 @@ blueprints:
                     }).listen(8080, '0.0.0.0');
                     console.log('Server running at http://{{ node.public }}:8080/');
               runcmd:
-                - sudo npm install pm2 -g
-                - sudo rm /etc/init.d/pm2-init.sh
-                - sudo pm2 startup
-                - sudo pm2 start /root/hello.js
-                - sudo pm2 save
+                - npm install pm2 -g
+                - rm /etc/init.d/pm2-init.sh
+                - pm2 startup
+                - pm2 start /root/hello.js
+                - pm2 save

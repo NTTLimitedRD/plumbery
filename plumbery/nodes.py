@@ -34,7 +34,7 @@ from infrastructure import PlumberyInfrastructure
 __all__ = ['PlumberyNodes']
 
 
-class PlumberyNodes:
+class PlumberyNodes(object):
     """
     Cloud automation for computing nodes
 

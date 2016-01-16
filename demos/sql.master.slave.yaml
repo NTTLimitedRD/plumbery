@@ -20,11 +20,34 @@ blueprints:
       nodes:
         - masterSQL:
             description: '#sql #vdc1 #primary'
-            appliance: 'RedHat 6 64-bit 4 CPU'
+            cpu: 8
+            memory: 32
             glue:
               - internet 22
             monitoring: essentials
             running: always
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              bootcmd:
+                - echo "mysql-server mysql-server/root_password password {{ mysql_root.secret }}" | sudo debconf-set-selections
+                - echo "mysql-server mysql-server/root_password_again password {{ mysql_root.secret }}" | sudo debconf-set-selections
+              packages:
+                - ntp
+                - mysql-server
+              write_files:
+                - path: /root/master_db.sql
+                  content: |
+                    create database replic01;
+                    create user 'dbuser'@'localhost' identified by '{{ random.secret }}';
+                    grant all privileges on replic01.* to 'dbuser'@'localhost';
+                    flush privileges;
+                    drop database test;
+                    drop user 'test'@'localhost';
+                    flush privileges;
+              runcmd:
+                - mysql -e "source /root/wordpress_db.sql"
+                - mysqladmin -u root password '{{ random.secret }}'
 
 ---
 # Frankfurt in Europe
@@ -46,8 +69,31 @@ blueprints:
       nodes:
         - slaveSQL:
             description: '#sql #vdc2 #secondary'
-            appliance: 'RedHat 6 64-bit 4 CPU'
+            cpu: 8
+            memory: 32
             glue:
               - internet 22
             monitoring: essentials
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              bootcmd:
+                - echo "mysql-server mysql-server/root_password password {{ mysql_root.secret }}" | sudo debconf-set-selections
+                - echo "mysql-server mysql-server/root_password_again password {{ mysql_root.secret }}" | sudo debconf-set-selections
+              packages:
+                - ntp
+                - mysql-server
+              write_files:
+                - path: /root/slave_db.sql
+                  content: |
+                    create database replic01;
+                    create user 'dbuser'@'localhost' identified by '{{ random.secret }}';
+                    grant all privileges on replic01.* to 'dbuser'@'localhost';
+                    flush privileges;
+                    drop database test;
+                    drop user 'test'@'localhost';
+                    flush privileges;
+              runcmd:
+                - mysql -e "source /root/wordpress_db.sql"
+                - mysqladmin -u root password '{{ random.secret }}'
 

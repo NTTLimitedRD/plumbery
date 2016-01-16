@@ -37,7 +37,7 @@ from exception import PlumberyException
 __all__ = ['PlumberyInfrastructure']
 
 
-class PlumberyInfrastructure:
+class PlumberyInfrastructure(object):
     """
     Infrastructure as code, for network and security
 

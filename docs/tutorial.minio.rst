@@ -1,6 +1,6 @@
-=================================
-Install a Minio server on the MCP
-=================================
+==========================================
+Standalone Object-Based Storage with Minio
+==========================================
 
 `Minio`_ is a minimal cloud storage server that is compatible with Amazon S3
 APIs. This is useful if you need a lightweight object-based storage backend,

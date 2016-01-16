@@ -24,7 +24,7 @@ from nodes import PlumberyNodes
 __all__ = ['PlumberyFacility', 'PlumberyFittings']
 
 
-class PlumberyFacility:
+class PlumberyFacility(object):
     """
     Plumbing at one facility
 

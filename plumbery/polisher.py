@@ -18,7 +18,7 @@ import logging
 __all__ = ['PlumberyPolisher']
 
 
-class PlumberyPolisher:
+class PlumberyPolisher(object):
     """
     Polishes elements of the fittings plan
 
