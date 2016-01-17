@@ -11,6 +11,7 @@ blueprints:
       domain:
         name: Acme
         ipv4: 2
+        service: advanced
       ethernet:
         name: acme.control
         subnet: 10.0.0.0
