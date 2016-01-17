@@ -709,7 +709,7 @@ class PlumberyNodes(object):
                                 time.sleep(10)
                                 continue
 
-                            elif 'VMWARE_TOOLS_INVALID_STATUS' in feedback:
+                            elif 'VMWARE_TOOLS_INVALID_STATUS' in str(feedback):
 
                                 # prevent transient errors
                                 if retry:
