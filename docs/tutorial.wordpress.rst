@@ -1,6 +1,6 @@
-=================================
-How to deploy a Wordpress server?
-=================================
+==========================
+Blog server with Wordpress
+==========================
 
 Wordpress is an awesome blogging platform that is powered by Apache,
 PHP and MySQL. In this tutorial we deploy a ready-to-use server.
@@ -36,11 +36,9 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml rub
+    $ python -m plumbery fittings.yaml deploy
 
-These commands build fittings as per the provided plan, start the server
+This command build fittings as per the provided plan, start the server
 and bootstrap it. The last command will display the name and password
 used to configure the database.
 

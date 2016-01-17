@@ -1,0 +1,64 @@
+---
+safeMode: false
+---
+locationId: NA12
+regionId: dd-na
+
+blueprints:
+
+  - samba:
+      domain:
+        name: SambaFox
+        description: "Demonstration of a standalone samba file sharing server"
+        service: essentials
+        ipv4: 2
+      ethernet:
+        name: sambafox.servers
+        subnet: 192.168.20.0
+      nodes:
+        - owncloud01:
+            appliance: 'Ubuntu 14'
+            cpu: 2
+            memory: 4
+            monitoring: essentials
+            glue:
+              - internet 22 139 445
+            information:
+              - "connect to smb://{{ node.public }}/ to write and read files"
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              packages:
+                - ntp
+                - samba
+                - samba-common
+                - python-glade2
+                - system-config-samba
+              write_files:
+                - path: /etc/samba/smb.conf.plumbery
+                  content: |
+                    [global]
+                    workgroup = WORKGROUP
+                    server string = Samba Server %v
+                    netbios name = {{ node.name }}
+                    security = user
+                    map to guest = bad user
+                    name resolve order = bcast host
+                    dns proxy = no
+
+                    [allaccess]
+                    path = /samba/allaccess
+                    browsable = yes
+                    writable = yes
+                    guest ok = yes
+                    read only = no
+              runcmd:
+                - mkdir -p /samba/allaccess
+                - chmod -R 0755 /samba/allaccess
+                - chown -R nobody:nogroup /samba/allaccess/
+                - cp -n /etc/samba/smb.conf /etc/samba/smb.conf.original
+                - rm /etc/samba/smb.conf
+                - cp /etc/samba/smb.conf.plumbery /etc/samba/smb.conf
+                - service smbd restart
+
+

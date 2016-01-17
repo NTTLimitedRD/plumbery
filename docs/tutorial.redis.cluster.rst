@@ -1,6 +1,6 @@
-====================
-How to deploy Redis?
-====================
+========================
+Cluster of Redis servers
+========================
 
 Redis is a key-value database that is providing superior performance to
 web site and to application servers. In this tutorial we will orchestrate
@@ -33,12 +33,10 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml rub
+    $ python -m plumbery fittings.yaml deploy
 
-These commands build fittings as per the provided plan, start the server
-and bootstrap it. The last command will display the secret used to
+These commands build fittings as per the provided plan, start servers
+and bootstrap them. The last command will display the secret used to
 authenticate to the redis master server.
 
 You can check status of servers like this:

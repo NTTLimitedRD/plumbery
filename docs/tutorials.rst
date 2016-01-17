@@ -1,28 +1,50 @@
-=========
-Tutorials
-=========
+======================
+Tutorials and examples
+======================
 
-The following is a growing list of use cases that can inspire you:
+This page provides a collection of fittings plans and related documentation.
+
+Ready to use
+------------
+
+Ideally, each example features a fittings plan, and step-by-step
+instructions to demonstrate that it is working.
 
 .. toctree::
    :maxdepth: 1
 
    tutorial.first
-   tutorial.beachhead
    tutorial.apache2
-   tutorial.wordpress
    tutorial.lemp
+   tutorial.wordpress
    tutorial.nodejs
    tutorial.minio
    tutorial.docker
    tutorial.owncloud
    tutorial.openvpn
-   tutorial.apache2.cluster
    tutorial.redis.cluster
-   tutorial.sql.master.slave
-   tutorial.mongo.cluster
 
-In the ``demos`` directory that is coming with Plumbery you will find a
-reference ``fittings.yaml`` file, plus many programs that are using Plumbery.
+Still on the workbench
+----------------------
+
+Some advanced use cases may require significant integration activities, and
+testing, before they can be declared fully automated and ready to use.
+
+.. toctree::
+   :maxdepth: 1
+
+   tutorial.apache2.cluster
+   tutorial.mongo.cluster
+   tutorial.sql.master.slave
+   tutorial.samba
+   tutorial.beachhead
+   tutorial.gigafox
+
+How to contribute?
+------------------
+
+We are looking for help! If you have developed an interesting use case, please
+consider to add it to this list.
+
 
 

@@ -47,22 +47,10 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
+    $ python -m plumbery fittings.yaml deploy
 
-These two commands will build fittings as per the provided plan, and start
-the server as well. Look at messages displayed by plumbery while it is
-working, so you can monitor what's happening.
-
-When the server is up and running, you can bootstrap it with the following
-command:
-
-.. sourcecode:: bash
-
-    $ python -m plumbery fittings.yaml rub
-
-This command will connect to the server and apply all the ``cloud-config``
-directives. Look at messages displayed by plumbery while it is
+This command will build fittings as per the provided plan, start
+the server, and bootstrap it. Look at messages displayed by plumbery while it is
 working, so you can monitor what's happening.
 
 Install and configure the client

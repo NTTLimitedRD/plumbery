@@ -51,10 +51,9 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
+    $ python -m plumbery fittings.yaml deploy
 
-These two commands will build fittings as per the provided plan, and start
+This command will build fittings as per the provided plan, and start
 the target node also.
 
 Follow-up commands

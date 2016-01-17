@@ -1,18 +1,18 @@
-=================================================
-How to replicate a database across two locations?
-=================================================
+=======================================================
+Master and slave MySQL databases in different locations
+=======================================================
 
-In this tutorial we will deploy a master database server and a slave
-database server in a different location. The back-end IPv6 infrastructure
-provided by Dimension Data will be used to replicate data continuously,
+In this use case a master database server and a slave database server are
+deployed in different locations. The back-end IPv6 infrastructure
+provided by Dimension Data is used to replicate data continuously,
 at no additional cost. With such redundancy, disaster recovery is limited
 to the promotion of the slave database to a master database.
 
 Requirements for this use case
 ------------------------------
 
-* Deploy a master database in Netherlands
-* Deploy a slave database in Germany
+* Deploy a master database in one data centre
+* Deploy a slave database in another data centre
 * Create a Network Domain at each location
 * Create an Ethernet network at each location
 * Allow IPv6 traffic from the master network to the slave network
@@ -63,10 +63,9 @@ to each data centre and to the dirty job to make you happy.
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
+    $ python -m plumbery fittings.yaml deploy
 
-These two commands will build fittings as per the provided plan, and start
+This command will build fittings as per the provided plan, and start
 servers as well. Look at messages displayed by plumbery while it is
 working, so you can monitor what's happening.
 

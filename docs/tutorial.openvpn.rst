@@ -1,6 +1,6 @@
-=====================
-How to deploy OpenVPN
-=====================
+===============
+OpenVPN gateway
+===============
 
 This is a basic installation of a VPN gateway, directly in the cloud.
 
@@ -32,9 +32,7 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml rub
+    $ python -m plumbery fittings.yaml deploy
 
 These commands will build fittings as per the provided plan, start the server
 and bootstrap it.

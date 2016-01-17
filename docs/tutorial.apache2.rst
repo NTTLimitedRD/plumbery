@@ -33,11 +33,9 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml rub
+    $ python -m plumbery fittings.yaml deploy
 
-These commands will build fittings as per the provided plan, start the server
+This command will build fittings as per the provided plan, start the server
 and bootstrap it.
 
 You can find the public address assigned to the web server like this:

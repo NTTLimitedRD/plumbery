@@ -1,6 +1,6 @@
-=============================================
-How to deploy a personal cloud for your files
-=============================================
+==============================
+Personal storage with OwnCloud
+==============================
 
 OwnCloud is a web application that can store and serve content from a
 centralized location, much like Dropbox. The difference is that ownCloud
@@ -34,9 +34,7 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml rub
+    $ python -m plumbery fittings.yaml deploy
 
 These commands will build fittings as per the provided plan, start the server
 and bootstrap it.

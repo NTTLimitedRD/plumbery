@@ -110,6 +110,5 @@ Hopefully, plumbery is making this really simple:
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml stop
-    $ python -m plumbery fittings.yaml destroy
+    $ python -m plumbery fittings.yaml dispose
 

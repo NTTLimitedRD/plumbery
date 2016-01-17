@@ -31,12 +31,10 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml rub
+    $ python -m plumbery fittings.yaml deploy
 
-These commands build fittings as per the provided plan, start the server
-and bootstrap it. The last command will display the name and password
+These commands build fittings as per the provided plan, start servers
+and bootstrap them. The last command will display the name and password
 used to configure the database.
 
 You can check status of servers like this:

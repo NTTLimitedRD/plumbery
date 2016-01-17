@@ -1,6 +1,6 @@
-==============================
-How to deploy a Node.js server
-==============================
+==============
+Node.js server
+==============
 
 Are you more familiar with javascript? Ok, let's continue with a
 different flavour of web site, powered by node.js.
@@ -32,9 +32,7 @@ Deployment commands
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml rub
+    $ python -m plumbery fittings.yaml deploy
 
 These commands will build fittings as per the provided plan, start the server
 and bootstrap it.
