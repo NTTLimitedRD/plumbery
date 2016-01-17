@@ -155,7 +155,8 @@ The table below presents succinctly all actions that are supported by plumbery.
   rub           contextualise nodes via ssh and cloud-init
   information   display node information put in fittings plan
   stop          stop nodes
-  destroy       destroy resources
+  wipe          destroy only nodes
+  destroy       destroy nodes and other resources
   polish        apply all polishers configured in fittings plan
   secrets       display secrets such as random passwords, etc.
   ============  =============================================================
