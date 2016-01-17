@@ -44,28 +44,21 @@ directly from the command line:
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
+    $ python -m plumbery fittings.yaml deploy
 
 This will load the YAML file, parse it, and call the cloud API to make it
 happen. Relax, and grab some coffee while plumbery adds network domains,
 Ethernet networks, and servers as per your specifications. The engine may plumb
 at various data centres spread on Earth, thanks to the power of Apache Libcloud.
-
-Then you can start and bootstrap all nodes with simple statements as well:
-
-.. sourcecode:: bash
-
-    $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml polish
+Nodes will be started and contextualise with cloud-init directives as well.
 
 Now you can concentrate on important things, connect remotely to the nodes,
 play with them, run different tests, etc. At the end of the game, you would
-just have to stop all servers and destroy them as per following statements:
+just have to stop all servers and destroy them as per following statement:
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml stop
-    $ python -m plumbery fittings.yaml destroy
+    $ python -m plumbery fittings.yaml dispose
 
 
 Infrastructure as code at Dimension Data with Apache Libcloud
@@ -73,24 +66,24 @@ Infrastructure as code at Dimension Data with Apache Libcloud
 
 If infrastructure should be handled like code, then your first task is to
 document a target deployment into a text file. In the context of Plumbery, this
-is called the fittings plan, and it is usually put into a file
+is called the fittings plan, and it is commonly put into a file
 named ``fittings.yaml``.
 
-With that in hands, you can then use Plumbery to act on the infrastructure and
+With that in hands, you can then ask Plumbery to act on the infrastructure and
 on nodes. The engine has built-in code to cover the full life cycle:
 
-* build the infrastructure and configure it
+* deploy the infrastructure and configure it
 * build nodes
 * start nodes
 * polish nodes -- this is to say that some processing is applied to each node
 * stop nodes
 * destroy nodes
-* destroy the infrastructure and release all resources
+* dispose the infrastructure and release all resources
 
 How do I describe fittings plan?
 --------------------------------
 
-The fittings plan is expected to follow YAML specifications, and it
+The fittings plan is written in YAML, and it
 must have multiple documents in it. The first document provides
 general configuration parameters for the engine. Subsequent documents
 describe the various locations for the fittings.
@@ -102,7 +95,6 @@ An example of a minimum fittings plan:
     ---
     safeMode: False
     ---
-    # Frankfurt in Europe
     locationId: EU6
     regionId: dd-eu
 
@@ -132,7 +124,7 @@ Move first to the directory that contains your fittings plan, and then run:
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml build
+    $ python -m plumbery fittings.yaml deploy
 
 Plumbery will load ``fittings.yaml``, then build all blueprints there.
 
@@ -149,6 +141,25 @@ your fittings:
 
     $ python -m plumbery fittings.yaml stop
     $ python -m plumbery fittings.yaml destroy
+
+The table below presents succinctly all actions that are supported by plumbery.
+
+  ============  =============================================================
+  Action        Description
+  ============  =============================================================
+  deploy        equivalent to: build + spit + start + rub
+  dispose       equivalent to: stop + destroy
+  build         create network domains, networks, and nodes
+  spit          adds public IP addresses, NAT and firewall rules
+  start         start nodes
+  rub           contextualise nodes via ssh and cloud-init
+  information   display node information put in fittings plan
+  stop          stop nodes
+  destroy       destroy resources
+  polish        apply all polishers configured in fittings plan
+  secrets       display secrets such as random passwords, etc.
+  ============  =============================================================
+
 
 How do I handle a subset of cloud resources?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -214,9 +225,6 @@ As an example, here would be the command to build SQL servers only at NA12:
 How to get help from the command line?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you want to understand the various ways to use plumbery from the command line
-then you can type:
-
 .. sourcecode:: bash
 
     $ python -m plumbery -h
@@ -251,7 +259,7 @@ the engine and use it, as with any other python module. For example:
 
     engine = PlumberyEngine('fittings.yaml')
     engine.build_blueprint('docker')
-    engine.start_nodes('docker')
+    engine.start_blueprint('docker')
     engine.polish_blueprint('docker', 'rub')
 
 
