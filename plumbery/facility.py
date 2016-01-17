@@ -247,7 +247,7 @@ class PlumberyFacility(object):
                                 names.append(token)
                                 break
 
-        if names != labels:
+        if (names != labels and len(names) > 0):
             logging.info("Expanding '{}' to '{}'".format(
                 ' '.join(labels), "', '".join(names)))
 
