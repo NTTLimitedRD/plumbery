@@ -618,6 +618,19 @@ class PlumberyEngine(object):
         return matches
 
     def do(self, action, blueprints=None, facilities=None):
+        """
+        Applies an action to multiple blueprints at multiple locations
+
+        :param action: 'deploy', 'dispose', etc., or a polisher name
+        :type action: ``str``
+
+        :param blueprints: a list of blueprints
+        :type blueprints: ``list`` of ``str``, or None
+
+        :param facilities: a list of facilities
+        :type factilities: ``list`` of ``str``, or None
+
+        """
 
         if action == 'secrets':
             self.list_secrets()
