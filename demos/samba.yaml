@@ -16,7 +16,7 @@ blueprints:
         name: sambafox.servers
         subnet: 192.168.20.0
       nodes:
-        - owncloud01:
+        - samba01:
             appliance: 'Ubuntu 14'
             cpu: 2
             memory: 4
