@@ -84,11 +84,11 @@ class InformationPolisher(PlumberyPolisher):
 
         logging.info("About '{}':".format(settings['name']))
 
-        if node.state != NodeState.RUNNING:
-            logging.info("- node is not running")
-            return
+        lines = []
+        if node.state == NodeState.RUNNING:
+            lines.append("node is up and running")
 
-        lines = self.list_information(node, settings, container)
+        lines += self.list_information(node, settings, container)
         if len(lines) < 1:
             logging.info("- no information to report")
             return
