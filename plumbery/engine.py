@@ -627,8 +627,7 @@ class PlumberyEngine(object):
                 self.build_all_blueprints(facilities)
                 self.start_all_blueprints(facilities)
                 self.polish_all_blueprints(filter='rub',
-                                           facilities=facilities,
-                                           wait=True)
+                                           facilities=facilities)
                 self.polish_all_blueprints(filter='information',
                                            facilities=facilities)
             else:
@@ -636,8 +635,7 @@ class PlumberyEngine(object):
                 self.start_blueprint(blueprints, facilities)
                 self.polish_blueprint(blueprints,
                                       filter='rub',
-                                      facilities=facilities,
-                                      wait=True)
+                                      facilities=facilities)
                 self.polish_blueprint(blueprints,
                                       filter='information',
                                       facilities=facilities)
@@ -645,11 +643,9 @@ class PlumberyEngine(object):
         elif action == 'dispose':
             if blueprints is None:
                 self.stop_all_blueprints(facilities)
-                time.sleep(20)
                 self.destroy_all_blueprints(facilities)
             else:
                 self.stop_blueprint(blueprints, facilities)
-                time.sleep(20)
                 self.destroy_blueprint(blueprints, facilities)
 
         elif action == 'build':
@@ -840,7 +836,7 @@ class PlumberyEngine(object):
             facility.focus()
             facility.start_blueprint(names)
 
-    def polish_all_blueprints(self, filter=None, facilities=None, wait=False):
+    def polish_all_blueprints(self, filter=None, facilities=None):
         """
         Walks all resources and polishes them
 
@@ -851,9 +847,6 @@ class PlumberyEngine(object):
 
         :param facilities: explicit list of target facilities
         :type facilities: ``str`` or ``list`` of ``str``
-
-        :param wait: has function to wait for nodes to run before polishing
-        :type wait: ``bool``
 
         This function checks facilities to apply polishers there.
         The default behaviour is to consider all facilities mentioned in the
@@ -875,7 +868,7 @@ class PlumberyEngine(object):
         logging.info("Polishing all blueprints")
 
         for polisher in polishers:
-            polisher.go(self, wait=wait)
+            polisher.go(self)
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -891,7 +884,7 @@ class PlumberyEngine(object):
         for polisher in polishers:
             polisher.reap()
 
-    def polish_blueprint(self, names, filter=None, facilities=None, wait=False):
+    def polish_blueprint(self, names, filter=None, facilities=None):
         """
         Walks resources from the target blueprint and polishes them
 
@@ -905,9 +898,6 @@ class PlumberyEngine(object):
 
         :param facilities: explicit list of target facilities
         :type facilities: ``str`` or ``list`` of ``str``
-
-        :param wait: has function to wait for nodes to run before polishing
-        :type wait: ``bool``
 
         This function checks facilities to apply one polisher to one blueprint.
         The default behaviour is to consider all facilities mentioned in the
@@ -935,7 +925,7 @@ class PlumberyEngine(object):
         logging.info("Polishing blueprint '{}'".format(label))
 
         for polisher in polishers:
-            polisher.go(self, wait=wait)
+            polisher.go(self)
 
         if facilities is not None:
             facilities = self.list_facility(facilities)

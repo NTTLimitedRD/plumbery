@@ -76,7 +76,6 @@ class PlumberyPolisher(object):
 
     def __init__(self, settings):
         self.settings = settings
-        self.has_to_wait = False
 
     @classmethod
     def filter(cls, polishers, filter=None):
@@ -157,12 +156,9 @@ class PlumberyPolisher(object):
                 polisherName, moduleName))
             raise feedback
 
-    def go(self, engine, wait=False):
+    def go(self, engine):
         """
         Puts the shoes on, and go polishing
-
-        :param wait: if polisher should wait for nodes to be running
-        :type wait: ``bool``
 
         This function is called once, before starting the process of
         polishing each node. You can override it for any specific
@@ -171,7 +167,6 @@ class PlumberyPolisher(object):
         """
 
         self.engine = engine
-        self.has_to_wait = wait
 
     def move_to(self, facility):
         """

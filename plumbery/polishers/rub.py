@@ -15,6 +15,7 @@
 
 import logging
 import os
+import time
 import yaml
 
 import netifaces
@@ -28,6 +29,7 @@ from libcloud.compute.deployment import SSHKeyDeployment
 from libcloud.compute.ssh import SSHClient
 
 from plumbery.exception import PlumberyException
+from plumbery.nodes import PlumberyNodes
 from plumbery.polisher import PlumberyPolisher
 from plumbery.text import PlumberyText
 from plumbery.text import PlumberyNodeContext
@@ -408,19 +410,16 @@ class RubPolisher(PlumberyPolisher):
 
         return rubs
 
-    def go(self, engine, wait=False):
+    def go(self, engine):
         """
         Starts the rubbing process
 
         :param engine: access to global parameters and functions
         :type engine: :class:`plumbery.PlumberyEngine`
 
-        :param wait: if polisher should wait for nodes to be running
-        :type wait: ``bool``
-
         """
 
-        super(RubPolisher, self).go(engine, wait=wait)
+        super(RubPolisher, self).go(engine)
 
         self.report = []
 
@@ -454,6 +453,8 @@ class RubPolisher(PlumberyPolisher):
         """
 
         self.facility = facility
+        self.region = facility.region
+        self.nodes = PlumberyNodes(facility)
 
         self.beachheading = False
 
@@ -525,6 +526,15 @@ class RubPolisher(PlumberyPolisher):
         if node is None:
             logging.info("- not found")
             return
+
+        timeout = 300
+        tick = 6
+        while node.extra['status'].action == 'START_SERVER':
+            time.sleep(tick)
+            node = self.nodes.get_node(node.name)
+            timeout -= tick
+            if timeout < 0:
+                break
 
         if node.state != NodeState.RUNNING:
             logging.info("- skipped - node is not running")

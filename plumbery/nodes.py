@@ -267,6 +267,15 @@ class PlumberyNodes(object):
                     logging.info("- this node can never be destroyed")
                     return False
 
+                timeout = 300
+                tick = 6
+                while node.extra['status'].action == 'SHUTDOWN_SERVER':
+                    time.sleep(tick)
+                    node = self.get_node(label)
+                    timeout -= tick
+                    if timeout < 0:
+                        break
+
                 if node.state == NodeState.RUNNING:
                     logging.info("Destroying node '{}'".format(label))
                     logging.info("- skipped - node is up and running")
@@ -499,12 +508,6 @@ class PlumberyNodes(object):
         if 'nodes' not in blueprint:
             return
 
-        has_to_wait = False
-        for polisher in polishers:
-            if polisher.has_to_wait:
-                has_to_wait = True
-                break
-
         for item in blueprint['nodes']:
 
             if type(item) is dict:
@@ -518,19 +521,6 @@ class PlumberyNodes(object):
 
                 node = self.get_node(label)
                 settings['name'] = label
-
-                if has_to_wait:
-
-                    count = 30
-                    while count > 0:
-                        if (node is None
-                                or node.state == NodeState.RUNNING):
-
-                            break
-
-                        time.sleep(10)
-                        count -= 1
-                        node = self.get_node(label)
 
                 for polisher in polishers:
                     polisher.shine_node(node, settings, container)

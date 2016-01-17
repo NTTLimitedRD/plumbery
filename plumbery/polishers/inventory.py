@@ -46,12 +46,12 @@ class InventoryPolisher(PlumberyPolisher):
 
     """
 
-    def go(self, engine, wait=False):
+    def go(self, engine):
         """
         Restarts the inventory process
         """
 
-        super(InventoryPolisher, self).go(engine, wait=wait)
+        super(InventoryPolisher, self).go(engine)
 
         self.inventory = []
 
