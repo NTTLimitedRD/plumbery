@@ -12,10 +12,26 @@ plumbery.polishers.ansible module
     :undoc-members:
     :show-inheritance:
 
+plumbery.polishers.information module
+-----------------------------------
+
+.. automodule:: plumbery.polishers.information
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 plumbery.polishers.inventory module
 -----------------------------------
 
 .. automodule:: plumbery.polishers.inventory
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+plumbery.polishers.ping module
+-----------------------------------
+
+.. automodule:: plumbery.polishers.ping
     :members:
     :undoc-members:
     :show-inheritance:
