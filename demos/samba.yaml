@@ -45,6 +45,9 @@ blueprints:
                     map to guest = bad user
                     name resolve order = bcast host
                     dns proxy = no
+                    load printers = no
+                    printing = bsd
+                    printcap name = /dev/null
 
                     [allaccess]
                     path = /samba/allaccess
