@@ -17,6 +17,9 @@ you.
 
 * Read fittings plan in YAML
 * Use cloud API to create the network infrastructure, and to build nodes
+* Bootstrap nodes with cloud-init configuration directives
+* Inject actual addresses and on-the-fly secrets to contextualisation
+* Preserve random secrets across multiple invocations
 * Create network domains and Ethernet networks
 * Reserve public IPv4 addresses
 * Manage network address translation rules
@@ -28,7 +31,6 @@ you.
 * Add multiple network interfaces to nodes
 * Add public IPv4 addresses to nodes
 * Add monitoring to nodes
-* Bootstrap nodes with cloud-init configuration directives
 * Build all blueprints
 * Build a blueprint across multiple locations
 * Start all nodes
