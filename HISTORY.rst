@@ -3,6 +3,22 @@
 History
 -------
 
+0.4.0 (2016-01-17)
+~~~~~~~~~~~~~~~~~~
+
+* Add cloud-init for node contextualisation
+* Inject dynamic variables (e.g., node addresses) to node contextualisation
+* Generate and store random secrets for secured node contextualisation
+* Enhance usage page in the documentation
+* Add a full pack of tutorials in the on-line documentation
+* Add actions 'deploy' and 'dispose' to streamline usage
+* Add polishers 'ping' and 'information'
+* Restructure code and consolidate functions
+* Fix multiple bugs and errors
+* Expand information provided in debug mode
+* Passing Travis CI
+* Test coverage 47%
+
 0.3.4 (2016-01-06)
 ~~~~~~~~~~~~~~~~~~
 
