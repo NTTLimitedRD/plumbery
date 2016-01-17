@@ -394,8 +394,6 @@ class PlumberyEngine(object):
         if id in self.secrets:
             return self.secrets[id]
 
-        print self.secrets
-
         secret = ''.join(random.choice(
             string.ascii_letters+string.digits+'-_!=')
                 for i in range(50))
