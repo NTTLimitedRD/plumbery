@@ -4,6 +4,7 @@
 Tests for `polisher` module.
 """
 
+from collections import namedtuple
 import unittest
 
 from libcloud.compute.types import NodeState
@@ -115,15 +116,21 @@ class FakeFacility():
         return "<FakeFacility fittings: {}>".format(self.fittings)
 
 
+FakeStatus = namedtuple('FakeStatus', 'action')
+
 class FakeNode():
-    name = 'fake'
-    id = '1234'
-    state = NodeState.RUNNING
-    private_ips = ['12.34.56.78']
-    public_ips = []
-    extra = {'datacenterId': 'EU6',
-             'description': '#fake description with #tags',
-             'ipv6': 'fe80::'}
+
+    def __init__(self):
+        self.name = 'fake'
+        self.id = '1234'
+        self.state = NodeState.RUNNING
+        self.private_ips = ['12.34.56.78']
+        self.public_ips = []
+        self.extra = {'datacenterId': 'EU6',
+                 'description': '#fake description with #tags',
+                 'ipv6': 'fe80::', 'here': 'there',
+                 'status': FakeStatus('none'),
+                 'dummy': 'test'}
 
 fakeNodeSettings = {
     'name': 'stackstorm',
