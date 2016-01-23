@@ -27,6 +27,31 @@ Copy the text below and put it in a text file named ``fittings.yaml``:
    :language: yaml
    :linenos:
 
+Some notes on directives used in these fittings plan:
+
+``service: advanced`` - Dimension Data provides several flavours of Network
+Domains. Here the decision is to deploy an ``advanced`` domain
+
+``monitoring: essential`` - Automatically adds monitoring to this node after
+its creation.
+
+``ipv4: 2`` - This is to reserve some public IPv4 addresses. Here we anticipate
+on the public address assigned to the web server.
+
+``glue:`` - This directive adds connectivity to a node, either by assigning
+a public IPv4 address to the Internet, or by adding network interfaces to
+additional networks. With ``internet 22 80``, Plumbery assigns a public IPv4
+address and adds NAT rules to the firewall. One allows SSH access, and the other
+one is for web access.
+
+``information:`` - This directive helps to document complex deployments. It can
+be used to communicate instructions based on real address assignment, like in
+this example.
+
+``cloud-config`` - A list of statements that are passed to cloud-init so
+that they can be applied to the node during boot sequence. In this example
+we install a couple of packages, and write a new home page for this server.
+
 
 Deployment commands
 -------------------

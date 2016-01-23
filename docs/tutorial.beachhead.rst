@@ -42,30 +42,30 @@ other blueprints.
 
 Some notes on directives used in these fittings plan:
 
-* ``service: advanced`` - Dimension Data provides several flavours of Network
-  Domains. Here the decision is to deploy an ``advanced`` domain
+``service: advanced`` - Dimension Data provides several flavours of Network
+Domains. Here the decision is to deploy an ``advanced`` domain
 
-* ``ipv4: 2`` - This is to reserve some public IPv4 addresses. Here we anticipate
-  on the public address assigned to the ``beachhead`` node.
+``ipv4: 2`` - This is to reserve some public IPv4 addresses. Here we anticipate
+on the public address assigned to the ``beachhead`` node.
 
-* ``glue:`` - This directive adds connectivity to a node, either by assigning
-  a public IPv4 address to the Internet, or by adding network interfaces to
-  additional networks. With ``internet 22``, Plumbery assigns a public IPv4
-  address and adds a NAT rule to the firewall.
+``glue:`` - This directive adds connectivity to a node, either by assigning
+a public IPv4 address to the Internet, or by adding network interfaces to
+additional networks. With ``internet 22``, Plumbery assigns a public IPv4
+address and adds a NAT rule to the firewall.
 
-* ``running: always`` - This directive prevents plumbery from stopping the node.
-  In other terms, the command ``python -m plumbery stop`` is inoperative.
-  And because plumbery cannot destroy a running node, this directive also
-  prevents the deletion of ``beachhead``.
+``running: always`` - This directive prevents plumbery from stopping the node.
+In other terms, the command ``python -m plumbery stop`` is inoperative.
+And because plumbery cannot destroy a running node, this directive also
+prevents the deletion of ``beachhead``.
 
-* ``monitoring: essential`` - Automatically adds monitoring to this node after
-  its creation.
+``monitoring: essential`` - Automatically adds monitoring to this node after
+its creation.
 
-* ``cloud-config`` - A list of statements that are passed to cloud-init so
-  that they can be applied to the node during boot sequence. In this example
-  we install a couple of packages, and run commands to install libcloud
-  and plumbery itself. There are many ways to use cloud-init, maybe you would
-  like to check `a reference page full of examples`_.
+``cloud-config`` - A list of statements that are passed to cloud-init so
+that they can be applied to the node during boot sequence. In this example
+we install a couple of packages, and run commands to install libcloud
+and plumbery itself. There are many ways to use cloud-init, maybe you would
+like to check `a reference page full of examples`_.
 
 Deployment commands
 -------------------

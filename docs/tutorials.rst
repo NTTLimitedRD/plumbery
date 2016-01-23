@@ -25,6 +25,7 @@ instructions to demonstrate that it is working.
    tutorial.openvpn
    tutorial.nfs
    tutorial.redis.cluster
+   tutorial.beachhead
 
 Still on the workbench
 ----------------------
@@ -39,7 +40,6 @@ testing, before they can be declared fully automated and ready to use.
    tutorial.mongo.cluster
    tutorial.sql.master.slave
    tutorial.samba
-   tutorial.beachhead
    tutorial.gigafox
 
 How to contribute?

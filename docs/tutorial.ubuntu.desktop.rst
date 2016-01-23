@@ -35,17 +35,18 @@ Copy the text below and put it in a text file named ``fittings.yaml``:
 
 Some interesting remarks on this fittings plan:
 
-* The password used by VNC server is normally entered interactively. Here
-  the package ``expect`` has been added, with a little script, to automate
-  this interactivity. This is a very powerful mechanism that can be useful
-  in multiple situations.
+**expect** - The password used by VNC server is normally entered interactively.
+Here the package ``expect`` has been added, with a little script, to automate
+this interactivity. This is a very powerful mechanism that can be useful
+in various situations.
 
-* The VNC server is installed as an ordinary service via an additional command
-  in `/etc/init.d/` and  with `update-rc.d`
+**Service installation** - The VNC server is installed as an ordinary service via an additional command
+in `/etc/init.d/` and  with `update-rc.d`
 
-* The ``information:`` directive provides comprehensive instructions to
-  finalise the setup. This is displayed at the end of the command ``deploy``.
-  It can also be retrieved unattended with the command ``information``.
+**Infrastructure documentation** - The ``information:`` directive provides
+comprehensive instructions to finalise the setup. This is displayed at the end
+of the command ``deploy``. It can also be retrieved unattended with the
+command ``information``.
 
 
 Deployment commands

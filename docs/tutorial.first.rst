@@ -36,9 +36,9 @@ these to any values that would better suit you.
 
 Some notes on directives used in these fittings plan:
 
-* ``locationId: EU6`` and ``regionId: dd-eu`` - The region defines the API
-  endpoint used by plumbery, and the location designates the target data centre
-  in the region. Look at the table below to select your preferred location.
+``locationId: EU6`` and ``regionId: dd-eu`` - The region defines the API
+endpoint used by plumbery, and the location designates the target data centre
+in the region. Look at the table below to select your preferred location.
 
   =======================  ============  ==========
   City                      locationId    regionId
@@ -54,17 +54,17 @@ Some notes on directives used in these fittings plan:
   Sydney (Australia)            AU9        dd-au
   =======================  ============  ==========
 
-* ``ipv4: 2`` - This is to reserve some public IPv4 addresses. Here we
-  anticipate on the public address assigned to the server.
+``ipv4: 2`` - This is to reserve some public IPv4 addresses. Here we
+anticipate on the public address assigned to the server.
 
-* ``glue:`` - This directive adds connectivity to a node, either by assigning
-  a public IPv4 address to the Internet, or by adding network interfaces to
-  additional networks. With ``internet 22``, Plumbery assigns a public IPv4
-  address and adds a NAT rule. The firewall is also
-  configured to accept only ssh traffic on port 22.
+``glue:`` - This directive adds connectivity to a node, either by assigning
+a public IPv4 address to the Internet, or by adding network interfaces to
+additional networks. With ``internet 22``, Plumbery assigns a public IPv4
+address and adds a NAT rule. The firewall is also
+configured to accept only ssh traffic on port 22.
 
-* ``monitoring: essential`` - Automatically adds monitoring to this node after
-  its creation.
+``monitoring: essential`` - Automatically adds monitoring to this node after
+its creation.
 
 Deployment commands
 -------------------

@@ -31,16 +31,16 @@ Copy the text below and put it in a text file named ``fittings.yaml``:
 
 Some notes on directives used in this fittings plan:
 
-* The minio server is expecting to run as user ``ubuntu``, so we are enforcing
-  this through the commands passed to the server.
+**Not root** - The minio server is expecting to run as user ``ubuntu``, so we are enforcing
+this through the commands passed to the server.
 
-* The server is launched on the last command. It generates randomly two
-  secrets that have to be communicated to client software and displays
-  these on screen. Information is captured in a text file so that it can
-  be retrieved via a terminal session afterwards.
+**Interactive secrets** - The server is launched on the last command. It
+generates randomly two secrets that have to be communicated to client software
+and displays these on screen. Information is captured in a text file so that it
+can be retrieved via a terminal session afterwards.
 
-* Server is configured to expire files after 1 hour of storage. You can change
-  this of course if needed.
+**Object expiration** - Server is configured to expire files after 1 hour of
+storage. You can change this of course if needed.
 
 Deployment commands
 -------------------

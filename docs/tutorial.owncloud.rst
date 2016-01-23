@@ -28,6 +28,10 @@ Copy the text below and put it in a text file named ``fittings.yaml``:
    :language: yaml
    :linenos:
 
+**SQL password** - You can note how plumbery is asked to generate a random
+password, and how this is transmitted to the server before the installation
+of the sql package. For this we use the special ``bootcmd`` directive, that is
+executed before the download of packages.
 
 Deployment commands
 -------------------
