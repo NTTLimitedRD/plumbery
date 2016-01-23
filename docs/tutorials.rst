@@ -18,6 +18,7 @@ instructions to demonstrate that it is working.
    tutorial.lemp
    tutorial.wordpress
    tutorial.nodejs
+   tutorial.ubuntu.desktop
    tutorial.minio
    tutorial.docker
    tutorial.owncloud
