@@ -316,6 +316,13 @@ class TestPlumberyText(unittest.TestCase):
         transformed = self.text.expand_variables(loaded, context)
         self.assertEqual(transformed.strip(), expected6.strip())
 
+    def test_input7(self):
+
+        loaded = yaml.load(input7)
+        context = PlumberyContext(dict7)
+        transformed = self.text.expand_variables(loaded, context)
+        self.assertEqual(transformed.strip(), expected7.strip())
+
     def test_node1(self):
 
         template = "{{ mongo_mongos01.public }}"
