@@ -1490,8 +1490,8 @@ class PlumberyInfrastructure(object):
         """
         Retrieves an Ethernet network by name
 
-        :param label: the name of the target Ethernet network
-        :type label: ``str`` or ``list``of ``str``
+        :param path: the name of the target Ethernet network
+        :type path: ``str`` or ``list``of ``str``
 
         :return: an instance of an Ethernet network
         :rtype: :class:`VLAN` or ``None``
@@ -1515,9 +1515,9 @@ class PlumberyInfrastructure(object):
         """
 
         if isinstance(path, str):
-            path = [path]
+            path = path.split('::')
 
-        if len(path) == 1:
+        if len(path) == 1: # local name
 
             if len(self.facility._cache_vlans) < 1:
                 logging.info("Listing Ethernet networks")
@@ -1530,7 +1530,7 @@ class PlumberyInfrastructure(object):
                 if network.name == path[0]:
                     return network
 
-        elif len(path) == 2:
+        elif len(path) == 2: # different location, same region
 
             if (len(self._cache_remote_vlan) == 3
                     and self._cache_remote_vlan[0] == path[0]
@@ -1555,7 +1555,7 @@ class PlumberyInfrastructure(object):
                     logging.info("- found it")
                     return network
 
-        elif len(path) == 3:
+        elif len(path) == 3: # other region
 
             if (len(self._cache_offshore_vlan) == 4
                     and self._cache_offshore_vlan[0] == path[0]
