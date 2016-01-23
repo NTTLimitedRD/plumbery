@@ -1541,7 +1541,11 @@ class PlumberyInfrastructure(object):
             logging.info("Looking for remote Ethernet network '{}'"
                          .format('::'.join(path)))
 
-            remoteLocation = self.region.ex_get_location_by_id(path[0])
+            try:
+                remoteLocation = self.region.ex_get_location_by_id(path[0])
+            except IndexError:
+                logging.info("- '{}' is unknown".format(path[0]))
+                return None
 
             vlans = self.region.ex_list_vlans(location=remoteLocation)
             for network in vlans:
@@ -1565,7 +1569,11 @@ class PlumberyInfrastructure(object):
 
             offshore = self.plumbery.get_compute_driver(region=path[0])
 
-            remoteLocation = offshore.ex_get_location_by_id(path[1])
+            try:
+                remoteLocation = offshore.ex_get_location_by_id(path[1])
+            except IndexError:
+                logging.info("- '{}' is unknown".format(path[1]))
+                return None
 
             vlans = offshore.ex_list_vlans(location=remoteLocation)
             for network in vlans:
