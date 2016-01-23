@@ -237,8 +237,6 @@ class PlumberyNodeContext:
             self.cache['node.public'] = node.public_ips[0]
             self.cache[node.name+'.public'] = node.public_ips[0]
 
-        self.inventory = None
-
     def lookup(self, token):
 
         if token in self.cache:
@@ -246,21 +244,17 @@ class PlumberyNodeContext:
 
         if self.container is not None:
 
-            if self.inventory is None:
-                self.inventory = self.container.facility.list_nodes()
-
             tokens = token.split('.')
             if len(tokens) < 2:
                 tokens.append('private')
 
-            if tokens[0] in self.inventory:
-
-                nodes = PlumberyNodes(self.container.facility)
-                node = nodes.get_node(tokens[0])
-                self.cache[node.name] = node.private_ips[0]
-                self.cache[node.name+'.private'] = node.private_ips[0]
-                self.cache[node.name+'.ipv6'] = node.extra['ipv6']
-                self.cache[node.name+'.public'] = node.public_ips[0]
+            nodes = PlumberyNodes(self.container.facility)
+            node = nodes.get_node(tokens[0])
+            if node is not None:
+                self.cache[tokens[0]] = node.private_ips[0]
+                self.cache[tokens[0]+'.private'] = node.private_ips[0]
+                self.cache[tokens[0]+'.ipv6'] = node.extra['ipv6']
+                self.cache[tokens[0]+'.public'] = node.public_ips[0]
 
                 if tokens[1] == 'private':
                     return node.private_ips[0]
@@ -273,7 +267,6 @@ class PlumberyNodeContext:
                         return node.public_ips[0]
                     else:
                         return ''
-
 
         if self.context is not None:
             return self.context.lookup(token)
