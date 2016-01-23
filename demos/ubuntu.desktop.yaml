@@ -25,7 +25,6 @@ blueprints:
               - internet 22 5901
             information:
               - "secure your connection: ssh -L 5901:127.0.0.1:5901 root@{{ node.public }}"
-              - "for this you may need root password {{ shared.secret }}"
               - "open a VNC viewer at 127.0.0.1:5901 to access the desktop"
               - "enter password {{ vnc.secret }} when asked"
             cloud-config:
@@ -42,6 +41,8 @@ blueprints:
                   permissions: "0700"
                   content: |
                         #!/bin/sh
+                        export USER="root"
+                        export HOME="/root"
                         /usr/bin/expect <<EOF
                         spawn "/usr/bin/vncpasswd"
                         expect "Password:"
@@ -86,6 +87,9 @@ blueprints:
                         # Short-Description: start vnc server
                         # Description:
                         ### END INIT INFO
+
+                        export USER="root"
+                        export HOME="/root"
 
                         . /lib/lsb/init-functions
 
