@@ -23,6 +23,7 @@ instructions to demonstrate that it is working.
    tutorial.docker
    tutorial.owncloud
    tutorial.openvpn
+   tutorial.nfs
    tutorial.redis.cluster
 
 Still on the workbench
