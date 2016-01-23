@@ -468,7 +468,7 @@ class PlumberyEngine(object):
         Lists secrets attached to this fittings plan
         """
 
-        logging.info("Listing secrets")
+        logging.info("Showing secrets")
 
         if len(self.secrets.keys()) < 1:
             logging.info("- no secret found")
