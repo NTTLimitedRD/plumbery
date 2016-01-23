@@ -85,6 +85,7 @@ class PlumberyText:
                 index = tail+len(closing)
 
         if serialized: # from serialized python to yaml representation
+            expanded = expanded.replace('\\'+'\\'+'r', '\\'+'r')
             instanciated = yaml.load(expanded)
             expanded = PlumberyText.dump(instanciated)
 

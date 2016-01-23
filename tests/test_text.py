@@ -170,6 +170,28 @@ conf: \
       -----END CERTIFICATE----- has multiple lines, but all of them
       should be nicely left-aligned since variable is first element on line
 """
+
+input7 = """
+write_files: \
+\n  - content: |
+        #!/bin/sh
+        /usr/bin/expect <<EOF
+        spawn "/usr/bin/vncpasswd"
+        expect "Password:"
+        send "{{ vnc.secret }}\\r"
+        expect "Verify:"
+        send "{{ vnc.secret }}\\r"
+        expect eof
+        exit
+        EOF
+
+"""
+
+dict7 = {'vnc.secret': 'fake'}
+
+expected7 = input7.replace('{{ vnc.secret }}', 'fake')
+
+
 class FakeNode1:
 
     id = '1234'
