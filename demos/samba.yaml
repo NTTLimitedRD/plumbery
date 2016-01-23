@@ -41,24 +41,24 @@ blueprints:
                     workgroup = WORKGROUP
                     server string = Samba Server %v
                     netbios name = {{ node.name }}
-                    security = user
-                    map to guest = bad user
-                    name resolve order = bcast host
-                    dns proxy = no
                     load printers = no
                     printing = bsd
                     printcap name = /dev/null
 
-                    [allaccess]
-                    path = /samba/allaccess
+                    [Public]
+                    comment = Public share access
+                    path = /samba/public
                     browsable = yes
                     writable = yes
                     guest ok = yes
                     read only = no
+                    force user = nobody
+                    force group = nogroup
+
               runcmd:
-                - mkdir -p /samba/allaccess
-                - chmod -R 0755 /samba/allaccess
-                - chown -R nobody:nogroup /samba/allaccess/
+                - mkdir -p /samba/public
+                - chmod -R 0755 /samba/public
+                - chown -R nobody:nogroup /samba/public/
                 - cp -n /etc/samba/smb.conf /etc/samba/smb.conf.original
                 - rm /etc/samba/smb.conf
                 - cp /etc/samba/smb.conf.plumbery /etc/samba/smb.conf
