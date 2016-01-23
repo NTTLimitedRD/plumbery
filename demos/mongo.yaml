@@ -29,7 +29,7 @@ blueprints:
               write_files: # replica set for configuration servers
                 - path: /etc/mongod.conf.sed
                   content: |
-                     s/#sharding:/sharding:\n\tclusterRole: configsvr\nreplication:\n\treplSetName: configReplSet/
+                     s/#sharding:/sharding:\n   clusterRole: configsvr\nreplication:\n  replSetName: configReplSet/
 
               runcmd:
                 - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
@@ -55,7 +55,7 @@ blueprints:
               write_files: # replica set for mongos servers
                 - path: /etc/mongod.conf.sed
                   content: |
-                     s/#sharding:/sharding:\n\tconfigDB: "configReplSet/{{mongo_config01}}:27019,{{mongo_config02}}:27019,{{mongo_config03}}:27019"/
+                     s/#sharding:/sharding:\n   configDB: "configReplSet/{{mongo_config01}}:27019,{{mongo_config02}}:27019,{{mongo_config03}}:27019"/
 
               runcmd:
                 - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
@@ -81,7 +81,7 @@ blueprints:
               write_files: # replica set for sharding servers
                 - path: /etc/mongod.conf.sed
                   content: |
-                     s/#sharding:/sharding:\n\tclusterRole: shardsvr/
+                     s/#sharding:/sharding:\n   clusterRole: shardsvr/
 
               runcmd:
                 - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
