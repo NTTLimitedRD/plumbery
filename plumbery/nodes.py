@@ -401,12 +401,12 @@ class PlumberyNodes(object):
             labels.append(matches.group(1)+str(index)+matches.group(4))
         return labels
 
-    def get_node(self, name):
+    def get_node(self, path):
         """
         Retrieves a node by name
 
-        :param name: the name of the target node
-        :type name: ``str``
+        :param path: the name of the target node, or its location
+        :type path: ``str`` or ``list``of ``str``
 
         :return: the target node, or None
         :rtype: :class:`libcloud.compute.base.Node`
@@ -415,30 +415,123 @@ class PlumberyNodes(object):
         target node. Therefore, it can be used in loops where you monitor
         the evolution of the node during build or other change operation.
 
+        This function searches firstly at the current facility. If the
+        name is a complete path to a remote node, then plumbery looks
+        there. If a different region is provided, then authentication is done
+        against the related endpoint.
+
+        For example if ``MyServer`` has been defined in a data centre in
+        Europe::
+
+            >>>infrastructure.get_ethernet('MyServer')
+            >>>infrastructure.get_ethernet(['EU6', 'MyServer'])
+            Looking for remote node 'EU6::MyServer'
+            - found it
+            >>>infrastructure.get_ethernet(['dd-eu', 'EU6', 'MyServer'])
+            Looking for offshore node 'dd-eu::EU6::MyServer'
+            - found it
+
+
         """
 
-        self.facility.power_on()
+        if isinstance(path, str):
+            path = path.split('::')
 
         node = None
-        for node in self.region.list_nodes():
 
-            if node.extra['datacenterId'] != self.facility.get_location_id():
-                continue
+        if len(path) == 1: # local name
 
-            if node.name == name:
+            self.facility.power_on()
 
-                # hack because the driver does not report public ipv4 accurately
-                if len(node.public_ips) < 1:
-                    domain = self.region.ex_get_network_domain(
-                        node.extra['networkDomainId'])
-                    for rule in self.region.ex_list_nat_rules(domain):
-                        if rule.internal_ip == node.private_ips[0]:
-                            node.public_ips.append(rule.external_ip)
-                            break
+            for node in self.region.list_nodes():
 
-                self._update_ipv6(node)
+                if node.extra['datacenterId'] != self.facility.get_location_id():
+                    continue
 
-                return node
+                if node.name == path[0]:
+
+                    # hack because the driver does not report public ipv4 accurately
+                    if len(node.public_ips) < 1:
+                        domain = self.region.ex_get_network_domain(
+                            node.extra['networkDomainId'])
+                        for rule in self.region.ex_list_nat_rules(domain):
+                            if rule.internal_ip == node.private_ips[0]:
+                                node.public_ips.append(rule.external_ip)
+                                break
+
+                    self._update_ipv6(node)
+
+                    return node
+
+        elif len(path) == 2: # different location, same region
+
+            self.facility.power_on()
+
+            logging.info("Looking for remote node '{}'"
+                         .format('::'.join(path)))
+
+            try:
+                remoteLocation = self.region.ex_get_location_by_id(path[0])
+            except IndexError:
+                logging.info("- '{}' is unknown".format(path[0]))
+                return None
+
+            for node in self.region.list_nodes():
+
+                if node.extra['datacenterId'] != path[0]:
+                    continue
+
+                if node.name == path[1]:
+
+                    logging.info("- found it")
+
+                    # hack because the driver does not report public ipv4 accurately
+                    if len(node.public_ips) < 1:
+                        domain = self.region.ex_get_network_domain(
+                            node.extra['networkDomainId'])
+                        for rule in self.region.ex_list_nat_rules(domain):
+                            if rule.internal_ip == node.private_ips[0]:
+                                node.public_ips.append(rule.external_ip)
+                                break
+
+                    self._update_ipv6(node)
+
+                    return node
+
+        elif len(path) == 3: # other region
+
+            logging.info("Looking for offshore node '{}'"
+                         .format('::'.join(path)))
+
+            offshore = self.plumbery.get_compute_driver(region=path[0])
+
+            try:
+                remoteLocation = offshore.ex_get_location_by_id(path[1])
+            except IndexError:
+                logging.info("- '{}' is unknown".format(path[1]))
+                return None
+
+            for node in offshore.list_nodes():
+
+                if node.extra['datacenterId'] != path[1]:
+                    continue
+
+                if node.name == path[2]:
+
+                    logging.info("- found it")
+
+                    # hack because the driver does not report public ipv4 accurately
+                    if len(node.public_ips) < 1:
+                        domain = offshore.ex_get_network_domain(
+                            node.extra['networkDomainId'])
+                        for rule in offshore.ex_list_nat_rules(domain):
+                            if rule.internal_ip == node.private_ips[0]:
+                                node.public_ips.append(rule.external_ip)
+                                break
+
+                    self._update_ipv6(node)
+
+                    return node
 
         return None
 
