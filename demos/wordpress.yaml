@@ -25,7 +25,7 @@ blueprints:
             information:
               - "open a browser at http://{{ node.public }}/ to view it live"
               - "administration user name is: wpuser"
-              - "and the one-off password when asked: {{ random.secret }}"
+              - "and the password when asked: {{ random.secret }}"
             cloud-config:
               disable_root: false
               ssh_pwauth: true

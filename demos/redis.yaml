@@ -6,17 +6,6 @@ regionId: dd-na
 
 blueprints:
 
-  # after the setup, connect via ssh to redis01 to check the status of the cluster
-  #
-  # # redis-cli -h 127.0.0.1 -p 6379
-  # > AUTH {{ random.secret }}
-  # OK
-  # > INFO
-  # ...
-  # # Replication
-  # role:master
-  # connected_slaves:x
-
   - redis:
       domain:
         name: RedisFox
@@ -35,7 +24,16 @@ blueprints:
             glue:
               - internet 22
             information:
-              - "use this one-off password when asked: {{ master.secret }}"
+              - "after the setup, connect via ssh to {{ node.public }} to check the status of the cluster"
+              - "then use following commands:"
+              - "redis-cli -h 127.0.0.1 -p 6379"
+              - "> AUTH {{ master.secret }}"
+              - "OK"
+              - "> INFO"
+              - " ... "
+              - "# Replication"
+              - "role:master"
+              - "connected_slaves:3"
             cloud-config:
               disable_root: false
               ssh_pwauth: true
@@ -63,8 +61,8 @@ blueprints:
             monitoring: essentials
             glue:
               - internet 22
-            rub:
-              - "use this one-off password when asked: {{ random.secret }}"
+            information:
+              - "this slave server connects automatically to the master server"
             cloud-config:
               disable_root: false
               ssh_pwauth: true
