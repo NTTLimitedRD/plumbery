@@ -23,6 +23,8 @@ class FakeEngine():
     def get_shared_secret(self):
         return 'nuts'
 
+    def get_cloud_config(self):
+        return {}
 
 class FakeRegion:
 

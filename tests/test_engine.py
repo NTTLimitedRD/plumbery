@@ -5,6 +5,7 @@ Tests for `plumbery` module.
 """
 
 import logging
+import os
 import socket
 import unittest
 
@@ -20,6 +21,15 @@ from plumbery import __version__
 myPlan = """
 ---
 safeMode: True
+cloud-config:
+  disable_root: false
+  ssh_pwauth: true
+  ssh_keys:
+    rsa_private: |
+      {{ pair1.rsa_private }}
+
+    rsa_public: "{{ pair1.ssh.rsa_public }}"
+
 ---
 # Frankfurt in Europe
 locationId: EU6
@@ -99,6 +109,8 @@ class TestPlumberyEngine(unittest.TestCase):
 
         try:
             self.engine.from_text(myPlan)
+            cloudConfig = self.engine.get_cloud_config()
+            self.assertEqual(len(cloudConfig.keys()), 3)
             self.engine.add_facility(myFacility)
             self.assertEqual(len(self.engine.facilities), 2)
 

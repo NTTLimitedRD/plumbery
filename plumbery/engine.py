@@ -133,6 +133,8 @@ class PlumberyEngine(object):
 
         self._userPassword = None
 
+        self.cloudConfig = {}
+
         if plan is not None:
             self.from_file(plan)
 
@@ -278,6 +280,20 @@ class PlumberyEngine(object):
             self._buildPolisher = settings['buildPolisher']
         else:
             self._buildPolisher = 'spit'
+
+        if 'cloud-config' in settings:
+            self.cloudConfig = settings['cloud-config']
+
+    def get_cloud_config(self):
+        """
+        Retrieves the settings that apply to all nodes in this fittings plan
+
+        :return: the directives shared across all nodes
+        :rtype: ``dict``
+
+        """
+
+        return self.cloudConfig
 
     def set_shared_secret(self, secret):
         """

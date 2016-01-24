@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import logging
 import os
 import time
@@ -350,10 +351,15 @@ class RubPolisher(PlumberyPolisher):
                         message, environment)
                     logging.info("- {}".format(message))
 
+        cloudConfig = copy.deepcopy(self.cloudConfig)
 
         if ('cloud-config' in settings
                 and isinstance(settings['cloud-config'], dict)
                 and len(settings['cloud-config']) > 0):
+
+                cloudConfig.update(settings['cloud-config'])
+
+        if len(cloudConfig) > 0:
 
             logging.info('- using cloud-config')
 
@@ -371,7 +377,7 @@ class RubPolisher(PlumberyPolisher):
             logging.debug('- preparing user-data')
 
             expanded = PlumberyText.expand_variables(
-                settings['cloud-config'], environment)
+                cloudConfig, environment)
 
             user_data = '#cloud-config\n'+expanded
             logging.debug(user_data)
@@ -436,6 +442,8 @@ class RubPolisher(PlumberyPolisher):
 
             except IOError:
                 pass
+
+        self.cloudConfig = engine.get_cloud_config()
 
     def move_to(self, facility):
         """
