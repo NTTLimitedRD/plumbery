@@ -85,6 +85,13 @@ class InformationPolisher(PlumberyPolisher):
         logging.info("About '{}':".format(settings['name']))
 
         lines = []
+
+        if 'description' in node.extra:
+            description = node.extra['description'].replace(
+                '#plumbery', '').strip()
+            if len(description) > 0:
+                lines.append(description)
+
         if node.state == NodeState.RUNNING:
             lines.append("node is up and running")
 

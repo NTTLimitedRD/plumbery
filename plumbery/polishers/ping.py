@@ -46,11 +46,14 @@ class PingPolisher(InformationPolisher):
             logging.info("- not found")
             return
 
+        if 'description' in node.extra:
+            description = node.extra['description'].replace(
+                '#plumbery', '').strip()
+            if len(description) > 0:
+                logging.info("- {}".format(description))
+
         if node.state == NodeState.RUNNING:
-            logging.info("- node is running")
-            lines = self.list_information(node, settings, container)
-            for line in lines:
-                logging.info("- {}".format(line))
+            logging.info("- node is up and running")
 
         # hack because the driver does not report public ipv4 accurately
         if len(node.public_ips) < 1:
