@@ -2,12 +2,16 @@
 safeMode: False
 
 cloud-config:
-  disable_root: true
+  disable_root: false
   ssh_pwauth: false
   users:
     - default
     - name: ubuntu
       sudo: 'ALL=(ALL) NOPASSWD:ALL'
+      ssh-authorized-keys:
+        - "{{ key.rsa_public }}"
+        - "{{ local.rsa_public }}"
+    - name: root
       ssh-authorized-keys:
         - "{{ key.rsa_public }}"
         - "{{ local.rsa_public }}"

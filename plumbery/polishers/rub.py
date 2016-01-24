@@ -190,12 +190,15 @@ class RubPolisher(PlumberyPolisher):
         else:
             target_ip = node.private_ips[0]
 
+        # guess location of user key
+        path = os.path.expanduser('~/.ssh/id_rsa')
+
         # use libcloud to communicate with remote nodes
         session = SSHClient(hostname=target_ip,
                             port=22,
                             username='root',
                             password=self.secret,
-                            key_files=None,
+                            key_files=path,
                             timeout=9)
 
         try:
