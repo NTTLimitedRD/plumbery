@@ -450,56 +450,9 @@ class PlumberyEngine(object):
 
         return secret
 
-    def save_secrets(self):
+    def display_secrets(self):
         """
-        Saves secrets attached to this fittings plan
-        """
-
-        if self.fittingsFile is not None:
-
-            if self.fittingsFile.endswith('.yaml'):
-                secretsFile = self.fittingsFile[0:-len('.yaml')]+'.secrets'
-            else:
-                secretsFile = self.fittingsFile+'.secrets'
-
-            try:
-                handle = open(secretsFile, 'w')
-                for id in self.secrets:
-                    handle.write("{}: '{}'\n".format(
-                        id, self.secrets[id].replace('\n', '\\n')))
-                handle.close()
-
-            except IOError:
-                logging.warning("Unable to write secrets to '{}'".format(
-                    secretsFile))
-
-    def load_secrets(self):
-        """
-        Loads secrets attached to this fittings plan
-        """
-
-        if self.fittingsFile is not None:
-
-            if self.fittingsFile.endswith('.yaml'):
-                secretsFile = self.fittingsFile[0:-len('.yaml')]+'.secrets'
-            else:
-                secretsFile = self.fittingsFile+'.secrets'
-
-            try:
-                handle = open(secretsFile, 'r')
-                self.secrets = yaml.load(handle)
-                handle.close()
-
-                logging.debug("Loading {} secrets from '{}'".format(
-                    len(self.secrets), secretsFile))
-
-            except IOError:
-                logging.debug("Unable to load secrets from '{}'".format(
-                    secretsFile))
-
-    def list_secrets(self):
-        """
-        Lists secrets attached to this fittings plan
+        Displays secrets attached to this fittings plan
         """
 
         logging.info("Showing secrets")
@@ -509,6 +462,94 @@ class PlumberyEngine(object):
 
         for key in self.secrets.keys():
             logging.info("- {}: {}".format(key, self.secrets[key]))
+
+    def save_secrets(self, plan=None):
+        """
+        Saves secrets attached to this fittings plan
+        """
+
+        if plan is None:
+
+            if self.fittingsFile is None:
+                return
+
+            plan = self.fittingsFile
+
+        if plan.endswith('.yaml'):
+            secretsFile = plan[0:-len('.yaml')]+'.secrets'
+        else:
+            secretsFile = plan+'.secrets'
+
+        try:
+            handle = open(secretsFile, 'w')
+            for id in self.secrets:
+                handle.write("{}: '{}'\n".format(
+                    id, self.secrets[id].replace('\n', '\\n')))
+            handle.close()
+
+        except IOError:
+            logging.warning("Unable to forget secrets")
+            logging.debug("- cannot write to file '{}'".format(
+                secretsFile))
+
+    def load_secrets(self, plan=None):
+        """
+        Loads secrets attached to this fittings plan
+        """
+
+        if plan is None:
+
+            if self.fittingsFile is None:
+                return
+
+            plan = self.fittingsFile
+
+        if plan.endswith('.yaml'):
+            secretsFile = plan[0:-len('.yaml')]+'.secrets'
+        else:
+            secretsFile = plan+'.secrets'
+
+        if os.path.isfile(secretsFile):
+            try:
+                handle = open(secretsFile, 'r')
+                self.secrets = yaml.load(handle)
+                handle.close()
+
+                logging.debug("Loading {} secrets".format(
+                    len(self.secrets), secretsFile))
+
+            except IOError:
+                logging.warning("Unable to load secrets")
+                logging.debug("- cannot read and process file '{}'".format(
+                    secretsFile))
+
+    def forget_secrets(self, plan=None):
+        """
+        Destroys secrets attached to this fittings plan
+        """
+
+        self.secrets = {}
+
+        if plan is None:
+
+            if self.fittingsFile is None:
+                return
+
+            plan = self.fittingsFile
+
+        if plan.endswith('.yaml'):
+            secretsFile = plan[0:-len('.yaml')]+'.secrets'
+        else:
+            secretsFile = plan+'.secrets'
+
+        if os.path.isfile(secretsFile):
+            try:
+                os.remove(secretsFile)
+
+            except IOError:
+                logging.warning("Unable to forget secrets")
+                logging.debug("- cannot delete file '{}'".format(
+                    secretsFile))
 
     def set_user_name(self, name):
         """
@@ -667,7 +708,7 @@ class PlumberyEngine(object):
         """
 
         if action == 'secrets':
-            self.list_secrets()
+            self.display_secrets()
 
         elif action == 'deploy':
             if blueprints is None:
