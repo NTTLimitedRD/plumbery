@@ -71,8 +71,7 @@ class SpitPolisher(PlumberyPolisher):
 
         names = nodes.list_nodes(container.blueprint)
 
-        logging.info("Waiting for nodes of '{}' to be deployed".format(
-            container.blueprint['target']))
+        logging.info("- waiting for nodes to be deployed")
 
         for name in names:
             while True:
@@ -93,7 +92,7 @@ class SpitPolisher(PlumberyPolisher):
 
                 time.sleep(20)
 
-        logging.info("- done")
+        logging.info("- nodes have been deployed")
 
         container._build_firewall_rules()
 
