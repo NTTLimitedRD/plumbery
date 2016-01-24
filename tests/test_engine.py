@@ -187,11 +187,10 @@ class TestPlumberyEngine(unittest.TestCase):
         self.engine.lookup('master.secret')
         self.engine.lookup('slave.secret')
 
-        publicKey = self.engine.lookup('pair1.ssh.rsa_public')
-        self.assertEqual(publicKey.startswith('ssh-rsa '), True)
-
         original = 'hello world'
-        key = RSA.importKey(self.engine.lookup('pair1.rsa_public'))
+        text = self.engine.lookup('pair1.rsa_public')
+        self.assertEqual(text.startswith('ssh-rsa '), True)
+        key = RSA.importKey(text)
         encrypted = key.publickey().encrypt(original, 32)
 
         privateKey = self.engine.lookup('pair1.rsa_private')
@@ -201,7 +200,22 @@ class TestPlumberyEngine(unittest.TestCase):
         decrypted = key.decrypt(ast.literal_eval(str(encrypted)))
         self.assertEqual(decrypted, original)
 
-        self.assertEqual(len(self.engine.secrets), 11)
+        self.assertEqual(len(self.engine.secrets), 10)
+
+        with self.assertRaises(LookupError):
+            localKey = self.engine.lookup('local.rsa_private')
+
+        localKey = self.engine.lookup('local.rsa_public')
+        try:
+            path = '~/.ssh/id_rsa.pub'
+            with open(os.path.expanduser(path)) as stream:
+                text = stream.read()
+                stream.close()
+                self.assertEqual(localKey, text)
+                logging.info("Successful lookup of local public key")
+
+        except IOError:
+            pass
 
     def test_parser(self):
         args = parse_args(['fittings.yaml', 'build', 'web'])

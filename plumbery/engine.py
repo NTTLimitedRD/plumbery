@@ -353,6 +353,28 @@ class PlumberyEngine(object):
         if id in self.secrets:
             return self.secrets[id]
 
+        if id == 'local.rsa_private':
+            raise LookupError("It is forbidden to use 'local.rsa_private'")
+
+        if id == 'local.rsa_public':
+            try:
+                path = '~/.ssh/id_rsa.pub'
+
+                with open(os.path.expanduser(path)) as stream:
+                    logging.debug("- loading {} from {}".format(id, path))
+                    text = stream.read()
+                    stream.close()
+
+                    self.secrets[id] = text
+                    logging.debug("- using {} -> {}".format(
+                        id, self.secrets[id]))
+
+                    self.save_secrets()
+                    return self.secrets[id]
+
+            except IOError:
+                pass
+
         name = id.split('.')[0]
 
         key = RSA.generate(2048)
@@ -361,13 +383,9 @@ class PlumberyEngine(object):
             name+'.rsa_private', self.secrets[name+'.rsa_private']))
 
         pubkey = key.publickey()
-        self.secrets[name+'.rsa_public'] = pubkey.exportKey('PEM')
+        self.secrets[name+'.rsa_public'] = pubkey.exportKey('OpenSSH')
         logging.debug("- generating {} -> {}".format(
             name+'.rsa_public', self.secrets[name+'.rsa_public']))
-
-        self.secrets[name+'.ssh.rsa_public'] = pubkey.exportKey('OpenSSH')
-        logging.debug("- generating {} -> {}".format(
-            name+'.ssh.rsa_public', self.secrets[name+'.ssh.rsa_public']))
 
         self.save_secrets()
         return self.secrets[id]
