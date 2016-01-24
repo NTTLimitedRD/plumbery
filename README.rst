@@ -27,6 +27,7 @@ Features
 * Use cloud API to create the network infrastructure, and to build nodes
 * Bootstrap nodes with cloud-init configuration directives
 * Inject actual addresses and on-the-fly secrets to contextualisation
+* Create RSA keys and passwords to secure deployments
 * Preserve random secrets across multiple invocations
 * Create network domains and Ethernet networks
 * Reserve public IPv4 addresses
@@ -48,8 +49,9 @@ Features
 * Reflect fittings into a ready-to-use inventory for ansible
 * Stop all nodes
 * Stop nodes belonging to the same blueprint
-* Destroy all nodes
-* Destroy nodes belonging to the same blueprint
+* Wipe all nodes
+* Wipe nodes belonging to the same blueprint
+* Destroy part of the setup, or all blueprints
 * Many demonstration scripts are provided
 * You can extend plumbery with your own polishers, it has been designed for that
 * Run from the command line, or as a python library
@@ -61,16 +63,17 @@ Contributors
 
 * `Bernard Paques`_ [Dimension Data employee] (development lead)
 * `Anthony Shaw`_ [Dimension Data employee]
-* Olivier Grosjeanne [Dimension Data employee]
+* `Olivier Grosjeanne`_ [Dimension Data employee]
 
 Credits
 -------
 
-*  `Apache Libcloud`_
-*  netifaces_
-*  PyYAML_
-*  Cookiecutter_
-*  `cookiecutter-pypackage`_
+* `Cloud-Init`_
+* `Apache Libcloud`_
+* netifaces_
+* PyYAML_
+* Cookiecutter_
+* `cookiecutter-pypackage`_
 
 .. _`Plumbery at ReadTheDocs`: https://plumbery.readthedocs.org
 .. _`Plumbery at PiPy`: https://pypi.python.org/pypi/plumbery
@@ -78,6 +81,8 @@ Credits
 .. _`Apache License (2.0)`: http://www.apache.org/licenses/LICENSE-2.0
 .. _`Bernard Paques`: https://github.com/bernard357
 .. _`Anthony Shaw`: https://github.com/tonybaloney
+.. _`Olivier Grosjeanne`: https://github.com/job-so
+.. _`Cloud-Init`: https://cloudinit.readthedocs.org/en/latest/topics/examples.html
 .. _`Apache Libcloud`: https://libcloud.apache.org/
 .. _netifaces: https://pypi.python.org/pypi/netifaces
 .. _PyYAML: https://pypi.python.org/pypi/PyYAML

@@ -3,6 +3,23 @@
 History
 -------
 
+0.4.1 (2016-01-24)
+~~~~~~~~~~~~~~~~~~
+
+* Provision of an advanced tutorial that demonstrates most interesting features
+* A total of 18 various tutorials is provided
+* Enhance the documentation accordingly
+* Leverage cloud-init with global directives shared by all nodes
+* Extend dynamic variables to random, on-demand RSA keys
+* Enforce password-free communications, and ipv6 communications
+* Add actions 'wipe' and 'secrets'
+* Restructure code and consolidate functions
+* Fix multiple bugs and errors
+* Expand information provided in debug mode
+* Passing Travis CI
+* 2717 python statements
+* Test coverage 47%
+
 0.4.0 (2016-01-17)
 ~~~~~~~~~~~~~~~~~~
 

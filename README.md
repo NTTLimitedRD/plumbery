@@ -19,6 +19,7 @@ you.
 * Use cloud API to create the network infrastructure, and to build nodes
 * Bootstrap nodes with cloud-init configuration directives
 * Inject actual addresses and on-the-fly secrets to contextualisation
+* Create RSA keys and passwords to secure deployments
 * Preserve random secrets across multiple invocations
 * Create network domains and Ethernet networks
 * Reserve public IPv4 addresses
@@ -40,8 +41,9 @@ you.
 * Reflect fittings into a ready-to-use inventory for ansible
 * Stop all nodes
 * Stop nodes belonging to the same blueprint
-* Destroy all nodes
-* Destroy nodes belonging to the same blueprint
+* Wipe all nodes
+* Wipe nodes belonging to the same blueprint
+* Destroy part of the setup, or all blueprints
 * Many demonstration scripts are provided
 * You can extend plumbery with your own polishers, it has been designed for that
 * Run from the command line, or as a python library
