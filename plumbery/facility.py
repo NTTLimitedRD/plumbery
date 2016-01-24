@@ -415,6 +415,8 @@ class PlumberyFacility(object):
             logging.debug("- basement: {}".format(
                 "'"+"', '".join(basement)+"'"))
 
+        logging.info('- please wait')
+
     def power_on(self):
         """
         Switches electricity on

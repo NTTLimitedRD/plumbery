@@ -1520,10 +1520,10 @@ class PlumberyInfrastructure(object):
         if len(path) == 1: # local name
 
             if len(self.facility._cache_vlans) < 1:
-                logging.info("Listing Ethernet networks")
+                logging.debug("Listing Ethernet networks")
                 self.facility._cache_vlans = self.region.ex_list_vlans(
                     location=self.facility.location)
-                logging.info("- found {} Ethernet networks"
+                logging.debug("- found {} Ethernet networks"
                              .format(len(self.facility._cache_vlans)))
 
             for network in self.facility._cache_vlans:
@@ -1621,10 +1621,10 @@ class PlumberyInfrastructure(object):
         """
 
         if len(self.facility._cache_network_domains) < 1:
-            logging.info("Listing network domains")
+            logging.debug("Listing network domains")
             self.facility._cache_network_domains = \
                 self.region.ex_list_network_domains(self.facility.location)
-            logging.info("- found {} network domains"
+            logging.debug("- found {} network domains"
                          .format(len(self.facility._cache_network_domains)))
 
         for domain in self.facility._cache_network_domains:

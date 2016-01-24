@@ -467,14 +467,14 @@ class PlumberyNodes(object):
 
             self.facility.power_on()
 
-            logging.info("Looking for remote node '{}'"
-                         .format('::'.join(path)))
-
             try:
                 remoteLocation = self.region.ex_get_location_by_id(path[0])
             except IndexError:
-                logging.info("- '{}' is unknown".format(path[0]))
+                logging.warning("'{}' is unknown".format(path[0]))
                 return None
+
+            logging.debug("Looking for remote node '{}'"
+                         .format('::'.join(path)))
 
             for node in self.region.list_nodes():
 
@@ -483,7 +483,7 @@ class PlumberyNodes(object):
 
                 if node.name == path[1]:
 
-                    logging.info("- found it")
+                    logging.debug("- found it")
 
                     # hack because the driver does not report public ipv4 accurately
                     if len(node.public_ips) < 1:
@@ -500,16 +500,16 @@ class PlumberyNodes(object):
 
         elif len(path) == 3: # other region
 
-            logging.info("Looking for offshore node '{}'"
-                         .format('::'.join(path)))
-
             offshore = self.plumbery.get_compute_driver(region=path[0])
 
             try:
                 remoteLocation = offshore.ex_get_location_by_id(path[1])
             except IndexError:
-                logging.info("- '{}' is unknown".format(path[1]))
+                logging.warning("'{}' is unknown".format(path[1]))
                 return None
+
+            logging.debug("Looking for offshore node '{}'"
+                         .format('::'.join(path)))
 
             for node in offshore.list_nodes():
 
@@ -518,7 +518,7 @@ class PlumberyNodes(object):
 
                 if node.name == path[2]:
 
-                    logging.info("- found it")
+                    logging.debug("- found it")
 
                     # hack because the driver does not report public ipv4 accurately
                     if len(node.public_ips) < 1:
