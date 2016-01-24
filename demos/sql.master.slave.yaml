@@ -92,14 +92,6 @@ blueprints:
                     /gtid-mode/s/^#//
                     $!N; /^\(.*\)\n\1$/!P; D
 
-                - path: /home/ubuntu/.my.cnf
-                  permissions: '0400'
-                  owner: 'ubuntu:ubuntu'
-                  content: |
-                    [client]
-                    user=root
-                    password={{ mysql_root.secret }}
-
                 - path: /root/master_setup.sql
                   content: |
                     GRANT REPLICATION SLAVE ON *.*
@@ -124,6 +116,13 @@ blueprints:
                     INSERT INTO persons(name) VALUES ('Clive');
                     INSERT INTO persons(name) VALUES ('Maria');
 
+                - path: /home/ubuntu/.my.cnf
+                  permissions: '0400'
+                  content: |
+                    [client]
+                    user=root
+                    password={{ mysql_root.secret }}
+
               runcmd:
                 - echo "===== Handling ubuntu identity"
                 - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
@@ -138,6 +137,7 @@ blueprints:
                 - sed -i -f /root/my.cnf.sed /etc/mysql/my.cnf
                 - /etc/init.d/mysql restart
                 - mysql -e "source /root/master_setup.sql" -u root -p{{ mysql_root.secret }}
+                - chown ubuntu:ubuntu /home/ubuntu/.my.cnf
                 - echo "===== Populating SQL database"
                 - mysql -e "source /root/master_db.sql" -u root -p{{ mysql_root.secret }}
                 - echo "===== Sharing SQL dump"
@@ -216,14 +216,6 @@ blueprints:
                     /gtid-mode/s/^#//
                     $!N; /^\(.*\)\n\1$/!P; D
 
-                - path: /home/ubuntu/.my.cnf
-                  permissions: '0400'
-                  owner: 'ubuntu:ubuntu'
-                  content: |
-                    [client]
-                    user=root
-                    password={{ mysql_root.secret }}
-
                 - path: /root/slave_setup.sql
                   content: |
                     STOP SLAVE;
@@ -233,6 +225,13 @@ blueprints:
                       MASTER_PASSWORD='{{ replicator.secret }}',
                       MASTER_AUTO_POSITION = 1;
                     START SLAVE;
+
+                - path: /home/ubuntu/.my.cnf
+                  permissions: '0400'
+                  content: |
+                    [client]
+                    user=root
+                    password={{ mysql_root.secret }}
 
               runcmd:
                 - echo "===== Handling ubuntu identity"
@@ -247,6 +246,7 @@ blueprints:
                 - cp -n /etc/mysql/my.cnf /etc/mysql/my.cnf.original
                 - sed -i -f /root/my.cnf.sed /etc/mysql/my.cnf
                 - /etc/init.d/mysql restart
+                - chown ubuntu:ubuntu /home/ubuntu/.my.cnf
                 - echo "===== Being patient with master server"
                 - sleep 1m
                 - echo "===== Getting and loading SQL dump"
