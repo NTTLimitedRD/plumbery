@@ -95,6 +95,9 @@ def parse_args(args=[]):
     args.facilities = []
     for token in args.tokens:
         if token[0] == '@':
+            if token == '@':
+                raise ValueError("Missing location after @. "
+                                 "Correct example: '@AU11'")
             args.facilities.append(token[1:])
         else:
             args.blueprints.append(token)
@@ -177,7 +180,23 @@ def main(args=[], engine=None):
 
     """
 
-    args = parse_args(args)
+    # part 1 - understand what the user wants
+
+    try:
+        args = parse_args(args)
+
+    except Exception as feedback:
+        logging.error("Incorrect arguments. "
+                      "Maybe the following can help: python -m plumbery -h")
+        if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+            raise
+        else:
+            logging.error("{}: {}".format(
+                feedback.__class__.__name__,
+                str(feedback)))
+        sys.exit(2)
+
+    # part 2 - acquire the toolbox
 
     if engine is None:
         try:
@@ -186,8 +205,15 @@ def main(args=[], engine=None):
         except Exception as feedback:
             logging.error("Cannot read fittings plan from '{}'".format(
                 args.fittings))
-            logging.debug(str(feedback))
+            if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+                raise
+            else:
+                logging.error("{}: {}".format(
+                    feedback.__class__.__name__,
+                    str(feedback)))
             sys.exit(2)
+
+    # part 3 - do the job
 
     try:
         engine.do(args.action, args.blueprints, args.facilities)
