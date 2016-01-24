@@ -6,9 +6,9 @@ The documentation of Plumbery
    :maxdepth: 2
 
    readme
-   getting_started
-   usage
    tutorials
+   usage
+   getting_started
    contributing
    coding
    history
