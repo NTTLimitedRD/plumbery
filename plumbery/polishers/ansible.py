@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import logging
+import sys
 
 from plumbery.polishers.inventory import InventoryPolisher
 
@@ -150,21 +151,20 @@ class AnsiblePolisher(InventoryPolisher):
 
         if 'reap' in self.settings:
             fileName = self.settings['reap']
+            logging.info("Writing inventory for ansible in '{}'".format(
+                fileName))
+            stream = open(fileName, 'w')
         else:
-            return
+            logging.info("Showing the inventory for ansible")
+            stream = sys.stdout
 
-        logging.info("Writing inventory for ansible in '{}'".format(fileName))
-        with open(fileName, 'w') as stream:
+        for line in sorted(hosts):
+            stream.write(line+'\n')
+        stream.write('\n')
 
-            for line in sorted(hosts):
-                stream.write(line+'\n')
+        for group in sorted(groups.keys()):
+            stream.write('[{}]\n'.format(group))
+            for host in sorted(groups[group]):
+                stream.write('{}\n'.format(host))
             stream.write('\n')
-
-            for group in sorted(groups.keys()):
-                stream.write('[{}]\n'.format(group))
-                for host in sorted(groups[group]):
-                    stream.write('{}\n'.format(host))
-                stream.write('\n')
-            stream.write('\n')
-
-            stream.close()
+        stream.write('\n')
