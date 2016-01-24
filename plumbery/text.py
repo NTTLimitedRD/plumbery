@@ -79,15 +79,19 @@ class PlumberyText:
                 logging.debug("- '{}' -> '{}'".format(token, replacement))
 
                 if serialized: #preserve line breaks
-                    replacement = replacement.replace('\n', '\\n')
+                    replacement = replacement.replace('\n', '\\'+'n')
 
                 expanded += text[index:head]+str(replacement)
                 index = tail+len(closing)
 
         if serialized: # from serialized python to yaml representation
-            expanded = expanded.replace('\\'+'\\'+'r', '\\'+'r')
+
+            # protect  \ followed by \
+            watermark = '-=_+*=-'
+            expanded = expanded.replace('\\'+'\\', watermark+'|'+watermark)
             instanciated = yaml.load(expanded)
             expanded = PlumberyText.dump(instanciated)
+            expanded = expanded.replace(watermark+'|'+watermark, '\\')
 
         return expanded
 

@@ -191,6 +191,18 @@ dict7 = {'vnc.secret': 'fake'}
 
 expected7 = input7.replace('{{ vnc.secret }}', 'fake')
 
+input8 = """
+content: |
+    #!/usr/bin/sed
+    /bind-address/s/127.0.0.1/::/
+    s/#server-id/server-id/
+    /server-id/s/= 1/= 123/
+    s/#log_bin.*/log-bin = mysql-bin/
+    /max_binlog_size/a log-slave-updates\\nbinlog_format = MIXED\\nenforce-gtid-consistency\\ngtid-mode = ON
+    /enforce-gtid-consistency/s/^#//
+    /gtid-mode/s/^#//
+    $!N; /^\\(.*\\)\\n\\1$/!P; D
+"""
 
 class FakeNode1:
 
@@ -322,6 +334,13 @@ class TestPlumberyText(unittest.TestCase):
         context = PlumberyContext(dict7)
         transformed = self.text.expand_variables(loaded, context)
         self.assertEqual(transformed.strip(), expected7.strip())
+
+    def test_input8(self):
+
+        loaded = yaml.load(input8)
+        context = PlumberyContext(dictionary={})
+        expanded = self.text.expand_variables(loaded, context)
+        self.assertEqual(expanded.strip(), input8.strip())
 
     def test_node1(self):
 
