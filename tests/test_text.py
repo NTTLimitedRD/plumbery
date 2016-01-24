@@ -204,6 +204,11 @@ content: |
     $!N; /^\\(.*\\)\\n\\1$/!P; D
 """
 
+input9 = """
+ssh-authorized-keys:
+- "{{ local.rsa_public }}"
+"""
+
 class FakeNode1:
 
     id = '1234'
@@ -341,6 +346,13 @@ class TestPlumberyText(unittest.TestCase):
         context = PlumberyContext(dictionary={})
         expanded = self.text.expand_variables(loaded, context)
         self.assertEqual(expanded.strip(), input8.strip())
+
+    def test_input9(self):
+
+        loaded = yaml.load(input9)
+        context = PlumberyContext(context=PlumberyEngine())
+        expanded = self.text.expand_variables(loaded, context)
+        self.assertEqual(('  - |' in expanded), False)
 
     def test_node1(self):
 

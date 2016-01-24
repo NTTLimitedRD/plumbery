@@ -211,7 +211,7 @@ class TestPlumberyEngine(unittest.TestCase):
             with open(os.path.expanduser(path)) as stream:
                 text = stream.read()
                 stream.close()
-                self.assertEqual(localKey, text)
+                self.assertEqual(localKey.strip(), text.strip())
                 logging.info("Successful lookup of local public key")
 
         except IOError:

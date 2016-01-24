@@ -362,7 +362,7 @@ class PlumberyEngine(object):
 
                 with open(os.path.expanduser(path)) as stream:
                     logging.debug("- loading {} from {}".format(id, path))
-                    text = stream.read()
+                    text = stream.read().strip()
                     stream.close()
 
                     self.secrets[id] = text
