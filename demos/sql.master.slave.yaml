@@ -1,99 +1,253 @@
 ---
 safeMode: False
+
+cloud-config:
+  disable_root: true
+  ssh_pwauth: false
+  users:
+    - default
+    - name: ubuntu
+      sudo: 'ALL=(ALL) NOPASSWD:ALL'
+      ssh-authorized-keys:
+        - "{{ key.rsa_public }}"
+        - "{{ local.rsa_public }}"
+  ssh_keys:
+    rsa_private: |
+      {{ key.rsa_private }}
+    rsa_public: "{{ key.rsa_public }}"
+
 ---
-# Amsterdam in Europe
-locationId: EU7
-regionId: dd-eu
+locationId: AU10
+regionId: dd-au
 
 blueprints:
 
-  # primary sql server
   - sql:
       domain:
         name: VDC1
+        description: "Demonstration of SQL replication"
         ipv4: 2
       ethernet:
         name: databases
         subnet: 10.0.0.0
         accept:
-          - EU6::databases
+          - AU11::databases
       nodes:
         - masterSQL:
-            description: '#sql #vdc1 #primary'
+            description: "#master #database #sql server #ubuntu"
+            information:
+              - "this is the SQL Master server"
+              - "check replication with:"
+              - "$ ssh ubuntu@{{ masterSQL.public }}"
+              - "$ mysql"
+              - "> show master status\\G"
+              - "check data with:"
+              - "> use db01;"
+              - "> select * from persons;"
+              - "create a record with:"
+              - "> insert into persons (name) values ('<some name here>');"
+              - "check change in GTID:"
+              - "> show master status\\G"
+            appliance: 'Ubuntu 14'
             cpu: 8
             memory: 32
             glue:
               - internet 22
             monitoring: essentials
-            running: always
             cloud-config:
-              disable_root: false
-              ssh_pwauth: true
+              hostname: "{{ node.name }}"
               bootcmd:
                 - echo "mysql-server mysql-server/root_password password {{ mysql_root.secret }}" | sudo debconf-set-selections
                 - echo "mysql-server mysql-server/root_password_again password {{ mysql_root.secret }}" | sudo debconf-set-selections
               packages:
                 - ntp
-                - mysql-server
+                - mysql-server-5.6
               write_files:
+                - path: /root/hosts.awk
+                  content: |
+                    #!/usr/bin/awk -f
+                    /^{{ masterSQL.private }}/ {next}
+                    /^{{ masterSQL.ipv6 }}/ {next}
+                    /^{{ AU11::slaveSQL.ipv6 }}/ {next}
+                    {print}
+                    END {
+                     print "{{ masterSQL.private }}    masterSQL"
+                     print "{{ masterSQL.ipv6 }}    masterSQL"
+                     print "{{ AU11::slaveSQL.ipv6 }}    slaveSQL"
+                    }
+
+                - path: /root/my.cnf.sed
+                  content: |
+                    #!/usr/bin/sed
+                    /bind-address/s/127.0.0.1/::/
+                    s/#server-id/server-id/
+                    /server-id/s/= 1/= 123/
+                    s/#log_bin.*/log-bin = mysql-bin/
+                    /max_binlog_size/a log-slave-updates\nbinlog_format = MIXED\nenforce-gtid-consistency\ngtid-mode = ON
+                    /enforce-gtid-consistency/s/^#//
+                    /gtid-mode/s/^#//
+                    $!N; /^\(.*\)\n\1$/!P; D
+
+                - path: /home/ubuntu/.my.cnf
+                  permissions: '0400'
+                  owner: 'ubuntu:ubuntu'
+                  content: |
+                    [client]
+                    user=root
+                    password={{ mysql_root.secret }}
+
+                - path: /root/master_setup.sql
+                  content: |
+                    GRANT REPLICATION SLAVE ON *.*
+                      TO 'replicator'@'slaveSQL'
+                      IDENTIFIED BY '{{ replicator.secret }}';
+                    FLUSH PRIVILEGES;
+                    FLUSH TABLES WITH READ LOCK;
+
                 - path: /root/master_db.sql
                   content: |
-                    create database replic01;
-                    create user 'dbuser'@'localhost' identified by '{{ random.secret }}';
-                    grant all privileges on replic01.* to 'dbuser'@'localhost';
-                    flush privileges;
-                    drop database test;
-                    drop user 'test'@'localhost';
-                    flush privileges;
+                    CREATE DATABASE db01;
+                    USE db01;
+                    CREATE USER 'dbuser'@'localhost' IDENTIFIED BY '{{ dbuser.secret }}';
+                    GRANT ALL PRIVILEGES ON db01.* TO 'dbuser'@'localhost';
+                    CREATE TABLE persons (id INT AUTO_INCREMENT,
+                      name VARCHAR(30),
+                      datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                      PRIMARY KEY(id));
+                    INSERT INTO persons(name) VALUES ('Marko');
+                    INSERT INTO persons(name) VALUES ('John');
+                    INSERT INTO persons(name) VALUES ('Eric');
+                    INSERT INTO persons(name) VALUES ('Clive');
+                    INSERT INTO persons(name) VALUES ('Maria');
+
               runcmd:
-                - mysql -e "source /root/wordpress_db.sql"
-                - mysqladmin -u root password '{{ random.secret }}'
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+                - echo "===== Updating /etc/hosts"
+                - cp -n /etc/hosts /etc/hosts.original
+                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
+                - echo "===== Configuring SQL engine"
+                - cp -n /etc/mysql/my.cnf /etc/mysql/my.cnf.original
+                - sed -i -f /root/my.cnf.sed /etc/mysql/my.cnf
+                - /etc/init.d/mysql restart
+                - mysql -e "source /root/master_setup.sql" -u root -p{{ mysql_root.secret }}
+                - echo "===== Populating SQL database"
+                - mysql -e "source /root/master_db.sql" -u root -p{{ mysql_root.secret }}
+                - echo "===== Sharing SQL dump"
+                - mkdir /var/rsync
+                - mysqldump --lock-all-tables --all-databases  -u root -p{{ mysql_root.secret }} > /var/rsync/all-databases.sql
+                - sed -i "1i RESET MASTER;" /var/rsync/all-databases.sql
+                - chown -R ubuntu:ubuntu /var/rsync
+
 
 ---
-# Frankfurt in Europe
-locationId: EU6
-regionId: dd-eu
+locationId: AU11
+regionId: dd-au
 
 blueprints:
 
-  # secondary sql server
   - sql:
       domain:
         name: VDC2
+        description: "Demonstration of SQL replication"
         ipv4: 2
       ethernet:
         name: databases
         subnet: 10.0.0.0
         accept:
-          - EU7::databases
+          - AU10::databases
       nodes:
         - slaveSQL:
-            description: '#sql #vdc2 #secondary'
+            description: "#slave #database #sql server #ubuntu"
+            information:
+              - "this is a SQL Slave server"
+              - "check replication with:"
+              - "$ ssh ubuntu@{{ slaveSQL.public }}"
+              - "$ mysql"
+              - "> show slave status\\G"
+              - "check data with:"
+              - "> use db01;"
+              - "> select * from persons;"
+            appliance: 'Ubuntu 14'
             cpu: 8
             memory: 32
             glue:
               - internet 22
             monitoring: essentials
             cloud-config:
-              disable_root: false
-              ssh_pwauth: true
+              hostname: "{{ node.name }}"
               bootcmd:
                 - echo "mysql-server mysql-server/root_password password {{ mysql_root.secret }}" | sudo debconf-set-selections
                 - echo "mysql-server mysql-server/root_password_again password {{ mysql_root.secret }}" | sudo debconf-set-selections
               packages:
                 - ntp
-                - mysql-server
+                - mysql-server-5.6
               write_files:
-                - path: /root/slave_db.sql
+                - path: /root/hosts.awk
                   content: |
-                    create database replic01;
-                    create user 'dbuser'@'localhost' identified by '{{ random.secret }}';
-                    grant all privileges on replic01.* to 'dbuser'@'localhost';
-                    flush privileges;
-                    drop database test;
-                    drop user 'test'@'localhost';
-                    flush privileges;
+                    #!/usr/bin/awk -f
+                    /^{{ slaveSQL.private }}/ {next}
+                    /^{{ slaveSQL.ipv6 }}/ {next}
+                    /^{{ AU10::masterSQL.ipv6 }}/ {next}
+                    {print}
+                    END {
+                     print "{{ slaveSQL.private }}    slaveSQL"
+                     print "{{ slaveSQL.ipv6 }}    slaveSQL"
+                     print "{{ AU10::masterSQL.ipv6 }}    masterSQL"
+                    }
+
+                - path: /root/my.cnf.sed
+                  content: |
+                    #!/usr/bin/sed
+                    /bind-address/s/127.0.0.1/::/
+                    s/#server-id/server-id/
+                    /server-id/s/= 1/= 456/
+                    /server-id/a read-only = ON
+                    s/#log_bin.*/log-bin = mysql-bin/
+                    /max_binlog_size/a log-slave-updates\nbinlog_format = MIXED\nenforce-gtid-consistency\ngtid-mode = ON\nrelay-log = relay-log-slave
+                    /enforce-gtid-consistency/s/^#//
+                    /gtid-mode/s/^#//
+                    $!N; /^\(.*\)\n\1$/!P; D
+
+                - path: /home/ubuntu/.my.cnf
+                  permissions: '0400'
+                  owner: 'ubuntu:ubuntu'
+                  content: |
+                    [client]
+                    user=root
+                    password={{ mysql_root.secret }}
+
+                - path: /root/slave_setup.sql
+                  content: |
+                    STOP SLAVE;
+                    CHANGE MASTER TO
+                      MASTER_HOST='masterSQL',
+                      MASTER_USER='replicator',
+                      MASTER_PASSWORD='{{ replicator.secret }}',
+                      MASTER_AUTO_POSITION = 1;
+                    START SLAVE;
+
               runcmd:
-                - mysql -e "source /root/wordpress_db.sql"
-                - mysqladmin -u root password '{{ random.secret }}'
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+                - echo "===== Updating /etc/hosts"
+                - cp -n /etc/hosts /etc/hosts.original
+                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
+                - echo "===== Configuring SQL engine"
+                - cp -n /etc/mysql/my.cnf /etc/mysql/my.cnf.original
+                - sed -i -f /root/my.cnf.sed /etc/mysql/my.cnf
+                - /etc/init.d/mysql restart
+                - echo "===== Being patient with master server"
+                - sleep 1m
+                - echo "===== Getting and loading SQL dump"
+                - rsync -zhave "ssh -i /home/ubuntu/.ssh/id_rsa" ubuntu@masterSQL:/var/rsync/all-databases.sql /tmp/all-databases.sql
+                - mysql -e "source /tmp/all-databases.sql" -u root -p{{ mysql_root.secret }}
+                - echo "===== Starting SQL replication"
+                - mysql -e "source /root/slave_setup.sql" -u root -p{{ mysql_root.secret }}
 

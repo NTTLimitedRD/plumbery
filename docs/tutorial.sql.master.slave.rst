@@ -19,9 +19,16 @@ Requirements for this use case
 * Deploy a SQL server at each location
 * Add servers to the automated monitoring dashboard
 * Assign public IPv4 addresses to each server
-* Add address translation to ensure end-to-end IP connectivity
+* Add address translation to ensure SSH access to the nodes from the internet
 * Add firewall rule to accept TCP traffic on port 22 (ssh)
-
+* Update `etc/hosts` to bind IPv6 addresses to host names
+* Manage keys to suppress passwords in SSH connections
+* Install MySQL at each node
+* Configure the master database
+* Configure the slave database
+* Populate the master database
+* Dump the master database and load it at the slave node
+* Start the replication from the master to the slave
 
 Fittings plan
 -------------
@@ -34,24 +41,24 @@ Copy the text below and put it in a text file named ``fittings.yaml``:
 
 Please note that in this example both servers are exposed to public Internet.
 In the real life this would probably not be the case, since database would
-be accessed by application servers in the same locations.
+be accessed by application servers from within private back-end networks.
 
 Some notes on directives used in these fittings plan:
 
-* ``appliance: 'RedHat 6 64-bit 4 CPU'`` - By default plumbery selects a bare
-  Ubuntu image to create new nodes. This directive allows you to pick up an
-  image available from the CloudControl library. You can
-  prefer Linux node for some usages, and Windows for other usages. Plumbery
-  is happy with any mix.
+``appliance: 'Ubuntu 14'`` - By default plumbery selects a bare
+Ubuntu image to create new nodes. This directive allows you to pick up an
+image available from the CloudControl library. You can
+prefer Linux node for some usages, and Windows for other usages. Plumbery
+is happy with any mix.
 
-* ``running: always`` - The only way to stop the master database is either
-  to shut it down from the CloudControl web interface, or from within a ssh
-  session. Plumbery is prevented to stop this node, always.
+``running: always`` - The only way to stop the master database is either
+to shut it down from the CloudControl web interface, or from within a ssh
+session. Plumbery is prevented to stop this node, always.
 
-* ``accept:`` - Since firewalls prevent traffic across networks by default,
-  there is a need to list trusted sources of packets for each network. This
-  is the purpose of this directive. In this case, we are accepting traffic from
-  a network at another location, for example: ``EU7::databases``.
+``accept:`` - Since firewalls prevent traffic across networks by default,
+there is a need to list trusted sources of packets for each network. This
+is the purpose of this directive. In this case, we are accepting traffic from
+a network at another location, for example: ``EU7::databases``.
 
 
 Deployment commands
