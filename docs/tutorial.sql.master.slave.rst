@@ -5,8 +5,19 @@ Master and slave MySQL databases in different locations
 In this use case a master database server and a slave database server are
 deployed in different locations. The back-end IPv6 infrastructure
 provided by Dimension Data is used to replicate data continuously,
-at no additional cost. With such redundancy, disaster recovery is limited
-to the promotion of the slave database to a master database.
+at no additional cost.
+
+As shown below, plumbery provides a streamlined definition of the overall
+solution, that encompasses servers location, the networking infrastructure,
+the security of information flows, but also the contextualisation of nodes
+and the small but important final brushes that are making a solution really
+appealing.
+
+When starting from scratch, it takes about 15 minutes to deploy the fittings
+below. About half of it is related to the deployment at cloud services from
+Dimension data. The other half is incurred by cloud-init in the contextualisation
+of nodes, the software part of the solution.
+After that time, you can connect to the cluster and use it for real.
 
 Requirements for this use case
 ------------------------------
@@ -33,7 +44,22 @@ Requirements for this use case
 Fittings plan
 -------------
 
-Copy the text below and put it in a text file named ``fittings.yaml``:
+The plan below demonstrates multiple interesting building blocks:
+
+* Addition of public IPv4 and firewall rules to control access to
+  selected servers
+* Configuration of the firewall to open communications across data centres
+* Automatic registration to the monitoring services provided by Dimension Data
+* Management of SSH keys to enable secured communications without passwords
+* Update of etc/hosts with IPv6
+* Easy templating of configuration files transmitted to nodes
+* Handy generation and management of secrets required at various places
+* rsync on top of ipv6 to manage heavy communications between servers
+* User documentation of the infrastructure is put directly in the fittings plan
+
+`Download this fittings plan`_ if you want to hack it for yourself. This is part of `the demonstration
+directory of the plumbery project`_ at GitHub. Alternatively, you can copy the
+text below and put it in a text file named ``fittings.yaml``.
 
 .. literalinclude:: ../demos/sql.master.slave.yaml
    :language: yaml
@@ -42,24 +68,6 @@ Copy the text below and put it in a text file named ``fittings.yaml``:
 Please note that in this example both servers are exposed to public Internet.
 In the real life this would probably not be the case, since database would
 be accessed by application servers from within private back-end networks.
-
-Some notes on directives used in these fittings plan:
-
-``appliance: 'Ubuntu 14'`` - By default plumbery selects a bare
-Ubuntu image to create new nodes. This directive allows you to pick up an
-image available from the CloudControl library. You can
-prefer Linux node for some usages, and Windows for other usages. Plumbery
-is happy with any mix.
-
-``running: always`` - The only way to stop the master database is either
-to shut it down from the CloudControl web interface, or from within a ssh
-session. Plumbery is prevented to stop this node, always.
-
-``accept:`` - Since firewalls prevent traffic across networks by default,
-there is a need to list trusted sources of packets for each network. This
-is the purpose of this directive. In this case, we are accepting traffic from
-a network at another location, for example: ``EU7::databases``.
-
 
 Deployment commands
 -------------------
@@ -79,20 +87,72 @@ working, so you can monitor what's happening.
 Follow-up commands
 ------------------
 
-At this stage the job is not finished. SQL software need to be actually
-installed at each server. Also, replication has to be put in place between
-the two servers.
+At the end of the deployment, plumbery will display on screen some instructions
+to help you move forward. You can ask plumbery to display this information
+at any time with the following command:
 
-Please refer to a good reference page on the topic, for example for MySQL
-systems: http://plusbryan.com/mysql-replication-without-downtime
+.. sourcecode:: bash
 
-TO-DO: use cloud-init and variables to orchestrate these steps
+    $ python -m plumbery fittings.yaml information
+
+Since servers are up and running, you are invited to play a bit with them, and
+show evidence of data replication. For example, you could open two additional
+terminal windows, one for the master server and the other for the slave server.
+Then connect by ssh, using the ubuntu account, and enter mysql directly.
+
+On the master side, you can type these commands in sequence:
+
+.. sourcecode:: sql
+
+    use db01;
+    select * from persons;
+    show master status \G
+
+Then move to the slave side, and check status of the server:
+
+.. sourcecode:: sql
+
+    use db01;
+    select * from persons;
+    show slave status \G
+
+At this stage, the slave server should report the same GTID index than the
+master.
+
+Move back to the master server, and create a new record in the table:
+
+.. sourcecode:: sql
+
+    insert into persons (name) values ('Alfred');
+    show master status \G
+
+The last command should show a progress in the GTID information. How is this
+reflected on slave side? There you can type the following:
+
+.. sourcecode:: sql
+
+    select * from persons;
+    show slave status \G
+
+The SELECT statement should reflect the record created on the other side. And
+the SHOW statement should follow the evolution of the GTID on the master side.
+
+Troubleshooting
+---------------
+
+The fittings plan is using multiple secrets, and most of them have been used
+by plumbery to configure the solution dynamically. If you need to retrieve
+one of these secrets, for example, the root password for SQL, then use the
+following command:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery fittings.yaml secrets
 
 Destruction commands
 --------------------
 
-This is only a friendly reminder. If you were only testing this scenario,
-would you consider to stop related costs when finish?
+At the end of the demonstration, you may want to reduce costs with the following:
 
 .. sourcecode:: bash
 
@@ -100,3 +160,5 @@ would you consider to stop related costs when finish?
     $ python -m plumbery fittings.yaml destroy
 
 
+.. _`Download this fittings plan`: https://github.com/bernard357/plumbery/blob/master/demos/sql.master.slave.yaml
+.. _`the demonstration directory of the plumbery project`: https://github.com/bernard357/plumbery/tree/master/demos
