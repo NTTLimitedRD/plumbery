@@ -365,12 +365,9 @@ class PlumberyEngine(object):
                     text = stream.read().strip()
                     stream.close()
 
-                    self.secrets[id] = text
                     logging.debug("- using {} -> {}".format(
-                        id, self.secrets[id]))
-
-                    self.save_secrets()
-                    return self.secrets[id]
+                        id, text))
+                    return text
 
             except IOError:
                 pass
