@@ -457,7 +457,7 @@ class PlumberyEngine(object):
         if len(self.secrets.keys()) < 1:
             logging.info("- no secret found")
 
-        for key in self.secrets.keys():
+        for key in sorted(self.secrets):
             logging.info("- {}: {}".format(key, self.secrets[key]))
 
     def save_secrets(self, plan=None):
