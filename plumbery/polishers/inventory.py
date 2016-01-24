@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import logging
+import sys
 import yaml
 
 from plumbery.polisher import PlumberyPolisher
@@ -139,10 +140,10 @@ class InventoryPolisher(PlumberyPolisher):
 
         if 'reap' in self.settings:
             fileName = self.settings['reap']
+            logging.info("Writing inventory in '{}'".format(fileName))
+            stream = open(fileName, 'w')
         else:
-            return
+            logging.info("Showing the inventory")
+            stream = sys.stdout
 
-        logging.info("Writing inventory in '{}'".format(fileName))
-        with open(fileName, 'w') as stream:
-            stream.write(yaml.dump(self.inventory, default_flow_style=False))
-            stream.close()
+        stream.write(yaml.dump(self.inventory, default_flow_style=False))
