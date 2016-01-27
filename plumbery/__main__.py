@@ -203,7 +203,7 @@ def main(args=[], engine=None):
             engine = PlumberyEngine(args.fittings)
 
         except Exception as feedback:
-            logging.error("Cannot read fittings plan from '{}'".format(
+            logging.error("Cannot read fittings plan from '{}', run with -d for debug".format(
                 args.fittings))
             if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
                 raise
@@ -219,7 +219,7 @@ def main(args=[], engine=None):
         engine.do(args.action, args.blueprints, args.facilities)
 
     except Exception as feedback:
-        logging.error("Unable to do '{}'".format(args.action))
+        logging.error("Unable to do '{}', run with -d for debug".format(args.action))
         if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
             raise
         else:

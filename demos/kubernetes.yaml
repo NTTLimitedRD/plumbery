@@ -1,0 +1,49 @@
+---
+safeMode: false
+---
+locationId: AU9
+regionId: dd-au
+
+blueprints:
+
+  - kubernetes:
+      domain:
+        name: Kubernetes
+        description: "Demonstration of a standalone kubernetes server"
+        service: essentials
+        ipv4: 2
+      ethernet:
+        name: kubernetes.servers
+        subnet: 192.168.20.0
+      nodes:
+        - kubernetes-master01:
+            cpu: 2
+            memory: 4
+            monitoring: essentials
+            glue:
+              - internet 22 80 8080
+            rub:
+              - open a browser at http://{{ node.public }}/ to view it live
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              runcmd:
+                - apt-get remove apache2 -y
+                - apt-get autoremove -y
+                - curl https://repogen.simplylinux.ch/txt/sources_c74a15400e68208192ca8980c7a90e7b678f2822.txt | sudo tee /etc/apt/sources.list
+                - sudo apt-get update --fix-missing
+                - sudo apt-get install git software-properties-common gcc
+                - sudo add-apt-repository ppa:evarlast/golang1.4 -y
+                - sudo apt-get update
+                - sudo apt-get install golang -y
+                - sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+                - sudo echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" > /etc/apt/sources.list.d/docker.list
+                - sudo add-apt-repository ppa:cory-benfield/project-calico -y
+                - sudo apt-get update
+                - sudo apt-get install docker-engine
+                - sudo apt-get install etcd
+                - git clone https://github.com/kubernetes/kubernetes.git
+                - cd kubernetes/
+                - echo "API_HOST=\"{{ node.private }}\"" >> hack/lib/init.sh
+                - sudo hack/local-up-cluster.sh &
+
