@@ -258,7 +258,8 @@ class PlumberyNodeContext:
                 self.cache[tokens[0]] = node.private_ips[0]
                 self.cache[tokens[0]+'.private'] = node.private_ips[0]
                 self.cache[tokens[0]+'.ipv6'] = node.extra['ipv6']
-                self.cache[tokens[0]+'.public'] = node.public_ips[0]
+                if len(node.public_ips) > 0:
+                    self.cache[tokens[0]+'.public'] = node.public_ips[0]
 
                 if tokens[1] == 'private':
                     return node.private_ips[0]
