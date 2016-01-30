@@ -209,6 +209,15 @@ ssh-authorized-keys:
 - "{{ local.rsa_public }}"
 """
 
+input10 = """
+runcmd: \
+\n  - echo "===== Installing Let's Chat"
+  - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+  - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+  - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+
+"""
+
 class FakeNode1:
 
     id = '1234'
@@ -353,6 +362,13 @@ class TestPlumberyText(unittest.TestCase):
         context = PlumberyContext(context=PlumberyEngine())
         expanded = self.text.expand_variables(loaded, context)
         self.assertEqual(('  - |' in expanded), False)
+
+    def test_input10(self):
+
+        loaded = yaml.load(input10)
+        context = PlumberyContext(dictionary={})
+        expanded = self.text.expand_variables(loaded, context)
+        self.assertEqual(expanded.strip(), input10.strip())
 
     def test_node1(self):
 

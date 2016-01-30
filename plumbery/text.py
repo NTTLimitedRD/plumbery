@@ -87,11 +87,18 @@ class PlumberyText:
         if serialized: # from serialized python to yaml representation
 
             # protect  \ followed by \
-            watermark = '-=_+*=-'
-            expanded = expanded.replace('\\'+'\\', watermark+'|'+watermark)
+            watermark1 = '-=_+*=-'
+            expanded = expanded.replace('\\'+'\\', watermark1+'|'+watermark1)
+
+            # protect  \ followed by '
+            watermark2 = '-=*+_=-'
+            expanded = expanded.replace('\\'+"'", watermark2+'|'+watermark2)
+
             instanciated = yaml.load(expanded)
             expanded = PlumberyText.dump(instanciated)
-            expanded = expanded.replace(watermark+'|'+watermark, '\\')
+
+            expanded = expanded.replace(watermark1+'|'+watermark1, '\\')
+            expanded = expanded.replace(watermark2+'|'+watermark2, "'")
 
         return expanded
 
