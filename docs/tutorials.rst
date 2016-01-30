@@ -41,6 +41,7 @@ instructions to demonstrate it or to use it.
    tutorial.ubuntu.desktop
    tutorial.minio
    tutorial.docker
+   tutorial.kubernetes
    tutorial.owncloud
    tutorial.openvpn
    tutorial.nfs
