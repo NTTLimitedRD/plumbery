@@ -224,6 +224,18 @@ class TestPlumberyEngine(unittest.TestCase):
         except IOError:
             pass
 
+    def test_secrets(self):
+
+        engine = PlumberyEngine()
+        engine.secrets = {'hello': 'world'}
+        engine.save_secrets(plan='test_engine.yaml')
+        self.assertEqual(os.path.isfile('.test_engine.secrets'), True)
+        engine.secrets = {}
+        engine.load_secrets(plan='test_engine.yaml')
+        self.assertEqual(engine.secrets['hello'], 'world')
+        engine.forget_secrets(plan='test_engine.yaml')
+        self.assertEqual(os.path.isfile('.test_engine.secrets'), False)
+
     def test_parser(self):
         args = parse_args(['fittings.yaml', 'build', 'web'])
         self.assertEqual(args.fittings, 'fittings.yaml')

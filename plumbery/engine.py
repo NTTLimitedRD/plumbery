@@ -485,9 +485,9 @@ class PlumberyEngine(object):
             plan = self.fittingsFile
 
         if plan.endswith('.yaml'):
-            secretsFile = plan[0:-len('.yaml')]+'.secrets'
+            secretsFile = '.'+plan[0:-len('.yaml')]+'.secrets'
         else:
-            secretsFile = plan+'.secrets'
+            secretsFile = '.'+plan+'.secrets'
 
         try:
             handle = open(secretsFile, 'w')
@@ -514,9 +514,9 @@ class PlumberyEngine(object):
             plan = self.fittingsFile
 
         if plan.endswith('.yaml'):
-            secretsFile = plan[0:-len('.yaml')]+'.secrets'
+            secretsFile = '.'+plan[0:-len('.yaml')]+'.secrets'
         else:
-            secretsFile = plan+'.secrets'
+            secretsFile = '.'+plan+'.secrets'
 
         if os.path.isfile(secretsFile):
             try:
@@ -547,9 +547,9 @@ class PlumberyEngine(object):
             plan = self.fittingsFile
 
         if plan.endswith('.yaml'):
-            secretsFile = plan[0:-len('.yaml')]+'.secrets'
+            secretsFile = '.'+plan[0:-len('.yaml')]+'.secrets'
         else:
-            secretsFile = plan+'.secrets'
+            secretsFile = '.'+plan+'.secrets'
 
         if os.path.isfile(secretsFile):
             try:
