@@ -1,0 +1,91 @@
+#
+# credit: https://mborgerson.com/setting-up-lets-chat-on-ubuntu
+#
+---
+safeMode: false
+
+cloud-config:
+
+  ssh_keys:
+    rsa_private: |
+      {{ key.rsa_private }}
+    rsa_public: "{{ key.rsa_public }}"
+
+  users:
+    - default
+
+    - name: ubuntu
+      sudo: 'ALL=(ALL) NOPASSWD:ALL'
+      ssh-authorized-keys:
+        - "{{ key.rsa_public }}"
+        - "{{ local.rsa_public }}"
+
+    - name: root
+      ssh-authorized-keys:
+        - "{{ key.rsa_public }}"
+        - "{{ local.rsa_public }}"
+
+  disable_root: false
+  ssh_pwauth: false
+
+---
+locationId: AU10
+regionId: dd-au
+
+blueprints:
+
+  - letschat:
+
+      domain:
+        name: LetsChatFox
+        description: "Demonstration of Let's Chat server, self-hosted chat for small teams"
+        ipv4: 2
+
+      ethernet:
+        name: ethernet
+        subnet: 10.0.0.0
+
+      nodes:
+        - letschat:
+
+            description: "#chat server #ubuntu"
+
+            information:
+              - "this is the Let's Chat server for our team"
+              - "browse http://{{ node.public }}:5000/ to enter conversations"
+
+            appliance: 'Ubuntu 14'
+            cpu: 8
+            memory: 32
+            glue:
+              - internet 22 5000
+
+            monitoring: essentials
+
+            cloud-config:
+              hostname: "{{ node.name }}"
+
+              packages:
+                - nodejs
+                - npm
+                - nodejs-legacy
+                - mongodb
+                - mongodb-server
+                - git
+
+              runcmd:
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+
+                - echo "===== Installing Let s Chat"
+                - cd /home/ubuntu
+                - git clone https://github.com/sdelements/lets-chat.git
+                - cd lets-chat
+                - npm install
+                - cp settings.yml.sample settings.yml
+
+                - echo "===== Starting the server"
+                - npm start
