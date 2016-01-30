@@ -15,6 +15,7 @@
 
 import socket
 import logging
+import os
 
 from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
@@ -429,6 +430,14 @@ class PlumberyFacility(object):
                     self.fittings.regionId))
                 self.region = self.plumbery.get_compute_driver(
                     region=self.fittings.regionId)
+                if os.getenv('LIBCLOUD_HTTP_PROXY') is not None:
+                    logging.debug('Setting proxy to %s' %
+                                  (os.getenv('LIBCLOUD_HTTP_PROXY')))
+                    self.region.connection.set_http_proxy(
+                        proxy_url=os.getenv('LIBCLOUD_HTTP_PROXY'))
+                    logging.debug('Disabling SSL verfification')
+                    import libcloud.security
+                    libcloud.security.VERIFY_SSL_CERT = False
 
             if self.location is None:
                 logging.debug("Getting location '{}'".format(

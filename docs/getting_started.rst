@@ -38,6 +38,14 @@ Plumbery is `available on PyPi`_. You can install latest stable version using pi
 The installation of `python-dev` is required for the installation of the module
 `netifaces`, that is used by Plumbery to get information about network interfaces.
 
+For installation on Windows, you may need to first install the Python Compiler for VC++. https://www.microsoft.com/en-us/download/confirmation.aspx?id=44266
+Note this only works for Python 2.7. If you get an error on installation saying "error: Unable to find vcvarsall.bat" this indicates you need to install this package.
+
+.. sourcecode:: powershell
+     
+    $ C:\Python27\Scripts\virtualenv.exe .
+    $ .\Script\pip install plumbery
+
 Upgrade the plumbery package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -111,8 +119,8 @@ Configure and test your installation
 This section describes the standard workflow which you follow when working
 with Plumbery.
 
-Put secrets into local environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Put secrets into local environment (Linux)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 By default Plumbery reads credentials and other secrets from the environment
 of the computer where it is running.
@@ -133,6 +141,20 @@ and type text like the following:
 
     # password to access nodes remotely
     export SHARED_SECRET='*** password to access nodes ***'
+
+Put secrets into local environment (Windows)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default Plumbery reads credentials and other secrets from the environment
+of the computer where it is running.
+
+Download https://raw.githubusercontent.com/bagder/ca-bundle/master/ca-bundle.crt into %APPDATA%\libcloud
+
+.. sourcecode:: powershell
+    
+    [Environment]::SetEnvironmentVariable("MCP_USERNAME", "myusername", "Process")
+    [Environment]::SetEnvironmentVariable("MCP_PASSWORD", "mypassword!", "Process")
+    [Environment]::SetEnvironmentVariable("SSL_CERT_FILE", "C:\Users\Anthony\AppData\Roaming\libcloud\ca-bundle.crt", "Process")
 
 
 Prepare your fittings plan
