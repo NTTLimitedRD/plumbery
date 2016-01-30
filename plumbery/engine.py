@@ -20,6 +20,7 @@ import os
 import random
 import string
 import time
+import uuid
 import yaml
 
 from Crypto.Hash import MD5, SHA256
@@ -387,7 +388,7 @@ class PlumberyEngine(object):
         self.save_secrets()
         return self.secrets[id]
 
-    def get_secret(self, id='random'):
+    def get_secret(self, id='random.secret'):
         """
         Returns a secret
 
@@ -405,6 +406,13 @@ class PlumberyEngine(object):
 
         The `id` parameter designates one secret among several.
 
+        This function builds a random string out of ASCII letters, digits, and
+        a couple of punctuation letters.
+        The string has 9 characters by default.
+
+        If you put `.uuid` in the id, than the function ``uuid.uuid4()``is
+        called to generate a unique identifier of 36 letters.
+
         The `format` parameter specifies the kind of string that is expected:
         * 'user' - to be read by a human being
         * 'sha1' - rather long string too
@@ -413,9 +421,12 @@ class PlumberyEngine(object):
 
         Some examples:
 
-            {{ master.md5.secret }}
-            {{ slave.secret }}
-            {{ server357.sha1.secret }}
+            {{ server1.uuid }}
+            {{ server2.uuid }}
+            {{ sql_root.secret }}
+            {{ redis.master.md5.secret }}
+            {{ redis.slave.secret }}
+            {{ database357.sha1.secret }}
 
         In a nutshell, this function is giving you a lot of flexibility
         in the generation of secrets.
@@ -425,21 +436,22 @@ class PlumberyEngine(object):
         if id in self.secrets:
             return self.secrets[id]
 
-        secret = ''.join(random.choice(
-            string.ascii_letters+string.digits+'-_!=')
-                for i in range(50))
-
-        if id.endswith('.sha256.secret'):
-            secret = SHA256.new(secret).hexdigest()
-
-        elif id.endswith('.md5.secret'):
-            secret = MD5.new(secret).hexdigest()
-
-        elif id.endswith('.sha1.secret'):
-            secret = hashlib.sha1(secret).hexdigest()
+        if '.uuid' in id:
+            secret = str(uuid.uuid4())
 
         else:
-            secret = secret[0:9]
+            secret = ''.join(random.choice(
+                string.ascii_letters+string.digits+'-_!=')
+                    for i in range(9))
+
+        if '.sha256.' in id:
+            secret = SHA256.new(secret).hexdigest()
+
+        elif '.md5.' in id:
+            secret = MD5.new(secret).hexdigest()
+
+        elif '.sha1.' in id:
+            secret = hashlib.sha1(secret).hexdigest()
 
         logging.debug("- generating {} -> {}".format(id, secret))
         self.secrets[id] = secret
@@ -1265,6 +1277,9 @@ class PlumberyEngine(object):
             return self.get_rsa_secret(token)
         if token.endswith('.rsa_private'):
             return self.get_rsa_secret(token)
+
+        if token.endswith('.uuid'):
+            return self.get_secret(token)
 
         return None
 

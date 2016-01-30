@@ -182,6 +182,13 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(len(sha), 64)
         self.assertNotEqual(sha, random)
 
+        id1 = self.engine.lookup('id1.uuid')
+        self.assertEqual(len(id1), 36)
+        self.assertEqual(self.engine.lookup('id1.uuid'), id1)
+        id2 = self.engine.lookup('id2.uuid')
+        self.assertEqual(len(id2), 36)
+        self.assertNotEqual(id1, id2)
+
         self.engine.lookup('application.secret')
         self.engine.lookup('database.secret')
         self.engine.lookup('master.secret')
@@ -200,7 +207,7 @@ class TestPlumberyEngine(unittest.TestCase):
         decrypted = key.decrypt(ast.literal_eval(str(encrypted)))
         self.assertEqual(decrypted, original)
 
-        self.assertEqual(len(self.engine.secrets), 10)
+        self.assertEqual(len(self.engine.secrets), 12)
 
         with self.assertRaises(LookupError):
             localKey = self.engine.lookup('local.rsa_private')
