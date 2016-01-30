@@ -9,6 +9,7 @@ The documentation of Plumbery
    tutorials
    usage
    getting_started
+   cloud-config
    contributing
    coding
    history
