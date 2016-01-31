@@ -159,7 +159,7 @@ You can ask plumbery to generate keys and transmit these to nodes to fully
 secure nodes and to support passwordless access to nodes.
 
 However, for simple demonstrations, or similar short-lived deployments, you
-may just ask following directives to access nodes with ssh, as root, with the
+may just add following directives to access nodes with ssh, as root, with the
 master secret password used by plumbery for the creation of servers:
 
 .. sourcecode:: yaml
@@ -172,7 +172,7 @@ How to learn more about cloud-config?
 -------------------------------------
 
 Since cloud-config has become an industry-standard, that is used commonly at Amazon Web Services,
-at openStack-based clouds, and others, you will find many interesting web
+at OpenStack-based clouds, and others, you will find many interesting web
 pages and tutorials on the Internet.
 
 In the context of plumbery, multiple tutorials are leveraging cloud-config, and
@@ -185,8 +185,8 @@ different data centres is an interesting practical case:
 
   :doc:`tutorial.sql.master.slave`
 
-Maybe a straightforward way to know more about cloud-config is to check the
-following page that has been developed by the software community:
+Another good starting point is the following page,
+that has been developed by the global cloud-config software community:
 
   http://cloudinit.readthedocs.org/en/latest/topics/examples.html
 
