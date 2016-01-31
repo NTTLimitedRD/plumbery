@@ -11,9 +11,9 @@ blueprints:
         name: StackstormFox
         description: "Demonstration of a standalone Stackstorm server"
         service: essentials
-        ipv4: 2
+        ipv4: auto
       ethernet:
-        name: ethernet
+        name: stackstorm.ethernet
         subnet: 192.168.20.0
       nodes:
         - stackstorm:
@@ -30,4 +30,4 @@ blueprints:
               packages:
                 - ntp
               runcmd:
-                - curl -sSL https://raw.githubusercontent.com/DimensionDataCBUSydney/st2_dimensiondata/master/install-eu.sh | sh
+                - curl -sSL https://raw.githubusercontent.com/DimensionDataCBUSydney/st2_dimensiondata/master/install-au.sh | sh
