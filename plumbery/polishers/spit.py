@@ -96,8 +96,6 @@ class SpitPolisher(PlumberyPolisher):
 
         container._build_firewall_rules()
 
-        container._reserve_ipv4()
-
         container._build_balancer()
 
     def shine_node(self, node, settings, container):

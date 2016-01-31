@@ -1297,27 +1297,88 @@ class PlumberyInfrastructure(object):
         """
         Provides a free public IPv4 if possible
 
-        """
+        This function looks at current IPv4 addresses reserved for the
+        target network domain, and adds more if needed.
 
-        addresses = self._list_ipv4()
-        if len(addresses) < 1:
-            self._reserve_ipv4()
-            addresses = self._list_ipv4()
+        Example to reserve 8 IPv4 addresses in the fittings plan::
+
+          - redis:
+              domain:
+                name: myVDC
+                ipv4: 8
+
+        If the directive `auto` is used, then plumbery do not check the
+        maximum number of addresses that can be provided.
+        """
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
         if domain is None:
             return None
 
-        for rule in self.region.ex_list_nat_rules(domain):
-            addresses.remove(rule.external_ip)
+        addresses = self._list_ipv4()
+        if len(addresses) > 1:
 
-        if 'balancer' in self.blueprint:
-            addresses.pop(0)
+            for rule in self.region.ex_list_nat_rules(domain):
+                addresses.remove(rule.external_ip)
 
-        if len(addresses) < 1:
+            if 'balancer' in self.blueprint:
+                addresses.pop(0)
+
+        if len(addresses) > 0:
+            return addresses[0]
+
+        actual = len(self._list_ipv4())
+
+        if 'ipv4' in self.blueprint['domain']:
+            count = self.blueprint['domain']['ipv4']
+        else:
+            count = 2
+
+        if count.lower() == 'auto':
+            count = actual + 2
+
+        if count < 2 or count > 128:
+            logging.warning("Invalid count of requested IPv4 public addresses")
             return None
 
-        return addresses[0]
+        if actual >= count:
+            return None
+
+        logging.info('Reserving additional public IPv4 addresses')
+
+        if self.plumbery.safeMode:
+            logging.info("- not in safe mode")
+            return None
+
+        count = actual + 2
+        while actual < count:
+            try:
+                block = self.region.ex_add_public_ip_block_to_network_domain(
+                    self.get_network_domain(self.blueprint['domain']['name']))
+                actual += int(block.size)
+                logging.info("- reserved {} addresses"
+                              .format(int(block.size)))
+                return block.base_ip
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- not now - locked")
+                    return None
+
+                # compensate for bug in Libcloud driver
+                elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                    actual += 2
+                    continue
+
+                else:
+                    logging.info("- unable to reserve IPv4 public addresses")
+                    logging.error(str(feedback))
+                    return None
 
     def _list_ipv4(self):
         """
@@ -1354,71 +1415,6 @@ class PlumberyInfrastructure(object):
             break
 
         return addresses
-
-    def _reserve_ipv4(self):
-        """
-        Reserves public addresses
-
-        This function looks at current IPv4 addresses reserved for the
-        target network domain, and adds more if needed.
-
-        Example to reserve 8 IPv4 addresses in the fittings plan::
-
-          - redis:
-              domain:
-                name: myVDC
-                ipv4: 8
-
-        """
-
-        if 'ipv4' in self.blueprint['domain']:
-            count = self.blueprint['domain']['ipv4']
-        else:
-            count = 2
-
-        if count < 2 or count > 128:
-            logging.info("Invalid count of requested IPv4 public addresses")
-            return False
-
-        actual = len(self._list_ipv4())
-        if actual >= count:
-            return True
-
-        logging.info('Reserving additional public IPv4 addresses')
-
-        if self.plumbery.safeMode:
-            logging.info("- not in safe mode")
-            return True
-
-        while actual < count:
-            try:
-                block = self.region.ex_add_public_ip_block_to_network_domain(
-                    self.get_network_domain(self.blueprint['domain']['name']))
-                actual += int(block.size)
-                logging.debug("- reserved {} addresses"
-                              .format(int(block.size)))
-
-            except Exception as feedback:
-
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
-                    return False
-
-                # compensate for bug in Libcloud driver
-                elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                    actual += 2
-                    continue
-
-                else:
-                    logging.info("- unable to reserve IPv4 public addresses")
-                    logging.error(str(feedback))
-                    return False
-
-        logging.info("- reserved {} addresses in total".format(actual))
 
     def _release_ipv4(self):
         """
