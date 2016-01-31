@@ -1,0 +1,33 @@
+---
+safeMode: false
+---
+locationId: AU10
+regionId: dd-au
+
+blueprints:
+
+  - stackstorm:
+      domain:
+        name: StackstormFox
+        description: "Demonstration of a standalone Stackstorm server"
+        service: essentials
+        ipv4: 2
+      ethernet:
+        name: ethernet
+        subnet: 192.168.20.0
+      nodes:
+        - stackstorm:
+            cpu: 4
+            memory: 8
+            monitoring: essentials
+            glue:
+              - internet 22 80 443
+            information:
+              - "open a browser at https://{{ node.public }}/ to view it live"
+            cloud-config:
+              disable_root: false
+              ssh_pwauth: true
+              packages:
+                - ntp
+              runcmd:
+                - curl -sSL https://raw.githubusercontent.com/DimensionDataCBUSydney/st2_dimensiondata/master/install-eu.sh | sh

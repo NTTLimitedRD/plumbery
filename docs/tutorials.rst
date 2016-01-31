@@ -42,6 +42,7 @@ instructions to demonstrate it or to use it.
    tutorial.minio
    tutorial.docker
    tutorial.kubernetes
+   tutorial.stackstorm
    tutorial.owncloud
    tutorial.openvpn
    tutorial.nfs
