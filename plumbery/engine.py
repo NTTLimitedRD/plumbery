@@ -33,7 +33,6 @@ from libcloud.loadbalancer.types import Provider as BalancerProvider
 
 from exception import PlumberyException
 from facility import PlumberyFacility
-from facility import PlumberyFittings
 from polisher import PlumberyPolisher
 from plumbery import __version__
 
@@ -135,6 +134,8 @@ class PlumberyEngine(object):
         self._userPassword = None
 
         self.cloudConfig = {}
+
+        self.defaults = {}
 
         if plan is not None:
             self.from_file(plan)
@@ -285,6 +286,14 @@ class PlumberyEngine(object):
         if 'cloud-config' in settings:
             self.cloudConfig = settings['cloud-config']
 
+        if 'defaults' in settings:
+            self.defaults = settings['defaults']
+
+        if len(self.defaults) > 1:
+            logging.debug("Default parameters:")
+            for key in self.defaults.keys():
+                logging.debug("- {}: {}".format(key, self.defaults[key]))
+
     def get_cloud_config(self):
         """
         Retrieves the settings that apply to all nodes in this fittings plan
@@ -295,6 +304,23 @@ class PlumberyEngine(object):
         """
 
         return self.cloudConfig
+
+    def get_default(self, label):
+        """
+        Retrieves default settings
+
+        :param label: the name of the parameter to be retrieved
+        :type label: ``str``
+
+        :return: the value set in fittings plan, or `None`
+        :rtype: ``str``
+
+        """
+
+        if label in self.defaults:
+            return self.defaults[label]
+
+        return None
 
     def set_shared_secret(self, secret):
         """
@@ -656,10 +682,11 @@ class PlumberyEngine(object):
         """
 
         if isinstance(facility, dict):
-            facility = PlumberyFacility(self, PlumberyFittings(**facility))
+            facility = PlumberyFacility(self, facility)
 
         logging.debug("Adding facility")
-        logging.debug(facility.fittings)
+        for key in facility.parameters:
+            logging.debug("- {}: {}".format(key, facility.parameters[key]))
 
         self.facilities.append(facility)
 
@@ -696,7 +723,7 @@ class PlumberyEngine(object):
                 matches.append(item)
 
         for facility in self.facilities:
-            if facility.fittings.locationId in location:
+            if facility.get_parameter('locationId') in location:
                 matches.append(facility)
 
         return matches

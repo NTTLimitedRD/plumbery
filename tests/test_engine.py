@@ -78,6 +78,36 @@ class FakeLocation:
     country = 'Netherlands'
 
 
+defaultsPlan = """
+---
+safeMode: True
+defaults:
+  locationId: EU6
+  regionId: dd-eu
+  ipv4: auto
+cloud-config:
+  disable_root: false
+  ssh_pwauth: true
+  ssh_keys:
+    rsa_private: |
+      {{ pair1.rsa_private }}
+
+    rsa_public: "{{ pair1.ssh.rsa_public }}"
+
+---
+blueprints:
+
+  - myBlueprint:
+      domain:
+        name: myDC
+      ethernet:
+        name: myVLAN
+        subnet: 10.1.10.0
+      nodes:
+        - myServer
+"""
+
+
 class TestPlumberyEngine(unittest.TestCase):
 
     def test_set(self):
@@ -235,6 +265,14 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.secrets['hello'], 'world')
         engine.forget_secrets(plan='test_engine.yaml')
         self.assertEqual(os.path.isfile('.test_engine.secrets'), False)
+
+    def test_defaults(self):
+
+        engine = PlumberyEngine()
+        engine.from_text(defaultsPlan)
+        self.assertEqual(engine.get_default('locationId'), 'EU6')
+        self.assertEqual(engine.get_default('regionId'), 'dd-eu')
+        self.assertEqual(engine.get_default('ipv4'), 'auto')
 
     def test_parser(self):
         args = parse_args(['fittings.yaml', 'build', 'web'])

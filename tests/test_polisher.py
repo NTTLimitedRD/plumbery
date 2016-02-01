@@ -9,7 +9,6 @@ import unittest
 
 from libcloud.compute.types import NodeState
 
-from plumbery.engine import PlumberyFittings
 from plumbery.polisher import PlumberyPolisher
 
 
@@ -111,11 +110,17 @@ fakeFacilitySettings = {
 
 class FakeFacility():
     plumbery = FakeEngine()
-    fittings = PlumberyFittings(**fakeFacilitySettings)
+    parameters = fakeFacilitySettings
     region = FakeRegion()
 
     def __repr__(self):
         return "<FakeFacility fittings: {}>".format(self.fittings)
+
+    def get_parameter(self, label):
+        if label in self.parameters:
+            return self.parameters[label]
+
+        return None
 
 
 FakeStatus = namedtuple('FakeStatus', 'action')

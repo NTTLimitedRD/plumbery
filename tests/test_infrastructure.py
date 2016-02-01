@@ -9,7 +9,8 @@ import unittest
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 from mock_api import DimensionDataMockHttp
 
-from plumbery.engine import PlumberyFittings
+from plumbery.engine import PlumberyEngine
+from plumbery.facility import PlumberyFacility
 from plumbery.infrastructure import PlumberyInfrastructure
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
@@ -38,10 +39,12 @@ class FakeLocation:
     id = 'EU6'
 
 
-fakeFittings = {
+fakeParameters = {
     'regionId': 'dd-na',
-    'locationId': 'NA9',
-    'blueprints': [{
+    'locationId': 'NA9'
+}
+
+fakeBlueprints = [{
         'fake': {
             'domain': {
                 'name': 'VDC1',
@@ -59,14 +62,14 @@ fakeFittings = {
                 }]
             }
         }]
-    }
 
 
 class FakeFacility:
 
     plumbery = FakePlumbery()
 
-    fittings = PlumberyFittings(**fakeFittings)
+    parameters = fakeParameters
+    blueprints = fakeBlueprints
 
     DimensionDataNodeDriver.connectionCls.conn_classes = (
         None, DimensionDataMockHttp)
@@ -81,6 +84,12 @@ class FakeFacility:
     def get_location_id(self):
         return 'EU6'
 
+    def get_parameter(self, label):
+        if label in self.parameters:
+            return self.parameters[label]
+
+        return None
+
 fakeBluePrint = {'target': 'fake',
                  'domain': {'name': 'fake',
                             'service': 'ADVANCED',
@@ -88,6 +97,35 @@ fakeBluePrint = {'target': 'fake',
                  'ethernet': {'name': 'fake',
                               'subnet': '10.0.10.0',
                               'description': '#vdc1'}}
+
+defaultsPlan = """
+---
+safeMode: True
+defaults:
+  locationId: EU6
+  regionId: dd-eu
+  ipv4: auto
+cloud-config:
+  disable_root: false
+  ssh_pwauth: true
+  ssh_keys:
+    rsa_private: |
+      {{ pair1.rsa_private }}
+
+    rsa_public: "{{ pair1.ssh.rsa_public }}"
+
+---
+blueprints:
+
+  - myBlueprint:
+      domain:
+        name: myDC
+      ethernet:
+        name: myVLAN
+        subnet: 10.1.10.0
+      nodes:
+        - myServer
+"""
 
 
 class TestPlumberyInfrastructure(unittest.TestCase):
@@ -135,6 +173,13 @@ class TestPlumberyInfrastructure(unittest.TestCase):
     def test_get_ipv4(self):
         self.infrastructure.blueprint = fakeBluePrint
         self.infrastructure._get_ipv4()
+
+    def test_get_default(self):
+        engine = PlumberyEngine()
+        engine.from_text(defaultsPlan)
+        facility = engine.list_facility('EU6')[0]
+        infrastructure = PlumberyInfrastructure(facility)
+        self.assertEqual(infrastructure.get_default('ipv4'), 'auto')
 
 if __name__ == '__main__':
     import sys

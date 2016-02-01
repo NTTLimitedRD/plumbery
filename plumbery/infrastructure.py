@@ -88,7 +88,18 @@ class PlumberyInfrastructure(object):
         self._vlans_already_built = []
 
     def get_region_id(self):
-        return self.facility.fittings.regionId
+        return self.facility.get_parameter('regionId')
+
+    def get_default(self, label, default=None):
+        """
+        Retrieves default value for a given name
+
+        """
+
+        value = self.facility.get_parameter(label)
+        if value is not None:
+            return value
+        return default
 
     def get_container(self, blueprint):
         """
@@ -1332,7 +1343,7 @@ class PlumberyInfrastructure(object):
         if 'ipv4' in self.blueprint['domain']:
             count = self.blueprint['domain']['ipv4']
         else:
-            count = 2
+            count = self.get_default('ipv4', 2)
 
         if str(count).lower() == 'auto':
             count = actual + 2

@@ -22,7 +22,7 @@ from infrastructure import PlumberyInfrastructure
 from polisher import PlumberyPolisher
 from nodes import PlumberyNodes
 
-__all__ = ['PlumberyFacility', 'PlumberyFittings']
+__all__ = ['PlumberyFacility']
 
 
 class PlumberyFacility(object):
@@ -34,7 +34,7 @@ class PlumberyFacility(object):
     :type plumbery: :class:`plumbery.PlumberyEngine`
 
     :param fittings:  the plan for the fittings
-    :type fittings: :class:`plumbery.PlumberyFittings`
+    :type fittings: ``dict``
 
     Example::
 
@@ -55,12 +55,30 @@ class PlumberyFacility(object):
 
     """
 
-    def __init__(self, plumbery=None, fittings=None):
+    def __init__(self, plumbery=None, fittings={}):
         """Puts this facility in context"""
 
         self.plumbery = plumbery
 
-        self.fittings = fittings
+        self.parameters = {}
+        self.blueprints = []
+
+        for key in fittings.keys():
+
+            if key == 'blueprints':
+                self.blueprints = fittings['blueprints']
+
+            else:
+                self.parameters[key] = fittings[key]
+
+        mandatory = ['locationId', 'regionId']
+        for label in mandatory:
+            if label not in self.parameters:
+                value = plumbery.get_default(label)
+                if value is None:
+                    raise ValueError("No value has been set for '{}'"
+                                     .format(label))
+                self.parameters[label] = value
 
         # first call to the API is done in self.power_on()
         self.region = None
@@ -88,6 +106,23 @@ class PlumberyFacility(object):
         self.power_on()
         return self.location.id
 
+    def get_parameter(self, label):
+        """
+        Retrieves the value of one parameter
+
+        :param label: the name of the parameter to be retrieved
+        :type label: ``str``
+
+        :return: the value set in fittings plan, or `None`
+        :rtype: ``str``
+
+        """
+
+        if label in self.parameters:
+            return self.parameters[label]
+
+        return self.plumbery.get_default(label)
+
     def list_basement(self):
         """
         Retrieves a list of blueprints that, together, constitute the basement
@@ -114,10 +149,12 @@ class PlumberyFacility(object):
 
         """
 
-        if self.fittings.basement is None:
+        basement = self.get_parameter('basement')
+
+        if basement is None:
             return []
 
-        return self.expand_blueprint(self.fittings.basement)
+        return self.expand_blueprint(basement)
 
     def list_blueprints(self):
         """
@@ -154,7 +191,7 @@ class PlumberyFacility(object):
         """
 
         names = []
-        for blueprint in self.fittings.blueprints:
+        for blueprint in self.blueprints:
             name = blueprint.keys()[0]
             if not isinstance(blueprint[name], dict):
                 continue
@@ -223,13 +260,13 @@ class PlumberyFacility(object):
         if isinstance(labels, str):
 
             if labels.lower() == 'basement':
-                labels = self.fittings.basement
+                labels = self.get_parameter('basement')
 
             labels = labels.split(' ')
 
         for label in labels:
 
-            for blueprint in self.fittings.blueprints:
+            for blueprint in self.blueprints:
 
                 name = blueprint.keys()[0]
                 if name != label:
@@ -243,7 +280,7 @@ class PlumberyFacility(object):
                         if token in names:
                             continue
 
-                        for scanning in self.fittings.blueprints:
+                        for scanning in self.blueprints:
                             if token == scanning.keys()[0]:
                                 names.append(token)
                                 break
@@ -266,7 +303,7 @@ class PlumberyFacility(object):
 
         """
 
-        for blueprint in self.fittings.blueprints:
+        for blueprint in self.blueprints:
             if name == blueprint.keys()[0]:
 
                 if not isinstance(blueprint[name], dict):
@@ -293,7 +330,7 @@ class PlumberyFacility(object):
 
         labels = set()
 
-        for blueprint in self.fittings.blueprints:
+        for blueprint in self.blueprints:
             name = blueprint.keys()[0]
             if 'domain' in blueprint[name]:
                 labels.add(blueprint[name]['domain']['name'])
@@ -315,7 +352,7 @@ class PlumberyFacility(object):
 
         labels = set()
 
-        for blueprint in self.fittings.blueprints:
+        for blueprint in self.blueprints:
             name = blueprint.keys()[0]
             if 'ethernet' in blueprint[name]:
                 labels.add(blueprint[name]['ethernet']['name'])
@@ -336,7 +373,7 @@ class PlumberyFacility(object):
 
         labels = []
 
-        for blueprint in self.fittings.blueprints:
+        for blueprint in self.blueprints:
             name = blueprint.keys()[0]
             if 'nodes' in blueprint[name]:
                 for item in blueprint[name]['nodes']:
@@ -427,35 +464,36 @@ class PlumberyFacility(object):
         try:
             if self.region is None:
                 logging.debug("Getting driver for '{}'".format(
-                    self.fittings.regionId))
+                    self.get_parameter('regionId')))
                 self.region = self.plumbery.get_compute_driver(
-                    region=self.fittings.regionId)
+                    region=self.get_parameter('regionId'))
                 if os.getenv('LIBCLOUD_HTTP_PROXY') is not None:
                     logging.debug('Setting proxy to %s' %
                                   (os.getenv('LIBCLOUD_HTTP_PROXY')))
                     self.region.connection.set_http_proxy(
                         proxy_url=os.getenv('LIBCLOUD_HTTP_PROXY'))
-                    logging.debug('Disabling SSL verfification')
+                    logging.debug('Disabling SSL verification')
                     import libcloud.security
                     libcloud.security.VERIFY_SSL_CERT = False
 
             if self.location is None:
                 logging.debug("Getting location '{}'".format(
-                    self.fittings.locationId))
+                    self.get_parameter('locationId')))
                 locations = []
                 for location in self.region.list_locations():
                     locations.append(location.id)
-                    if location.id == self.fittings.locationId:
+                    if location.id == self.get_parameter('locationId'):
                         self.location = location
 
                 if self.location is None:
                     logging.debug("Known locations: {}".format(locations))
                     raise PlumberyException("Unknown location '{}'"
-                                            .format(self.fittings.locationId))
+                                            .format(self.get_parameter(
+                                                'locationId')))
 
         except ValueError:
             raise PlumberyException("Unknown region '{}'"
-                                    .format(self.fittings.regionId))
+                                    .format(self.get_parameter('regionId')))
 
         except socket.gaierror:
             raise PlumberyException("Cannot communicate with the API endpoint")
@@ -785,33 +823,3 @@ class PlumberyFacility(object):
 
         return self.plumbery.lookup(token)
 
-
-class PlumberyFittings:
-    """
-    Describe fittings plan for one facility
-
-    :param entries: plan of the fittings
-    :type entries: ``dict``
-
-    """
-
-    def __init__(self, **entries):
-
-        self.basement = None
-        self.blueprints = []
-        self.locationID = None
-        self.regionID = None
-        self.rub = []
-
-        self.__dict__.update(entries)
-
-    def __repr__(self):
-
-        labels = []
-        for item in self.blueprints:
-            labels.append(item.keys()[0])
-
-        return "<PlumberyFittings locationId: {}, regionId: {}, "   \
-               "blueprints: {}, basement: {} >"    \
-               .format(self.locationId, self.regionId,
-                       ' '.join(labels), self.basement)

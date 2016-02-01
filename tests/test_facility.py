@@ -7,7 +7,7 @@ Tests for `facility` module.
 import unittest
 from mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
-from plumbery.engine import PlumberyFittings, PlumberyEngine
+from plumbery.engine import PlumberyEngine
 from plumbery.facility import PlumberyFacility
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
@@ -154,6 +154,37 @@ fakeFittings = {
         }]
     }
 
+defaultsPlan = """
+---
+safeMode: True
+defaults:
+  locationId: EU6
+  regionId: dd-eu
+  ipv4: auto
+cloud-config:
+  disable_root: false
+  ssh_pwauth: true
+  ssh_keys:
+    rsa_private: |
+      {{ pair1.rsa_private }}
+
+    rsa_public: "{{ pair1.ssh.rsa_public }}"
+
+---
+
+basement: myBlueprint
+
+blueprints:
+
+  - myBlueprint:
+      domain:
+        name: myDC
+      ethernet:
+        name: myVLAN
+        subnet: 10.1.10.0
+      nodes:
+        - myServer
+"""
 
 class TestPlumberyFacility(unittest.TestCase):
 
@@ -161,12 +192,11 @@ class TestPlumberyFacility(unittest.TestCase):
         self.plumbery = PlumberyEngine()
         self.plumbery.set_user_name('fake_user')
         self.plumbery.set_user_password('fake_password')
-        self.fittings = PlumberyFittings(**fakeFittings)
         DimensionDataNodeDriver.connectionCls.conn_classes = (
             None, DimensionDataMockHttp)
         DimensionDataMockHttp.type = None
         self.facility = PlumberyFacility(
-            plumbery=self.plumbery, fittings=self.fittings)
+            plumbery=self.plumbery, fittings=fakeFittings)
         self.facility.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
     def tearDown(self):
@@ -251,8 +281,18 @@ class TestPlumberyFacility(unittest.TestCase):
         self.facility.destroy_blueprint('fake')
 
     def test_lookup(self):
-
         self.assertEqual(self.facility.lookup('*unknown*'), None)
+
+    def test_get_parameter(self):
+
+        engine = PlumberyEngine()
+        engine.from_text(defaultsPlan)
+        facility = engine.list_facility('EU6')[0]
+        self.assertEqual(facility.get_parameter('locationId'), 'EU6')
+        self.assertEqual(facility.get_parameter('regionId'), 'dd-eu')
+        self.assertEqual(facility.get_parameter('rub'), None)
+        self.assertEqual(facility.get_parameter('ipv4'), 'auto')
+        self.assertEqual(facility.get_parameter('basement'), 'myBlueprint')
 
 
 if __name__ == '__main__':
