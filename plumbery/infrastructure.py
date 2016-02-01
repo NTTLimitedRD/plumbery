@@ -1334,7 +1334,7 @@ class PlumberyInfrastructure(object):
         else:
             count = 2
 
-        if count.lower() == 'auto':
+        if str(count).lower() == 'auto':
             count = actual + 2
 
         if count < 2 or count > 128:
