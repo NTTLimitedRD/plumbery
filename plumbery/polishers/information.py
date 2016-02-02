@@ -93,7 +93,13 @@ class InformationPolisher(PlumberyPolisher):
                 lines.append(description)
 
         if node.state == NodeState.RUNNING:
-            lines.append("node is up and running")
+            lines.append("- node is up and running")
+        elif node.state in [NodeState.TERMINATED,
+                            NodeState.STOPPED,
+                            NodeState.SUSPENDED]:
+            lines.append("- node has been stopped")
+        else:
+            lines.append("- state: {}".format(node.state))
 
         lines += self.list_information(node, settings, container)
         if len(lines) < 1:
