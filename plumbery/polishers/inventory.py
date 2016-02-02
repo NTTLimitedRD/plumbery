@@ -151,6 +151,9 @@ class InventoryPolisher(PlumberyPolisher):
 
         """
 
+        if len(self.inventory) < 1:
+            return
+
         if 'reap' in self.settings:
             fileName = self.settings['reap']
             logging.info("Writing inventory in '{}'".format(fileName))
