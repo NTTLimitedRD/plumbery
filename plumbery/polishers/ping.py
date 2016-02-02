@@ -54,6 +54,12 @@ class PingPolisher(InformationPolisher):
 
         if node.state == NodeState.RUNNING:
             logging.info("- node is up and running")
+        elif node.state in [NodeState.TERMINATED,
+                            NodeState.STOPPED,
+                            NodeState.SUSPENDED]:
+            logging.info("- node has been stopped")
+        else:
+            logging.info("- state: {}".format(node.state))
 
         # hack because the driver does not report public ipv4 accurately
         if len(node.public_ips) < 1:
