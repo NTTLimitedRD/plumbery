@@ -85,6 +85,8 @@ class InventoryPolisher(PlumberyPolisher):
         data['id'] = node.id
         data['name'] = node.name
 
+        data['state'] = node.state
+
         status = None
         if 'status' in node.extra:
             status = node.extra.pop('status')
@@ -123,6 +125,17 @@ class InventoryPolisher(PlumberyPolisher):
         data['private_ips'] = node.private_ips
 
         data['private_host'] = node.private_ips[0].replace('.', '-')
+
+        tags = []
+        tags.append("state_{}".format(data['state']))
+        tags.append("location_{}".format(data['datacenterId']))
+        tags.append("domain_{}".format(data['networkDomain']))
+        tags.append("network_{}".format(data['ethernet']))
+        description = node.extra['description'].replace(
+            '#plumbery', '').strip()
+        tags += {tag.strip("#") for tag in description.split()
+                if tag.startswith("#")}
+        data['tags'] = tags
 
         self.inventory.append(data)
 
