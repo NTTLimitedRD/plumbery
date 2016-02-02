@@ -106,22 +106,24 @@ class PlumberyFacility(object):
         self.power_on()
         return self.location.id
 
-    def get_parameter(self, label):
+    def get_parameter(self, label, default=None):
         """
         Retrieves the value of one parameter
 
         :param label: the name of the parameter to be retrieved
         :type label: ``str``
 
+        :param default: the default value to return
+
         :return: the value set in fittings plan, or `None`
-        :rtype: ``str``
+        :rtype: ``str`` most often
 
         """
 
         if label in self.parameters:
             return self.parameters[label]
 
-        return self.plumbery.get_default(label)
+        return self.plumbery.get_default(label, default)
 
     def list_basement(self):
         """

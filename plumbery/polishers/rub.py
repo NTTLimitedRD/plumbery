@@ -502,7 +502,7 @@ class RubPolisher(PlumberyPolisher):
         except Exception as feedback:
             logging.error(str(feedback))
 
-        for item in self.facility.get_parameter('rub'):
+        for item in self.facility.get_parameter('rub', []):
             if not isinstance(item, dict):
                 continue
             if 'beachhead' not in item.keys():

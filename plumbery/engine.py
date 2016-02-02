@@ -305,22 +305,24 @@ class PlumberyEngine(object):
 
         return self.cloudConfig
 
-    def get_default(self, label):
+    def get_default(self, label, default=None):
         """
         Retrieves default settings
 
         :param label: the name of the parameter to be retrieved
         :type label: ``str``
 
+        :param default: the default value to return
+
         :return: the value set in fittings plan, or `None`
-        :rtype: ``str``
+        :rtype: ``str`` most often
 
         """
 
         if label in self.defaults:
             return self.defaults[label]
 
-        return None
+        return default
 
     def set_shared_secret(self, secret):
         """
