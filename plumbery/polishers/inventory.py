@@ -131,7 +131,8 @@ class InventoryPolisher(PlumberyPolisher):
         tags.append("location_{}".format(data['datacenterId']))
         if 'networkDomain' in data:
             tags.append("domain_{}".format(data['networkDomain']))
-        tags.append("network_{}".format(data['ethernet']))
+        if 'ethernet' in data:
+            tags.append("network_{}".format(data['ethernet']))
         description = node.extra['description'].replace(
             '#plumbery', '').strip()
         tags += {tag.strip("#") for tag in description.split()
