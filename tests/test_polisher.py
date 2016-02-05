@@ -116,11 +116,11 @@ class FakeFacility():
     def __repr__(self):
         return "<FakeFacility fittings: {}>".format(self.fittings)
 
-    def get_parameter(self, label):
+    def get_parameter(self, label, default=None):
         if label in self.parameters:
             return self.parameters[label]
 
-        return None
+        return default
 
 
 FakeStatus = namedtuple('FakeStatus', 'action')
