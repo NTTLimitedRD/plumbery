@@ -37,10 +37,12 @@ instructions to demonstrate it or to use it.
    tutorial.apache2
    tutorial.lemp
    tutorial.wordpress
+   tutorial.confluence
    tutorial.nodejs
    tutorial.ubuntu.desktop
    tutorial.minio
    tutorial.docker
+   tutorial.docker.swarm
    tutorial.kubernetes
    tutorial.stackstorm
    tutorial.owncloud
