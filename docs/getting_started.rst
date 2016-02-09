@@ -5,6 +5,13 @@ Are you looking for a kind plumber to assist you in daily cloud deployment and
 operations? Here is the most vital information that you need to install and
 to use the software.
 
+You need pip, a package management system, to install some of the modules used in this document.
+Should your system not have pip installed, run this command:
+
+.. sourcecode:: bash
+
+    $ sudo apt-get install python-pip
+
 Install Apache Libcloud
 -----------------------
 
