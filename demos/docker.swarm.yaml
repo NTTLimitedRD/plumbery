@@ -70,7 +70,11 @@ blueprints:
               - "connect remotely with:"
               - "$ ssh ubuntu@{{ queen.public }}"
               - "check swarm status with:"
-              - "$ ssh ubuntu@{{ queen.public }}"
+              - "$ docker -H :4000 info"
+              - "run hello world somewhere with:"
+              - "$ docker -H :4000 run hello-world"
+              - "check which node is running hello world with:"
+              - "$ docker -H :4000 ps"
 
             appliance: 'Ubuntu 14'
 
@@ -171,10 +175,6 @@ blueprints:
                 - ntp
 
               write_files:
-
-                - path: /etc/apt/sources.list.d/docker.list
-                  content: |
-                    deb https://apt.dockerproject.org/repo ubuntu-trusty main
 
                 - path: /root/hosts.awk
                   content: |
