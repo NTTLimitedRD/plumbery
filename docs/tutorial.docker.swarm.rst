@@ -13,8 +13,8 @@ Requirements for this use case
 * Deploy multiple large Ubuntu servers as Docker containers
 * Monitor all servers
 * Assign a public IPv4 address to all servers
-* Add address translation to ensure end-to-end IP connectivity
-* Add firewall rule to accept TCP traffic on port 22 (ssh)
+* Add address translation rules to ensure Internet connectivity with each node
+* Add firewall rules to accept TCP traffic on port 22 (ssh)
 * Install Docker Engine at all nodes
 * Install Consul on the manager node to implement dynamic discovery back-end
 * Run Docker Swarm Manager on manager node
@@ -55,26 +55,26 @@ connection.
 
 .. sourcecode:: bash
 
-    $ ssh root@<ipv4_here>
+    $ ssh ubuntu@<ipv4_here>
 
 From there you will check both the status of the local Docker Engine, and the
 status from the full Docker Swarm:
 
-.. sourcecode::bash
+.. sourcecode:: bash
 
     $ docker info
     $ docker -H :4000 info
 
 Next step is to run a new Redis container somewhere in the swarm:
 
-.. sourcecode::bash
+.. sourcecode:: bash
 
     $ docker -H :4000 run --name some-redis -d redis
 
 And, of course, you may want to identify which node is running redis
 exactly:
 
-.. sourcecode::bash
+.. sourcecode:: bash
 
     $ docker -H :4000 ps -l | grep redis
 
