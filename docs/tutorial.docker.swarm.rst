@@ -2,23 +2,25 @@
 Docker Swarm with multiple containers
 =====================================
 
-This is a cluster of coordinated servers with Docker engine.
+This is a cluster of coordinated Docker Engine nodes. This is behaving like
+a swarm, with one queen (the manager) and seven bees (the workers). The demonstration
+also covers the installation of Consul as a dynamic registry across nodes.
 
 Requirements for this use case
 ------------------------------
 
 * Add a Network Domain
 * Add an Ethernet network
-* Deploy a Ubuntu server as a manager
-* Deploy multiple large Ubuntu servers as Docker containers
+* Deploy a Ubuntu server as a manager -- the queen
+* Deploy multiple large Ubuntu servers as Docker containers -- the bees
 * Monitor all servers
-* Assign a public IPv4 address to all servers
-* Add address translation rules to ensure Internet connectivity with each node
+* Assign a public IPv4 address to each server
+* Add address translation rules to ensure Internet connectivity with each server
 * Add firewall rules to accept TCP traffic on port 22 (ssh)
-* Install Docker Engine at all nodes
+* Install Docker Engine at all servers
 * Install Consul on the manager node to implement dynamic discovery back-end
-* Run Docker Swarm Manager on manager node
-* Run Docker Swarm at every other node
+* Run Docker Swarm Manager at the queen
+* Run Docker Swarm at every other bee
 
 Fittings plan
 -------------
