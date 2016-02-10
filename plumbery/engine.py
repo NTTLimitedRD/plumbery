@@ -1292,6 +1292,15 @@ class PlumberyEngine(object):
             region=region)
 
     def lookup(self, token):
+        """
+        Retrieves the value attached to a token
+
+        :param token: the token, e.g., 'sqlMaster.secret'
+        :type token: ``str``
+
+        :return: the value attached to this token, or `None`
+
+        """
 
         if token == 'plumbery.version':
             return __version__

@@ -124,11 +124,31 @@ class PlumberyText:
 
     @classmethod
     def dump(cls, content):
+        """
+        Transforms a dictionary to a string
 
+        :param content: the dictionary to transform
+        :type content: ``dict``
+
+        :return: the related string
+
+        """
         return cls.dump_dict(content, spaces=0).strip()+'\n'
 
     @classmethod
     def dump_dict(cls, content, spaces=0):
+        """
+        Transforms a sub-dictionary to a string
+
+        :param content: the dictionary to transform
+        :type content: ``dict``
+
+        :param spaces: shift to the right from containing elements
+        :type spaces: ``int``
+
+        :return: the related string
+
+        """
         if isinstance(content, str):
             content = yaml.load(content)
 
@@ -154,6 +174,18 @@ class PlumberyText:
 
     @classmethod
     def dump_list(cls, content, spaces=0):
+        """
+        Transforms a list to a string
+
+        :param content: the list to transform
+        :type content: ``list``
+
+        :param spaces: shift to the right from containing elements
+        :type spaces: ``int``
+
+        :return: the related string
+
+        """
         if isinstance(content, str):
             content = yaml.load(content)
 
@@ -180,6 +212,18 @@ class PlumberyText:
 
     @classmethod
     def dump_str(cls, content, spaces=0):
+        """
+        Transforms a string to a string
+
+        :param content: the string to transform
+        :type content: ``str``
+
+        :param spaces: shift to the right from containing elements
+        :type spaces: ``int``
+
+        :return: the related string
+
+        """
 
         lines = content.split('\n')
         if len(lines) == 1:              # that's a real hack...
@@ -199,6 +243,7 @@ class PlumberyText:
 
         return text
 
+
 class PlumberyContext:
 
     def __init__(self, dictionary=None, context=None):
@@ -213,6 +258,15 @@ class PlumberyContext:
         self.context = context
 
     def lookup(self, token):
+        """
+        Retrieves the value attached to a token
+
+        :param token: the token
+        :type token: ``str``
+
+        :return: the value attached to this token, or `None`
+
+        """
 
         if token in self.keys:
             return str(self.dictionary[token])
@@ -229,6 +283,7 @@ class PlumberyNodeContext:
         self.node = node
         self.container = container
         self.context = context
+
         self.cache = {
             'node': node.private_ips[0],
             node.name: node.private_ips[0],
@@ -248,39 +303,57 @@ class PlumberyNodeContext:
             self.cache['node.public'] = node.public_ips[0]
             self.cache[node.name+'.public'] = node.public_ips[0]
 
+
     def lookup(self, token):
+        """
+        Retrieves the value attached to a token
+
+        :param token: the token, e.g., 'node.ipv6'
+        :type token: ``str``
+
+        :return: the value attached to this token, or `None`
+
+        """
 
         if token in self.cache:
             return str(self.cache[token])
 
-        if self.container is not None:
+        value = None
+        if self.context is not None:
+            value = self.context.lookup(token)
 
-            tokens = token.split('.')
-            if len(tokens) < 2:
-                tokens.append('private')
+        if value is not None:
+            return value
 
-            nodes = PlumberyNodes(self.container.facility)
-            node = nodes.get_node(tokens[0])
-            if node is not None:
-                self.cache[tokens[0]] = node.private_ips[0]
-                self.cache[tokens[0]+'.private'] = node.private_ips[0]
-                self.cache[tokens[0]+'.ipv6'] = node.extra['ipv6']
-                if len(node.public_ips) > 0:
-                    self.cache[tokens[0]+'.public'] = node.public_ips[0]
+        if self.container is None:
+            return None
 
-                if tokens[1] == 'private':
-                    return node.private_ips[0]
+        tokens = token.split('.')
+        if len(tokens) < 2:
+            tokens.append('private')
 
-                if tokens[1] == 'ipv6':
-                    return node.extra['ipv6']
-
-                if tokens[1] == 'public':
-                    if len(node.public_ips) > 0:
-                        return node.public_ips[0]
-                    else:
-                        return ''
+        nodes = PlumberyNodes(self.container.facility)
+        node = nodes.get_node(tokens[0])
+        if node is None:
+            return none
 
         if self.context is not None:
-            return self.context.lookup(token)
+            self.context.remember(tokens[0], node.private_ips[0])
+            self.context.remember(tokens[0]+'.private', node.private_ips[0])
+            self.context.remember(tokens[0]+'.ipv6', node.extra['ipv6'])
+            if len(node.public_ips) > 0:
+                self.context.remember(tokens[0]+'.public', node.public_ips[0])
+
+        if tokens[1] == 'private':
+            return node.private_ips[0]
+
+        if tokens[1] == 'ipv6':
+            return node.extra['ipv6']
+
+        if tokens[1] == 'public':
+            if len(node.public_ips) > 0:
+                return node.public_ips[0]
+            else:
+                return ''
 
         return None

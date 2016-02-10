@@ -819,9 +819,32 @@ class PlumberyFacility(object):
             infrastructure.destroy_blueprint(blueprint)
 
     def lookup(self, token):
+        """
+        Retrieves the value attached to a token
+
+        :param token: the token, e.g., 'server1.ipv6'
+        :type token: ``str``
+
+        :return: the value attached to this token, or `None`
+
+        """
 
         if token in self._cache_lookup:
             return self._cache_lookup[token]
 
         return self.plumbery.lookup(token)
+
+    def remember(self, token, value):
+        """
+        Remembers the value attached to a token
+
+        :param token: the token, e.g., 'server1.private'
+        :type token: ``str``
+
+        :param value: the value attached to this token, e.g., '10.0.0.8'
+        :type value: ``str``
+
+        """
+
+        self._cache_lookup[token] = value
 
