@@ -48,18 +48,20 @@ blueprints:
       nodes:
         - queen:
 
-            description: "#queen #docker #swarm #ubuntu"
+            description: "#docker #swarm #queen #ubuntu"
 
             information:
-              - "this is a Docker queen server of the full swarm"
+              - "a Docker engine acting as the queen for the full swarm"
               - "connect remotely with:"
               - "$ ssh ubuntu@{{ queen.public }}"
+              - "check status of local docker with:"
+              - "$ docker info"
               - "check swarm status with:"
               - "$ docker -H :4000 info"
-              - "run hello world somewhere with:"
-              - "$ docker -H :4000 run hello-world"
-              - "check which node is running hello world with:"
-              - "$ docker -H :4000 ps"
+              - "run redis in a container somewhere with:"
+              - "$ docker -H :4000 run --name some-redis -d redis"
+              - "check which node is running redis with:"
+              - "$ docker -H :4000 ps -l | grep redis"
 
             appliance: 'Ubuntu 14'
 
@@ -103,6 +105,12 @@ blueprints:
                      print "{{ bee7.private }}    bee7"
                     }
 
+                - path: /root/docker.sed
+                  content: |
+                    #!/usr/bin/sed
+                    s/#DOCKER_OPTS/DOCKER_OPTS/
+                    s|\-\-dns 8.8.8.8 \-\-dns 8.8.4.4|-H tcp://{{ node.private }}:2375 -H unix:///var/run/docker.sock|
+
               runcmd:
 
                 - echo "===== Handling ubuntu identity"
@@ -117,7 +125,8 @@ blueprints:
 
                 - echo "===== Installing docker"
                 - curl -sSL https://get.docker.com/ | sh
-                - docker daemon -H unix:///var/run/docker.sock -H tcp://{{ node.private }}:2375
+                - sed -i -f /root/docker.sed /etc/default/docker
+                - restart docker
                 - usermod -aG docker ubuntu
                 - su ubuntu -c "docker run hello-world"
 
@@ -135,11 +144,10 @@ blueprints:
       nodes:
         - bee[1..7]:
 
-            description: "#bee #docker #swarm #ubuntu"
+            description: "#docker #swarm #bee #ubuntu"
 
             information:
-              - "connect remotely with:"
-              - "$ ssh ubuntu@{{ node.public }}"
+              - "a Docker engine acting as a worker bee for the full swarm"
 
             appliance: 'Ubuntu 14'
 
@@ -183,6 +191,12 @@ blueprints:
                      print "{{ bee7.private }}    bee7"
                     }
 
+                - path: /root/docker.sed
+                  content: |
+                    #!/usr/bin/sed
+                    s/#DOCKER_OPTS/DOCKER_OPTS/
+                    s|\-\-dns 8.8.8.8 \-\-dns 8.8.4.4|-H tcp://{{ node.private }}:2375 -H unix:///var/run/docker.sock|
+
               runcmd:
 
                 - echo "===== Handling ubuntu identity"
@@ -197,9 +211,10 @@ blueprints:
 
                 - echo "===== Installing docker"
                 - curl -sSL https://get.docker.com/ | sh
-                - docker daemon -H unix:///var/run/docker.sock -H tcp://{{ node.private }}:2375
+                - sed -i -f /root/docker.sed /etc/default/docker
+                - restart docker
                 - usermod -aG docker ubuntu
-                - su ubuntu -c "docker run hello-world"
+                - su ubuntu -c "docker -H {{ node.name }}:2375 run hello-world"
 
                 - echo "===== Running swarm"
                 - sleep 1m

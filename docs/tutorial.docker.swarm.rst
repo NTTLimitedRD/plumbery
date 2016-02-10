@@ -56,10 +56,27 @@ connection.
 .. sourcecode:: bash
 
     $ ssh root@<ipv4_here>
-    $ docker run hello-world
 
+From there you will check both the status of the local Docker Engine, and the
+status from the full Docker Swarm:
 
-This command is self-explanatory and validates the setup of Docker Swarm.
+.. sourcecode::bash
+
+    $ docker info
+    $ docker -H :4000 info
+
+Next step is to run a new Redis container somewhere in the swarm:
+
+.. sourcecode::bash
+
+    $ docker -H :4000 run --name some-redis -d redis
+
+And, of course, you may want to identify which node is running redis
+exactly:
+
+.. sourcecode::bash
+
+    $ docker -H :4000 ps -l | grep redis
 
 Destruction commands
 --------------------
