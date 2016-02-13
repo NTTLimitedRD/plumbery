@@ -398,7 +398,13 @@ class PlumberyNodes(object):
 
         labels = []
         for index in range(int(matches.group(2)), int(matches.group(3))+1):
-            labels.append(matches.group(1)+str(index)+matches.group(4))
+
+            label = matches.group(1)+str(index)+matches.group(4)
+            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$", label) is None:
+                logger.warning("Warning: '{}' is not a valid hostname".format(label))
+
+            labels.append(label)
+
         return labels
 
     def get_node(self, path):
