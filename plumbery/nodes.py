@@ -459,7 +459,7 @@ class PlumberyNodes(object):
                                 node.public_ips.append(rule.external_ip)
                                 break
 
-                    self._update_ipv6(node)
+                    print node.extra
 
                     return node
 
@@ -494,8 +494,6 @@ class PlumberyNodes(object):
                                 node.public_ips.append(rule.external_ip)
                                 break
 
-                    self._update_ipv6(node)
-
                     return node
 
         elif len(path) == 3: # other region
@@ -528,8 +526,6 @@ class PlumberyNodes(object):
                             if rule.internal_ip == node.private_ips[0]:
                                 node.public_ips.append(rule.external_ip)
                                 break
-
-                    self._update_ipv6(node)
 
                     return node
 
@@ -875,36 +871,3 @@ class PlumberyNodes(object):
                     logging.error(str(feedback))
 
             break
-
-    def _update_ipv6(self, node):
-        """
-        Retrieves the ipv6 address for this node
-
-        This is a hack. Code here should really go to the Libcloud driver in
-        libcloud.compute.drivers.dimensiondata.py _to_node()
-
-        """
-
-        try:
-            element = self.region.connection.request_with_orgId_api_2(
-                'server/server/%s' % node.id).object
-
-            has_network_info \
-                = element.find(fixxpath('networkInfo', TYPES_URN)) is not None
-
-            ipv6 = element.find(
-                fixxpath('networkInfo/primaryNic', TYPES_URN)) \
-                .get('ipv6') \
-                if has_network_info else \
-                element.find(fixxpath('nic', TYPES_URN)).get('ipv6')
-
-            node.extra['ipv6'] = ipv6
-
-        except Exception as feedback:
-
-            if 'RESOURCE_NOT_FOUND' in str(feedback):
-                node.extra['ipv6'] = ''
-
-            else:
-                logging.info("Error: unable to retrieve IPv6 addresses ")
-                logging.error(str(feedback))
