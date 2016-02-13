@@ -299,7 +299,7 @@ class PlumberyInfrastructure(object):
 
         self.blueprint = blueprint
 
-        logging.debug("Building infrastructure for blueprint '{}'".format(
+        logging.debug("Building infrastructure of blueprint '{}'".format(
             blueprint['target']))
 
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:

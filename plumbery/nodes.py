@@ -88,7 +88,7 @@ class PlumberyNodes(object):
 
         """
 
-        logging.debug("Building nodes for blueprint '{}'".format(
+        logging.debug("Building nodes of blueprint '{}'".format(
             blueprint['target']))
 
         self.facility.power_on()
