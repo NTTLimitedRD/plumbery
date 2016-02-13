@@ -335,7 +335,7 @@ class PlumberyNodeContext:
         nodes = PlumberyNodes(self.container.facility)
         node = nodes.get_node(tokens[0])
         if node is None:
-            return none
+            return None
 
         if self.context is not None:
             self.context.remember(tokens[0], node.private_ips[0])
