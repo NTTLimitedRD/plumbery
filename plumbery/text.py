@@ -52,6 +52,7 @@ class PlumberyText:
 
         expanded = ''
         index = 0
+        debugged = []
 
         while index < len(text):
             head = text.find(opening, index)
@@ -76,7 +77,9 @@ class PlumberyText:
                 index = tail+len(closing)
 
             else: # actual expansion
-                logging.debug("- '{}' -> '{}'".format(token, replacement))
+                if token not in debugged:
+                    logging.debug("- '{}' -> '{}'".format(token, replacement))
+                    debugged.append(token)
 
                 if serialized: #preserve line breaks
                     replacement = replacement.replace('\n', '\\'+'n')
