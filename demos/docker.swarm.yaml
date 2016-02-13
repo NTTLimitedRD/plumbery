@@ -131,10 +131,10 @@ blueprints:
                 - su ubuntu -c "docker run hello-world"
 
                 - echo "===== Running consul"
-                - docker run -d -p 8500:8500 --name=consul -h {{ node.name }} progrium/consul -server -bootstrap -advertise {{ node.private }}
+                - docker run -d -p 8500:8500 --name=consul --restart=always -h {{ node.name }} progrium/consul -server -bootstrap -advertise {{ node.private }}
 
                 - echo "===== Running swarm manager"
-                - docker run -d -p 4000:4000 --name=swarmMgr swarm manage -H :4000 --advertise {{ node.private }}:4000  consul://{{ node.private }}:8500
+                - docker run -d -p 4000:4000 --name=swarmMgr --restart=always swarm manage -H :4000 --advertise {{ node.private }}:4000  consul://{{ node.private }}:8500
                 - docker ps
 
   - bees: # some bees contributing to the swarm
@@ -218,7 +218,7 @@ blueprints:
 
                 - echo "===== Running swarm"
                 - sleep 1m
-                - docker run -d --name=swarm swarm join --advertise={{ node.private }}:2375 consul://{{ queen.private }}:8500
+                - docker run -d --name=swarm --restart=always swarm join --advertise={{ node.private }}:2375 consul://{{ queen.private }}:8500
                 - docker ps
 
 
