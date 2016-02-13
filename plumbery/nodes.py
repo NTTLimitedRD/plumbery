@@ -459,8 +459,6 @@ class PlumberyNodes(object):
                                 node.public_ips.append(rule.external_ip)
                                 break
 
-                    print node.extra
-
                     return node
 
         elif len(path) == 2: # different location, same region
