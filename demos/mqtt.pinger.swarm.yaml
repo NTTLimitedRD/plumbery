@@ -124,7 +124,7 @@ blueprints:
 
             information:
               - "a Kibana dashboard to visualize pings"
-              - "http://{{ dashboard.public }}:8000"
+              - "http://{{ dashboard.public }}"
               - "authenticate with 'dashboard' and '{{ dashboard.secret }}'"
 
             appliance: 'Ubuntu 14'
