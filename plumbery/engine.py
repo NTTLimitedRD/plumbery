@@ -393,9 +393,6 @@ class PlumberyEngine(object):
                     logging.debug("- loading {} from {}".format(id, path))
                     text = stream.read().strip()
                     stream.close()
-
-                    logging.debug("- using {} -> {}".format(
-                        id, text))
                     return text
 
             except IOError:
@@ -405,13 +402,11 @@ class PlumberyEngine(object):
 
         key = RSA.generate(2048)
         self.secrets[name+'.rsa_private'] = key.exportKey('PEM')
-        logging.debug("- generating {} -> {}".format(
-            name+'.rsa_private', self.secrets[name+'.rsa_private']))
+        logging.debug("- generating {}".format(name+'.rsa_private'))
 
         pubkey = key.publickey()
         self.secrets[name+'.rsa_public'] = pubkey.exportKey('OpenSSH')
-        logging.debug("- generating {} -> {}".format(
-            name+'.rsa_public', self.secrets[name+'.rsa_public']))
+        logging.debug("- generating {}".format(name+'.rsa_public'))
 
         self.save_secrets()
         return self.secrets[id]
@@ -481,7 +476,7 @@ class PlumberyEngine(object):
         elif '.sha1.' in id:
             secret = hashlib.sha1(secret).hexdigest()
 
-        logging.debug("- generating {} -> {}".format(id, secret))
+        logging.debug("- generating {}".format(id))
         self.secrets[id] = secret
         self.save_secrets()
 
