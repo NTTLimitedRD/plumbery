@@ -62,7 +62,8 @@ The plan below demonstrates multiple interesting tips and tricks:
 * Update of etc/hosts with IPv6
 * Install swarming software in python directly from GitHub repository
 * Turn a python command to a service that can be started and stopped on-demand
-* Remove Apache and install Nginx instead
+* Remove Apache, and install Nginx instead
+* Install an interactive dashboard with Elasticseach and Kibana
 * Configure Nginx as efficient and secured proxy to Kibana
 * Orchestrate generation and configuration of web password to the dashboard
 * Automate the installation of Oracle 8 JDK
