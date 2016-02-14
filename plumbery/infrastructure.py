@@ -1534,13 +1534,19 @@ class PlumberyInfrastructure(object):
             else:
                 label = str(item)
 
-            source = self.get_ethernet(label.split('::'))
+            source = self.get_ethernet(label)
             if source is None:
                 logging.info("Source network '{}' is unknown".format(label))
                 continue
 
+            # avoid name collisions across local, remote and off-shore networks
+            tokens = label.split('::')
+            while len(tokens) > 2:
+                tokens.remove(0)
+            source_name = '-'.join(tokens)
+
             ruleIPv4Name = self.name_firewall_rule(
-                source.name, destination.name, 'IP')
+                source_name, destination.name, 'IP')
 
             shouldCreateRuleIPv4 = True
             if source.location.name != destination.location.name:
@@ -1549,7 +1555,7 @@ class PlumberyInfrastructure(object):
                 shouldCreateRuleIPv4 = False
 
             ruleIPv6Name = self.name_firewall_rule(
-                source.name, destination.name, 'IPv6')
+                source_name, destination.name, 'IPv6')
 
             shouldCreateRuleIPv6 = True
 
