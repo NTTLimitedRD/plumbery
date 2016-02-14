@@ -1,4 +1,4 @@
--e git+https://github.com/DimensionDataCBUSydney/libcloud@LIBCLOUD-783_21_support_for_dimension_data#egg=apache-libcloud
+-e git+https://github.com/apache/libcloud.git#egg=apache-libcloud
 netifaces==0.10.4
 bumpversion==0.5.3
 wheel==0.23.0
