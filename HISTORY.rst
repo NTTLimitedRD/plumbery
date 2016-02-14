@@ -3,6 +3,27 @@
 History
 -------
 
+0.4.2 (2016-02-14)
+~~~~~~~~~~~~~~~~~~
+
+* Add tutorials on Docker, Kubernetes, Docker Swarm -- DevOps
+* Add tutorial to create a Stackstorm server -- DevOps too
+* Add tutorial to create a swarm of pingers with MQTT and Kibana -- IOT is coming
+* A total of 23 various tutorials is provided
+* Enhance the documentation accordingly
+* Enhance the documentation page on cloud-config
+* Add help for Windows users
+* Add the generation of uuid when needed (ceph cluster)
+* Add the capability to assign public IPv4 when needed (automatic mode)
+* Expand information reported by the 'inventory' command
+* Now support settings for a proxy for all interactions with API endpoints
+* Restructure code and improve performance with better cache
+* Fix multiple bugs and errors
+* Improve information provided in debug mode
+* Passing Travis CI
+* 2769 python statements
+* Test coverage 48%
+
 0.4.1 (2016-01-24)
 ~~~~~~~~~~~~~~~~~~
 

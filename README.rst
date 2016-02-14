@@ -23,6 +23,7 @@ Infrastructure as code at Dimension Data with Apache Libcloud
 Features
 --------
 
+* 23 tutorials covering popular use cases -- DevOps is coming
 * Read fittings plan in YAML
 * Use cloud API to create the network infrastructure, and to build nodes
 * Bootstrap nodes with cloud-init configuration directives
