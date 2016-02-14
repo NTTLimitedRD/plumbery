@@ -4,8 +4,7 @@ Master and slave MySQL databases in different locations
 
 In this use case a master database server and a slave database server are
 deployed in different locations. The back-end IPv6 infrastructure
-provided by Dimension Data is used to replicate data continuously,
-at no additional cost.
+provided by Dimension Data is used to replicate data continuously and securely.
 
 As shown below, plumbery provides a streamlined definition of the overall
 solution, that encompasses servers location, the networking infrastructure,
