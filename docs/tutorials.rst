@@ -44,6 +44,7 @@ instructions to demonstrate it or to use it.
    tutorial.docker
    tutorial.docker.swarm
    tutorial.kubernetes
+   tutorial.mqtt.pinger.swarm
    tutorial.stackstorm
    tutorial.owncloud
    tutorial.openvpn

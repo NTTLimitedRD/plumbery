@@ -81,7 +81,6 @@ blueprints:
               - internet 22
 
             monitoring: essentials
-            running: always
 
             cloud-config:
 
@@ -155,7 +154,6 @@ blueprints:
               - internet 22 80
 
             monitoring: essentials
-            running: always
 
             cloud-config:
 
