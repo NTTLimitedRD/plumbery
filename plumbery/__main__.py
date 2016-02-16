@@ -57,6 +57,11 @@ def parse_args(args=[]):
              "If omitted, all locations will be considered.",
         default=None)
 
+    parser.add_argument(
+        '-s', '--safe',
+        help='Safe mode, no actual change is made to the infrastructure',
+        action='store_true')
+
     group = parser.add_mutually_exclusive_group()
 
     group.add_argument(
@@ -67,11 +72,6 @@ def parse_args(args=[]):
     group.add_argument(
         '-q', '--quiet',
         help='Silent mode, log only warnings and errors',
-        action='store_true')
-
-    group.add_argument(
-        '-s', '--safe',
-        help='Safe mode, no actual change is made to the infrastructure',
         action='store_true')
 
     parser.add_argument(
@@ -208,7 +208,7 @@ def main(args=[], engine=None):
             engine = PlumberyEngine(args.fittings)
 
             if args.safe:
-                engine.safeMode = true
+                engine.safeMode = True
 
         except Exception as feedback:
             if logging.getLogger().getEffectiveLevel() == logging.DEBUG:

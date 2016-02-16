@@ -190,6 +190,25 @@ class TestPlumberyEngine(unittest.TestCase):
         except InvalidCredsError:
             pass
 
+    def test_as_library(self):
+
+        engine = PlumberyEngine()
+        engine.set_shared_secret('fake_secret')
+        engine.set_user_name('fake_name')
+        engine.set_user_password('fake_password')
+
+        engine.add_facility(myFacility)
+        facilities = engine.list_facility('EU7')
+        self.assertEqual(len(facilities), 1)
+
+#        try:
+#            engine.do('ping')
+#        except socket.gaierror:
+#            pass
+#        except InvalidCredsError:
+#            pass
+
+
     def test_lookup(self):
 
         self.engine = PlumberyEngine()
@@ -275,15 +294,20 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.get_default('ipv4'), 'auto')
 
     def test_parser(self):
+
         args = parse_args(['fittings.yaml', 'build', 'web'])
         self.assertEqual(args.fittings, 'fittings.yaml')
         self.assertEqual(args.action, 'build')
         self.assertEqual(args.blueprints, ['web'])
         self.assertEqual(args.facilities, None)
+        args = parse_args(['fittings.yaml', 'build', 'web', '-s'])
+        self.assertEqual(args.safe, True)
         args = parse_args(['fittings.yaml', 'build', 'web', '-d'])
+        self.assertEqual(args.debug, True)
         self.assertEqual(
             logging.getLogger().getEffectiveLevel(), logging.DEBUG)
         args = parse_args(['fittings.yaml', 'build', 'web', '-q'])
+        self.assertEqual(args.quiet, True)
         self.assertEqual(
             logging.getLogger().getEffectiveLevel(), logging.WARNING)
         args = parse_args(['fittings.yaml', 'start', '@NA12'])
@@ -310,6 +334,7 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(args.facilities, None)
 
     def test_main(self):
+
         engine = PlumberyEngine()
         engine.from_text(myPlan)
         engine.set_user_name('fake_name')
