@@ -1542,7 +1542,7 @@ class PlumberyInfrastructure(object):
             # avoid name collisions across local, remote and off-shore networks
             tokens = label.split('::')
             while len(tokens) > 2:
-                tokens.remove(0)
+                tokens.pop(0)
             source_name = '-'.join(tokens)
 
             ruleIPv4Name = self.name_firewall_rule(
