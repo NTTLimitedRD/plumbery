@@ -97,16 +97,7 @@ class PlumberyEngine(object):
     fittings plan. As a result, plans will be stored in git or equivalent, and
     shared across some people.
 
-    Attributes:
-
-        safeMode (boolean):
-            If True, which is the default, then no actual change
-            will be made against the infrastructure. This global attribute
-            is coming from the fittings plan.
-
     """
-
-    safeMode = True
 
     def __init__(self, plan=None):
         """
@@ -116,6 +107,8 @@ class PlumberyEngine(object):
         :type plan: ``str`` or ``file``
 
         """
+
+        self.safeMode = False
 
         self.fittingsFile = None
 
@@ -154,9 +147,6 @@ class PlumberyEngine(object):
 
         An example of a minimum fittings plan::
 
-            ---
-            safeMode: False
-            ---
             # Frankfurt in Europe
             locationId: EU6
             regionId: dd-eu
@@ -264,12 +254,10 @@ class PlumberyEngine(object):
         if not isinstance(settings, dict):
             raise TypeError('settings should be a dictionary')
 
-        if 'safeMode' not in settings:
-            raise LookupError('safeMode is not defined')
-
-        self.safeMode = settings['safeMode']
-        if self.safeMode not in [True, False]:
-            raise ValueError('safeMode should be either True or False')
+        if 'safeMode' in settings:
+            self.safeMode = settings['safeMode']
+            if self.safeMode not in [True, False]:
+                raise ValueError('safeMode should be either True or False')
 
         if 'polishers' in settings:
             for item in settings['polishers']:
