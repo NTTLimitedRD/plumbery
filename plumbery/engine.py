@@ -178,10 +178,11 @@ class PlumberyEngine(object):
             self.fittingsFile = plan
             plan = open(plan, 'r')
 
-        documents = yaml.load_all(plan)
+        documents = list(yaml.load_all(plan))
 
         # first document contains engine settings
-        self.set(documents.next())
+        if len(documents) > 1:
+            self.set(documents.pop(0))
 
         # then one document per facility
         for document in documents:
