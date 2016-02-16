@@ -69,6 +69,11 @@ def parse_args(args=[]):
         help='Silent mode, log only warnings and errors',
         action='store_true')
 
+    group.add_argument(
+        '-s', '--safe',
+        help='Safe mode, no actual change is made to the infrastructure',
+        action='store_true')
+
     parser.add_argument(
         '-v', '--version',
         help='Print version of this software',
@@ -201,6 +206,9 @@ def main(args=[], engine=None):
     if engine is None:
         try:
             engine = PlumberyEngine(args.fittings)
+
+            if args.safe:
+                engine.safeMode = true
 
         except Exception as feedback:
             if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
