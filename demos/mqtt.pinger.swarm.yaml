@@ -1,5 +1,4 @@
 ---
-safeMode: false
 
 information:
   - "These fittings plan are aiming to deploy multiple pingers connected"
@@ -52,7 +51,7 @@ blueprints:
           - dd-ap::AP3::SwarmNetworkAP3
           - dd-ap::AP4::SwarmNetworkAP4
           - dd-ap::AP5::SwarmNetworkAP5
-          - dd-ap::AU11::SwarmNetworkAU11
+          - dd-au::AU11::SwarmNetworkAU11
           - dd-eu::EU6::SwarmNetworkEU6
           - dd-eu::EU8::SwarmNetworkEU8
           - dd-na::NA9::SwarmNetworkNA9
