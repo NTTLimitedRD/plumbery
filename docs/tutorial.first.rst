@@ -46,12 +46,14 @@ in the region. Look at the table below to select your preferred location.
   Amsterdam (Netherlands)       EU7        dd-eu
   Ashburn (US East)             NA9        dd-na
   Frankfurt (Germany)           EU6        dd-eu
+  Hong Kong                     AP5        dd-ap
   London (UK)                   EU8        dd-eu
   Melbourne (Australia)        AU10        dd-au
   New-Zealand                  AU11        dd-au
   Santa Clara (US West)        NA12        dd-na
   Singapore                     AP3        dd-ap
   Sydney (Australia)            AU9        dd-au
+  Tokyo (Japan)                 AP4        dd-ap
   =======================  ============  ==========
 
 ``ipv4: 2`` - This is to reserve some public IPv4 addresses. Here we
