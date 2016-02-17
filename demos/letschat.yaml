@@ -2,7 +2,6 @@
 # credit: https://mborgerson.com/setting-up-lets-chat-on-ubuntu
 #
 ---
-safeMode: false
 
 cloud-config:
 

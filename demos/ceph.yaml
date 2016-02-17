@@ -2,7 +2,6 @@
 # credits: http://blog.programster.org/ubuntu-14-04-deploy-a-ceph-cluster-part-1/
 #
 ---
-safeMode: false
 
 # these directives apply to all nodes created by plumbery
 #

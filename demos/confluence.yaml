@@ -1,5 +1,4 @@
 ---
-safeMode: false
 
 cloud-config: # default for all nodes created by plumbery
 
