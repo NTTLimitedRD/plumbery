@@ -92,9 +92,6 @@ An example of a minimum fittings plan:
 
 .. sourcecode:: yaml
 
-    ---
-    safeMode: False
-    ---
     locationId: EU6
     regionId: dd-eu
 
