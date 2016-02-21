@@ -997,8 +997,6 @@ class PlumberyEngine(object):
 
         for facility in facilities:
             facility.focus()
-            for polisher in polishers:
-                polisher.move_to(facility)
             facility.polish_all_blueprints(polishers)
 
         for polisher in polishers:

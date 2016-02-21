@@ -669,6 +669,9 @@ class PlumberyFacility(object):
         infrastructure = PlumberyInfrastructure(self)
         nodes = PlumberyNodes(self)
 
+        for polisher in polishers:
+            polisher.move_to(self)
+
         for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
