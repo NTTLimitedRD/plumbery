@@ -5,11 +5,21 @@ Tests for `polisher` module.
 """
 
 from collections import namedtuple
+import logging
 import unittest
+
+from mock_api import DimensionDataMockHttp
+from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 from libcloud.compute.types import NodeState
 
+from plumbery.engine import PlumberyEngine
+from plumbery.facility import PlumberyFacility
+from plumbery.infrastructure import PlumberyInfrastructure
+from plumbery.nodes import PlumberyNodes
 from plumbery.polisher import PlumberyPolisher
+
+DIMENSIONDATA_PARAMS = ('user', 'password')
 
 
 class FakeNetwork:
@@ -18,6 +28,8 @@ class FakeNetwork:
 
 
 class FakeEngine():
+
+    information = []
 
     def get_shared_secret(self):
         return 'nuts'
@@ -150,55 +162,101 @@ fakeRubConfiguration = {
     'key': 'test_polisher.pub'}
 
 
+myInformation = """
+---
+information:
+  - plan-level information
+---
+locationId: NA9
+regionId: dd-na
+information:
+  - facility-level information
+
+blueprints:
+
+  - test:
+      domain:
+        name: myDC
+      ethernet:
+        name: myVLAN
+        subnet: 10.1.10.0
+      information:
+        - container-level information
+      nodes:
+        node1:
+          - node-level information
+"""
 
 class TestPlumberyPolisher(unittest.TestCase):
 
+
     def test_information(self):
-        self.polisher = PlumberyPolisher.from_shelf('information', {})
-        self.polisher.go(FakeEngine())
-        self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(
+        polisher = PlumberyPolisher.from_shelf('information', {})
+        polisher.go(FakeEngine())
+        polisher.move_to(FakeFacility())
+        polisher.shine_node(
             FakeNode(), fakeNodeSettings, FakeContainer())
-        self.polisher.reap()
+        polisher.reap()
+
+    def test_information_textual(self):
+        engine = PlumberyEngine()
+        engine.from_text(myInformation)
+        polisher = PlumberyPolisher.from_shelf('information', {})
+        polisher.go(engine)
+        facility = engine.list_facility('NA9')[0]
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
+        facility.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+        polisher.move_to(facility)
+        blueprint = facility.get_blueprint('test')
+        infrastructure = PlumberyInfrastructure(facility)
+        container = infrastructure.get_container(blueprint)
+        polisher.shine_container(container)
+        nodes = PlumberyNodes(facility)
+        node = nodes.get_node('node1')
+        polisher.shine_node(
+            node=node, settings=fakeNodeSettings, container=container)
+        polisher.reap()
 
     def test_ping(self):
-        self.polisher = PlumberyPolisher.from_shelf('ping', {})
-        self.polisher.go(FakeEngine())
-        self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(
+        polisher = PlumberyPolisher.from_shelf('ping', {})
+        polisher.go(FakeEngine())
+        polisher.move_to(FakeFacility())
+        polisher.shine_node(
             FakeNode(), fakeNodeSettings, FakeContainer())
-        self.polisher.reap()
+        polisher.reap()
 
     def test_ansible(self):
-        self.polisher = PlumberyPolisher.from_shelf('ansible', {})
-        self.polisher.go(FakeEngine())
-        self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
-        self.polisher.reap()
+        polisher = PlumberyPolisher.from_shelf('ansible', {})
+        polisher.go(FakeEngine())
+        polisher.move_to(FakeFacility())
+        polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
+        polisher.reap()
 
     def test_inventory(self):
-        self.polisher = PlumberyPolisher.from_shelf('inventory', {})
-        self.polisher.go(FakeEngine())
-        self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(
+        polisher = PlumberyPolisher.from_shelf('inventory', {})
+        polisher.go(FakeEngine())
+        polisher.move_to(FakeFacility())
+        polisher.shine_node(
             FakeNode(), fakeNodeSettings, FakeContainer())
-        self.polisher.reap()
+        polisher.reap()
 
     def test_rub(self):
-        self.polisher = PlumberyPolisher.from_shelf(
+        polisher = PlumberyPolisher.from_shelf(
             'rub', fakeRubConfiguration)
-        self.polisher.go(FakeEngine())
-        self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
-        self.polisher.reap()
+        polisher.go(FakeEngine())
+        polisher.move_to(FakeFacility())
+        polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
+        polisher.reap()
 
     def test_spit(self):
-        self.polisher = PlumberyPolisher.from_shelf('spit', {})
-        self.polisher.go(FakeEngine())
-        self.polisher.move_to(FakeFacility())
-        self.polisher.shine_node(
+        polisher = PlumberyPolisher.from_shelf('spit', {})
+        polisher.go(FakeEngine())
+        polisher.move_to(FakeFacility())
+        polisher.shine_node(
             FakeNode(), fakeNodeSettings, FakeContainer())
-        self.polisher.reap()
+        polisher.reap()
 
 if __name__ == '__main__':
     import sys

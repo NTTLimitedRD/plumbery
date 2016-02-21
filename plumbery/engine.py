@@ -108,6 +108,8 @@ class PlumberyEngine(object):
 
         """
 
+        self.information = []
+
         self.safeMode = False
 
         self.fittingsFile = None
@@ -257,6 +259,11 @@ class PlumberyEngine(object):
 
         if not isinstance(settings, dict):
             raise TypeError('settings should be a dictionary')
+
+        if 'information' in settings:
+            self.information = settings['information']
+            if not isinstance(self.information, list):
+                raise ValueError('information should be a list')
 
         if 'safeMode' in settings:
             self.safeMode = settings['safeMode']

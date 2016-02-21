@@ -14,19 +14,131 @@
 # limitations under the License.
 
 import logging
+import sys
 
 from libcloud.compute.base import NodeState
 
 from plumbery.polisher import PlumberyPolisher
 from plumbery.text import PlumberyText
+from plumbery.text import PlumberyContext
 from plumbery.text import PlumberyNodeContext
 
 
 class InformationPolisher(PlumberyPolisher):
     """
-    Shows information attached to nodes
+    Shows information attached to fittings plan, to containers, to nodes
 
     """
+
+    def go(self, engine):
+        """
+        Lists information registered at the highest level of fittings plan
+
+        :param engine: the plumbery engine itself
+        :type engine: :class:`plumbery.PlumberyEngine`
+
+        """
+
+        self.engine = engine
+
+        self.information = []
+
+        environment = PlumberyContext(context=self.engine)
+
+        lines = []
+        for line in engine.information:
+
+            tokens = line.split(' ')
+            if tokens[0] == 'echo':
+                tokens.pop(0)
+            message = ' '.join(tokens)
+            message = PlumberyText.expand_variables(
+                message, environment)
+            lines.append(message)
+
+        if len(lines) < 1:
+            return
+
+        self.information.append("About this fittings plan:")
+
+        for line in lines:
+            self.information.append("- {}".format(line))
+
+    def move_to(self, facility):
+        """
+        Lists information registered in one document of fittings plan
+
+        :param facility: a target facility
+        :type facility: :class:`plumbery.PlumberyFacility`
+
+        This function is called once for each facility that is visited during
+        the polishing process. You can override it for any specific
+        initialisation that you would require.
+
+        """
+
+        self.facility = facility
+
+        environment = PlumberyContext(context=self.facility)
+
+        lines = []
+        if ('information' in facility.parameters
+                and isinstance(facility.parameters['information'], list)
+                and len(facility.parameters['information']) > 0):
+
+            for line in facility.parameters['information']:
+
+                tokens = line.split(' ')
+                if tokens[0] == 'echo':
+                    tokens.pop(0)
+                message = ' '.join(tokens)
+                message = PlumberyText.expand_variables(
+                    message, environment)
+                lines.append(message)
+
+        if len(lines) < 1:
+            return
+
+        self.information.append("About '{}':".format(facility.get_location_id()))
+
+        for line in lines:
+            self.information.append("- {}".format(line))
+
+    def shine_container(self, container):
+        """
+        Lists information registered at the container level
+
+        :param container: the container to be polished
+        :type container: :class:`plumbery.PlumberyInfrastructure`
+
+        """
+
+        environment = PlumberyNodeContext(node=None,
+                                          container=container,
+                                          context=self.facility)
+
+        lines = []
+        if ('information' in container.blueprint.keys()
+                and isinstance(container.blueprint['information'], list)
+                and len(container.blueprint['information']) > 0):
+
+            for line in container.blueprint['information']:
+
+                tokens = line.split(' ')
+                if tokens[0] == 'echo':
+                    tokens.pop(0)
+                message = ' '.join(tokens)
+                message = PlumberyText.expand_variables(
+                    message, environment)
+                lines.append(message)
+
+        if len(lines) < 1:
+            return
+
+        self.information.append("About '{}':".format(container.blueprint['target']))
+
+        for line in lines:
+            self.information.append("- {}".format(line))
 
     def list_information(self, node, settings, container):
         """
@@ -79,20 +191,17 @@ class InformationPolisher(PlumberyPolisher):
 
         """
 
-        if node is None:
-            return
-
-        logging.info("About '{}':".format(settings['name']))
-
         lines = []
 
-        if 'description' in node.extra:
+        if (node is not None and 'description' in node.extra):
             description = node.extra['description'].replace(
                 '#plumbery', '').strip()
             if len(description) > 0:
                 lines.append(description)
 
-        if node.state == NodeState.RUNNING:
+        if node is None:
+            lines.append("node is unknown")
+        elif node.state == NodeState.RUNNING:
             lines.append("node is up and running")
         elif node.state in [NodeState.TERMINATED,
                             NodeState.STOPPED,
@@ -103,8 +212,32 @@ class InformationPolisher(PlumberyPolisher):
 
         lines += self.list_information(node, settings, container)
         if len(lines) < 1:
-            logging.info("- no information to report")
             return
 
+        self.information.append("About '{}':".format(settings['name']))
+
         for line in lines:
-            logging.info("- {}".format(line))
+            self.information.append("- {}".format(line))
+
+    def reap(self):
+        """
+        Saves information gathered through the polishing sequence
+
+        All information captured in dumped in a file, in YAML format,
+        to provide a flexible and accurate inventory of all live nodes
+        described in the fittings plan.
+
+        """
+
+        if len(self.information) < 1:
+            return
+
+        if 'reap' in self.settings:
+            fileName = self.settings['reap']
+            logging.info("Writing information in '{}'".format(fileName))
+            stream = open(fileName, 'w')
+        else:
+            logging.info("Showing information")
+            stream = sys.stdout
+
+        stream.write('\n'.join(self.information)+'\n')
