@@ -287,6 +287,9 @@ class PlumberyNodeContext:
         self.container = container
         self.context = context
 
+        if node is None:
+            return
+
         self.cache = {
             'node': node.private_ips[0],
             node.name: node.private_ips[0],
