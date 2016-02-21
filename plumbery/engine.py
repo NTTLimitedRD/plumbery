@@ -104,7 +104,7 @@ class PlumberyEngine(object):
         Ignites the plumbing engine
 
         :param plan: the file that contains fittings plan
-        :type plan: ``str`` or ``file``
+        :type plan: ``str`` or ``file`` or ``dict``
 
         """
 
@@ -138,7 +138,7 @@ class PlumberyEngine(object):
         Reads the fittings plan from a file
 
         :param plan: the file that contains fittings plan
-        :type plan: ``str`` or ``file``
+        :type plan: ``str`` or ``file`` or ``dict``
 
         The fittings plan is expected to follow YAML specifications, and it
         must have multiple documents in it. The first document provides
@@ -178,7 +178,10 @@ class PlumberyEngine(object):
             self.fittingsFile = plan
             plan = open(plan, 'r')
 
-        documents = list(yaml.load_all(plan))
+        if isinstance(plan, dict):
+            documents = [plan]
+        else:
+            documents = list(yaml.load_all(plan))
 
         # first document contains engine settings
         if len(documents) > 1:

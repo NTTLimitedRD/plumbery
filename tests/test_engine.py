@@ -192,14 +192,20 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_as_library(self):
 
-        engine = PlumberyEngine()
+        engine = PlumberyEngine(myFacility)
         engine.set_shared_secret('fake_secret')
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
 
-        engine.add_facility(myFacility)
         facilities = engine.list_facility('EU7')
         self.assertEqual(len(facilities), 1)
+
+        facility = facilities[0]
+        self.assertEqual(facility.get_parameter('regionId'), 'dd-eu')
+        self.assertEqual(facility.get_parameter('locationId'), 'EU7')
+
+        blueprint = facility.get_blueprint('fake')
+        self.assertEqual(blueprint.keys(), ['ethernet', 'domain', 'nodes', 'target'])
 
 #        try:
 #            engine.do('ping')
