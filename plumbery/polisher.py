@@ -160,6 +160,9 @@ class PlumberyPolisher(object):
         """
         Puts the shoes on, and go polishing
 
+        :param engine: the plumbery engine itself
+        :type engine: :class:`plumbery.PlumberyEngine`
+
         This function is called once, before starting the process of
         polishing each node. You can override it for any specific
         initialisation that you would require.
@@ -171,6 +174,9 @@ class PlumberyPolisher(object):
     def move_to(self, facility):
         """
         Enters a facility to polish nodes there
+
+        :param facility: a target facility
+        :type facility: :class:`plumbery.PlumberyFacility`
 
         This function is called once for each facility that is visited during
         the polishing process. You can override it for any specific

@@ -32,11 +32,8 @@ class InventoryPolisher(PlumberyPolisher):
     like in the following example::
 
         ---
-        safeMode: False
         polishers:
-          - spit:
-              reap: nodes.yaml
-          - ansible:
+          - inventory:
               reap: inventory.yaml
         ---
         # Frankfurt in Europe

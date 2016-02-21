@@ -92,7 +92,7 @@ class PlumberyFacility(object):
 
     def __repr__(self):
 
-        return "<PlumberyFacility fittings: {}>".format(self.fittings)
+        return "<PlumberyFacility parameters: {}>".format(self.parameters)
 
     def get_location_id(self):
         """

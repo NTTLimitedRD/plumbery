@@ -215,10 +215,6 @@ class PlumberyEngine(object):
         Example of use::
 
             myPlan = \"\"\"
-            ---
-            safeMode: True
-            ---
-            # Frankfurt in Europe
             locationId: EU6
             regionId: dd-eu
 
@@ -284,9 +280,13 @@ class PlumberyEngine(object):
 
         if 'cloud-config' in settings:
             self.cloudConfig = settings['cloud-config']
+            if not isinstance(self.cloudConfig, dict):
+                raise ValueError('cloud-config should be a list')
 
         if 'defaults' in settings:
             self.defaults = settings['defaults']
+            if not isinstance(self.defaults, dict):
+                raise ValueError('defaults should be a list')
 
         if len(self.defaults) > 1:
             logging.debug("Default parameters:")
