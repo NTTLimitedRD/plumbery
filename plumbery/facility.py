@@ -105,6 +105,62 @@ class PlumberyFacility(object):
 
         return self.get_parameter('locationId')
 
+    def get_city(self):
+        """
+        Retrieves the city of the current location
+
+        :return:  the city, e.g., 'Amsterdam' or 'Singapore'
+        :rtype: ``str``
+
+        """
+
+        cities = {
+            'EU7': 'Amsterdam',
+            'NA9': 'Ashburn',
+            'EU6': 'Frankfurt',
+            'AP5': 'Hong Kong',
+            'EU8': 'London',
+            'AU10': 'Melbourne',
+            'AU11': 'Hamilton',
+            'NA12': 'Santa Clara',
+            'AP3': 'Singapore',
+            'AU9': 'Sydney',
+            'AP4': 'Tokyo',
+        }
+
+        if self.get_parameter('locationId') not in cities.keys():
+            return '*unknown*'
+
+        return cities[self.get_parameter('locationId')]
+
+    def get_coordinates(self):
+        """
+        Retrieves coordinates of the current location
+
+        :return:  latitude and longitude of the current location
+        :rtype: ``list``
+
+        """
+
+        coordinates = {
+            'EU7': [52.3740300, 4.8896900],
+            'NA9': [39.0437200, -77.4874900],
+            'EU6': [50.1155200, 8.6841700],
+            'AP5': [22.2855200, 114.1576900],
+            'EU8': [51.5085300, -0.1257400],
+            'AU10': [-37.8140000, 144.9633200],
+            'AU11': [-37.7833300, 175.2833300],
+            'NA12': [37.3541100, -121.9552400],
+            'AP3': [1.2896700, 103.8500700],
+            'AU9': [-33.8678500, 151.2073200],
+            'AP4': [35.6895000, 139.6917100],
+        }
+
+        if self.get_parameter('locationId') not in coordinates.keys():
+            return None
+
+        return coordinates[self.get_parameter('locationId')]
+
     def get_parameter(self, label, default=None):
         """
         Retrieves the value of one parameter
