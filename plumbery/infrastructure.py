@@ -159,7 +159,7 @@ class PlumberyInfrastructure(object):
         if len(self.facility._cache_network_domains) < 1:
             logging.debug("Listing network domains")
             self.facility._cache_network_domains = \
-                self.region.ex_list_network_domains(self.facility.location.id)
+                self.region.ex_list_network_domains(self.facility.get_location_id())
             logging.debug("- found {} network domains"
                          .format(len(self.facility._cache_network_domains)))
 
@@ -205,7 +205,7 @@ class PlumberyInfrastructure(object):
             if len(self.facility._cache_vlans) < 1:
                 logging.debug("Listing Ethernet networks")
                 self.facility._cache_vlans = self.region.ex_list_vlans(
-                    location=self.facility.location.id)
+                    location=self.facility.get_location_id())
                 logging.debug("- found {} Ethernet networks"
                              .format(len(self.facility._cache_vlans)))
 

@@ -103,8 +103,7 @@ class PlumberyFacility(object):
 
         """
 
-        self.power_on()
-        return self.location.id
+        return self.get_parameter('locationId')
 
     def get_parameter(self, label, default=None):
         """
@@ -463,12 +462,16 @@ class PlumberyFacility(object):
 
         """
 
+        regionId = self.get_parameter('regionId')
+        locationId = self.get_parameter('locationId')
+
         try:
+
             if self.region is None:
-                logging.debug("Getting driver for '{}'".format(
-                    self.get_parameter('regionId')))
+                logging.debug("Getting driver for '{}'".format(regionId))
                 self.region = self.plumbery.get_compute_driver(
-                    region=self.get_parameter('regionId'))
+                    region=regionId)
+
                 if os.getenv('LIBCLOUD_HTTP_PROXY') is not None:
                     logging.debug('Setting proxy to %s' %
                                   (os.getenv('LIBCLOUD_HTTP_PROXY')))
@@ -479,23 +482,21 @@ class PlumberyFacility(object):
                     libcloud.security.VERIFY_SSL_CERT = False
 
             if self.location is None:
-                logging.debug("Getting location '{}'".format(
-                    self.get_parameter('locationId')))
+                logging.debug("Getting location '{}'".format(locationId))
                 locations = []
                 for location in self.region.list_locations():
                     locations.append(location.id)
-                    if location.id == self.get_parameter('locationId'):
+                    if location.id == locationId:
                         self.location = location
 
                 if self.location is None:
-                    logging.debug("Known locations: {}".format(locations))
-                    raise PlumberyException("Unknown location '{}'"
-                                            .format(self.get_parameter(
-                                                'locationId')))
+                    logging.info("Known locations: {}".format(locations))
+                    raise PlumberyException("Unknown location '{}' in '{}'"
+                                            .format(locationId, regionId))
 
         except ValueError:
             raise PlumberyException("Unknown region '{}'"
-                                    .format(self.get_parameter('regionId')))
+                                    .format(regionId))
 
         except socket.gaierror:
             raise PlumberyException("Cannot communicate with the API endpoint")
