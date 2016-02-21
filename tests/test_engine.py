@@ -120,29 +120,29 @@ class TestPlumberyEngine(unittest.TestCase):
                 ]
             }
 
-        self.engine = PlumberyEngine()
-        self.engine.set_shared_secret('fake_secret')
-        self.assertEqual(self.engine.get_shared_secret(), 'fake_secret')
+        engine = PlumberyEngine()
+        engine.set_shared_secret('fake_secret')
+        self.assertEqual(engine.get_shared_secret(), 'fake_secret')
 
-        random = self.engine.get_secret('random')
+        random = engine.get_secret('random')
         self.assertEqual(len(random), 9)
-        self.assertEqual(self.engine.get_secret('random'), random)
+        self.assertEqual(engine.get_secret('random'), random)
 
-        self.engine.set_user_name('fake_name')
-        self.assertEqual(self.engine.get_user_name(), 'fake_name')
+        engine.set_user_name('fake_name')
+        self.assertEqual(engine.get_user_name(), 'fake_name')
 
-        self.engine.set_user_password('fake_password')
-        self.assertEqual(self.engine.get_user_password(), 'fake_password')
+        engine.set_user_password('fake_password')
+        self.assertEqual(engine.get_user_password(), 'fake_password')
 
-        self.engine.set(settings)
-        self.assertEqual(self.engine.safeMode, False)
+        engine.set(settings)
+        self.assertEqual(engine.safeMode, False)
 
         try:
-            self.engine.from_text(myPlan)
-            cloudConfig = self.engine.get_cloud_config()
+            engine.from_text(myPlan)
+            cloudConfig = engine.get_cloud_config()
             self.assertEqual(len(cloudConfig.keys()), 3)
-            self.engine.add_facility(myFacility)
-            self.assertEqual(len(self.engine.facilities), 2)
+            engine.add_facility(myFacility)
+            self.assertEqual(len(engine.facilities), 2)
 
         except socket.gaierror:
             pass
@@ -151,39 +151,39 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_lifecycle(self):
 
-        self.engine = PlumberyEngine()
-        self.engine.set_shared_secret('fake_secret')
-        self.assertEqual(self.engine.get_shared_secret(), 'fake_secret')
+        engine = PlumberyEngine()
+        engine.set_shared_secret('fake_secret')
+        self.assertEqual(engine.get_shared_secret(), 'fake_secret')
 
-        self.engine.set_user_name('fake_name')
-        self.assertEqual(self.engine.get_user_name(), 'fake_name')
+        engine.set_user_name('fake_name')
+        self.assertEqual(engine.get_user_name(), 'fake_name')
 
-        self.engine.set_user_password('fake_password')
-        self.assertEqual(self.engine.get_user_password(), 'fake_password')
+        engine.set_user_password('fake_password')
+        self.assertEqual(engine.get_user_password(), 'fake_password')
 
         try:
-            self.engine.do('build')
-            self.engine.build_all_blueprints()
-            self.engine.build_blueprint('myBlueprint')
+            engine.do('build')
+            engine.build_all_blueprints()
+            engine.build_blueprint('myBlueprint')
 
-            self.engine.do('start')
-            self.engine.start_all_blueprints()
-            self.engine.start_blueprint('myBlueprint')
+            engine.do('start')
+            engine.start_all_blueprints()
+            engine.start_blueprint('myBlueprint')
 
-            self.engine.do('polish')
-            self.engine.polish_all_blueprints()
-            self.engine.polish_blueprint('myBlueprint')
+            engine.do('polish')
+            engine.polish_all_blueprints()
+            engine.polish_blueprint('myBlueprint')
 
-            self.engine.do('stop')
-            self.engine.stop_all_blueprints()
-            self.engine.stop_blueprint('myBlueprint')
+            engine.do('stop')
+            engine.stop_all_blueprints()
+            engine.stop_blueprint('myBlueprint')
 
-            self.engine.wipe_all_blueprints()
-            self.engine.wipe_blueprint('myBlueprint')
+            engine.wipe_all_blueprints()
+            engine.wipe_blueprint('myBlueprint')
 
-            self.engine.do('destroy')
-            self.engine.destroy_all_blueprints()
-            self.engine.destroy_blueprint('myBlueprint')
+            engine.do('destroy')
+            engine.destroy_all_blueprints()
+            engine.destroy_blueprint('myBlueprint')
 
         except socket.gaierror:
             pass
@@ -217,57 +217,57 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_lookup(self):
 
-        self.engine = PlumberyEngine()
-        self.assertEqual(self.engine.lookup('plumbery.version'), __version__)
+        engine = PlumberyEngine()
+        self.assertEqual(engine.lookup('plumbery.version'), __version__)
 
-        self.engine.secrets = {}
-        random = self.engine.lookup('random.secret')
+        engine.secrets = {}
+        random = engine.lookup('random.secret')
         self.assertEqual(len(random), 9)
-        self.assertEqual(self.engine.lookup('random.secret'), random)
+        self.assertEqual(engine.lookup('random.secret'), random)
 
-        md5 = self.engine.lookup('random.md5.secret')
+        md5 = engine.lookup('random.md5.secret')
         self.assertEqual(len(md5), 32)
         self.assertNotEqual(md5, random)
 
-        sha = self.engine.lookup('random.sha1.secret')
+        sha = engine.lookup('random.sha1.secret')
         self.assertEqual(len(sha), 40)
         self.assertNotEqual(sha, random)
 
-        sha = self.engine.lookup('random.sha256.secret')
+        sha = engine.lookup('random.sha256.secret')
         self.assertEqual(len(sha), 64)
         self.assertNotEqual(sha, random)
 
-        id1 = self.engine.lookup('id1.uuid')
+        id1 = engine.lookup('id1.uuid')
         self.assertEqual(len(id1), 36)
-        self.assertEqual(self.engine.lookup('id1.uuid'), id1)
-        id2 = self.engine.lookup('id2.uuid')
+        self.assertEqual(engine.lookup('id1.uuid'), id1)
+        id2 = engine.lookup('id2.uuid')
         self.assertEqual(len(id2), 36)
         self.assertNotEqual(id1, id2)
 
-        self.engine.lookup('application.secret')
-        self.engine.lookup('database.secret')
-        self.engine.lookup('master.secret')
-        self.engine.lookup('slave.secret')
+        engine.lookup('application.secret')
+        engine.lookup('database.secret')
+        engine.lookup('master.secret')
+        engine.lookup('slave.secret')
 
         original = 'hello world'
-        text = self.engine.lookup('pair1.rsa_public')
+        text = engine.lookup('pair1.rsa_public')
         self.assertEqual(text.startswith('ssh-rsa '), True)
         key = RSA.importKey(text)
         encrypted = key.publickey().encrypt(original, 32)
 
-        privateKey = self.engine.lookup('pair1.rsa_private')
+        privateKey = engine.lookup('pair1.rsa_private')
         self.assertEqual(privateKey.startswith(
             '-----BEGIN RSA PRIVATE KEY-----'), True)
-        key = RSA.importKey(self.engine.lookup('pair1.rsa_private'))
+        key = RSA.importKey(engine.lookup('pair1.rsa_private'))
         decrypted = key.decrypt(ast.literal_eval(str(encrypted)))
         self.assertEqual(decrypted, original)
 
-        self.assertEqual(len(self.engine.secrets), 12)
+        self.assertEqual(len(engine.secrets), 12)
 
         with self.assertRaises(LookupError):
-            localKey = self.engine.lookup('local.rsa_private')
+            localKey = engine.lookup('local.rsa_private')
 
-        localKey = self.engine.lookup('local.rsa_public')
+        localKey = engine.lookup('local.rsa_public')
         try:
             path = '~/.ssh/id_rsa.pub'
             with open(os.path.expanduser(path)) as stream:
