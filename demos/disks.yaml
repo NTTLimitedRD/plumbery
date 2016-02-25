@@ -1,0 +1,120 @@
+---
+information:
+  - demonstrates how to configure a server with multiple disks
+
+cloud-config: # default for all nodes created by plumbery
+
+  ssh_keys: # generated randomly, and used on subsequent invocations
+    rsa_private: |
+      {{ key.rsa_private }}
+    rsa_public: "{{ key.rsa_public }}"
+
+  users:
+    - default
+
+    - name: ubuntu
+      sudo: 'ALL=(ALL) NOPASSWD:ALL'
+      ssh-authorized-keys:
+        - "{{ key.rsa_public }}"
+        - "{{ local.rsa_public }}"
+
+    - name: root
+      ssh-authorized-keys:
+        - "{{ key.rsa_public }}"
+        - "{{ local.rsa_public }}"
+
+  disable_root: false
+
+  ssh_pwauth: false
+
+---
+# Santa Clara - secondary site in USA
+locationId: NA12
+regionId: dd-na
+
+blueprints:
+
+  - disks:
+
+      domain:
+        name: DisksFox
+        ipv4: auto
+      ethernet:
+        name: DisksNetwork
+        subnet: 10.0.0.0
+      nodes:
+
+        - disks01:
+
+            information:
+              - "connect to this server in a terminal window:"
+              - "$ ssh ubuntu@{{ node.public }}"
+              - "check disk drives with:"
+              - "$ sudo fdisk -l"
+              - "$ df -h"
+              - "$ mount"
+
+            cpu: 1
+            memory: 1
+
+            # add disks to this machine
+            #
+            disks:
+              - 1 1000 standard
+              - 2 100 highperformance
+              - 3 300 economy
+
+            glue:
+              - internet 22
+            monitoring: essentials
+
+            cloud-config:
+
+              packages:
+                - ntp
+
+              # partition additional disks
+              #
+              disk_setup:
+
+                /dev/sdb:
+                  table_type: 'mbr'
+                  layout: true
+                  overwrite: false
+
+                /dev/sdc:
+                  table_type: 'mbr'
+                  layout: true
+                  overwrite: false
+
+                /dev/sdd:
+                  table_type: 'mbr'
+                  layout: true
+                  overwrite: false
+
+              # format additional disks
+              #
+              fs_setup:
+
+                - label: None
+                  filesystem: 'ext3'
+                  device: '/dev/sdb1'
+
+                - label: None
+                  filesystem: 'ext3'
+                  device: '/dev/sdc1'
+
+                - label: None
+                  filesystem: 'ext3'
+                  device: '/dev/sdd1'
+
+              # mount additional disks
+              #
+              mounts:
+                - [ /dev/sdb1, /mnt/huge, "ext3", "defaults,noatime"]
+                - [ /dev/sdc1, /mnt/fast ]
+                - [ /dev/sdd1, /mnt/cheap ]
+
+              # default values for missing entries in 'mounts'
+              #
+              mount_default_fields: [ None, None, "ext3", "defaults,noatime", "0","2" ]
