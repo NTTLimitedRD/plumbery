@@ -456,15 +456,7 @@ class PlumberyNodes(object):
 
                 if node.name == path[0]:
 
-                    # hack because the driver does not report public ipv4 accurately
-                    if len(node.public_ips) < 1:
-                        domain = self.region.ex_get_network_domain(
-                            node.extra['networkDomainId'])
-                        for rule in self.region.ex_list_nat_rules(domain):
-                            if rule.internal_ip == node.private_ips[0]:
-                                node.public_ips.append(rule.external_ip)
-                                break
-
+                    self._enrich_node(node)
                     return node
 
         elif len(path) == 2: # different location, same region
@@ -489,15 +481,7 @@ class PlumberyNodes(object):
 
                     logging.debug("- found it")
 
-                    # hack because the driver does not report public ipv4 accurately
-                    if len(node.public_ips) < 1:
-                        domain = self.region.ex_get_network_domain(
-                            node.extra['networkDomainId'])
-                        for rule in self.region.ex_list_nat_rules(domain):
-                            if rule.internal_ip == node.private_ips[0]:
-                                node.public_ips.append(rule.external_ip)
-                                break
-
+                    self._enrich_node(node)
                     return node
 
         elif len(path) == 3: # other region
@@ -522,18 +506,57 @@ class PlumberyNodes(object):
 
                     logging.debug("- found it")
 
-                    # hack because the driver does not report public ipv4 accurately
-                    if len(node.public_ips) < 1:
-                        domain = offshore.ex_get_network_domain(
-                            node.extra['networkDomainId'])
-                        for rule in offshore.ex_list_nat_rules(domain):
-                            if rule.internal_ip == node.private_ips[0]:
-                                node.public_ips.append(rule.external_ip)
-                                break
-
+                    self._enrich_node(node)
                     return node
 
         return None
+
+    def _enrich_node(self, node):
+        """
+        Adds attributes to a node
+
+        This function is a hack, aiming to complement the nice job done by
+        Libcloud:
+        - add public IPv4 if one exists
+        - add disk size, ids, etc.
+
+        """
+
+        # hack because the driver does not report public ipv4 accurately
+        if len(node.public_ips) < 1:
+            domain = self.region.ex_get_network_domain(
+                node.extra['networkDomainId'])
+            for rule in self.region.ex_list_nat_rules(domain):
+                if rule.internal_ip == node.private_ips[0]:
+                    node.public_ips.append(rule.external_ip)
+                    break
+
+        # hack to retrieve disk information
+        node.extra['disks'] = []
+        try:
+            element = self.region.connection.request_with_orgId_api_2(
+                'server/server/%s' % node.id).object
+
+            for disk in findall(element, 'disk', TYPES_URN):
+                scsiId = int(disk.get('scsiId'))
+                speed = disk.get('speed')
+                id = disk.get('id')
+                sizeGb = int(disk.get('sizeGb'))
+                node.extra['disks'].append({
+                    'scsiId': scsiId,
+                    'speed': speed,
+                    'id': id,
+                    'size': sizeGb
+                    })
+
+        except Exception as feedback:
+
+            if 'RESOURCE_NOT_FOUND' in str(feedback):
+                pass
+
+            else:
+                logging.info("Error: unable to retrieve storage information")
+                logging.error(str(feedback))
 
     @classmethod
     def list_nodes(self, blueprint):
