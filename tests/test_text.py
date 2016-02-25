@@ -284,9 +284,16 @@ class TestPlumberyText(unittest.TestCase):
 
     def test_engine(self):
 
+        engine = PlumberyEngine()
+        context = PlumberyContext(context=engine)
+
         template = "we are running plumbery {{ plumbery.version }}"
-        context = PlumberyContext(context=PlumberyEngine())
         expected = "we are running plumbery "+__version__
+        self.assertEqual(
+            self.text.expand_variables(template, context), expected)
+
+        template = "{{ name.credentials }} {{ password.credentials }}"
+        expected = engine.get_user_name()+" "+engine.get_user_password()
         self.assertEqual(
             self.text.expand_variables(template, context), expected)
 

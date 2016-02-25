@@ -1298,6 +1298,12 @@ class PlumberyEngine(object):
         if token == 'shared.secret':
             return self.get_shared_secret()
 
+        if token == 'name.credentials':
+            return self.get_user_name()
+
+        if token == 'password.credentials':
+            return self.get_user_password()
+
         if token.endswith('.secret'):
             return self.get_secret(token)
 
