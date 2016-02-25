@@ -38,6 +38,7 @@ instructions to demonstrate it or to use it.
    tutorial.lemp
    tutorial.wordpress
    tutorial.confluence
+   tutorial.itop
    tutorial.nodejs
    tutorial.ubuntu.desktop
    tutorial.minio
