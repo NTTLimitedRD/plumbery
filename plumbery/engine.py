@@ -430,7 +430,7 @@ class PlumberyEngine(object):
         a couple of punctuation letters.
         The string has 9 characters by default.
 
-        If you put `.uuid` in the id, than the function ``uuid.uuid4()``is
+        If you put `.uuid` in the id, than the function ``uuid.uuid4()`` is
         called to generate a unique identifier of 36 letters.
 
         The `format` parameter specifies the kind of string that is expected:
