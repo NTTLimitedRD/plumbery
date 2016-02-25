@@ -118,7 +118,7 @@ class PlumberyEngine(object):
 
         self.polishers = []
 
-        self._buildPolisher = None
+        self._buildPolisher = 'spit'
 
         self._sharedSecret = None
 
@@ -275,8 +275,6 @@ class PlumberyEngine(object):
 
         if 'buildPolisher' in settings:
             self._buildPolisher = settings['buildPolisher']
-        else:
-            self._buildPolisher = 'spit'
 
         if 'cloud-config' in settings:
             self.cloudConfig = settings['cloud-config']
