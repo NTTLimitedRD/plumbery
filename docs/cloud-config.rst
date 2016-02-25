@@ -135,7 +135,7 @@ Run shell commands as root
 --------------------------
 
 If none of the managed actions that cloud-config provides works for what you
-want to do, you can also run arbitrary commands with the ``runcmd:` directive.
+want to do, you can also run arbitrary commands with the ``runcmd:`` directive.
 This directive takes a list of items to execute, that will be passed to the shell process.
 
 .. sourcecode:: yaml
