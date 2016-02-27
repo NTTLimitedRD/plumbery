@@ -89,12 +89,15 @@ class InventoryPolisher(PlumberyPolisher):
             status = node.extra.pop('status')
             data['action'] = str(status.action)
 
-        cpu = None
         if 'cpu' in node.extra:
             cpu = node.extra.pop('cpu')
             data['cpu'] = cpu.cpu_count
-            data['cores_per_socket'] = cpu.cores_per_socket
-            data['performance'] = cpu.performance.lower()
+            data['cpuCoresPerSocket'] = cpu.cores_per_socket
+            data['cpuPerformance'] = cpu.performance.lower()
+
+        if 'memoryMb' in node.extra:
+            memory = node.extra.pop('memoryMb')
+            data['memory'] = int(memory/1024)
 
         if 'networkId' in node.extra:
             node.extra.pop('networkId')
