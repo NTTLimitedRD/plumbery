@@ -714,16 +714,20 @@ class PlumberyNodes(object):
 
         return False
 
-    def start_node(self, name):
+    def start_node(self, node):
         """
         Starts one node
 
-        :param name: the name of the target node
-        :type name: ``str``
+        :param node: the target node, or its name
+        :type node: :class:`Node` or ``str``
 
         """
 
-        node = self.get_node(name)
+        if isinstance(node, str):
+            name = node
+            node = self.get_node(name)
+        else:
+            name = node.name
 
         logging.info("Starting node '{}'".format(name))
         if node is None:
@@ -738,6 +742,7 @@ class PlumberyNodes(object):
 
             try:
                 self.region.ex_start_node(node)
+
                 logging.info("- in progress")
 
             except Exception as feedback:
@@ -754,8 +759,6 @@ class PlumberyNodes(object):
                     logging.error(str(feedback))
 
             break
-
-        return
 
     def stop_blueprint(self, blueprint):
         """
@@ -790,64 +793,92 @@ class PlumberyNodes(object):
                 settings = {}
 
             for label in self.expand_labels(label):
+                self.stop_node(label, settings)
 
-                node = self.get_node(label)
+    def stop_node(self, node, settings={}):
+        """
+        Stops one node
 
-                logging.info("Stopping node '{}'".format(label))
+        :param node: the target node, or its name
+        :type node: :class:`Node` or ``str``
 
-                if node is None:
-                    logging.info("- not found")
+        :param settings: additional attributes for this node
+        :type settings: ``dict``
+
+        """
+
+        if isinstance(node, str):
+            name = node
+            node = self.get_node(name)
+        else:
+            name = node.name
+
+        logging.info("Stopping node '{}'".format(name))
+        if node is None:
+            logging.info("- not found")
+            return
+
+        if ('running' in settings
+                and settings['running'] == 'always'
+                and node.state == NodeState.RUNNING):
+
+            logging.info("- skipped - node has to stay always on")
+            return
+
+        if self.plumbery.safeMode:
+            logging.info("- skipped - safe mode")
+            return
+
+        retry = True
+        while True:
+
+            try:
+                self.region.ex_shutdown_graceful(node)
+                logging.info("- in progress")
+
+            except Exception as feedback:
+
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
                     continue
 
-                elif ('running' in settings
-                        and settings['running'] == 'always'
-                        and node.state == NodeState.RUNNING):
-
-                    logging.info("- skipped - node has to stay always on")
+                elif 'UNEXPECTED_ERROR' in str(feedback):
+                    time.sleep(10)
                     continue
 
-                elif self.plumbery.safeMode:
-                    logging.info("- skipped - safe mode")
-                    continue
+                elif 'VMWARE_TOOLS_INVALID_STATUS' in str(feedback):
+
+                    # prevent transient errors
+                    if retry:
+                        retry = False
+                        time.sleep(30)
+                        continue
+
+                    logging.info("- unable to shutdown gracefully "
+                                 "- invalid VMware tools")
+
+                    logging.info("- powering the node off")
+                    try:
+                        self.region.ex_power_off(node)
+                        logging.info("- in progress")
+
+                    except Exception as feedback:
+
+                        if 'SERVER_STOPPED' in str(feedback):
+                            logging.info("- already stopped")
+
+                        else:
+                            logging.info("- unable to stop node")
+                            logging.error(str(feedback))
+
+                elif 'SERVER_STOPPED' in str(feedback):
+                    logging.info("- already stopped")
 
                 else:
+                    logging.info("- unable to stop node")
+                    logging.error(str(feedback))
 
-                    retry = True
-                    while True:
-
-                        try:
-                            self.region.ex_shutdown_graceful(node)
-                            logging.info("- in progress")
-
-                        except Exception as feedback:
-
-                            if 'RESOURCE_BUSY' in str(feedback):
-                                time.sleep(10)
-                                continue
-
-                            elif 'VMWARE_TOOLS_INVALID_STATUS' in str(feedback):
-
-                                # prevent transient errors
-                                if retry:
-                                    retry = False
-                                    time.sleep(30)
-                                    continue
-
-                                logging.info("- unable to stop node "
-                                             "- invalid VMware tools")
-
-                            elif 'UNEXPECTED_ERROR' in str(feedback):
-                                time.sleep(10)
-                                continue
-
-                            elif 'SERVER_STOPPED' in str(feedback):
-                                logging.info("- already stopped")
-
-                            else:
-                                logging.info("- unable to stop node")
-                                logging.error(str(feedback))
-
-                        break
+            break
 
     def _stop_monitoring(self, node, settings):
         """
