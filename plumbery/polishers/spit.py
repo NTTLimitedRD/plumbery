@@ -16,6 +16,8 @@
 import logging
 import time
 
+from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
+
 from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
 
@@ -97,6 +99,80 @@ class SpitPolisher(PlumberyPolisher):
         container._build_firewall_rules()
 
         container._build_balancer()
+
+    def set_node_compute(self, node, cpu, memory):
+        """
+        Sets compute capability
+
+        :param node: the node to be polished
+        :type node: :class:`libcloud.compute.base.Node`
+
+        :param cpu: the cpu specification
+        :type cpu: ``DimensionDataServerCpuSpecification``
+
+        :param memory: the memory size, expressed in Giga bytes
+        :type memory: ``int``
+
+        """
+
+        changed = False
+
+        if cpu is not None and 'cpu' in node.extra:
+
+            if int(cpu.cpu_count) != int(node.extra['cpu'].cpu_count):
+                logging.info("- changing to {} cpu".format(
+                    cpu.cpu_count))
+                changed = True
+
+            if int(cpu.cores_per_socket) != int(node.extra['cpu'].cores_per_socket):
+                logging.info("- changing to {} core(s) per socket".format(
+                    cpu.cores_per_socket))
+                changed = True
+
+            if cpu.performance != node.extra['cpu'].performance:
+                logging.info("- changing to '{}' cpu performance".format(
+                    cpu.performance.lower()))
+                changed = True
+
+        if memory is not None and 'memoryMb' in node.extra:
+
+            if memory != int(node.extra['memoryMb']/1024):
+                logging.info("- changing to {} GB memory".format(
+                    memory))
+                changed = True
+
+        if not changed:
+            logging.debug("- no change in compute")
+            return
+
+        if self.engine.safeMode:
+            logging.info("- not in safe mode")
+            return
+
+        while True:
+            try:
+                self.region.ex_reconfigure_node(
+                    node=node,
+                    memory_gb=memory,
+                    cpu_count=cpu.cpu_count,
+                    cores_per_socket=cpu.cores_per_socket,
+                    cpu_performance=cpu.performance)
+
+                logging.info("- in progress")
+
+            except Exception as feedback:
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                if 'Please try again later' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                logging.info("- unable to reconfigure node")
+                logging.error(str(feedback))
+
+            break
 
     def change_node_disk_size(self, node, id, size):
         """
@@ -287,6 +363,49 @@ class SpitPolisher(PlumberyPolisher):
         if node is None:
             logging.info("- not found")
             return
+
+        cpu = None
+        if 'cpu' in settings:
+            tokens = str(settings['cpu']).split(' ')
+            if len(tokens) < 2:
+                tokens.append('1')
+            if len(tokens) < 3:
+                tokens.append('standard')
+
+            if (int(tokens[0]) < 1
+                    or int(tokens[0]) > 32):
+
+                logging.info("- cpu should be between 1 and 32")
+
+            elif (int(tokens[1]) < 1
+                    or int(tokens[1]) > 2):
+
+                logging.info("- core per cpu should be either 1 or 2")
+
+            elif tokens[2].upper() not in ('STANDARD',
+                                           'HIGHPERFORMANCE'):
+
+                logging.info("- cpu speed should be either 'standard'"
+                             " or 'highspeed'")
+
+            else:
+                logging.debug("- setting compute {}".format(' '.join(tokens)))
+                cpu = DimensionDataServerCpuSpecification(
+                    cpu_count=tokens[0],
+                    cores_per_socket=tokens[1],
+                    performance=tokens[2].upper())
+
+        memory = None
+        if 'memory' in settings:
+            memory = int(settings['memory'])
+            if memory < 1 or memory > 256:
+                logging.info("- memory should be between 1 and 256")
+                memory = None
+            else:
+                logging.debug("- setting {} GB of memory".format(
+                    memory))
+
+        self.set_node_compute(node, cpu, memory)
 
         if 'disks' in settings:
             for item in settings['disks']:
