@@ -1,29 +1,30 @@
 ---
 
-cloud-config: # default for all nodes created by plumbery
+defaults:
+  cloud-config: # default for all nodes created by plumbery
 
-  ssh_keys: # generated randomly, and used on subsequent invocations
-    rsa_private: |
-      {{ key.rsa_private }}
-    rsa_public: "{{ key.rsa_public }}"
+    ssh_keys: # generated randomly, and used on subsequent invocations
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
 
-  users:
-    - default
+    users:
+      - default
 
-    - name: ubuntu
-      sudo: 'ALL=(ALL) NOPASSWD:ALL'
-      ssh-authorized-keys:
-        - "{{ key.rsa_public }}"
-        - "{{ local.rsa_public }}"
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
 
-    - name: root
-      ssh-authorized-keys:
-        - "{{ key.rsa_public }}"
-        - "{{ local.rsa_public }}"
+      - name: root
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
 
-  disable_root: false
+    disable_root: false
 
-  ssh_pwauth: false
+    ssh_pwauth: false
 
 ---
 locationId: EU8

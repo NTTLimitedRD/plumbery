@@ -108,13 +108,18 @@ class PlumberyEngine(object):
 
         """
 
-        self.information = []
+        self.c0 = time.clock()
+        self.t0 = time.time()
 
-        self.safeMode = False
+        self.defaults = {}
+
+        self.facilities = []
 
         self.fittingsFile = None
 
-        self.facilities = []
+        self.information = []
+
+        self.safeMode = False
 
         self.polishers = []
 
@@ -127,13 +132,6 @@ class PlumberyEngine(object):
         self._userName = None
 
         self._userPassword = None
-
-        self.cloudConfig = {}
-
-        self.defaults = {}
-
-        self.c0 = time.clock()
-        self.t0 = time.time()
 
         if plan is not None:
             self.from_file(plan)
@@ -262,7 +260,7 @@ class PlumberyEngine(object):
         if 'information' in settings:
             self.information = settings['information']
             if not isinstance(self.information, list):
-                raise ValueError('information should be a list')
+                raise TypeError('information should be a list')
 
         if 'safeMode' in settings:
             self.safeMode = settings['safeMode']
@@ -279,31 +277,15 @@ class PlumberyEngine(object):
         if 'buildPolisher' in settings:
             self._buildPolisher = settings['buildPolisher']
 
-        if 'cloud-config' in settings:
-            self.cloudConfig = settings['cloud-config']
-            if not isinstance(self.cloudConfig, dict):
-                raise ValueError('cloud-config should be a list')
-
         if 'defaults' in settings:
             self.defaults = settings['defaults']
             if not isinstance(self.defaults, dict):
-                raise ValueError('defaults should be a list')
+                raise TypeError('defaults should be a dictionary')
 
         if len(self.defaults) > 1:
             logging.debug("Default parameters:")
             for key in self.defaults.keys():
                 logging.debug("- {}: {}".format(key, self.defaults[key]))
-
-    def get_cloud_config(self):
-        """
-        Retrieves the settings that apply to all nodes in this fittings plan
-
-        :return: the directives shared across all nodes
-        :rtype: ``dict``
-
-        """
-
-        return self.cloudConfig
 
     def get_default(self, label, default=None):
         """
@@ -315,7 +297,7 @@ class PlumberyEngine(object):
         :param default: the default value to return
 
         :return: the value set in fittings plan, or `None`
-        :rtype: ``str`` most often
+        :rtype: ``dict`` most often, or ``str`` or something else
 
         """
 

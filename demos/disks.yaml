@@ -3,30 +3,32 @@ information:
   - "demonstrates how to configure a server with multiple disks"
   - "credit: https://gist.github.com/trentmswanson/9c22bb71182e982bd36f"
 
-cloud-config: # default for all nodes created by plumbery
+defaults:
 
-  ssh_keys: # generated randomly, and used on subsequent invocations
-    rsa_private: |
-      {{ key.rsa_private }}
-    rsa_public: "{{ key.rsa_public }}"
+  cloud-config: # default for all nodes created by plumbery
 
-  users:
-    - default
+    ssh_keys: # generated randomly, and used on subsequent invocations
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
 
-    - name: ubuntu
-      sudo: 'ALL=(ALL) NOPASSWD:ALL'
-      ssh-authorized-keys:
-        - "{{ key.rsa_public }}"
-        - "{{ local.rsa_public }}"
+    users:
+      - default
 
-    - name: root
-      ssh-authorized-keys:
-        - "{{ key.rsa_public }}"
-        - "{{ local.rsa_public }}"
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
 
-  disable_root: false
+      - name: root
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
 
-  ssh_pwauth: false
+    disable_root: false
+
+    ssh_pwauth: false
 
 ---
 # Santa Clara - secondary site in USA

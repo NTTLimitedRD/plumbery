@@ -3,29 +3,31 @@
 #
 ---
 
-cloud-config:
+defaults:
 
-  ssh_keys:
-    rsa_private: |
-      {{ key.rsa_private }}
-    rsa_public: "{{ key.rsa_public }}"
+  cloud-config:
 
-  users:
-    - default
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
 
-    - name: ubuntu
-      sudo: 'ALL=(ALL) NOPASSWD:ALL'
-      ssh-authorized-keys:
-        - "{{ key.rsa_public }}"
-        - "{{ local.rsa_public }}"
+    users:
+      - default
 
-    - name: root
-      ssh-authorized-keys:
-        - "{{ key.rsa_public }}"
-        - "{{ local.rsa_public }}"
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
 
-  disable_root: false
-  ssh_pwauth: false
+      - name: root
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: false
+    ssh_pwauth: false
 
 ---
 locationId: AU10

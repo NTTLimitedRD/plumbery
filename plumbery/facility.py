@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import socket
 import logging
 import os
@@ -71,14 +72,8 @@ class PlumberyFacility(object):
             else:
                 self.parameters[key] = fittings[key]
 
-        mandatory = ['locationId', 'regionId']
-        for label in mandatory:
-            if label not in self.parameters:
-                value = plumbery.get_default(label)
-                if value is None:
-                    raise ValueError("No value has been set for '{}'"
-                                     .format(label))
-                self.parameters[label] = value
+        self.finalize_parameters()
+        self.finalize_blueprints()
 
         # first call to the API is done in self.power_on()
         self.region = None
@@ -93,6 +88,22 @@ class PlumberyFacility(object):
     def __repr__(self):
 
         return "<PlumberyFacility parameters: {}>".format(self.parameters)
+
+    def finalize_parameters(self):
+        """
+        Sets default values for parameters
+
+        This function gets missing parameters from default values set at
+        the engine level.
+        """
+        mandatory = ['locationId', 'regionId']
+        for label in mandatory:
+            if label not in self.parameters:
+                value = self.plumbery.get_default(label)
+                if value is None:
+                    raise ValueError("No value has been set for '{}'"
+                                     .format(label))
+                self.parameters[label] = value
 
     def get_location_id(self):
         """
@@ -224,6 +235,84 @@ class PlumberyFacility(object):
             return []
 
         return self.expand_blueprint(basement)
+
+    def finalize_blueprints(self):
+        """
+        Sets default values for blueprints
+
+        This function expands blueprints defined for this facility with
+        default parameters and settings stored by the global engine.
+
+        """
+
+        for blueprintName in self.list_blueprints():
+
+            blueprint = self.get_blueprint(blueprintName)
+
+            shell = copy.deepcopy(self.plumbery.get_default('domain', {}))
+            if 'domain' in blueprint:
+                self.update_settings(shell, blueprint['domain'])
+            blueprint['domain'] = shell
+
+            shell = copy.deepcopy(self.plumbery.get_default('ethernet', {}))
+            if 'ethernet' in blueprint:
+                self.update_settings(shell, blueprint['ethernet'])
+            blueprint['ethernet'] = shell
+
+            if 'nodes' in blueprint:
+
+                for index in range(0, len(blueprint['nodes'])):
+
+                    config = copy.deepcopy(self.plumbery.get_default(
+                        'cloud-config', {}))
+
+                    if not isinstance(blueprint['nodes'][index], dict):
+                        raise TypeError('{} should be a dictionary'
+                                        .format(blueprint['nodes'][index]))
+
+                    label = blueprint['nodes'][index].keys()[0]
+                    settings = blueprint['nodes'][index][label]
+                    if settings is None:
+                        settings = {}
+
+                    shell = {}
+                    if 'default' in settings:
+                        shell = copy.deepcopy(self.plumbery.get_default(
+                            settings['default'], {}))
+                        settings.pop('default')
+                        if 'cloud-config' in shell:
+                            self.update_settings(config, shell['cloud-config'])
+                            shell.pop('cloud-config')
+
+                    if 'cloud-config' in settings:
+                        self.update_settings(config, settings['cloud-config'])
+                        settings.pop('cloud-config')
+
+                    self.update_settings(shell, settings)
+                    settings = shell
+
+                    if len(config.keys()) > 0:
+                        settings['cloud-config'] = config
+
+                    blueprint['nodes'][index][label] = settings
+
+            for index in range(0, len(self.blueprints)):
+                if self.blueprints[index].keys()[0] == blueprintName:
+                    self.blueprints[index][blueprintName] = blueprint
+
+    def update_settings(self, settings, additions):
+        for key in additions.keys():
+            if key not in settings:
+                settings[key] = additions[key]
+
+            elif isinstance(settings[key], list):
+                settings[key] += additions[key]
+
+            elif isinstance(settings[key], dict):
+                self.update_settings(settings[key], additions[key])
+
+            else:
+                settings[key] = additions[key]
 
     def list_blueprints(self):
         """

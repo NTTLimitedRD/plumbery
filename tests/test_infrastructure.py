@@ -105,14 +105,14 @@ defaults:
   locationId: EU6
   regionId: dd-eu
   ipv4: auto
-cloud-config:
-  disable_root: false
-  ssh_pwauth: true
-  ssh_keys:
-    rsa_private: |
-      {{ pair1.rsa_private }}
+  cloud-config:
+    disable_root: false
+    ssh_pwauth: true
+    ssh_keys:
+      rsa_private: |
+        {{ pair1.rsa_private }}
 
-    rsa_public: "{{ pair1.ssh.rsa_public }}"
+      rsa_public: "{{ pair1.ssh.rsa_public }}"
 
 ---
 blueprints:
@@ -124,7 +124,7 @@ blueprints:
         name: myVLAN
         subnet: 10.1.10.0
       nodes:
-        - myServer
+        - myServer:
 """
 
 

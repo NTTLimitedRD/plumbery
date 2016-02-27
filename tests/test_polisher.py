@@ -34,8 +34,9 @@ class FakeEngine():
     def get_shared_secret(self):
         return 'nuts'
 
-    def get_cloud_config(self):
-        return {}
+    def get_default(self, label, default=None):
+        return default
+
 
 class FakeRegion:
 
@@ -192,24 +193,24 @@ blueprints:
       information:
         - container-level information
       nodes:
-        stackstorm:
-          description: fake
-          appliance: 'RedHat 6 64-bit 4 CPU'
-          cpu: 2
-          memory: 2
-          disks:
-            - 1 10 highperformance
-          glue:
-            - internet 22
-          monitoring: essentials
-          information:
-            - hello world
-          rub:
-            - rub.update.sh
-            - rub.docker.sh
-        node1:
-          information:
-            - node-level information
+        - stackstorm:
+            description: fake
+            appliance: 'RedHat 6 64-bit 4 CPU'
+            cpu: 2
+            memory: 2
+            disks:
+              - 1 10 highperformance
+            glue:
+              - internet 22
+            monitoring: essentials
+            information:
+              - hello world
+            rub:
+              - rub.update.sh
+              - rub.docker.sh
+        - node1:
+            information:
+              - node-level information
 """
 
 

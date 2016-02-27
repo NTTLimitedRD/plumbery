@@ -21,14 +21,17 @@ from plumbery import __version__
 myPlan = """
 ---
 safeMode: True
-cloud-config:
-  disable_root: false
-  ssh_pwauth: true
-  ssh_keys:
-    rsa_private: |
-      {{ pair1.rsa_private }}
+defaults:
+  domain:
+    ipv4: auto
+  cloud-config:
+    disable_root: false
+    ssh_pwauth: true
+    ssh_keys:
+      rsa_private: |
+        {{ pair1.rsa_private }}
 
-    rsa_public: "{{ pair1.ssh.rsa_public }}"
+      rsa_public: "{{ pair1.ssh.rsa_public }}"
 
 ---
 # Frankfurt in Europe
@@ -44,7 +47,7 @@ blueprints:
         name: myVLAN
         subnet: 10.1.10.0
       nodes:
-        - myServer
+        - myServer:
 """
 
 myFacility = {
@@ -78,36 +81,6 @@ class FakeLocation:
     country = 'Netherlands'
 
 
-defaultsPlan = """
----
-safeMode: True
-defaults:
-  locationId: EU6
-  regionId: dd-eu
-  ipv4: auto
-cloud-config:
-  disable_root: false
-  ssh_pwauth: true
-  ssh_keys:
-    rsa_private: |
-      {{ pair1.rsa_private }}
-
-    rsa_public: "{{ pair1.ssh.rsa_public }}"
-
----
-blueprints:
-
-  - myBlueprint:
-      domain:
-        name: myDC
-      ethernet:
-        name: myVLAN
-        subnet: 10.1.10.0
-      nodes:
-        - myServer
-"""
-
-
 class TestPlumberyEngine(unittest.TestCase):
 
     def test_set(self):
@@ -139,7 +112,7 @@ class TestPlumberyEngine(unittest.TestCase):
 
         try:
             engine.from_text(myPlan)
-            cloudConfig = engine.get_cloud_config()
+            cloudConfig = engine.get_default('cloud-config', {})
             self.assertEqual(len(cloudConfig.keys()), 3)
             engine.add_facility(myFacility)
             self.assertEqual(len(engine.facilities), 2)
@@ -297,10 +270,9 @@ class TestPlumberyEngine(unittest.TestCase):
     def test_defaults(self):
 
         engine = PlumberyEngine()
-        engine.from_text(defaultsPlan)
-        self.assertEqual(engine.get_default('locationId'), 'EU6')
-        self.assertEqual(engine.get_default('regionId'), 'dd-eu')
-        self.assertEqual(engine.get_default('ipv4'), 'auto')
+        engine.from_text(myPlan)
+        domain = engine.get_default('domain')
+        self.assertEqual(domain['ipv4'], 'auto')
 
     def test_parser(self):
 

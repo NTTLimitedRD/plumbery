@@ -6,30 +6,102 @@ information:
   - "Project credits:"
   - "Swarming project from Mathieu Lecarme: https://github.com/athoune/swarming"
 
-cloud-config: # default for all nodes created by plumbery
+defaults:  # to streamline node attributes
 
-  ssh_keys: # generated randomly, and used on subsequent invocations
-    rsa_private: |
-      {{ key.rsa_private }}
-    rsa_public: "{{ key.rsa_public }}"
+  bee:  # default settings for a remote probe
 
-  users:
-    - default
+    description: "#swarm #bee #mqtt #ubuntu"
 
-    - name: ubuntu
-      sudo: 'ALL=(ALL) NOPASSWD:ALL'
-      ssh-authorized-keys:
-        - "{{ key.rsa_public }}"
-        - "{{ local.rsa_public }}"
+    information:
+      - "a pinger controlled via MQTT"
 
-    - name: root
-      ssh-authorized-keys:
-        - "{{ key.rsa_public }}"
-        - "{{ local.rsa_public }}"
+    appliance: 'Ubuntu 14'
 
-  disable_root: false
+    cpu: 2
+    memory: 3
 
-  ssh_pwauth: false
+    glue:
+      - internet 22
+
+    monitoring: essentials
+
+    cloud-config:
+
+      hostname: "{{ node.name }}"
+
+      packages:
+        - ntp
+        - mosquitto-clients
+        - git
+        - python-pip
+
+      write_files:
+
+        - path: /root/hosts.awk
+          content: |
+            #!/usr/bin/awk -f
+            /^{{ node.private }}/ {next}
+            /^{{ node.ipv6 }}/ {next}
+            /^{{ queen.ipv6 }}/ {next}
+            {print}
+            END {
+             print "{{ node.private }}    {{ node.name }}"
+             print "{{ node.ipv6 }}    {{ node.name }}"
+             print "{{ queen.ipv6 }}    queen"
+            }
+
+        - path: /etc/init/swarm-pinger.conf
+          content: |
+            description "Swarm pinger"
+            start on runlevel [2345]
+            stop on runlevel [!2345]
+            start on startup
+            exec /home/ubuntu/swarming/swarming.py queen
+
+      runcmd:
+
+        - echo "===== Handling ubuntu identity"
+        - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+        - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+        - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+        - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+        - echo "===== Updating /etc/hosts"
+        - cp -n /etc/hosts /etc/hosts.original
+        - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
+
+        - echo "===== Installing swarming software"
+        - cd /home/ubuntu
+        - git clone https://github.com/bernard357/swarming.git
+        - cd swarming
+        - pip install -r requirements.txt
+
+        - echo "===== Running swarming software"
+        - service swarm-pinger start
+
+  cloud-config:  # default for all nodes created by plumbery
+
+    ssh_keys:  # generated randomly, and used on subsequent invocations
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+      - name: root
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: false
+    ssh_pwauth: false
 
 ---
 locationId: AU10
@@ -48,14 +120,14 @@ blueprints:
         name: PingerSwarmNetwork
         subnet: 10.0.0.0
         accept:
-          - dd-ap::AP3::SwarmNetworkAP3
-          - dd-ap::AP4::SwarmNetworkAP4
-          - dd-ap::AP5::SwarmNetworkAP5
-          - dd-au::AU11::SwarmNetworkAU11
-          - dd-eu::EU6::SwarmNetworkEU6
-          - dd-eu::EU8::SwarmNetworkEU8
-          - dd-na::NA9::SwarmNetworkNA9
-          - dd-na::NA12::SwarmNetworkNA12
+          - dd-ap::AP3::SwarmNetwork
+          - dd-ap::AP4::SwarmNetwork
+          - dd-ap::AP5::SwarmNetwork
+          - dd-au::AU11::SwarmNetwork
+          - dd-eu::EU6::SwarmNetwork
+          - dd-eu::EU8::SwarmNetwork
+          - dd-na::NA9::SwarmNetwork
+          - dd-na::NA12::SwarmNetwork
 
       nodes:
 
@@ -272,75 +344,7 @@ blueprints:
       nodes:
 
         - bee-AU10:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
+            class: bee
 
 ---
 locationId: AP3
@@ -364,75 +368,7 @@ blueprints:
       nodes:
 
         - bee-AP3:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ dd-au::AU10::queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
+            default: bee
 
 ---
 locationId: AP4
@@ -456,75 +392,7 @@ blueprints:
       nodes:
 
         - bee-AP4:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ dd-au::AU10::queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
+            default: bee
 
 ---
 locationId: AP5
@@ -548,75 +416,7 @@ blueprints:
       nodes:
 
         - bee-AP5:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ dd-au::AU10::queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
+            default: bee
 
 ---
 locationId: AU11
@@ -640,75 +440,7 @@ blueprints:
       nodes:
 
         - bee-AU11:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ dd-au::AU10::queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
+            default: bee
 
 ---
 locationId: EU6
@@ -732,75 +464,7 @@ blueprints:
       nodes:
 
         - bee-EU6:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ dd-au::AU10::queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
+            default: bee
 
 ---
 locationId: EU8
@@ -824,75 +488,7 @@ blueprints:
       nodes:
 
         - bee-EU8:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ dd-au::AU10::queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
+            default: bee
 
 ---
 locationId: NA9
@@ -916,75 +512,7 @@ blueprints:
       nodes:
 
         - bee-NA9:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ dd-au::AU10::queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
+            default: bee
 
 ---
 locationId: NA12
@@ -1008,73 +536,4 @@ blueprints:
       nodes:
 
         - bee-NA12:
-
-            description: "#swarm #bee #mqtt #ubuntu"
-
-            information:
-              - "a pinger controlled via MQTT"
-
-            appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
-
-            glue:
-              - internet 22
-
-            monitoring: essentials
-
-            cloud-config:
-
-              hostname: "{{ node.name }}"
-
-              packages:
-                - ntp
-                - mosquitto-clients
-                - git
-                - python-pip
-
-              write_files:
-
-                - path: /root/hosts.awk
-                  content: |
-                    #!/usr/bin/awk -f
-                    /^{{ node.private }}/ {next}
-                    /^{{ node.ipv6 }}/ {next}
-                    /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
-                    {print}
-                    END {
-                     print "{{ node.private }}    {{ node.name }}"
-                     print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ dd-au::AU10::queen.ipv6 }}    queen"
-                    }
-
-                - path: /etc/init/swarm-pinger.conf
-                  content: |
-                    description "Swarm pinger"
-                    start on runlevel [2345]
-                    stop on runlevel [!2345]
-                    start on startup
-                    exec /home/ubuntu/swarming/swarming.py queen
-
-              runcmd:
-
-                - echo "===== Handling ubuntu identity"
-                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
-                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
-                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
-                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
-
-                - echo "===== Updating /etc/hosts"
-                - cp -n /etc/hosts /etc/hosts.original
-                - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
-
-                - echo "===== Installing swarming software"
-                - cd /home/ubuntu
-                - git clone https://github.com/bernard357/swarming.git
-                - cd swarming
-                - pip install -r requirements.txt
-
-                - echo "===== Running swarming software"
-                - service swarm-pinger start
-
+            default: bee
