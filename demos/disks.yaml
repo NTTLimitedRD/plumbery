@@ -92,27 +92,12 @@ blueprints:
                     q
                     EOF
                     ID=1
-                    else
-                        NAME=$(fdisk -l ${1} | tail -1 | awk '{print $1}')
-                        ID=${NAME: -1}
-                        TYPE=$(fdisk -l ${1} | tail -1 | awk '{print $5}')
-                        if [[ ${TYPE} == '83' || ${TYPE} == '8e' ]]; then
-                            echo "===== Expanding partition ${NAME}"
-                            echo ",+," | sfdisk --no-reread --force -N ${ID} ${1}
-                        else
-                            echo "===== No action on partition ${NAME}"
-                        fi
                     fi
 
                     if [ -z "$(blkid ${1}${ID})" ];
                     then
                         echo "===== Formatting ${1}${ID}"
                         mkfs -t ${2} ${1}${ID}
-                    else
-                        echo "===== Resizing ${1}${ID}"
-                        umount ${1}${ID}
-                        e2fsck ${1}${ID}
-                        resize2fs ${1}${ID}
                     fi
                     UUID=$(blkid ${1}${ID} | sed -n 's/.*UUID=\"\([^\"]*\)\".*/\1/p')
 
