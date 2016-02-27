@@ -292,6 +292,9 @@ class TestPlumberyText(unittest.TestCase):
         self.assertEqual(
             self.text.expand_variables(template, context), expected)
 
+        engine.set_user_name('fake_name')
+        engine.set_user_password('fake_password')
+
         template = "{{ name.credentials }} {{ password.credentials }}"
         expected = engine.get_user_name()+" "+engine.get_user_password()
         self.assertEqual(
