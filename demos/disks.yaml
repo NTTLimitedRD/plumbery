@@ -1,6 +1,7 @@
 ---
 information:
-  - demonstrates how to configure a server with multiple disks
+  - "demonstrates how to configure a server with multiple disks"
+  - "credit: https://gist.github.com/trentmswanson/9c22bb71182e982bd36f"
 
 cloud-config: # default for all nodes created by plumbery
 
@@ -54,12 +55,13 @@ blueprints:
               - "$ df -h"
               - "$ mount"
 
-            cpu: 1
-            memory: 1
+            cpu: 2
+            memory: 2
 
-            # add disks to this machine
+            # manage disks of this node
             #
             disks:
+              - 0 50
               - 1 1000 standard
               - 2 100 highperformance
               - 3 300 economy
@@ -73,48 +75,62 @@ blueprints:
               packages:
                 - ntp
 
-              # partition additional disks
-              #
-              disk_setup:
+              write_files:
 
-                /dev/sdb:
-                  table_type: 'mbr'
-                  layout: true
-                  overwrite: false
+                - path: /root/set_disk.sh
+                  content: |
+                    #!/usr/bin/env bash
+                    if [ ! -b ${1}1 ]; then
+                    echo "===== Partioning ${1}"
+                    cat <<EOF | fdisk ${1}
+                    n
+                    p
+                    1
 
-                /dev/sdc:
-                  table_type: 'mbr'
-                  layout: true
-                  overwrite: false
 
-                /dev/sdd:
-                  table_type: 'mbr'
-                  layout: true
-                  overwrite: false
+                    w
+                    q
+                    EOF
+                    ID=1
+                    else
+                        NAME=$(fdisk -l ${1} | tail -1 | awk '{print $1}')
+                        ID=${NAME: -1}
+                        TYPE=$(fdisk -l ${1} | tail -1 | awk '{print $5}')
+                        if [[ ${TYPE} == '83' || ${TYPE} == '8e' ]]; then
+                            echo "===== Expanding partition ${NAME}"
+                            echo ",+," | sfdisk --no-reread --force -N ${ID} ${1}
+                        else
+                            echo "===== No action on partition ${NAME}"
+                        fi
+                    fi
 
-              # format additional disks
-              #
-              fs_setup:
+                    if [ -z "$(blkid ${1}${ID})" ];
+                    then
+                        echo "===== Formatting ${1}${ID}"
+                        mkfs -t ${2} ${1}${ID}
+                    else
+                        echo "===== Resizing ${1}${ID}"
+                        umount ${1}${ID}
+                        e2fsck ${1}${ID}
+                        resize2fs ${1}${ID}
+                    fi
+                    UUID=$(blkid ${1}${ID} | sed -n 's/.*UUID=\"\([^\"]*\)\".*/\1/p')
 
-                - label: None
-                  filesystem: 'ext3'
-                  device: '/dev/sdb1'
+                    if ! grep -q "${UUID}" /etc/fstab; then
+                        echo "===== Adding ${1}${ID} to fstab"
+                        LINE="UUID=\"${UUID}\"\t${3}\t${2}\tnoatime,nodiratime,nodev,noexec,nosuid\t1 2"
+                        echo -e "${LINE}" >> /etc/fstab
+                    fi
 
-                - label: None
-                  filesystem: 'ext3'
-                  device: '/dev/sdc1'
+                    echo "===== Mounting ${1}${ID}"
+                    [ -d "${3}" ] || mkdir "${3}"
+                    mount "${3}"
 
-                - label: None
-                  filesystem: 'ext3'
-                  device: '/dev/sdd1'
+              runcmd:
+                - chmod +x /root/set_disk.sh
 
-              # mount additional disks
-              #
-              mounts:
-                - [ /dev/sdb1, /mnt/huge, "ext3", "defaults,noatime"]
-                - [ /dev/sdc1, /mnt/fast ]
-                - [ /dev/sdd1, /mnt/cheap ]
+                - /root/set_disk.sh /dev/sdb ext3 /mnt/huge
 
-              # default values for missing entries in 'mounts'
-              #
-              mount_default_fields: [ None, None, "ext3", "defaults,noatime", "0","2" ]
+                - /root/set_disk.sh /dev/sdc ext4 /mnt/fast
+
+                - /root/set_disk.sh /dev/sdd ext2 /mnt/cheap
