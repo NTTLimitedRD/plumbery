@@ -296,7 +296,12 @@ class SpitPolisher(PlumberyPolisher):
                 if disk['scsiId'] == id:
                     changed = False
 
-                    if disk['size'] != size:
+                    if disk['size'] > size:
+                        logging.info("- disk shrinking could break the node")
+                        logging.info("- disk {} will not be reduced".format(
+                            id))
+
+                    if disk['size'] < size:
                         logging.info("- expanding disk {} to {} GB".format(
                             id, size))
                         self.change_node_disk_size(node, disk['id'], size)
