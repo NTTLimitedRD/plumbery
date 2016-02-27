@@ -45,7 +45,7 @@ class PlumberyText:
         closing = '}}'
 
         serialized = False
-        if not isinstance(text, str): # serialize python object
+        if not isinstance(text, str):  # serialize python object
             logging.debug("- serializing object before expansion")
             text = str(text)
             serialized = True
@@ -72,7 +72,7 @@ class PlumberyText:
                 continue
 
             replacement = context.lookup(token)
-            if replacement is None:  # preserve unmatched tag
+            if replacement is None:   # preserve unmatched tag
                 expanded += text[index:tail+len(closing)]
                 index = tail+len(closing)
 
@@ -81,13 +81,13 @@ class PlumberyText:
                     logging.debug("- '{}' -> '{}'".format(token, replacement))
                     debugged.append(token)
 
-                if serialized: #preserve line breaks
+                if serialized:  # preserve line breaks
                     replacement = replacement.replace('\n', '\\'+'n')
 
                 expanded += text[index:head]+str(replacement)
                 index = tail+len(closing)
 
-        if serialized: # from serialized python to yaml representation
+        if serialized:  # from serialized python to yaml representation
 
             # protect  \ followed by \
             watermark1 = '-=_+*=-'
@@ -118,8 +118,8 @@ class PlumberyText:
 
         """
 
-        textchars = bytearray({7,8,9,10,12,13,27}
-            | set(range(0x20, 0x100)) - {0x7f})
+        textchars = bytearray({7, 8, 9, 10, 12, 13, 27}
+                              | set(range(0x20, 0x100)) - {0x7f})
 
         is_binary = lambda bytes: bool(bytes.translate(None, textchars))
 
@@ -206,7 +206,7 @@ class PlumberyText:
                 text += cls.dump_tuple(item, spaces+2)
 
             elif isinstance(item, bool):
-                text += str(value).lower()
+                text += str(item).lower()
 
             else:
                 text += cls.dump_str(str(item), spaces+2)
@@ -279,6 +279,7 @@ class PlumberyContext:
 
         return None
 
+
 class PlumberyNodeContext:
 
     def __init__(self, node, container=None, context=None):
@@ -309,7 +310,6 @@ class PlumberyNodeContext:
         if len(node.public_ips) > 0:
             self.cache['node.public'] = node.public_ips[0]
             self.cache[node.name+'.public'] = node.public_ips[0]
-
 
     def lookup(self, token):
         """

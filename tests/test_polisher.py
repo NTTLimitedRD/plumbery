@@ -128,14 +128,21 @@ class FakeFacility():
     def __repr__(self):
         return "<FakeFacility fittings: {}>".format(self.fittings)
 
+    def get_location_id(self):
+        return 'EU6'
+
     def get_parameter(self, label, default=None):
         if label in self.parameters:
             return self.parameters[label]
 
         return default
 
+    def power_on(self):
+        pass
+
 
 FakeStatus = namedtuple('FakeStatus', 'action')
+
 
 class FakeNode():
 
@@ -146,10 +153,10 @@ class FakeNode():
         self.private_ips = ['12.34.56.78']
         self.public_ips = []
         self.extra = {'datacenterId': 'EU6',
-                 'description': '#fake description with #tags',
-                 'ipv6': 'fe80::', 'here': 'there',
-                 'status': FakeStatus('none'),
-                 'dummy': 'test'}
+                      'description': '#fake description with #tags',
+                      'ipv6': 'fe80::', 'here': 'there',
+                      'status': FakeStatus('none'),
+                      'dummy': 'test'}
 
 fakeNodeSettings = {
     'name': 'stackstorm',
@@ -176,87 +183,103 @@ blueprints:
 
   - test:
       domain:
+        description: fake
         name: myDC
       ethernet:
+        description: fake
         name: myVLAN
         subnet: 10.1.10.0
       information:
         - container-level information
       nodes:
+        stackstorm:
+          description: fake
+          appliance: 'RedHat 6 64-bit 4 CPU'
+          cpu: 2
+          memory: 2
+          disks:
+            - 1 10 highperformance
+          glue:
+            - internet 22
+          monitoring: essentials
+          information:
+            - hello world
+          rub:
+            - rub.update.sh
+            - rub.docker.sh
         node1:
-          - node-level information
+          information:
+            - node-level information
 """
+
+
+def do_polish(polisher):
+
+    engine = PlumberyEngine()
+    engine.from_text(myInformation)
+
+    polisher.go(engine)
+
+    facility = engine.list_facility('NA9')[0]
+    DimensionDataNodeDriver.connectionCls.conn_classes = (
+        None, DimensionDataMockHttp)
+    DimensionDataMockHttp.type = None
+    facility.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+
+    polisher.move_to(facility)
+
+    blueprint = facility.get_blueprint('test')
+    infrastructure = PlumberyInfrastructure(facility)
+    container = infrastructure.get_container(blueprint)
+
+    polisher.shine_container(container)
+
+    nodes = PlumberyNodes(facility)
+
+    node = nodes.get_node('stackstorm')
+    polisher.shine_node(
+        node=node, settings=fakeNodeSettings, container=container)
+
+    node = nodes.get_node('node1')
+    polisher.shine_node(
+        node=node, settings=fakeNodeSettings, container=container)
+
+    polisher.move_to(FakeFacility())
+
+    polisher.shine_container(FakeContainer())
+
+    polisher.shine_node(
+        node=FakeNode(), settings=fakeNodeSettings, container=FakeContainer())
+
+    polisher.reap()
+
 
 class TestPlumberyPolisher(unittest.TestCase):
 
+    def test_ansible(self):
+        polisher = PlumberyPolisher.from_shelf('ansible', {})
+        do_polish(polisher)
 
     def test_information(self):
         polisher = PlumberyPolisher.from_shelf('information', {})
-        polisher.go(FakeEngine())
-        polisher.move_to(FakeFacility())
-        polisher.shine_node(
-            FakeNode(), fakeNodeSettings, FakeContainer())
-        polisher.reap()
-
-    def test_information_textual(self):
-        engine = PlumberyEngine()
-        engine.from_text(myInformation)
-        polisher = PlumberyPolisher.from_shelf('information', {})
-        polisher.go(engine)
-        facility = engine.list_facility('NA9')[0]
-        DimensionDataNodeDriver.connectionCls.conn_classes = (
-            None, DimensionDataMockHttp)
-        DimensionDataMockHttp.type = None
-        facility.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
-        polisher.move_to(facility)
-        blueprint = facility.get_blueprint('test')
-        infrastructure = PlumberyInfrastructure(facility)
-        container = infrastructure.get_container(blueprint)
-        polisher.shine_container(container)
-        nodes = PlumberyNodes(facility)
-        node = nodes.get_node('node1')
-        polisher.shine_node(
-            node=node, settings=fakeNodeSettings, container=container)
-        polisher.reap()
-
-    def test_ping(self):
-        polisher = PlumberyPolisher.from_shelf('ping', {})
-        polisher.go(FakeEngine())
-        polisher.move_to(FakeFacility())
-        polisher.shine_node(
-            FakeNode(), fakeNodeSettings, FakeContainer())
-        polisher.reap()
-
-    def test_ansible(self):
-        polisher = PlumberyPolisher.from_shelf('ansible', {})
-        polisher.go(FakeEngine())
-        polisher.move_to(FakeFacility())
-        polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
-        polisher.reap()
+        do_polish(polisher)
 
     def test_inventory(self):
         polisher = PlumberyPolisher.from_shelf('inventory', {})
-        polisher.go(FakeEngine())
-        polisher.move_to(FakeFacility())
-        polisher.shine_node(
-            FakeNode(), fakeNodeSettings, FakeContainer())
-        polisher.reap()
+        do_polish(polisher)
+
+    def test_ping(self):
+        polisher = PlumberyPolisher.from_shelf('ping', {})
+        do_polish(polisher)
 
     def test_rub(self):
         polisher = PlumberyPolisher.from_shelf(
             'rub', fakeRubConfiguration)
-        polisher.go(FakeEngine())
-        polisher.move_to(FakeFacility())
-        polisher.shine_node(FakeNode(), fakeNodeSettings, FakeContainer())
-        polisher.reap()
+        do_polish(polisher)
 
     def test_spit(self):
         polisher = PlumberyPolisher.from_shelf('spit', {})
-        polisher.go(FakeEngine())
-        polisher.move_to(FakeFacility())
-        polisher.shine_node(
-            FakeNode(), fakeNodeSettings, FakeContainer())
-        polisher.reap()
+        do_polish(polisher)
 
 if __name__ == '__main__':
     import sys

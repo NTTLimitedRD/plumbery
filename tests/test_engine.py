@@ -205,7 +205,8 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(facility.get_parameter('locationId'), 'EU7')
 
         blueprint = facility.get_blueprint('fake')
-        self.assertEqual(blueprint.keys(), ['ethernet', 'domain', 'nodes', 'target'])
+        self.assertEqual(blueprint.keys(),
+                         ['ethernet', 'domain', 'nodes', 'target'])
 
 #        try:
 #            engine.do('ping')
@@ -213,7 +214,6 @@ class TestPlumberyEngine(unittest.TestCase):
 #            pass
 #        except InvalidCredsError:
 #            pass
-
 
     def test_lookup(self):
 

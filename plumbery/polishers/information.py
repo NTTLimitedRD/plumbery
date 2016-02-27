@@ -99,7 +99,8 @@ class InformationPolisher(PlumberyPolisher):
         if len(lines) < 1:
             return
 
-        self.information.append("About '{}':".format(facility.get_location_id()))
+        self.information.append("About '{}':".format(
+            facility.get_location_id()))
 
         for line in lines:
             self.information.append("- {}".format(line))
@@ -135,7 +136,8 @@ class InformationPolisher(PlumberyPolisher):
         if len(lines) < 1:
             return
 
-        self.information.append("About '{}':".format(container.blueprint['target']))
+        self.information.append("About '{}':".format(
+            container.blueprint['target']))
 
         for line in lines:
             self.information.append("- {}".format(line))

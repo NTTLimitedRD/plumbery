@@ -465,7 +465,7 @@ class PlumberyEngine(object):
         else:
             secret = ''.join(random.choice(
                 string.ascii_letters+string.digits+'-_!=')
-                    for i in range(9))
+                for i in range(9))
 
         if '.sha256.' in id:
             secret = SHA256.new(secret).hexdigest()
@@ -1376,4 +1376,3 @@ class PlumberyEngine(object):
             return self.get_secret(token)
 
         return None
-

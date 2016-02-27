@@ -159,9 +159,10 @@ class PlumberyInfrastructure(object):
         if len(self.facility._cache_network_domains) < 1:
             logging.debug("Listing network domains")
             self.facility._cache_network_domains = \
-                self.region.ex_list_network_domains(self.facility.get_location_id())
+                self.region.ex_list_network_domains(
+                    self.facility.get_location_id())
             logging.debug("- found {} network domains"
-                         .format(len(self.facility._cache_network_domains)))
+                          .format(len(self.facility._cache_network_domains)))
 
         for domain in self.facility._cache_network_domains:
             if domain.name == name:
@@ -200,20 +201,20 @@ class PlumberyInfrastructure(object):
         if isinstance(path, str):
             path = path.split('::')
 
-        if len(path) == 1: # local name
+        if len(path) == 1:  # local name
 
             if len(self.facility._cache_vlans) < 1:
                 logging.debug("Listing Ethernet networks")
                 self.facility._cache_vlans = self.region.ex_list_vlans(
                     location=self.facility.get_location_id())
                 logging.debug("- found {} Ethernet networks"
-                             .format(len(self.facility._cache_vlans)))
+                              .format(len(self.facility._cache_vlans)))
 
             for network in self.facility._cache_vlans:
                 if network.name == path[0]:
                     return network
 
-        elif len(path) == 2: # different location, same region
+        elif len(path) == 2:  # different location, same region
 
             if (len(self._cache_remote_vlan) == 3
                     and self._cache_remote_vlan[0] == path[0]
@@ -238,7 +239,7 @@ class PlumberyInfrastructure(object):
                     logging.info("- found it")
                     return network
 
-        elif len(path) == 3: # other region
+        elif len(path) == 3:  # other region
 
             if (len(self._cache_offshore_vlan) == 4
                     and self._cache_offshore_vlan[0] == path[0]
@@ -1368,7 +1369,7 @@ class PlumberyInfrastructure(object):
                     self.get_network_domain(self.blueprint['domain']['name']))
                 actual += int(block.size)
                 logging.info("- reserved {} addresses"
-                              .format(int(block.size)))
+                             .format(int(block.size)))
                 return block.base_ip
 
             except Exception as feedback:

@@ -69,15 +69,12 @@ class SpitPolisher(PlumberyPolisher):
             logging.info("- aborted - no network here")
             return
 
-        nodes = PlumberyNodes(self.facility)
-
-        names = nodes.list_nodes(container.blueprint)
-
         logging.info("- waiting for nodes to be deployed")
 
+        names = self.nodes.list_nodes(container.blueprint)
         for name in names:
             while True:
-                node = nodes.get_node(name)
+                node = self.nodes.get_node(name)
                 if node is None:
                     logging.info("- aborted - missing node '{}'".format(name))
                     return
@@ -227,7 +224,8 @@ class SpitPolisher(PlumberyPolisher):
         :param id: the disk unique identifier, as reported by the API
         :type id: ``str``
 
-        :param speed: storage type, either 'standard', 'highperformance' or 'economy'
+        :param speed: storage type, either 'standard',
+            'highperformance' or 'economy'
         :type speed: ``str``
 
         """
@@ -273,7 +271,8 @@ class SpitPolisher(PlumberyPolisher):
         :param size: the disk size, expressed in Giga bytes
         :type size: ``int``
 
-        :param speed: storage type, either 'standard', 'highperformance' or 'economy'
+        :param speed: storage type, either 'standard',
+            'highperformance' or 'economy'
         :type speed: ``str``
 
         """
@@ -417,9 +416,9 @@ class SpitPolisher(PlumberyPolisher):
                 logging.debug("- setting disk {}".format(item))
                 attributes = item.split()
                 if len(attributes) < 2:
-                    logging.info("- malformed disk atributes;"
+                    logging.info("- malformed disk attributes;"
                                  " provide disk id and size in GB, e.g., 1 50;"
-                                 " add disk type if needed, e.g., highperformance")
+                                 " add disk type if needed, e.g., economy")
                 elif len(attributes) < 3:
                     id = int(attributes[0])
                     size = int(attributes[1])

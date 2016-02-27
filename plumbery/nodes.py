@@ -400,8 +400,10 @@ class PlumberyNodes(object):
         for index in range(int(matches.group(2)), int(matches.group(3))+1):
 
             label = matches.group(1)+str(index)+matches.group(4)
-            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$", label) is None:
-                logger.warning("Warning: '{}' is not a valid hostname".format(label))
+            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$",
+                label) is None:
+                logging.warning("Warning: '{}' is not a valid hostname"
+                                .format(label))
 
             labels.append(label)
 
@@ -445,7 +447,7 @@ class PlumberyNodes(object):
 
         node = None
 
-        if len(path) == 1: # local name
+        if len(path) == 1:  # local name
 
             self.facility.power_on()
 
@@ -459,7 +461,7 @@ class PlumberyNodes(object):
                     self._enrich_node(node)
                     return node
 
-        elif len(path) == 2: # different location, same region
+        elif len(path) == 2:  # different location, same region
 
             self.facility.power_on()
 
@@ -484,7 +486,7 @@ class PlumberyNodes(object):
                     self._enrich_node(node)
                     return node
 
-        elif len(path) == 3: # other region
+        elif len(path) == 3:  # other region
 
             offshore = self.plumbery.get_compute_driver(region=path[0])
 
@@ -495,7 +497,7 @@ class PlumberyNodes(object):
                 return None
 
             logging.debug("Looking for offshore node '{}'"
-                         .format('::'.join(path)))
+                          .format('::'.join(path)))
 
             for node in offshore.list_nodes():
 

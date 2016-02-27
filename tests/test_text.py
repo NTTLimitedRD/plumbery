@@ -30,7 +30,7 @@ input2 = {
     'packages': ['ntp', 'nodejs', 'npm'],
     'ssh_pwauth': True,
     'disable_root': False,
-    'bootcmd': \
+    'bootcmd':
         ['curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -'],
     'write_files': [{
         'content': input1,
@@ -41,7 +41,7 @@ expected2 = {
     'packages': ['ntp', 'nodejs', 'npm'],
     'ssh_pwauth': True,
     'disable_root': False,
-    'bootcmd': \
+    'bootcmd':
         ['curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -'],
     'write_files': [{
         'content': expected1,
@@ -139,18 +139,18 @@ conf:
 
 dict6 = {
     'certificate': "-----BEGIN CERTIFICATE-----\n"
-     "MIICCTCCAXKgAwIBAgIBATANBgkqhkiG9w0BAQUFADANMQswCQYDVQQDDAJjYTAe\n"
-     "Fw0xMDAyMTUxNzI5MjFaFw0xNTAyMTQxNzI5MjFaMA0xCzAJBgNVBAMMAmNhMIGf\n"
-     "MA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCu7Q40sm47/E1Pf+r8AYb/V/FWGPgc\n"
-     "b014OmNoX7dgCxTDvps/h8Vw555PdAFsW5+QhsGr31IJNI3kSYprFQcYf7A8tNWu\n"
-     "1MASW2CfaEiOEi9F1R3R4Qlz4ix+iNoHiUDTjazw/tZwEdxaQXQVLwgTGRwVa+aA\n"
-     "qbutJKi93MILLwIDAQABo3kwdzA4BglghkgBhvhCAQ0EKxYpUHVwcGV0IFJ1Ynkv\n"
-     "T3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwDwYDVR0TAQH/BAUwAwEB/zAd\n"
-     "BgNVHQ4EFgQUu4+jHB+GYE5Vxo+ol1OAhevspjAwCwYDVR0PBAQDAgEGMA0GCSqG\n"
-     "SIb3DQEBBQUAA4GBAH/rxlUIjwNb3n7TXJcDJ6MMHUlwjr03BDJXKb34Ulndkpaf\n"
-     "+GAlzPXWa7bO908M9I8RnPfvtKnteLbvgTK+h+zX1XCty+S2EQWk29i2AdoqOTxb\n"
-     "hppiGMp0tT5Havu4aceCXiy2crVcudj3NFciy8X66SoECemW9UYDCb9T5D0d\n"
-     "-----END CERTIFICATE-----"}
+    "MIICCTCCAXKgAwIBAgIBATANBgkqhkiG9w0BAQUFADANMQswCQYDVQQDDAJjYTAe\n"
+    "Fw0xMDAyMTUxNzI5MjFaFw0xNTAyMTQxNzI5MjFaMA0xCzAJBgNVBAMMAmNhMIGf\n"
+    "MA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCu7Q40sm47/E1Pf+r8AYb/V/FWGPgc\n"
+    "b014OmNoX7dgCxTDvps/h8Vw555PdAFsW5+QhsGr31IJNI3kSYprFQcYf7A8tNWu\n"
+    "1MASW2CfaEiOEi9F1R3R4Qlz4ix+iNoHiUDTjazw/tZwEdxaQXQVLwgTGRwVa+aA\n"
+    "qbutJKi93MILLwIDAQABo3kwdzA4BglghkgBhvhCAQ0EKxYpUHVwcGV0IFJ1Ynkv\n"
+    "T3BlblNTTCBHZW5lcmF0ZWQgQ2VydGlmaWNhdGUwDwYDVR0TAQH/BAUwAwEB/zAd\n"
+    "BgNVHQ4EFgQUu4+jHB+GYE5Vxo+ol1OAhevspjAwCwYDVR0PBAQDAgEGMA0GCSqG\n"
+    "SIb3DQEBBQUAA4GBAH/rxlUIjwNb3n7TXJcDJ6MMHUlwjr03BDJXKb34Ulndkpaf\n"
+    "+GAlzPXWa7bO908M9I8RnPfvtKnteLbvgTK+h+zX1XCty+S2EQWk29i2AdoqOTxb\n"
+    "hppiGMp0tT5Havu4aceCXiy2crVcudj3NFciy8X66SoECemW9UYDCb9T5D0d\n"
+    "-----END CERTIFICATE-----"}
 
 expected6 = """
 conf: \
@@ -218,6 +218,7 @@ runcmd: \
 
 """
 
+
 class FakeNode1:
 
     id = '1234'
@@ -246,6 +247,7 @@ class FakeRegion:
     def get_node(self, name):
         return FakeNode2()
 
+
 class FakeFacility:
 
     plumbery = PlumberyEngine()
@@ -259,6 +261,7 @@ class FakeFacility:
 
     def get_location_id(self):
         return 'EU6'
+
 
 class FakeContainer:
 
@@ -276,9 +279,9 @@ class TestPlumberyText(unittest.TestCase):
 
     def test_dictionary(self):
 
-        template = "little {{ test }} with multiple {{test}} and {{}} as well"
-        context = PlumberyContext(dictionary={ 'test': 'toast' })
-        expected = "little toast with multiple toast and {{}} as well"
+        template = 'little {{ test }} with multiple {{test}} and {{}} as well'
+        context = PlumberyContext(dictionary={'test': 'toast'})
+        expected = 'little toast with multiple toast and {{}} as well'
         self.assertEqual(
             self.text.expand_variables(template, context), expected)
 
@@ -302,7 +305,7 @@ class TestPlumberyText(unittest.TestCase):
 
     def test_input1(self):
 
-        context = PlumberyContext(dictionary={ 'node.private': '12.34.56.78' })
+        context = PlumberyContext(dictionary={'node.private': '12.34.56.78'})
         self.assertEqual(
             self.text.expand_variables(input1, context), expected1)
 
@@ -310,16 +313,18 @@ class TestPlumberyText(unittest.TestCase):
 
         context = PlumberyContext(dictionary={})
         transformed = yaml.load(self.text.expand_variables(input2, context))
-        unmatched = {o : (input2[o], transformed[o])
-            for o in input2.keys() if input2[o] != transformed[o]}
+        unmatched = {o: (input2[o], transformed[o])
+                     for o in input2.keys()
+                     if input2[o] != transformed[o]}
         if unmatched != {}:
             print(unmatched)
         self.assertEqual(len(unmatched), 0)
 
-        context = PlumberyContext(dictionary={ 'node.private': '12.34.56.78' })
+        context = PlumberyContext(dictionary={'node.private': '12.34.56.78'})
         transformed = yaml.load(self.text.expand_variables(input2, context))
-        unmatched = {o : (expected2[o], transformed[o])
-            for o in expected2.keys() if expected2[o] != transformed[o]}
+        unmatched = {o: (expected2[o], transformed[o])
+                     for o in expected2.keys()
+                     if expected2[o] != transformed[o]}
         if unmatched != {}:
             print(unmatched)
         self.assertEqual(len(unmatched), 0)
@@ -327,7 +332,7 @@ class TestPlumberyText(unittest.TestCase):
     def test_input3(self):
 
         loaded = yaml.load(input3)
-        context = PlumberyContext(dictionary={ 'node.public': '12.34.56.78' })
+        context = PlumberyContext(dictionary={'node.public': '12.34.56.78'})
         transformed = yaml.load(self.text.expand_variables(loaded, context))
         self.assertEqual(transformed, yaml.load(expected3))
 

@@ -136,7 +136,7 @@ class InventoryPolisher(PlumberyPolisher):
         description = node.extra['description'].replace(
             '#plumbery', '').strip()
         tags += {tag.strip("#") for tag in description.split()
-                if tag.startswith("#")}
+                 if tag.startswith("#")}
         data['tags'] = tags
 
         self.inventory.append(data)

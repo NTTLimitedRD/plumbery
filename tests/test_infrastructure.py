@@ -45,23 +45,23 @@ fakeParameters = {
 }
 
 fakeBlueprints = [{
-        'fake': {
-            'domain': {
-                'name': 'VDC1',
-                'service': 'ADVANCED',
-                'description': 'fake'},
-            'ethernet': {
-                'name': 'vlan1',
-                'subnet': '10.0.10.0',
-                'description': 'fake'},
-            'nodes': [{
-                'stackstorm': {
-                    'description': 'fake',
-                    'appliance': 'RedHat 6 64-bit 4 CPU'
-                    }
-                }]
-            }
-        }]
+    'fake': {
+        'domain': {
+            'name': 'VDC1',
+            'service': 'ADVANCED',
+            'description': 'fake'},
+        'ethernet': {
+            'name': 'vlan1',
+            'subnet': '10.0.10.0',
+            'description': 'fake'},
+        'nodes': [{
+            'stackstorm': {
+                'description': 'fake',
+                'appliance': 'RedHat 6 64-bit 4 CPU'
+                }
+            }]
+        }
+    }]
 
 
 class FakeFacility:

@@ -271,7 +271,7 @@ class RubPolisher(PlumberyPolisher):
                 if len(tokens) == 1:
                     tokens.insert(0, 'run')
 
-                if tokens[0] in ['run', 'run_raw']: # send and run a script
+                if tokens[0] in ['run', 'run_raw']:  # send and run a script
 
                     script = tokens[1]
                     if len(tokens) > 2:
@@ -291,7 +291,7 @@ class RubPolisher(PlumberyPolisher):
                                     and PlumberyText.could_expand(text)):
 
                                 logging.debug("- expanding script '{}'"
-                                                .format(script))
+                                              .format(script))
                                 text = PlumberyText.expand_variables(
                                     text, environment)
 
@@ -305,13 +305,13 @@ class RubPolisher(PlumberyPolisher):
 
                             else:
                                 logging.error("- script '{}' is empty"
-                                                .format(script))
+                                              .format(script))
 
                     except IOError:
                         logging.error("- unable to read script '{}'"
                                       .format(script))
 
-                elif tokens[0] in ['put', 'put_raw']: # send a file
+                elif tokens[0] in ['put', 'put_raw']:  # send a file
 
                     file = tokens[1]
                     if len(tokens) > 2:
@@ -331,7 +331,7 @@ class RubPolisher(PlumberyPolisher):
                                     and PlumberyText.could_expand(content)):
 
                                 logging.debug("- expanding file '{}'"
-                                                .format(file))
+                                              .format(file))
                                 content = PlumberyText.expand_variables(
                                     content, environment)
 
@@ -345,7 +345,7 @@ class RubPolisher(PlumberyPolisher):
                         logging.error("- unable to read file '{}'"
                                       .format(file))
 
-                else: # echo a sensible message eventually
+                else:  # echo a sensible message eventually
 
                     if tokens[0] == 'echo':
                         tokens.pop(0)

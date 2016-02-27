@@ -17,10 +17,10 @@ import logging
 
 from libcloud.compute.base import NodeState
 
-from plumbery.polishers.information import InformationPolisher
+from plumbery.polisher import PlumberyPolisher
 
 
-class PingPolisher(InformationPolisher):
+class PingPolisher(PlumberyPolisher):
     """
     Checks state of nodes
 
