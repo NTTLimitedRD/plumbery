@@ -283,6 +283,9 @@ class TestPlumberyFacility(unittest.TestCase):
         self.facility.destroy_blueprint('fake')
 
     def test_lookup(self):
+        self.assertEqual(self.facility.lookup('location.city'), 'Ashburn')
+        self.assertEqual(self.facility.lookup('location.coordinates'),
+                         [39.04372, -77.48749])
         self.assertEqual(self.facility.lookup('*unknown*'), None)
 
     def test_get_parameter(self):
@@ -296,6 +299,13 @@ class TestPlumberyFacility(unittest.TestCase):
         self.assertEqual(facility.get_parameter('ipv4'), 'auto')
         self.assertEqual(facility.get_parameter('basement'), 'myBlueprint')
 
+        city = facility.get_city()
+        self.assertEqual(city, 'Frankfurt')
+        self.assertEqual(city, facility.get_city('EU6'))
+
+        coordinates = facility.get_coordinates()
+        self.assertEqual(len(coordinates), 2)
+        self.assertEqual(coordinates, facility.get_coordinates('EU6'))
 
 if __name__ == '__main__':
     import sys

@@ -105,9 +105,12 @@ class PlumberyFacility(object):
 
         return self.get_parameter('locationId')
 
-    def get_city(self):
+    def get_city(self, locationId=None):
         """
-        Retrieves the city of the current location
+        Retrieves the city of some location
+
+        :param locationId: if not provided, use location of this facility
+        :type locationId: ``str`` or None
 
         :return:  the city, e.g., 'Amsterdam' or 'Singapore'
         :rtype: ``str``
@@ -115,27 +118,33 @@ class PlumberyFacility(object):
         """
 
         cities = {
-            'EU7': 'Amsterdam',
-            'NA9': 'Ashburn',
-            'EU6': 'Frankfurt',
+            'AP3': 'Singapore',
+            'AP4': 'Tokyo',
             'AP5': 'Hong Kong',
-            'EU8': 'London',
+            'AU9': 'Sydney',
             'AU10': 'Melbourne',
             'AU11': 'Hamilton',
+            'EU6': 'Frankfurt',
+            'EU7': 'Amsterdam',
+            'EU8': 'London',
+            'NA9': 'Ashburn',
             'NA12': 'Santa Clara',
-            'AP3': 'Singapore',
-            'AU9': 'Sydney',
-            'AP4': 'Tokyo',
         }
 
-        if self.get_parameter('locationId') not in cities.keys():
+        if locationId is None:
+            locationId = self.get_parameter('locationId')
+
+        if locationId not in cities.keys():
             return '*unknown*'
 
-        return cities[self.get_parameter('locationId')]
+        return cities[locationId]
 
-    def get_coordinates(self):
+    def get_coordinates(self, locationId=None):
         """
-        Retrieves coordinates of the current location
+        Retrieves coordinates of some location
+
+        :param locationId: if not provided, use location of this facility
+        :type locationId: ``str`` or None
 
         :return:  latitude and longitude of the current location
         :rtype: ``list``
@@ -143,23 +152,26 @@ class PlumberyFacility(object):
         """
 
         coordinates = {
-            'EU7': [52.3740300, 4.8896900],
-            'NA9': [39.0437200, -77.4874900],
-            'EU6': [50.1155200, 8.6841700],
+            'AP3': [1.2896700, 103.8500700],
+            'AP4': [35.6895000, 139.6917100],
             'AP5': [22.2855200, 114.1576900],
-            'EU8': [51.5085300, -0.1257400],
+            'AU9': [-33.8678500, 151.2073200],
             'AU10': [-37.8140000, 144.9633200],
             'AU11': [-37.7833300, 175.2833300],
+            'EU6': [50.1155200, 8.6841700],
+            'EU7': [52.3740300, 4.8896900],
+            'EU8': [51.5085300, -0.1257400],
+            'NA9': [39.0437200, -77.4874900],
             'NA12': [37.3541100, -121.9552400],
-            'AP3': [1.2896700, 103.8500700],
-            'AU9': [-33.8678500, 151.2073200],
-            'AP4': [35.6895000, 139.6917100],
         }
 
-        if self.get_parameter('locationId') not in coordinates.keys():
+        if locationId is None:
+            locationId = self.get_parameter('locationId')
+
+        if locationId not in coordinates.keys():
             return None
 
-        return coordinates[self.get_parameter('locationId')]
+        return coordinates[locationId]
 
     def get_parameter(self, label, default=None):
         """
@@ -884,6 +896,12 @@ class PlumberyFacility(object):
 
         """
 
+        if token == 'location.city':
+            return self.get_city()
+
+        if token == 'location.coordinates':
+            return self.get_coordinates()
+
         if token in self._cache_lookup:
             return self._cache_lookup[token]
 
@@ -902,4 +920,3 @@ class PlumberyFacility(object):
         """
 
         self._cache_lookup[token] = value
-
