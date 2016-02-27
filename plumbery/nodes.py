@@ -179,7 +179,7 @@ class PlumberyNodes(object):
                             memory))
 
                 if self.plumbery.safeMode:
-                    logging.info("- not in safe mode")
+                    logging.info("- skipped - safe mode")
                     continue
 
                 if container.domain is None:
@@ -283,7 +283,7 @@ class PlumberyNodes(object):
 
                 if self.plumbery.safeMode:
                     logging.info("Destroying node '{}'".format(label))
-                    logging.info("- not in safe mode")
+                    logging.info("- skipped - safe mode")
                     continue
 
                 self._stop_monitoring(node, settings)
@@ -731,7 +731,7 @@ class PlumberyNodes(object):
             return
 
         if self.plumbery.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return
 
         while True:
@@ -807,7 +807,7 @@ class PlumberyNodes(object):
                     continue
 
                 elif self.plumbery.safeMode:
-                    logging.info("- not in safe mode")
+                    logging.info("- skipped - safe mode")
                     continue
 
                 else:

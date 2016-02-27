@@ -330,10 +330,10 @@ class PlumberyInfrastructure(object):
 
         elif self.plumbery.safeMode:
             logging.info("Creating network domain '{}'".format(domainName))
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             logging.info("Creating Ethernet network '{}'"
                          .format(networkName))
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return False
 
         else:
@@ -396,7 +396,7 @@ class PlumberyInfrastructure(object):
         elif self.plumbery.safeMode:
             logging.info("Creating Ethernet network '{}'"
                          .format(networkName))
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return False
 
         else:
@@ -519,7 +519,7 @@ class PlumberyInfrastructure(object):
             logging.info("- this network can never be destroyed")
 
         elif self.plumbery.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
 
         else:
 
@@ -572,7 +572,7 @@ class PlumberyInfrastructure(object):
         logging.info("Destroying network domain '{}'".format(domainName))
 
         if self.plumbery.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return
 
         while True:
@@ -686,7 +686,7 @@ class PlumberyInfrastructure(object):
             logging.info("Creating pool '{}'".format(name))
 
             if self.plumbery.safeMode:
-                logging.info("- not in safe mode")
+                logging.info("- skipped - safe mode")
 
             else:
                 try:
@@ -756,7 +756,7 @@ class PlumberyInfrastructure(object):
             logging.info("Creating listener '{}'".format(name))
 
             if self.plumbery.safeMode:
-                logging.info("- not in safe mode")
+                logging.info("- skipped - safe mode")
                 continue
 
             try:
@@ -828,7 +828,7 @@ class PlumberyInfrastructure(object):
                 continue
 
             if self.plumbery.safeMode:
-                logging.info("- not in safe mode")
+                logging.info("- skipped - safe mode")
                 continue
 
             try:
@@ -852,7 +852,7 @@ class PlumberyInfrastructure(object):
             logging.info("- not found")
 
         elif self.plumbery.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
 
         else:
             try:
@@ -962,7 +962,7 @@ class PlumberyInfrastructure(object):
                 return
 
         if self.plumbery.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return
 
         try:
@@ -1017,7 +1017,7 @@ class PlumberyInfrastructure(object):
                 if member.name == self.name_member(node):
 
                     if self.plumbery.safeMode:
-                        logging.info("- not in safe mode")
+                        logging.info("- skipped - safe mode")
                         return
 
                     try:
@@ -1114,7 +1114,7 @@ class PlumberyInfrastructure(object):
             if self.plumbery.safeMode:
                 logging.info("Glueing node '{}' to network '{}'"
                              .format(node.name, label))
-                logging.info("- not in safe mode")
+                logging.info("- skipped - safe mode")
                 continue
 
             if label == 'internet':
@@ -1230,7 +1230,7 @@ class PlumberyInfrastructure(object):
                          .format(name))
 
             if self.plumbery.safeMode:
-                logging.info("- not in safe mode")
+                logging.info("- skipped - safe mode")
 
             else:
 
@@ -1298,7 +1298,7 @@ class PlumberyInfrastructure(object):
                              .format(rule.name))
 
                 if self.plumbery.safeMode:
-                    logging.info("- not in safe mode")
+                    logging.info("- skipped - safe mode")
 
                 else:
                     self.region.ex_delete_firewall_rule(rule)
@@ -1358,7 +1358,7 @@ class PlumberyInfrastructure(object):
         logging.info('Reserving additional public IPv4 addresses')
 
         if self.plumbery.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return None
 
         count = actual + 2
@@ -1446,7 +1446,7 @@ class PlumberyInfrastructure(object):
         logging.info('Releasing public IPv4 addresses')
 
         if self.plumbery.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return
 
         for block in blocks:
@@ -1585,7 +1585,7 @@ class PlumberyInfrastructure(object):
                              .format(ruleIPv4Name))
 
                 if self.plumbery.safeMode:
-                    logging.info("- not in safe mode")
+                    logging.info("- skipped - safe mode")
 
                 else:
 
@@ -1633,7 +1633,7 @@ class PlumberyInfrastructure(object):
                              .format(ruleIPv6Name))
 
                 if self.plumbery.safeMode:
-                    logging.info("- not in safe mode")
+                    logging.info("- skipped - safe mode")
 
                 else:
 
@@ -1728,7 +1728,7 @@ class PlumberyInfrastructure(object):
                                  .format(rule.name))
 
                     if self.plumbery.safeMode:
-                        logging.info("- not in safe mode")
+                        logging.info("- skipped - safe mode")
 
                     else:
                         try:

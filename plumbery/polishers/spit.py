@@ -146,7 +146,7 @@ class SpitPolisher(PlumberyPolisher):
             return
 
         if self.engine.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return
 
         while True:
@@ -190,7 +190,7 @@ class SpitPolisher(PlumberyPolisher):
         """
 
         if self.engine.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return
 
         while True:
@@ -233,7 +233,7 @@ class SpitPolisher(PlumberyPolisher):
         """
 
         if self.engine.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return
 
         while True:
@@ -298,18 +298,18 @@ class SpitPolisher(PlumberyPolisher):
 
                     if disk['size'] > size:
                         logging.info("- disk shrinking could break the node")
-                        logging.info("- disk {} will not be reduced".format(
-                            id))
+                        logging.info("- skipped - disk {} will not be reduced"
+                                     .format(id))
 
                     if disk['size'] < size:
-                        logging.info("- expanding disk {} to {} GB".format(
-                            id, size))
+                        logging.info("- expanding disk {} to {} GB"
+                                     .format(id, size))
                         self.change_node_disk_size(node, disk['id'], size)
                         changed = True
 
                     if disk['speed'].lower() != speed.lower():
-                        logging.info("- changing disk {} to '{}'".format(
-                            id, speed))
+                        logging.info("- changing disk {} to '{}'"
+                                     .format(id, speed))
                         self.change_node_disk_speed(node, disk['id'], speed)
                         changed = True
 
@@ -322,7 +322,7 @@ class SpitPolisher(PlumberyPolisher):
             size, speed))
 
         if self.engine.safeMode:
-            logging.info("- not in safe mode")
+            logging.info("- skipped - safe mode")
             return
 
         while True:

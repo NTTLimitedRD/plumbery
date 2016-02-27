@@ -205,7 +205,7 @@ class RubPolisher(PlumberyPolisher):
             session.connect()
 
             if self.engine.safeMode:
-                logging.info("- no actual ssh interaction in safe mode")
+                logging.info("- skipped - no ssh interaction in safe mode")
 
             else:
                 node = steps.run(node, session)
