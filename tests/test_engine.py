@@ -190,6 +190,9 @@ class TestPlumberyEngine(unittest.TestCase):
         except InvalidCredsError:
             pass
 
+        banner = engine.document_elapsed()
+        self.assertEqual('Worked for you' in banner, True)
+
     def test_as_library(self):
 
         engine = PlumberyEngine(myFacility)
