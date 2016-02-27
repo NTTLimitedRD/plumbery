@@ -286,6 +286,7 @@ class PlumberyNodeContext:
         self.node = node
         self.container = container
         self.context = context
+        self.cache = {}
 
         if node is None:
             return
