@@ -477,6 +477,9 @@ class PlumberyFacility(object):
             self._cache_images = \
                 self.region.list_images(location=self.location)
 
+            self._cache_images += \
+                self.region.ex_list_customer_images(location=self.location)
+
         if (name is None and len(self._cache_images) > 0):
             return self._cache_images[0]
 
