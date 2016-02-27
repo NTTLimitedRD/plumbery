@@ -210,7 +210,7 @@ class SpitPolisher(PlumberyPolisher):
                     changed = False
 
                     if disk['size'] != size:
-                        logging.info("- changing disk {} to {}GB".format(
+                        logging.info("- expanding disk {} to {} GB".format(
                             id, size))
                         self.change_node_disk_size(node, disk['id'], size)
                         changed = True
@@ -244,7 +244,7 @@ class SpitPolisher(PlumberyPolisher):
                     time.sleep(10)
                     continue
 
-                logging.info("- unable to add disk {}GB '{}'"
+                logging.info("- unable to add disk {} GB '{}'"
                              .format(size, speed))
                 logging.error(str(feedback))
 

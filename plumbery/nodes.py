@@ -175,7 +175,7 @@ class PlumberyNodes(object):
                         logging.info("- memory should be between 1 and 256")
                         memory = None
                     else:
-                        logging.debug("- assigning {}GB of memory".format(
+                        logging.debug("- assigning {} GB of memory".format(
                             memory))
 
                 if self.plumbery.safeMode:
