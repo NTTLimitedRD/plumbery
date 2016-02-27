@@ -113,12 +113,18 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
+        if self.engine.safeMode:
+            logging.info("- not in safe mode")
+            return
+
         while True:
             try:
                 self.region.ex_change_storage_size(
                     node=node,
                     disk_id=id,
                     size=size)
+
+                logging.info("- in progress")
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -150,12 +156,18 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
+        if self.engine.safeMode:
+            logging.info("- not in safe mode")
+            return
+
         while True:
             try:
                 self.region.ex_change_storage_speed(
                     node=node,
                     disk_id=id,
                     speed=speed)
+
+                logging.info("- in progress")
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -198,8 +210,7 @@ class SpitPolisher(PlumberyPolisher):
             logging.info("- disk size cannot exceed 1000 GB")
             return
 
-        speed = speed.upper()
-        if speed not in ['STANDARD', 'HIGHPERFORMANCE', 'ECONOMY']:
+        if speed not in ['standard', 'highperformance', 'economy']:
             logging.info("- disk speed should be either 'standard' "
                          "or 'highperformance' or 'economy'")
             return
@@ -215,25 +226,32 @@ class SpitPolisher(PlumberyPolisher):
                         self.change_node_disk_size(node, disk['id'], size)
                         changed = True
 
-                    if disk['speed'] != speed:
+                    if disk['speed'].lower() != speed.lower():
                         logging.info("- changing disk {} to '{}'".format(
                             id, speed))
                         self.change_node_disk_speed(node, disk['id'], speed)
                         changed = True
 
                     if not changed:
-                        logging.info("- no change in disk {}".format(id))
+                        logging.debug("- no change in disk {}".format(id))
 
                     return
 
+        logging.info("- adding disk for {} GB '{}'".format(
+            size, speed))
+
+        if self.engine.safeMode:
+            logging.info("- not in safe mode")
+            return
+
         while True:
             try:
-                logging.info("- adding disk for {}GB '{}'".format(
-                    size, speed))
                 self.region.ex_add_storage_to_node(
                     node=node,
                     amount=size,
-                    speed=speed)
+                    speed=speed.upper())
+
+                logging.info("- in progress")
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
