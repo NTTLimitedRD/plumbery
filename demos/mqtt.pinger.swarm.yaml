@@ -6,9 +6,28 @@ information:
   - "Project credits:"
   - "Swarming project from Mathieu Lecarme: https://github.com/athoune/swarming"
 
-defaults:  # to streamline node attributes
+defaults:
 
-  bee:  # default settings for a remote probe
+  # deploy a limited number of bugs by default
+  #
+  blueprints: queen drones
+
+  # the same network domain is used at various facilities
+  #
+  domain:
+    name: PingerSwarmFox
+    description: "Demonstration of MQTT with multiple pingers"
+    ipv4: auto
+
+  # the same ethernet configuration is used at various facilities
+  #
+  ethernet:
+    name: SwarmNetwork
+    subnet: 10.0.0.0
+
+  # default settings for a remote probe
+  #
+  bee:
 
     description: "#swarm #bee #mqtt #ubuntu"
 
@@ -79,9 +98,13 @@ defaults:  # to streamline node attributes
         - echo "===== Running swarming software"
         - service swarm-pinger start
 
-  cloud-config:  # default for all nodes created by plumbery
+  # default settings for all nodes created by plumbery
+  #
+  cloud-config:
 
-    ssh_keys:  # generated randomly, and used on subsequent invocations
+    # plumbery generates a random key pair
+    #
+    ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
       rsa_public: "{{ key.rsa_public }}"
@@ -111,14 +134,7 @@ blueprints:
 
   - queen:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: PingerSwarmNetwork
-        subnet: 10.0.0.0
+      ethernet:
         accept:
           - dd-ap::AP3::SwarmNetwork
           - dd-ap::AP4::SwarmNetwork
@@ -339,10 +355,7 @@ blueprints:
 
   - bees:
 
-      domain: *domain
-      ethernet: *ethernet
       nodes:
-
         - bee-AU10:
             class: bee
 
@@ -354,19 +367,11 @@ blueprints:
 
   - bees:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: SwarmNetworkAP3
-        subnet: 10.0.0.0
+      ethernet:
         accept:
-          - dd-au::AU10::PingerSwarmNetwork
+          - dd-au::AU10::SwarmNetwork
 
       nodes:
-
         - bee-AP3:
             default: bee
 
@@ -378,19 +383,11 @@ blueprints:
 
   - bees:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: SwarmNetworkAP4
-        subnet: 10.0.0.0
+      ethernet:
         accept:
-          - dd-au::AU10::PingerSwarmNetwork
+          - dd-au::AU10::SwarmNetwork
 
       nodes:
-
         - bee-AP4:
             default: bee
 
@@ -402,19 +399,11 @@ blueprints:
 
   - bees:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: SwarmNetworkAP5
-        subnet: 10.0.0.0
+      ethernet:
         accept:
-          - dd-au::AU10::PingerSwarmNetwork
+          - dd-au::AU10::SwarmNetwork
 
       nodes:
-
         - bee-AP5:
             default: bee
 
@@ -424,21 +413,13 @@ regionId: dd-au
 
 blueprints:
 
-  - bees:
+  - drones:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: SwarmNetworkAU11
-        subnet: 10.0.0.0
+      ethernet:
         accept:
-          - dd-au::AU10::PingerSwarmNetwork
+          - dd-au::AU10::SwarmNetwork
 
       nodes:
-
         - bee-AU11:
             default: bee
 
@@ -450,19 +431,11 @@ blueprints:
 
   - bees:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: SwarmNetworkEU6
-        subnet: 10.0.0.0
+      ethernet:
         accept:
-          - dd-au::AU10::PingerSwarmNetwork
+          - dd-au::AU10::SwarmNetwork
 
       nodes:
-
         - bee-EU6:
             default: bee
 
@@ -474,19 +447,11 @@ blueprints:
 
   - bees:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: SwarmNetworkEU8
-        subnet: 10.0.0.0
+      ethernet:
         accept:
-          - dd-au::AU10::PingerSwarmNetwork
+          - dd-au::AU10::SwarmNetwork
 
       nodes:
-
         - bee-EU8:
             default: bee
 
@@ -498,19 +463,11 @@ blueprints:
 
   - bees:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: SwarmNetworkNA9
-        subnet: 10.0.0.0
+      ethernet:
         accept:
-          - dd-au::AU10::PingerSwarmNetwork
+          - dd-au::AU10::SwarmNetwork
 
       nodes:
-
         - bee-NA9:
             default: bee
 
@@ -522,18 +479,10 @@ blueprints:
 
   - bees:
 
-      domain: &domain
-        name: PingerSwarmFox
-        description: "Demonstration of MQTT with multiple pingers"
-        ipv4: auto
-
-      ethernet: &ethernet
-        name: SwarmNetworkNA12
-        subnet: 10.0.0.0
+      ethernet:
         accept:
-          - dd-au::AU10::PingerSwarmNetwork
+          - dd-au::AU10::SwarmNetwork
 
       nodes:
-
         - bee-NA12:
             default: bee

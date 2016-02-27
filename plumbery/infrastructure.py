@@ -239,6 +239,8 @@ class PlumberyInfrastructure(object):
                     logging.info("- found it")
                     return network
 
+            logging.info("- not found")
+
         elif len(path) == 3:  # other region
 
             if (len(self._cache_offshore_vlan) == 4
@@ -266,6 +268,8 @@ class PlumberyInfrastructure(object):
                     self._cache_offshore_vlan.append(network)
                     logging.info("- found it")
                     return network
+
+            logging.info("- not found")
 
         return None
 
@@ -1537,7 +1541,7 @@ class PlumberyInfrastructure(object):
 
             source = self.get_ethernet(label)
             if source is None:
-                logging.info("Source network '{}' is unknown".format(label))
+                logging.debug("Source network '{}' is unknown".format(label))
                 continue
 
             # avoid name collisions across local, remote and off-shore networks

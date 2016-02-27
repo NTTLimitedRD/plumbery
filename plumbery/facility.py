@@ -301,6 +301,20 @@ class PlumberyFacility(object):
                     self.blueprints[index][blueprintName] = blueprint
 
     def update_settings(self, settings, additions):
+        """
+        Updates a dictionary deeply
+
+        :param settings: the dictionary that will be updated
+        :type settings: ``dict``
+
+        :param additions: dictionary with some updates
+        :type additions: ``dict``
+
+        This function appends to any list in settings the elements
+        provided in the dictionary additions.
+
+        """
+
         for key in additions.keys():
             if key not in settings:
                 settings[key] = additions[key]
@@ -353,10 +367,11 @@ class PlumberyFacility(object):
             name = blueprint.keys()[0]
             if not isinstance(blueprint[name], dict):
                 continue
+
             if name in names:
-                logging.warning("Duplicated blueprint name '{}'".format(name))
-            else:
-                names.append(name)
+                raise ValueError("Duplicated blueprint name '{}'".format(name))
+
+            names.append(name)
 
         return names
 
@@ -372,6 +387,10 @@ class PlumberyFacility(object):
 
         Blueprints are defined in the fittings plan, as per
         following example::
+
+            ---
+            defaults:
+              blueprints: mongo_config mongo_shard
 
             ---
 
@@ -404,6 +423,14 @@ class PlumberyFacility(object):
             >>facility.expand_blueprint(['mongo_config', 'alien_mongos'])
             ['mongo_config']
 
+        If the special label `*` is provided, then plumbery will look
+        for a default list of blueprints defined at the global level.
+        Alternatively, it will provide the full list of blueprints.
+        With the example settings above, you would get::
+
+            >>facility.expand_blueprint('*')
+            ['mongo_config', 'mongo_shard']
+
         If the special label `basement` is provided, then as you can expect
         it will be expanded as specified in the fittings plan. With the example
         settings above, you would get::
@@ -417,10 +444,15 @@ class PlumberyFacility(object):
 
         if isinstance(labels, str):
 
-            if labels.lower() == 'basement':
+            if labels.lower() == '*':
+                all = self.list_blueprints()
+                labels = self.plumbery.get_default('blueprints', all)
+
+            elif labels.lower() == 'basement':
                 labels = self.get_parameter('basement')
 
-            labels = labels.split(' ')
+            if isinstance(labels, str):
+                labels = labels.split(' ')
 
         for label in labels:
 
@@ -443,9 +475,15 @@ class PlumberyFacility(object):
                                 names.append(token)
                                 break
 
-        if (names != labels and len(names) > 0):
-            logging.info("Expanding '{}' to '{}'".format(
-                ' '.join(labels), "', '".join(names)))
+        if names != labels:
+            if len(names) > 1:
+                logging.info("- working on blueprints '{}'".format(
+                    "', '".join(names)))
+            elif len(names) > 0:
+                logging.info("- working on blueprint '{}'".format(
+                    "', '".join(names)))
+            else:
+                logging.info("- skipped - nothing to do here")
 
         return names
 
@@ -614,8 +652,6 @@ class PlumberyFacility(object):
             logging.debug("- basement: {}".format(
                 "'"+"', '".join(basement)+"'"))
 
-        logging.info('- please wait')
-
     def power_on(self):
         """
         Switches electricity on
@@ -682,7 +718,7 @@ class PlumberyFacility(object):
             blueprint = self.get_blueprint(name)
             infrastructure.build(blueprint)
 
-        blueprints = self.list_blueprints()
+        blueprints = self.expand_blueprint('*')
         for name in blueprints:
             if name not in basement:
                 blueprint = self.get_blueprint(name)
@@ -767,7 +803,7 @@ class PlumberyFacility(object):
         for name in basement:
             self.start_blueprint(name)
 
-        for name in self.list_blueprints():
+        for name in self.expand_blueprint('*'):
             if name not in basement:
                 self.start_blueprint(name)
 
@@ -805,7 +841,7 @@ class PlumberyFacility(object):
             logging.debug("Polishing blueprint '{}'".format(name))
             self.polish_blueprint(name, polishers)
 
-        for name in self.list_blueprints():
+        for name in self.expand_blueprint('*'):
             if name not in basement:
                 logging.debug("Polishing blueprint '{}'".format(name))
                 self.polish_blueprint(name, polishers)
@@ -852,7 +888,7 @@ class PlumberyFacility(object):
 
         basement = self.list_basement()
 
-        for name in self.list_blueprints():
+        for name in self.expand_blueprint('*'):
             if name not in basement:
                 self.stop_blueprint(name)
 
@@ -900,7 +936,7 @@ class PlumberyFacility(object):
 
         basement = self.list_basement()
 
-        for name in self.list_blueprints():
+        for name in self.expand_blueprint('*'):
             if name in basement:
                 continue
             blueprint = self.get_blueprint(name)
@@ -941,7 +977,7 @@ class PlumberyFacility(object):
 
         basement = self.list_basement()
 
-        for name in self.list_blueprints():
+        for name in self.expand_blueprint('*'):
             if name in basement:
                 continue
             blueprint = self.get_blueprint(name)

@@ -878,7 +878,11 @@ class PlumberyEngine(object):
 
         """
 
-        logging.info("Building all blueprints")
+        all = self.get_default('blueprints', None)
+        if all is None:
+            logging.info("Building all blueprints")
+        else:
+            logging.info("Building '{}'".format("', '".join(all.split(' '))))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
