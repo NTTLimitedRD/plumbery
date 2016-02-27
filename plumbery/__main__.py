@@ -229,6 +229,8 @@ def main(args=[], engine=None):
     try:
         engine.do(args.action, args.blueprints, args.facilities)
 
+        logging.info(engine.document_elapsed())
+
     except Exception as feedback:
         if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
             logging.error("Unable to do '{}'".format(args.action))

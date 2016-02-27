@@ -132,6 +132,9 @@ class PlumberyEngine(object):
 
         self.defaults = {}
 
+        self.c0 = time.clock()
+        self.t0 = time.time()
+
         if plan is not None:
             self.from_file(plan)
 
@@ -721,6 +724,63 @@ class PlumberyEngine(object):
                 matches.append(facility)
 
         return matches
+
+    def document_elapsed(self, elapsed=None, www=None):
+        """
+        Reflects the amount of work done by plumbery
+
+        :param elapsed: number of second spent in plumbing
+        :type elapsed: ``int``
+
+        :param www: number of second spent in the cloud
+        :type www: ``int``
+
+        """
+
+        if elapsed is None:
+            elapsed = int(time.clock() - self.c0 + 1)
+
+        if www is None:
+            www = int(time.time() - self.t0 + 1)
+
+        www -= elapsed
+
+        if elapsed < 2:
+            elapsed = "in a blink locally,"                 \
+                      " and for {} seconds in the cloud"    \
+                      .format(www)
+
+        elif elapsed < 60:
+            elapsed = "for {} seconds locally,"             \
+                      " and for {} seconds in the cloud"    \
+                      .format(elapsed, www)
+
+        elif elapsed < 3600:
+            elapsed = int(elapsed / 60)
+            www = int(www / 60)
+            if elapsed < 2:
+                elapsed = "for one minute or so locally,"       \
+                          " and for {} minutes in the cloud"    \
+                          .format(www)
+
+            else:
+                elapsed = "for {} minutes locally,"             \
+                          " and for {} minutes in the cloud"    \
+                          .format(elapsed, www)
+
+        elif elapsed < 86400:
+            elapsed = int(elapsed / 60)
+            minutes = elapsed % 60
+            hours = int(elapsed / 60)
+            if hours < 2:
+                elapsed = "for one hour and {} minutes".format(minutes)
+            else:
+                elapsed = "for {} hours and {} minutes".format(hours, minutes)
+
+        else:
+            elapsed = "for more than a day -- can you do something to improve?"
+
+        return "Worked for you {}".format(elapsed)
 
     def do(self, action, blueprints=None, facilities=None):
         """
