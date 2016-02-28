@@ -3,6 +3,34 @@
 History
 -------
 
+0.4.3 (2016-02-28)
+~~~~~~~~~~~~~~~~~~
+
+* A total of 24 various tutorials is provided
+* Enhance tutorials on Docker and Kubernetes with virtual storage, SSH keys, class-based definition, and updated tutorial
+* Add tutorial on iTop, an open source solution for ITIL management
+* Add the management of virtual disks, including tiered storage
+* Add tutorial showing partitioning, formatting and mounting of virtual disks
+* Enhance the usage documentation page
+* Accept pseudo-target of blueprints
+* Add classes of nodes to streamline large deployments
+* Include the library of Customer Images
+* Normalize information reported by the 'inventory' command
+* Expose geolocalisation information to nodes if needed
+* Generalize the usage of 'information:' to support active documentation of fittings plans
+* Put fittings plan in context with the new 'links:' directive
+* Reduce requirements in fittings plan passed as a Python dictionary
+* Add power off as secondary mechanism to stop nodes, when graceful shutdown is not enough
+* Allow for CPU and memory dynamic reconfiguration
+* Add option -s to run plumbery in safe mode from the command line
+* Report on time spent in the cloud while working
+* Fix multiple bugs and errors
+* Augment test coverage
+* Improve information provided in debug mode
+* Passing Travis CI
+* 3121 python statements
+* Test coverage 50%
+
 0.4.2 (2016-02-14)
 ~~~~~~~~~~~~~~~~~~
 
