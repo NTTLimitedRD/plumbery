@@ -1,8 +1,19 @@
-================
-Docker container
-================
+===========
+Docker node
+===========
 
-This is a rather big virtual machine with Docker on it.
+Despite the surging interest in containers, the community is still struggling
+on the proper setup of a Docker node. In other terms, the handling of containers
+is really a breeze compared to previous situation. However, there is a need
+to facilitate the deployment of the underlying infrastructure, including the
+network and the security.
+
+.. image:: tutorial.docker.png
+
+In this tutorial we demonstrate how to create a class of Docker nodes and deploy
+one single node. Of course, you can use this file for yourself, and change it
+to better accomodate your requirements. For example, duplicate the last section
+of this fittings plan and mention other data centres and regions.
 
 Requirements for this use case
 ------------------------------
@@ -10,11 +21,17 @@ Requirements for this use case
 * Add a Network Domain
 * Add an Ethernet network
 * Deploy a large Ubuntu server
-* Monitor this server
-* Assign a public IPv4 address
+* Provide 32 CPU and 256 MB of RAM to each node
+* Add a virtual disk of 100 GB
+* Monitor this server in the real-time dashboard
+* Assign a public IPv4 address to each node
 * Add address translation to ensure end-to-end IP connectivity
 * Add firewall rule to accept TCP traffic on port 22 (ssh)
+* Combine the virtual disks into a single expanded logical volume (LVM)
+* Install a new SSH key to secure remote communications
+* Configure SSH to reject passwords and to prevent access from root account
 * Install Docker
+* Allow non-root account to use Docker
 
 Fittings plan
 -------------
@@ -36,7 +53,7 @@ Deployment commands
 These commands will build fittings as per the provided plan, start the server
 and bootstrap it.
 
-You can find the public address assigned to the web server like this:
+You can find the public address assigned to the Docker node like this:
 
 .. sourcecode:: bash
 
@@ -51,11 +68,11 @@ connection.
 
 .. sourcecode:: bash
 
-    $ ssh root@<ipv4_here>
+    $ ssh ubuntu@<ipv4_here>
 
 
-You will have to accept the new host, then provide the password used for the
-creation of the node.
+You will have to accept the new host, and authentication will be based on
+the SSH key communicated to the node by Plumbery.
 
 .. sourcecode:: bash
 
@@ -67,11 +84,9 @@ This command is self-explanatory and validates the setup of Docker.
 Destruction commands
 --------------------
 
-The more servers you have, the more costly it is. Would you like to stop the
-invoice?
+Launch following command to remove all resources involved in the fittings plan:
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml stop
-    $ python -m plumbery fittings.yaml destroy
+    $ python -m plumbery fittings.yaml dispose
 
