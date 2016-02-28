@@ -317,7 +317,7 @@ class SpitPolisher(PlumberyPolisher):
 
                     return
 
-        logging.info("- adding disk for {} GB '{}'".format(
+        logging.info("- adding {} GB '{}' disk".format(
             size, speed))
 
         if self.engine.safeMode:
