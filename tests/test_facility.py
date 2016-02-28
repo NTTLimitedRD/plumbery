@@ -230,9 +230,10 @@ class TestPlumberyFacility(unittest.TestCase):
         DimensionDataNodeDriver.connectionCls.conn_classes = (
             None, DimensionDataMockHttp)
         DimensionDataMockHttp.type = None
+        self.plumbery.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
         self.facility = PlumberyFacility(
             plumbery=self.plumbery, fittings=fakeFittings)
-        self.facility.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+        self.facility.power_on()
 
     def tearDown(self):
         self.facility = None
@@ -320,6 +321,8 @@ class TestPlumberyFacility(unittest.TestCase):
         self.assertEqual(self.facility.lookup('location.city'), 'Ashburn')
         self.assertEqual(self.facility.lookup('location.coordinates'),
                          [39.04372, -77.48749])
+        self.assertEqual(self.facility.lookup('location.country'), 'US')
+        self.assertEqual(self.facility.lookup('location.id'), 'NA9')
         self.assertEqual(self.facility.lookup('*unknown*'), None)
 
     def test_parameters(self):

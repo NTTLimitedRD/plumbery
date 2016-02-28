@@ -1027,6 +1027,12 @@ class PlumberyFacility(object):
         if token == 'location.coordinates':
             return self.get_coordinates()
 
+        if token == 'location.country':
+            return self.location.country
+
+        if token == 'location.id':
+            return self.get_location_id()
+
         if token in self._cache_lookup:
             return self._cache_lookup[token]
 
