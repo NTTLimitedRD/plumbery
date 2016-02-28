@@ -1,7 +1,11 @@
 ---
+
 information:
-  - "demonstrates how to configure a server with multiple disks"
-  - "credit: https://gist.github.com/trentmswanson/9c22bb71182e982bd36f"
+
+  - "Demonstrates how to configure a server with multiple disks"
+
+links:
+  - credit: https://gist.github.com/trentmswanson/9c22bb71182e982bd36f
 
 defaults:
 
@@ -63,7 +67,6 @@ blueprints:
             # manage disks of this node
             #
             disks:
-              - 0 50
               - 1 1000 standard
               - 2 100 highperformance
               - 3 300 economy
@@ -115,9 +118,6 @@ blueprints:
 
               runcmd:
                 - chmod +x /root/set_disk.sh
-
                 - /root/set_disk.sh /dev/sdb ext3 /mnt/huge
-
                 - /root/set_disk.sh /dev/sdc ext4 /mnt/fast
-
                 - /root/set_disk.sh /dev/sdd ext2 /mnt/cheap

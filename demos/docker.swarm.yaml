@@ -1,5 +1,14 @@
 ---
 
+information:
+  - "Demonstration of Docker Swarm, with one queen and 7 bees."
+  - "A container submitted to the queen is dispatched to bees."
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.docker.swarm.html
+
+---
+
 defaults:
 
   cloud-config: # default for all nodes created by plumbery

@@ -1,27 +1,42 @@
+---
+
+information:
+  - "Demonstration of a standalone samba file sharing server"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.samba.html
+
+---
 locationId: NA12
 regionId: dd-na
 
 blueprints:
 
   - samba:
+
       domain:
         name: SambaFox
-        description: "Demonstration of a standalone samba file sharing server"
         service: essentials
         ipv4: 2
+
       ethernet:
         name: sambafox.servers
         subnet: 192.168.20.0
+
       nodes:
+
         - samba01:
+
             appliance: 'Ubuntu 14'
             cpu: 2
             memory: 4
             monitoring: essentials
             glue:
               - internet 22 139 445
+
             information:
               - "connect to smb://{{ node.public }}/ to write and read files"
+
             cloud-config:
               disable_root: false
               ssh_pwauth: true

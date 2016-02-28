@@ -1,23 +1,38 @@
+---
+
+information:
+  - "Demonstration of a standalone minio s3-compatible object server"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.minio.html
+
+---
 locationId: NA12
 regionId: dd-na
 
 blueprints:
 
   - minio:
+
       domain:
         name: MinioFox
-        description: "Demonstration of a standalone minio s3-compatible object server"
         ipv4: 2
+
       ethernet:
         name: miniofox.servers
         subnet: 192.168.20.0
+
       nodes:
+
         - minio01:
+
             glue:
               - internet 22 8080
+
             information:
               - "connect to this server in a terminal window: ssh root@{{ node.public }}"
               - "then get AccessKey and SecretKey from minio banner: cat /root/minio_keys.txt"
+
             cloud-config:
               disable_root: false
               ssh_pwauth: true

@@ -1,3 +1,14 @@
+---
+
+information:
+  - "Demonstrates a cluster of Apache web servers behind a load-balancer."
+  - "The load-balancer is provided by the Managed Cloud Platform itself."
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.apache2.cluster.html
+
+---
+
 # London
 locationId: EU8
 regionId: dd-eu
@@ -5,21 +16,24 @@ regionId: dd-eu
 blueprints:
 
   - web:
+
       domain:
         name: Acme
         ipv4: 2
         service: advanced
+
       ethernet:
         name: acme.control
         subnet: 10.0.0.0
+
       nodes:
-        - web[1..10]_eu8:
+
+        - web[1..10]:
             description: '#apache #eu'
             monitoring: essentials
-            rub:
-              - put rub.puppet.apache.pp /root/apache.pp
-              - run rub.puppet.apache.sh /root/apache.pp
+
       listeners:
+
         - http:
             port: 80
             protocol: http

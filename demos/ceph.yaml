@@ -1,6 +1,12 @@
-#
-# credits: http://blog.programster.org/ubuntu-14-04-deploy-a-ceph-cluster-part-1/
-#
+---
+
+information:
+  - "Demonstrates a cluster of Ceph servers."
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.ceph.html
+  credit: http://blog.programster.org/ubuntu-14-04-deploy-a-ceph-cluster-part-1/
+
 ---
 
 defaults:

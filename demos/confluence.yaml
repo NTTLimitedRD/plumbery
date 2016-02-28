@@ -1,6 +1,15 @@
 ---
 
+information:
+  - "A standalone Confluence server for a small team of developers."
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.confluence.html
+
+---
+
 defaults:
+
   cloud-config: # default for all nodes created by plumbery
 
     ssh_keys: # generated randomly, and used on subsequent invocations

@@ -1,25 +1,38 @@
+---
+
+information:
+  - "Demonstration of a Redis cluster"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.redis.html
+
+---
 locationId: NA12
 regionId: dd-na
 
 blueprints:
 
   - redis:
+
       domain:
         name: RedisFox
-        description: "Demonstration of a redis cluster"
         service: essentials
         ipv4: 4
+
       ethernet:
         name: redisfox.servers
         subnet: 192.168.20.0
+
       nodes:
 
         - redis01: # master server
+
             cpu: 2
             memory: 4
             monitoring: essentials
             glue:
               - internet 22
+
             information:
               - "after the setup, connect via ssh to {{ node.public }} to check the status of the cluster"
               - "then use following commands:"
@@ -31,6 +44,7 @@ blueprints:
               - "# Replication"
               - "role:master"
               - "connected_slaves:3"
+
             cloud-config:
               disable_root: false
               ssh_pwauth: true
@@ -53,13 +67,16 @@ blueprints:
                 - sudo service redis-server restart
 
         - redis0[2..4]: # slave servers
+
             cpu: 2
             memory: 4
             monitoring: essentials
             glue:
               - internet 22
+
             information:
               - "this slave server connects automatically to the master server"
+
             cloud-config:
               disable_root: false
               ssh_pwauth: true

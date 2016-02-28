@@ -1,27 +1,42 @@
+---
+
+information:
+  - "Demonstration of a standalone Owncloud file server"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.owncloud.html
+
+---
 locationId: NA12
 regionId: dd-na
 
 blueprints:
 
   - owncloud:
+
       domain:
         name: OwncloudFox
-        description: "Demonstration of a standalone owncloud file sharing server"
         service: essentials
         ipv4: 2
+
       ethernet:
         name: owncloudfox.servers
         subnet: 192.168.20.0
+
       nodes:
+
         - owncloud01:
+
             appliance: 'Ubuntu 14'
             cpu: 2
             memory: 4
             monitoring: essentials
             glue:
               - internet 22 80
+
             information:
               - "open a browser at http://{{ node.public }}/owncloud to view it live"
+
             cloud-config:
               disable_root: false
               ssh_pwauth: true

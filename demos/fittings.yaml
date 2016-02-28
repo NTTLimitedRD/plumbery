@@ -1,7 +1,10 @@
 ---
-# fittings to be deployed, managed, and destroyed in the cloud infrastructure of Dimension Data
-#
-# for examples of cloud-config directives check http://cloudinit.readthedocs.org/en/latest/topics/examples.html
+
+information:
+  - "Demonstrates how plumbery is working in parallel to deploy a large number of nodes."
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.fittings.html
 
 # in safe mode no change is actually made on the infrastructure
 safeMode: False
@@ -112,9 +115,9 @@ blueprints:
             description: '#apache #us #primary'
             cpu: 4 2 highperformance
             memory: 8
-#            disks:
-#              - 500 STANDARD
-#              - 100 HIGHPERFORMANCE
+            disks:
+              - 1 500 standard
+              - 2 100
             glue:
               - internet 22 80 443
             monitoring: essentials
@@ -150,9 +153,6 @@ blueprints:
             description: '#wordpress #us #primary'
             cpu: 4 2 highperformance
             memory: 8
-#            disks:
-#              - 500 STANDARD
-#              - 100 HIGHPERFORMANCE
             glue:
               - internet 22 80 443
             monitoring: essentials
@@ -281,11 +281,10 @@ blueprints:
       nodes:
         - web[1..2]_na9:
             description: '#apache #us #secondary'
-#            cpu: 4
-#            memory: 8
-#            disks:
-#              - 500 STANDARD
-#              - 100 HIGHPERFORMANCE
+            cpu: 4
+            memory: 8
+            disks:
+              - 1 500 standard
             monitoring: essentials
             rub:
               - put rub.puppet.apache.pp /root/apache.pp

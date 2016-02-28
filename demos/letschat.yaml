@@ -1,6 +1,12 @@
-#
-# credit: https://mborgerson.com/setting-up-lets-chat-on-ubuntu
-#
+---
+
+information:
+  - "Demonstration of Let's Chat server, self-hosted chat for small teams"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.letschat.html
+  credit: https://mborgerson.com/setting-up-lets-chat-on-ubuntu
+
 ---
 
 defaults:
@@ -39,7 +45,6 @@ blueprints:
 
       domain:
         name: LetsChatFox
-        description: "Demonstration of Let's Chat server, self-hosted chat for small teams"
         ipv4: 2
 
       ethernet:

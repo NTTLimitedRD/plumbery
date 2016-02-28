@@ -1,4 +1,11 @@
 ---
+
+information:
+  - "Demonstration of NFS client and server at two different data centres"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.nfs.html
+
 ---
 locationId: AU10
 regionId: dd-au
@@ -6,17 +13,22 @@ regionId: dd-au
 blueprints:
 
   - nfs:
+
       domain:
         name: NfsFox
         description: "Demonstration of NFS - server side"
         ipv4: 2
+
       ethernet:
         name: nfsfox.servers
         subnet: 192.168.20.0
         accept:
           - AU11::nfsfox.servers
+
       nodes:
+
         - nfsServer:
+
             appliance: 'Ubuntu 14'
             cpu: 2
             memory: 8
@@ -64,15 +76,18 @@ regionId: dd-au
 blueprints:
 
   - nfs:
+
       domain:
         name: NfsFox
         description: "Demonstration of NFS - client side"
         ipv4: 2
+
       ethernet:
         name: nfsfox.servers
         subnet: 192.168.20.0
         accept:
           - AU10::nfsfox.servers
+
       nodes:
         - nfsClient:
             appliance: 'Ubuntu 14'

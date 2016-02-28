@@ -3,8 +3,10 @@
 information:
   - "These fittings plan are aiming to deploy multiple pingers connected"
   - "to a MQTT server and to a Kibana dashboard"
-  - "Project credits:"
-  - "Swarming project from Mathieu Lecarme: https://github.com/athoune/swarming"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.mqtt.pinger.swarm.html
+  credit: https://github.com/athoune/swarming
 
 defaults:
 

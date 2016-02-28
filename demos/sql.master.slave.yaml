@@ -1,5 +1,11 @@
 ---
 
+information:
+  - "Demonstration of MySQL replication across two data centres"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.sql.master.slave.html
+
 defaults:
 
   # these directives apply to all nodes created by plumbery

@@ -1,26 +1,41 @@
+---
+
+information:
+  - "Demonstration of a standalone Stackstorm server"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.stackstorm.html
+
+---
 locationId: AU10
 regionId: dd-au
 
 blueprints:
 
   - stackstorm:
+
       domain:
         name: StackstormFox
-        description: "Demonstration of a standalone Stackstorm server"
         service: essentials
         ipv4: auto
+
       ethernet:
         name: stackstorm.ethernet
         subnet: 192.168.20.0
+
       nodes:
+
         - stackstorm:
+
             cpu: 4
             memory: 8
             monitoring: essentials
             glue:
               - internet 22 80 443
+
             information:
               - "open a browser at https://{{ node.public }}/ to view it live"
+
             cloud-config:
               disable_root: false
               ssh_pwauth: true

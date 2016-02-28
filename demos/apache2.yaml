@@ -1,34 +1,56 @@
+---
+
+information:
+  - "Demonstrates a standalone Apache 2 web server."
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.apache2.html
+
+---
 locationId: EU6 # Frankfurt in Europe
 regionId: dd-eu
 
 blueprints:
 
   - apache2:
+
       domain:
         name: Apache2Fox
         description: "Demonstration of a standalone apache2 web server"
         service: essentials
         ipv4: 2
+
       ethernet:
         name: apache2fox.servers
         subnet: 192.168.20.0
+
       nodes:
+
         - apache01:
+
             cpu: 1
             memory: 2
+
             monitoring: essentials
+
             glue:
               - internet 22 80
+
             information:
               - "open a browser at http://{{ node.public }}/ to view it live"
+
             cloud-config:
+
               disable_root: false
               ssh_pwauth: true
+
               packages:
                 - ntp
                 - apache2
                 - libapache2-mod-php5
+
               write_files:
+
                 - content: |
                     <html>
                      <head>
@@ -40,5 +62,6 @@ blueprints:
                      </body>
                     </html>
                   path: /var/www/html/index.php
+
               runcmd:
                 - mv /var/www/html/index.html /var/www/html/index.html.deprecated

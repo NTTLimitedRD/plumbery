@@ -1,36 +1,54 @@
+---
+
+information:
+  - "Demonstration of a standalone nodejs server"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.nodejs.html
+
+---
 locationId: EU6 # Frankfurt in Europe
 regionId: dd-eu
 
 blueprints:
 
   - nodejs:
+
       domain:
         name: NodejsFox
-        description: "Demonstration of a standalone nodejs server"
         service: essentials
         ipv4: 2
+
       ethernet:
         name: nodejsfox.servers
         subnet: 192.168.20.0
+
       nodes:
         - nodejs02:
+
             cpu: 2
             memory: 8
             monitoring: essentials
             glue:
               - internet 22 8080
+
             information:
               - "open a browser at http://{{ node.public }}:8080/ to view it live"
+
             cloud-config:
               disable_root: false
               ssh_pwauth: True
+
               bootcmd:
                 - "curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -"
+
               packages:
                 - ntp
                 - git
                 - nodejs
+
               write_files:
+
                 - path: /root/hello.js
                   content: |
                     var http = require('http');
@@ -39,6 +57,7 @@ blueprints:
                       res.end('<h2>Hello World</h2>\nThis is a warm welcome from plumbery {{ plumbery.version }}');
                     }).listen(8080, '0.0.0.0');
                     console.log('Server running at http://{{ node.public }}:8080/');
+
               runcmd:
                 - npm install pm2 -g
                 - rm /etc/init.d/pm2-init.sh

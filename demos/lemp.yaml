@@ -1,30 +1,49 @@
+---
+
+information:
+  - "Demonstration of a Linux-Nginx-MySQL-PHP standalone web server"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.lemp.html
+
+---
+
 locationId: NA12
 regionId: dd-na
 
 blueprints:
 
   - lemp:
+
       domain:
         name: LempFox
-        description: "Demonstration of a Linux-Nginx-MySQL-PHP standalone web server"
         service: essentials
         ipv4: 2
+
       ethernet:
         name: lempfox.servers
         subnet: 192.168.20.0
+
       nodes:
+
         - apache01:
+
             cpu: 2
             memory: 4
+
             monitoring: essentials
             glue:
               - internet 22 80
+
             information:
               - "open a browser at http://{{ node.public }}/ to view it live"
+
             cloud-config:
+
               disable_root: false
               ssh_pwauth: true
               apt_update: true
+
               packages:
                 - nginx
                 - php5-fpm
@@ -33,7 +52,9 @@ blueprints:
                 - php5-mcrypt
                 - php5-gd
                 - php5-curl
+
               write_files:
+
                 - path: /etc/nginx/sites-available/default
                   content: |
                       server {
@@ -62,6 +83,7 @@ blueprints:
                             include fastcgi.conf;
                         }
                       }
+
                 - path: /var/www/html/index.php
                   content: |
                     <html>
@@ -74,6 +96,7 @@ blueprints:
                         <?php echo '<p>Powered by Linux-Nginx-MySQL-PHP (LEMP)</p>'; ?>
                      </body>
                     </html>
+
                 - path: /var/www/html/info.php
                   content: |
                       <?php

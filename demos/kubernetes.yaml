@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Orchestration of fully-functional Kubernetes node."
+  - "Orchestration of a fully-functional Kubernetes node."
 
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.kubernetes.html

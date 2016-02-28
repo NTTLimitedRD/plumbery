@@ -1,28 +1,43 @@
+---
+
+information:
+  - "Demonstration of an OpenVPN standalone server"
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.openvpn.html
+
+---
 locationId: NA12
 regionId: dd-na
 
 blueprints:
 
   - openvpn:
+
       domain:
         name: OpenvpnFox
-        description: "Demonstration of an OpenVPN standalone server"
         service: essentials
         ipv4: 2
+
       ethernet:
         name: openvpnfox.servers
         subnet: 192.168.20.0
+
       nodes:
+
         - openvpn01:
+
             appliance: 'CentOS 7 64-bit'
             cpu: 2
             memory: 4
             monitoring: essentials
             glue:
               - internet 22 943
+
             information:
               - "You can access the server at https://{{ node.public }}:943"
               - "Provide name: openvpn and password: {{ openvpn.secret }}"
+
             cloud-config:
               disable_root: false
               ssh_pwauth: true
