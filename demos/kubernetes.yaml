@@ -1,46 +1,171 @@
+---
+
+information:
+  - "Orchestration of fully-functional Kubernetes node."
+
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.kubernetes.html
+
+defaults:
+
+  # the same network domain is used at various facilities
+  #
+  domain:
+    name: KubernetesFox
+    description: "Kubernetes nodes"
+    service: essentials
+    ipv4: auto
+
+  # the same ethernet configuration is used at various facilities
+  #
+  ethernet:
+    name: KubernetesNetwork
+    subnet: 192.168.20.0
+
+  # default settings for a Kubernetes node
+  #
+  kubernetesNode:
+
+    description: "#kubernetes #ubuntu"
+
+    information:
+      - "ssh ubuntu@{{ node.public }}"
+      - "sudo su"
+      - "cd /root/kubernetes"
+      - "cluster/kubectl.sh get services"
+      - "cluster/kubectl.sh run my-nginx --image=nginx --replicas=2 --port=80"
+      - "cluster/kubectl.sh get pods"
+
+    appliance: 'Ubuntu 14'
+
+    # plenty of compute power
+    #
+    cpu: 32
+    memory: 256
+
+    # enough storage space
+    #
+    disks:
+      - 1 100 standard
+
+    # make the node accessible from the Internet
+    #
+    glue:
+      - internet 22 80
+
+    # allow for monitoring from the global dashboard
+    #
+    monitoring: essentials
+
+    # contextualise this node
+    #
+    cloud-config:
+
+      hostname: "{{ node.name }}"
+
+      packages:
+        - ntp
+
+      write_files:
+
+        - path: /root/hosts.awk
+          content: |
+            #!/usr/bin/awk -f
+            /^{{ node.private }}/ {next}
+            /^{{ node.ipv6 }}/ {next}
+            {print}
+            END {
+             print "{{ node.private }}    {{ node.name }}"
+             print "{{ node.ipv6 }}    {{ node.name }}"
+            }
+
+      runcmd:
+
+        - echo "===== Growing LVM with added disk"
+        - pvcreate /dev/sdb
+        - vgextend rootvol00 /dev/sdb
+        - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+        - resize2fs /dev/mapper/rootvol00-rootlvol00
+
+        - echo "===== Handling ubuntu identity"
+        - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+        - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+        - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+        - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+        - echo "===== Updating /etc/hosts"
+        - cp -n /etc/hosts /etc/hosts.original
+        - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
+
+        - echo "===== Cleaning packages"
+        - apt-get remove apache2 -y
+        - apt-get autoremove -y
+
+        - echo "===== Installing Go"
+        - apt-get install git software-properties-common gcc git -y
+        - add-apt-repository ppa:evarlast/golang1.4 -y
+        - apt-get update
+        - apt-get install golang -y
+
+        - echo "===== Installing Docker Engine"
+        - curl -sSL https://get.docker.com/ | sh
+        - usermod -aG docker ubuntu
+
+        - echo "===== Installing Calico"
+        - add-apt-repository ppa:cory-benfield/project-calico -y
+        - apt-get update
+        - apt-get install etcd
+
+        - echo "===== Installing Kubernetes"
+        - cd /root
+        - git clone https://github.com/kubernetes/kubernetes.git
+        - cd kubernetes
+        - hack/local-up-cluster.sh &
+        - ./build/run.sh hack/build-cross.sh
+
+        - cluster/kubectl.sh config set-cluster local --server=http://127.0.0.1:8080 --insecure-skip-tls-verify=true
+        - cluster/kubectl.sh config set-context local --cluster=local
+        - cluster/kubectl.sh config use-context local
+
+  # default settings for all nodes created by plumbery
+  #
+  cloud-config:
+
+    # ask plumbery to generate a random key pair
+    #
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    # the ubuntu account will use this key as well
+    #
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    # prevent remote access from root
+    #
+    disable_root: true
+
+    # force authentication with SSH key -- no password allowed
+    #
+    ssh_pwauth: false
+
+# duplicate the below to deploy another node at another location, e.g. NA12 in dd-na, etc
+#
+---
 locationId: AU9
 regionId: dd-au
 
 blueprints:
 
   - kubernetes:
-      domain:
-        name: Kubernetes
-        description: "Demonstration of a standalone kubernetes server"
-        service: essentials
-        ipv4: 2
-      ethernet:
-        name: kubernetes.servers
-        subnet: 192.168.20.0
       nodes:
-        - kubernetes-master01:
-            cpu: 32
-            memory: 256
-            monitoring: essentials
-            glue:
-              - internet 22 80 8080
-            rub:
-              - open a browser at http://{{ node.public }}/ to view it live
-            cloud-config:
-              disable_root: false
-              ssh_pwauth: true
-              runcmd:
-                - apt-get remove apache2 -y
-                - apt-get autoremove -y
-                - curl https://repogen.simplylinux.ch/txt/sources_c74a15400e68208192ca8980c7a90e7b678f2822.txt | sudo tee /etc/apt/sources.list
-                - apt-get update --fix-missing
-                - apt-get install git software-properties-common gcc
-                - add-apt-repository ppa:evarlast/golang1.4 -y
-                - apt-get update
-                - apt-get install golang -y
-                - apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
-                - echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" > /etc/apt/sources.list.d/docker.list
-                - add-apt-repository ppa:cory-benfield/project-calico -y
-                - apt-get update
-                - apt-get install docker-engine
-                - apt-get install etcd
-                - git clone https://github.com/kubernetes/kubernetes.git
-                - cd kubernetes/
-                - echo "API_HOST=\"{{ node.private }}\"" >> hack/lib/init.sh
-                - sudo hack/local-up-cluster.sh &
-
+        - kubernetes-AU9:
+            default: kubernetesNode

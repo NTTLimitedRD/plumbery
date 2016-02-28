@@ -1,8 +1,22 @@
-============================
-Kubernetes standalone server
-============================
+==============
+Kubernetes pod
+==============
 
-This is a large virtual machine with Docker and Kubernetes on it.
+Docker is notoriously difficult to deploy in a sophisticated environment. For
+example, no routing is provided natively between containers, so you may
+have to configure multiple tunnels and address translation rules to deliver
+end-to-end connectivity.
+
+By contrast, the ambition of Kubernetes is to leverage the underlying
+networking infrastructure, and to provide containers at scale. Well, before
+we consider the deployment of hundreds of pods, maybe it would help to start
+with a single one, in order to learn.
+
+.. image:: tutorial.kubernetes.png
+
+In this tutorial we demonstrate how to create a class of Kubernetes nodes and
+deploy one single node. Of course, you can use this file for yourself, and change it
+to better accomodate your requirements.
 
 Requirements for this use case
 ------------------------------
@@ -10,11 +24,17 @@ Requirements for this use case
 * Add a Network Domain
 * Add an Ethernet network
 * Deploy a large Ubuntu server
-* Monitor this server
+* Provide 32 CPU and 256 MB of RAM to each node
+* Add a virtual disk of 100 GB
+* Monitor this server in the real-time dashboard
 * Assign a public IPv4 address
 * Add address translation to ensure end-to-end IP connectivity
-* Add firewall rule to accept TCP traffic on port 22 (ssh) and web
-* Install Kubernetes
+* Add firewall rule to accept TCP traffic on ssh and web ports
+* Combine the virtual disks into a single expanded logical volume (LVM)
+* Install a new SSH key to secure remote communications
+* Configure SSH to reject passwords and to prevent access from root account
+* Remove Apache
+* Install Go, Docker, Calico and Kubernetes itself
 
 Fittings plan
 -------------
@@ -40,23 +60,41 @@ You can find the public address assigned to the server like this:
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml ping
+    $ python -m plumbery fittings.yaml information
 
 
 Follow-up commands
 ------------------
 
-Open a browser window and paste the public address reported by plumbery.
-You should receive a welcome HTML page in return.
+In this use case you can use the IPv4 assigned to the node for direct ssh
+connection.
+
+.. sourcecode:: bash
+
+    $ ssh ubuntu@<ipv4_here>
+
+
+You will have to accept the new host, and authentication will be based on
+the SSH key communicated to the node by Plumbery.
+
+Then you can use the Kubernetes controller software to validate the setup:
+
+.. sourcecode:: bash
+
+    $ sudo su
+    $ cd /root/kubernetes
+    $ cluster/kubectl.sh get services
+    $ cluster/kubectl.sh run my-nginx --image=nginx --replicas=2 --port=80
+    $ cluster/kubectl.sh get pods
+
+The last command should show the two instances of nginx running.
 
 Destruction commands
 --------------------
 
-The more servers you have, the more costly it is. Would you like to stop the
-invoice?
+Launch following command to remove all resources involved in the fittings plan:
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml stop
-    $ python -m plumbery fittings.yaml destroy
+    $ python -m plumbery fittings.yaml dispose
 
