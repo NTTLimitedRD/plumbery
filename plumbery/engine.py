@@ -263,6 +263,11 @@ class PlumberyEngine(object):
             if not isinstance(self.information, list):
                 raise TypeError('information should be a list')
 
+        if 'links' in settings:
+            self.links = settings['links']
+            if not isinstance(self.links, dict):
+                raise TypeError('links should be a dictionary')
+
         if 'safeMode' in settings:
             self.safeMode = settings['safeMode']
             if self.safeMode not in [True, False]:
