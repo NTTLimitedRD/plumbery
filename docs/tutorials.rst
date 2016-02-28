@@ -1,6 +1,6 @@
-======================
-Tutorials and examples
-======================
+=======================
+Tutorials and use cases
+=======================
 
 This page provides a collection of fittings plans and related documentation.
 
@@ -23,36 +23,36 @@ aspects of modern micro-service.
 .. toctree::
    :maxdepth: 2
 
-   tutorial.sql.master.slave
+   tutorial.docker
 
-Do you want more? The library from the community
-------------------------------------------------
+Got it? Maybe you would like to look at more tutorials
+------------------------------------------------------
 
-Ideally, each example features a fittings plan, and step-by-step
+Ideally, each tutorial features a fittings plan, and step-by-step
 instructions to demonstrate it or to use it.
 
 .. toctree::
    :maxdepth: 1
 
-   tutorial.apache2
-   tutorial.lemp
-   tutorial.wordpress
-   tutorial.confluence
-   tutorial.itop
-   tutorial.nodejs
-   tutorial.ubuntu.desktop
-   tutorial.minio
-   tutorial.docker
-   tutorial.docker.swarm
    tutorial.kubernetes
    tutorial.mqtt.pinger.swarm
+   tutorial.docker.swarm
+   tutorial.sql.master.slave
    tutorial.stackstorm
+   tutorial.confluence
+   tutorial.nodejs
+   tutorial.apache2
+   tutorial.apache2.cluster
+   tutorial.lemp
+   tutorial.wordpress
+   tutorial.itop
+   tutorial.ubuntu.desktop
+   tutorial.minio
    tutorial.owncloud
    tutorial.openvpn
    tutorial.nfs
    tutorial.redis.cluster
    tutorial.beachhead
-   tutorial.apache2.cluster
    tutorial.mongo.cluster
    tutorial.samba
    tutorial.gigafox
