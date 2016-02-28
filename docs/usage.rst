@@ -150,7 +150,10 @@ The table below presents succinctly all actions that are supported by plumbery.
   spit          adds public IP addresses, NAT and firewall rules
   start         start nodes
   rub           contextualise nodes via ssh and cloud-init
-  information   display node information put in fittings plan
+  information   display information put in fittings plan
+  inventory     produce an inventory of all assets deployed
+  ansible       allow ansible to handle nodes and groups deployed by plumbery
+  ping          check the status of nodes and display network addresses
   stop          stop nodes
   wipe          destroy only nodes
   destroy       destroy nodes and other resources
@@ -228,6 +231,13 @@ How to get help from the command line?
     $ python -m plumbery -h
 
 
+When you are not sure of directives put in fittings plan, you can ask plumbery
+for a dry-run. Use the -s swiftch to keep it safe:
+
+.. sourcecode:: bash
+
+    $ python -m plumbery <your_various_args> -s
+
 If some strange behaviour occurs, and you cannot understand what is happening,
 then you can use the debug option to get more information:
 
@@ -235,6 +245,8 @@ then you can use the debug option to get more information:
 
     $ python -m plumbery <your_various_args> -d
 
+
+Of course the switches -s and -d can be combined if needed.
 
 Use Plumbery as a python library
 --------------------------------
