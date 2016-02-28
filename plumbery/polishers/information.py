@@ -56,6 +56,10 @@ class InformationPolisher(PlumberyPolisher):
                 message, environment)
             lines.append(message)
 
+        for label in engine.links.keys():
+            message = "{}: {}".format(label, engine.links[label])
+            lines.append(message)
+
         if len(lines) < 1:
             return
 

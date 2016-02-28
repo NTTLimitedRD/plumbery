@@ -118,6 +118,7 @@ class PlumberyEngine(object):
         self.fittingsFile = None
 
         self.information = []
+        self.links = {}
 
         self.safeMode = False
 

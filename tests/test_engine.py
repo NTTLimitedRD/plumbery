@@ -20,7 +20,15 @@ from plumbery import __version__
 
 myPlan = """
 ---
-safeMode: True
+safeMode: False
+
+information:
+  - hello
+  - world
+
+links:
+  documentation: http://www.acme.com/
+
 defaults:
   domain:
     ipv4: auto
@@ -83,6 +91,24 @@ class FakeLocation:
 
 class TestPlumberyEngine(unittest.TestCase):
 
+    def test_init(self):
+
+        engine = PlumberyEngine()
+        engine.from_text(myPlan)
+
+        self.assertEqual(engine.safeMode, False)
+
+        self.assertEqual(len(engine.information), 2)
+
+        self.assertEqual(len(engine.links), 1)
+
+        domain = engine.get_default('domain')
+        self.assertEqual(domain['ipv4'], 'auto')
+
+        cloudConfig = engine.get_default('cloud-config', {})
+        self.assertEqual(len(cloudConfig.keys()), 3)
+        self.assertEqual(len(engine.facilities), 1)
+
     def test_set(self):
 
         settings = {
@@ -111,11 +137,8 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.safeMode, False)
 
         try:
-            engine.from_text(myPlan)
-            cloudConfig = engine.get_default('cloud-config', {})
-            self.assertEqual(len(cloudConfig.keys()), 3)
             engine.add_facility(myFacility)
-            self.assertEqual(len(engine.facilities), 2)
+            self.assertEqual(len(engine.facilities), 1)
 
         except socket.gaierror:
             pass
@@ -126,13 +149,8 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine = PlumberyEngine()
         engine.set_shared_secret('fake_secret')
-        self.assertEqual(engine.get_shared_secret(), 'fake_secret')
-
         engine.set_user_name('fake_name')
-        self.assertEqual(engine.get_user_name(), 'fake_name')
-
         engine.set_user_password('fake_password')
-        self.assertEqual(engine.get_user_password(), 'fake_password')
 
         try:
             engine.do('build')
@@ -266,13 +284,6 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.secrets['hello'], 'world')
         engine.forget_secrets(plan='test_engine.yaml')
         self.assertEqual(os.path.isfile('.test_engine.secrets'), False)
-
-    def test_defaults(self):
-
-        engine = PlumberyEngine()
-        engine.from_text(myPlan)
-        domain = engine.get_default('domain')
-        self.assertEqual(domain['ipv4'], 'auto')
 
     def test_parser(self):
 
