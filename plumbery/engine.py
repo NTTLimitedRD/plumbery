@@ -728,41 +728,36 @@ class PlumberyEngine(object):
         www -= elapsed
 
         if elapsed < 2:
-            elapsed = "in a blink locally,"                 \
-                      " and for {} seconds in the cloud"    \
-                      .format(www)
+            elapsed = "in a blink"
 
-        elif elapsed < 60:
-            elapsed = "for {} seconds locally,"             \
-                      " and for {} seconds in the cloud"    \
-                      .format(elapsed, www)
+        elif elapsed < 120:
+            elapsed = "for {} seconds".format(elapsed)
 
-        elif elapsed < 3600:
-            elapsed = int(elapsed / 60)
-            www = int(www / 60)
-            if elapsed < 2:
-                elapsed = "for one minute or so locally,"       \
-                          " and for {} minutes in the cloud"    \
-                          .format(www)
-
-            else:
-                elapsed = "for {} minutes locally,"             \
-                          " and for {} minutes in the cloud"    \
-                          .format(elapsed, www)
+        elif elapsed < 7200:
+            elapsed = int(elapsed/60)
+            elapsed = "for {} minutes".format(elapsed)
 
         elif elapsed < 86400:
-            elapsed = int(elapsed / 60)
+            elapsed = int(elapsed/60)
             minutes = elapsed % 60
             hours = int(elapsed / 60)
-            if hours < 2:
-                elapsed = "for one hour and {} minutes".format(minutes)
-            else:
-                elapsed = "for {} hours and {} minutes".format(hours, minutes)
+            elapsed = "for {} hours and {} minutes".format(hours, minutes)
 
-        else:
-            elapsed = "for more than a day -- can you do something to improve?"
+        if www < 120:
+            www = "for {} seconds".format(www)
 
-        return "Worked for you {}".format(elapsed)
+        elif www < 7200:
+            www = int(www/60)
+            www = "for {} minutes".format(www)
+
+        elif www < 86400:
+            www = int(www/60)
+            minutes = www % 60
+            hours = int(www/60)
+            www = "for {} hours and {} minutes".format(hours, minutes)
+
+        return "Worked for you {} locally, and {} in the cloud"     \
+               .format(elapsed, www)
 
     def do(self, action, blueprints=None, facilities=None):
         """
