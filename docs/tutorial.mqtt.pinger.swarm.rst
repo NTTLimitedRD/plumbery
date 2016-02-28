@@ -76,7 +76,6 @@ text below and put it in a text file named ``fittings.yaml``.
 .. literalinclude:: ../demos/mqtt.pinger.swarm.yaml
    :language: yaml
    :linenos:
-   :lines: 1-437
 
 
 Deployment commands
