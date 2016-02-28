@@ -96,6 +96,8 @@ defaults:
         - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
 
         - echo "===== Installing Docker Engine"
+        - apt-get remove apache2 -y
+        - apt-get autoremove -y
         - curl -sSL https://get.docker.com/ | sh
         - usermod -aG docker ubuntu
 
