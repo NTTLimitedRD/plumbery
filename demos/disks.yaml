@@ -5,7 +5,7 @@ information:
   - "Demonstrates how to configure a server with multiple disks"
 
 links:
-  - credit: https://gist.github.com/trentmswanson/9c22bb71182e982bd36f
+  credit: http://www.howtogeek.com/howto/40702/how-to-manage-and-use-lvm-logical-volume-management-in-ubuntu/
 
 defaults:
 
@@ -54,6 +54,10 @@ blueprints:
         - disks01:
 
             information:
+              - "6 disks have been added to this node"
+              - "2 first disks extend standard storage coming with system disk"
+              - "2 next disks are combined in a logical volume for high-performance storage"
+              - "2 last disks are combined in a logical volume for economy storage"
               - "connect to this server in a terminal window:"
               - "$ ssh ubuntu@{{ node.public }}"
               - "check disk drives with:"
@@ -67,9 +71,12 @@ blueprints:
             # manage disks of this node
             #
             disks:
-              - 1 1000 standard
-              - 2 100 highperformance
-              - 3 300 economy
+              - 1 100 standard
+              - 2 200 standard
+              - 3 30 highperformance
+              - 4 40 highperformance
+              - 5 1000 economy
+              - 6 1000 economy
 
             glue:
               - internet 22
@@ -82,7 +89,7 @@ blueprints:
 
               write_files:
 
-                - path: /root/set_disk.sh
+                - path: /root/set_pdisk.sh
                   content: |
                     #!/usr/bin/env bash
                     if [ ! -b ${1}1 ]; then
@@ -93,31 +100,78 @@ blueprints:
                     1
 
 
+                    t
+                    8e
                     w
-                    q
                     EOF
-                    ID=1
+                    echo "===== Creating LVM physical disk ${1}1"
+                    pvcreate ${1}1
                     fi
 
-                    if [ -z "$(blkid ${1}${ID})" ];
+
+                - path: /root/set_vdisk.sh
+                  content: |
+                    #!/usr/bin/env bash
+                    if [ -z "$(blkid ${1})" ];
                     then
-                        echo "===== Formatting ${1}${ID}"
-                        mkfs -t ${2} ${1}${ID}
+                        echo "===== Formatting ${1}"
+                        mkfs -t ${2} ${1}
                     fi
-                    UUID=$(blkid ${1}${ID} | sed -n 's/.*UUID=\"\([^\"]*\)\".*/\1/p')
+                    UUID=$(blkid ${1} | sed -n 's/.*UUID=\"\([^\"]*\)\".*/\1/p')
 
                     if ! grep -q "${UUID}" /etc/fstab; then
-                        echo "===== Adding ${1}${ID} to fstab"
+                        echo "===== Adding ${1} to fstab"
                         LINE="UUID=\"${UUID}\"\t${3}\t${2}\tnoatime,nodiratime,nodev,noexec,nosuid\t1 2"
                         echo -e "${LINE}" >> /etc/fstab
                     fi
 
-                    echo "===== Mounting ${1}${ID}"
-                    [ -d "${3}" ] || mkdir "${3}"
+                    echo "===== Mounting ${3}"
+                    [ -d "${3}" ] || mkdir -p "${3}"
                     mount "${3}"
 
               runcmd:
-                - chmod +x /root/set_disk.sh
-                - /root/set_disk.sh /dev/sdb ext3 /mnt/huge
-                - /root/set_disk.sh /dev/sdc ext4 /mnt/fast
-                - /root/set_disk.sh /dev/sdd ext2 /mnt/cheap
+                - chmod +x /root/set_pdisk.sh
+                - chmod +x /root/set_vdisk.sh
+
+                - echo "===== Handling additional disk 1"
+                - /root/set_pdisk.sh /dev/sdb
+                - echo "===== Adding /dev/sdb1 to standard storage"
+                - vgextend rootvol00 /dev/sdb1
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
+
+                - echo "===== Handling additional disk 2"
+                - /root/set_pdisk.sh /dev/sdc
+                - echo "===== Adding /dev/sdc1 to standard storage"
+                - vgextend rootvol00 /dev/sdc1
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
+
+                - echo "===== Handling additional disk 3"
+                - /root/set_pdisk.sh /dev/sdd
+                - echo "===== Configuring /dev/sdd1 for high-performance storage"
+                - vgcreate highperformancevg /dev/sdd1
+                - lvcreate -l 100%FREE -n highperformancelv highperformancevg
+                - /root/set_vdisk.sh /dev/highperformancevg/highperformancelv ext4 /highperformance
+
+                - echo "===== Handling additional disk 4"
+                - /root/set_pdisk.sh /dev/sde
+                - echo "===== Adding /dev/sde1 to high-performance storage"
+                - vgextend highperformancevg /dev/sde1
+                - lvextend -l +100%FREE /dev/mapper/highperformancevg-highperformancelv
+                - resize2fs /dev/mapper/highperformancevg-highperformancelv
+
+                - echo "===== Handling additional disk 5"
+                - /root/set_pdisk.sh /dev/sdf
+                - echo "===== Configuring /dev/sdf1 for economy storage"
+                - vgcreate economyvg /dev/sdf1
+                - lvcreate -l 100%FREE -n economylv economyvg
+                - /root/set_vdisk.sh /dev/economyvg/economylv ext3 /economy
+
+                - echo "===== Handling additional disk 6"
+                - /root/set_pdisk.sh /dev/sdg
+                - echo "===== Adding /dev/sdg1 to economy storage"
+                - vgextend economyvg /dev/sdg1
+                - lvextend -l +100%FREE /dev/mapper/economyvg-economylv
+                - resize2fs /dev/mapper/economyvg-economylv
+

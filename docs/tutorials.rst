@@ -34,6 +34,7 @@ instructions to demonstrate it or to use it.
 .. toctree::
    :maxdepth: 1
 
+   tutorial.disks
    tutorial.kubernetes
    tutorial.mqtt.pinger.swarm
    tutorial.docker.swarm
