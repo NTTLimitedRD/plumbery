@@ -12,11 +12,15 @@ import unittest
 from Crypto.PublicKey import RSA
 import ast
 
+from mock_api import DimensionDataMockHttp
+from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 from libcloud.common.types import InvalidCredsError
 
 from plumbery.__main__ import parse_args, main
 from plumbery.engine import PlumberyEngine
 from plumbery import __version__
+
+DIMENSIONDATA_PARAMS = ('user', 'password')
 
 myPlan = """
 ---
@@ -59,8 +63,8 @@ blueprints:
 """
 
 myFacility = {
-    'regionId': 'dd-eu',
-    'locationId': 'EU7',
+    'regionId': 'dd-na',
+    'locationId': 'NA9',
     'blueprints': [{
         'fake': {
             'domain': {
@@ -120,6 +124,11 @@ class TestPlumberyEngine(unittest.TestCase):
             }
 
         engine = PlumberyEngine()
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
+        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+
         engine.set_shared_secret('fake_secret')
         self.assertEqual(engine.get_shared_secret(), 'fake_secret')
 
@@ -136,50 +145,43 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set(settings)
         self.assertEqual(engine.safeMode, False)
 
-        try:
-            engine.add_facility(myFacility)
-            self.assertEqual(len(engine.facilities), 1)
-
-        except socket.gaierror:
-            pass
-        except InvalidCredsError:
-            pass
+        engine.add_facility(myFacility)
+        self.assertEqual(len(engine.facilities), 1)
 
     def test_lifecycle(self):
 
         engine = PlumberyEngine()
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
+        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+
         engine.set_shared_secret('fake_secret')
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
 
-        try:
-            engine.do('build')
-            engine.build_all_blueprints()
-            engine.build_blueprint('myBlueprint')
+        engine.do('build')
+        engine.build_all_blueprints()
+        engine.build_blueprint('myBlueprint')
 
-            engine.do('start')
-            engine.start_all_blueprints()
-            engine.start_blueprint('myBlueprint')
+        engine.do('start')
+        engine.start_all_blueprints()
+        engine.start_blueprint('myBlueprint')
 
-            engine.do('polish')
-            engine.polish_all_blueprints()
-            engine.polish_blueprint('myBlueprint')
+        engine.do('polish')
+        engine.polish_all_blueprints()
+        engine.polish_blueprint('myBlueprint')
 
-            engine.do('stop')
-            engine.stop_all_blueprints()
-            engine.stop_blueprint('myBlueprint')
+        engine.do('stop')
+        engine.stop_all_blueprints()
+        engine.stop_blueprint('myBlueprint')
 
-            engine.wipe_all_blueprints()
-            engine.wipe_blueprint('myBlueprint')
+        engine.wipe_all_blueprints()
+        engine.wipe_blueprint('myBlueprint')
 
-            engine.do('destroy')
-            engine.destroy_all_blueprints()
-            engine.destroy_blueprint('myBlueprint')
-
-        except socket.gaierror:
-            pass
-        except InvalidCredsError:
-            pass
+        engine.do('destroy')
+        engine.destroy_all_blueprints()
+        engine.destroy_blueprint('myBlueprint')
 
         banner = engine.document_elapsed()
         self.assertEqual('Worked for you' in banner, True)
@@ -187,27 +189,28 @@ class TestPlumberyEngine(unittest.TestCase):
     def test_as_library(self):
 
         engine = PlumberyEngine(myFacility)
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
+        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+
         engine.set_shared_secret('fake_secret')
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
 
-        facilities = engine.list_facility('EU7')
+        facilities = engine.list_facility('NA9')
         self.assertEqual(len(facilities), 1)
 
         facility = facilities[0]
-        self.assertEqual(facility.get_parameter('regionId'), 'dd-eu')
-        self.assertEqual(facility.get_parameter('locationId'), 'EU7')
+        self.assertEqual(facility.get_parameter('regionId'), 'dd-na')
+        self.assertEqual(facility.get_parameter('locationId'), 'NA9')
 
         blueprint = facility.get_blueprint('fake')
         self.assertEqual(blueprint.keys(),
                          ['ethernet', 'domain', 'nodes', 'target'])
 
-#        try:
-#            engine.do('ping')
-#        except socket.gaierror:
-#            pass
-#        except InvalidCredsError:
-#            pass
+        engine.do('deploy')
+        engine.do('dispose')
 
     def test_lookup(self):
 
