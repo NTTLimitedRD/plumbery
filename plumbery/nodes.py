@@ -508,12 +508,12 @@ class PlumberyNodes(object):
 
                     logging.debug("- found it")
 
-                    self._enrich_node(node)
+                    self._enrich_node(node, region=offshore)
                     return node
 
         return None
 
-    def _enrich_node(self, node):
+    def _enrich_node(self, node, region=None):
         """
         Adds attributes to a node
 
@@ -524,9 +524,12 @@ class PlumberyNodes(object):
 
         """
 
+        if region is None:
+            region = self.region
+
         # hack because the driver does not report public ipv4 accurately
         if len(node.public_ips) < 1:
-            domain = self.region.ex_get_network_domain(
+            domain = region.ex_get_network_domain(
                 node.extra['networkDomainId'])
             for rule in self.region.ex_list_nat_rules(domain):
                 if rule.internal_ip == node.private_ips[0]:
@@ -536,7 +539,7 @@ class PlumberyNodes(object):
         # hack to retrieve disk information
         node.extra['disks'] = []
         try:
-            element = self.region.connection.request_with_orgId_api_2(
+            element = region.connection.request_with_orgId_api_2(
                 'server/server/%s' % node.id).object
 
             for disk in findall(element, 'disk', TYPES_URN):
