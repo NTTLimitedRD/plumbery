@@ -59,7 +59,7 @@ The plan below demonstrates multiple interesting tips and tricks:
 * Management of SSH keys to enable secured communications without passwords
 * Allow private IPv6 communications between remote data centres and the focus data centre
 * Automatic registration of all nodes to the monitoring services provided by Dimension Data
-* Update of etc/hosts with IPv6
+* Update of `etc/hosts` with IPv6
 * Install swarming software in python directly from GitHub repository
 * Turn a python command to a service that can be started and stopped on-demand
 * Remove Apache, and install Nginx instead
@@ -81,7 +81,7 @@ text below and put it in a text file named ``fittings.yaml``.
 Deployment commands
 -------------------
 
-For this use case, plumbery has to connect separately to multiple data centres
+For this tutorial, plumbery has to connect separately to multiple data centres
 and to apply several changes in multiple waves.
 
 .. sourcecode:: bash
@@ -161,8 +161,7 @@ At the end of the demonstration, you may want to reduce costs with the following
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml stop
-    $ python -m plumbery fittings.yaml destroy
+    $ python -m plumbery fittings.yaml dispose
 
 
 .. _`Swarming project from Mathieu Lecarme`: https://github.com/athoune/swarming

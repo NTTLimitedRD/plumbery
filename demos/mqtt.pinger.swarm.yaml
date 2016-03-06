@@ -35,6 +35,8 @@ defaults:
 
     information:
       - "a pinger controlled via MQTT"
+      - "troubleshoot with:"
+      - "$ ssh ubuntu@{{ node.public }}"
 
     appliance: 'Ubuntu 14'
 
@@ -63,12 +65,12 @@ defaults:
             #!/usr/bin/awk -f
             /^{{ node.private }}/ {next}
             /^{{ node.ipv6 }}/ {next}
-            /^{{ queen.ipv6 }}/ {next}
+            /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
             {print}
             END {
              print "{{ node.private }}    {{ node.name }}"
              print "{{ node.ipv6 }}    {{ node.name }}"
-             print "{{ queen.ipv6 }}    queen"
+             print "{{ dd-au::AU10::queen.ipv6 }}    queen"
             }
 
         - path: /etc/init/swarm-pinger.conf
@@ -355,11 +357,11 @@ blueprints:
                 - echo "===== Running swarming software"
                 - service swarm-indexer restart
 
-  - bees:
+  - drones:
 
       nodes:
         - bee-AU10:
-            class: bee
+            default: bee
 
 ---
 locationId: AP3
@@ -367,7 +369,7 @@ regionId: dd-ap
 
 blueprints:
 
-  - bees:
+  - drones:
 
       ethernet:
         accept:
@@ -431,7 +433,7 @@ regionId: dd-eu
 
 blueprints:
 
-  - bees:
+  - drones:
 
       ethernet:
         accept:
@@ -479,7 +481,7 @@ regionId: dd-na
 
 blueprints:
 
-  - bees:
+  - drones:
 
       ethernet:
         accept:
