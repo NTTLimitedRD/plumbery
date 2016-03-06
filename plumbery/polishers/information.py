@@ -197,6 +197,8 @@ class InformationPolisher(PlumberyPolisher):
 
         """
 
+        logging.info("- examinating node '{}'".format(settings['name']))
+
         lines = []
 
         if (node is not None and 'description' in node.extra):
@@ -206,6 +208,7 @@ class InformationPolisher(PlumberyPolisher):
                 lines.append(description)
 
         if node is None:
+            logging.debug("- not found")
             lines.append("node is unknown")
         elif node.state == NodeState.RUNNING:
             lines.append("node is up and running")
@@ -216,7 +219,10 @@ class InformationPolisher(PlumberyPolisher):
         else:
             lines.append("state: {}".format(node.state))
 
-        lines += self.list_information(node, settings, container)
+        if node is not None:
+            lines += self.list_information(
+                node=node, settings=settings, container=container)
+
         if len(lines) < 1:
             return
 
