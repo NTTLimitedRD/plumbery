@@ -57,7 +57,7 @@ You can find the public address assigned to the Docker node like this:
 
 .. sourcecode:: bash
 
-    $ python -m plumbery fittings.yaml ping
+    $ python -m plumbery fittings.yaml information
 
 
 Follow-up commands

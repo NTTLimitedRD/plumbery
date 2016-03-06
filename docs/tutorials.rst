@@ -36,6 +36,7 @@ instructions to demonstrate it or to use it.
 
    tutorial.disks
    tutorial.kubernetes
+   tutorial.elk
    tutorial.mqtt.pinger.swarm
    tutorial.docker.swarm
    tutorial.sql.master.slave
