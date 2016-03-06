@@ -73,6 +73,10 @@ class PlumberyText:
 
             replacement = context.lookup(token)
             if replacement is None:   # preserve unmatched tag
+                if token not in debugged:
+                    logging.debug("- no match for '{}'".format(token))
+                    debugged.append(token)
+
                 expanded += text[index:tail+len(closing)]
                 index = tail+len(closing)
 
