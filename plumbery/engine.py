@@ -801,6 +801,28 @@ class PlumberyEngine(object):
                                       filter='information',
                                       facilities=facilities)
 
+        elif action == 'refresh':
+            if blueprints is None:
+                self.stop_all_blueprints(facilities)
+                self.wipe_all_blueprints(facilities)
+                self.build_all_blueprints(facilities)
+                self.start_all_blueprints(facilities)
+                self.polish_all_blueprints(filter='rub',
+                                           facilities=facilities)
+                self.polish_all_blueprints(filter='information',
+                                           facilities=facilities)
+            else:
+                self.stop_blueprint(blueprints, facilities)
+                self.wipe_blueprint(blueprints, facilities)
+                self.build_blueprint(blueprints, facilities)
+                self.start_blueprint(blueprints, facilities)
+                self.polish_blueprint(blueprints,
+                                      filter='rub',
+                                      facilities=facilities)
+                self.polish_blueprint(blueprints,
+                                      filter='information',
+                                      facilities=facilities)
+
         elif action == 'dispose':
             if blueprints is None:
                 self.stop_all_blueprints(facilities)

@@ -210,6 +210,7 @@ class TestPlumberyEngine(unittest.TestCase):
                          ['ethernet', 'domain', 'nodes', 'target'])
 
         engine.do('deploy')
+        engine.do('refresh')
         engine.do('dispose')
 
     def test_lookup(self):

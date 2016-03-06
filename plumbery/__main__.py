@@ -44,8 +44,8 @@ def parse_args(args=[]):
     parser.add_argument(
         'action',
         nargs=1,
-        help="An action, or a polisher: 'deploy', 'dispose', 'secrets', "
-             "'build', 'spit', 'start', 'rub', "
+        help="An action, or a polisher: 'deploy', 'refresh', dispose', "
+             "'secrets', 'build', 'spit', 'start', 'rub', "
              "'information', 'ping', 'inventory', 'ansible', "
              "'stop', 'wipe', 'destroy'")
 
