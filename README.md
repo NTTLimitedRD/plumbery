@@ -1,4 +1,4 @@
-[![Build status](https://img.shields.io/travis/bernard357/plumbery.svg)](https://travis-ci.org/bernard357/plumbery)  ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg)
+[![Build status](https://img.shields.io/travis/DimensionDataCBUSydney/plumbery.svg)](https://travis-ci.org/DimensionDataCBUSydney/plumbery)  ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg)
 
 # plumbery
 
@@ -10,7 +10,7 @@ you.
 
 * Documentation: [Plumbery at ReadTheDocs](https://plumbery.readthedocs.org)
 * Python package: [Plumbery at PiPy](https://pypi.python.org/pypi/plumbery)
-* Source code: [Plumbery at GitHub](https://github.com/bernard357/plumbery)
+* Source code: [Plumbery at GitHub](https://github.com/DimensionDataCBUSydney/plumbery)
 * Free software: [Apache License (2.0)](http://www.apache.org/licenses/LICENSE-2.0)
 
 ## Features

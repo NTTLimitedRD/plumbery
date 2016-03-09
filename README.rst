@@ -5,8 +5,8 @@ Plumbery
 .. image:: https://img.shields.io/pypi/v/plumbery.svg
         :target: https://pypi.python.org/pypi/plumbery
 
-.. image:: https://img.shields.io/travis/bernard357/plumbery.svg
-        :target: https://travis-ci.org/bernard357/plumbery
+.. image:: https://img.shields.io/travis/DimensionDataCBUSydney/plumbery.svg
+        :target: https://travis-ci.org/DimensionDataCBUSydney/plumbery
 
 .. image:: https://readthedocs.org/projects/plumbery/badge/?version=latest
         :target: https://readthedocs.org/projects/plumbery/?badge=latest
@@ -16,7 +16,7 @@ Plumbery
 Infrastructure as code at Dimension Data with Apache Libcloud
 
 * Documentation: `Plumbery at ReadTheDocs`_
-* Python package: `Plumbery at PiPy`_
+* Python package: `Plumbery at PyPi`_
 * Source code: `Plumbery at GitHub`_
 * Free software: `Apache License (2.0)`_
 
@@ -80,7 +80,7 @@ Credits
 
 .. _`Plumbery at ReadTheDocs`: https://plumbery.readthedocs.org
 .. _`Plumbery at PiPy`: https://pypi.python.org/pypi/plumbery
-.. _`Plumbery at GitHub`: https://github.com/bernard357/plumbery
+.. _`Plumbery at GitHub`: https://github.com/DimensionDataCBUSydney/plumbery
 .. _`Apache License (2.0)`: http://www.apache.org/licenses/LICENSE-2.0
 .. _`Bernard Paques`: https://github.com/bernard357
 .. _`Anthony Shaw`: https://github.com/tonybaloney
