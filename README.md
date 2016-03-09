@@ -5,6 +5,13 @@
 Are you looking for a cloud plumber? We hope that this one will be useful to
 you.
 
+## What does plumbery do?
+
+Plumbery is a command-line utility for both Windows and Linux that takes a "fittings file", which is a file describing your desired cloud infrastructure on the Dimension Data Cloud and builds it for you.
+Plumbery is idempotent, so you can run it multiple times with the same outcome.
+
+Plumbery also includes a library of example "post-deploy" scripts, supporting cloud-config, for Linux distributions.
+
 
 ## Infrastructure as code at Dimension Data with Apache Libcloud
 
