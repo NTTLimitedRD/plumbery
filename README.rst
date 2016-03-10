@@ -79,7 +79,7 @@ Credits
 * `cookiecutter-pypackage`_
 
 .. _`Plumbery at ReadTheDocs`: https://plumbery.readthedocs.org
-.. _`Plumbery at PiPy`: https://pypi.python.org/pypi/plumbery
+.. _`Plumbery at PyPi`: https://pypi.python.org/pypi/plumbery
 .. _`Plumbery at GitHub`: https://github.com/DimensionDataCBUSydney/plumbery
 .. _`Apache License (2.0)`: http://www.apache.org/licenses/LICENSE-2.0
 .. _`Bernard Paques`: https://github.com/bernard357
