@@ -119,9 +119,12 @@ class PlumberyEngine(object):
         self.fittingsFile = None
 
         self.information = []
+
         self.links = {}
 
         self.safeMode = False
+
+        self.parameters = {}
 
         self.polishers = []
 
@@ -273,6 +276,19 @@ class PlumberyEngine(object):
         if not isinstance(settings, dict):
             raise TypeError('settings should be a dictionary')
 
+        if 'buildPolisher' in settings:
+            self._buildPolisher = settings['buildPolisher']
+
+        if 'defaults' in settings:
+            self.defaults = settings['defaults']
+            if not isinstance(self.defaults, dict):
+                raise TypeError('defaults should be a dictionary')
+
+        if len(self.defaults) > 1:
+            logging.debug("Default values:")
+            for key in self.defaults.keys():
+                logging.debug("- {}: {}".format(key, self.defaults[key]))
+
         if 'information' in settings:
             self.information = settings['information']
             if not isinstance(self.information, list):
@@ -283,10 +299,21 @@ class PlumberyEngine(object):
             if not isinstance(self.links, dict):
                 raise TypeError('links should be a dictionary')
 
-        if 'safeMode' in settings:
-            self.safeMode = settings['safeMode']
-            if self.safeMode not in [True, False]:
-                raise ValueError('safeMode should be either True or False')
+        if 'parameters' in settings:
+            self.parameters = settings['parameters']
+            if not isinstance(self.parameters, dict):
+                raise TypeError('parameters should be a dictionary')
+
+            for label in self.parameters.keys():
+                if 'information' not in self.parameters[label]:
+                    raise ValueError("Parameter '{}' has no information"
+                        .format(label))
+                if 'type' not in self.parameters[label]:
+                    raise ValueError("Parameter '{}' has no type"
+                        .format(label))
+                if 'default' not in self.parameters[label]:
+                    raise ValueError("Parameter '{}' has no default value"
+                        .format(label))
 
         if 'polishers' in settings:
             for item in settings['polishers']:
@@ -295,24 +322,16 @@ class PlumberyEngine(object):
                 self.polishers.append(
                     PlumberyPolisher.from_shelf(key, value))
 
-        if 'buildPolisher' in settings:
-            self._buildPolisher = settings['buildPolisher']
-
-        if 'defaults' in settings:
-            self.defaults = settings['defaults']
-            if not isinstance(self.defaults, dict):
-                raise TypeError('defaults should be a dictionary')
-
-        if len(self.defaults) > 1:
-            logging.debug("Default parameters:")
-            for key in self.defaults.keys():
-                logging.debug("- {}: {}".format(key, self.defaults[key]))
+        if 'safeMode' in settings:
+            self.safeMode = settings['safeMode']
+            if self.safeMode not in [True, False]:
+                raise ValueError('safeMode should be either True or False')
 
     def get_default(self, label, default=None):
         """
         Retrieves default settings
 
-        :param label: the name of the parameter to be retrieved
+        :param label: the name of the settings to be retrieved
         :type label: ``str``
 
         :param default: the default value to return
@@ -326,6 +345,29 @@ class PlumberyEngine(object):
             return self.defaults[label]
 
         return default
+
+    def get_parameter(self, label):
+        """
+        Retrieves value of some parameter
+
+        :param label: the name of the parameter to be retrieved
+        :type label: ``str``
+
+        :return: the value set in fittings plan, or `None`
+        :rtype: ``str`` most often, or ``dict`` or something else
+
+        """
+
+        if label not in self.parameters:
+            raise KeyError("Parameter '{}' in unknown".format(label))
+
+        if 'value' in self.parameters[label]:
+            return self.parameters[label]['value']
+
+        if 'default' not in self.parameters[label]:
+            raise ValueError("Parameter '{}' has no default value".format(label))
+
+        return self.parameters[label]['default']
 
     def set_shared_secret(self, secret):
         """
@@ -1388,13 +1430,16 @@ class PlumberyEngine(object):
         if token == 'password.credentials':
             return self.get_user_password()
 
-        if token.endswith('.secret'):
-            return self.get_secret(token)
+        if token.endswith('.parameter'):
+            return self.get_parameter(token)
 
         if token.endswith('.rsa_public'):
             return self.get_rsa_secret(token)
         if token.endswith('.rsa_private'):
             return self.get_rsa_secret(token)
+
+        if token.endswith('.secret'):
+            return self.get_secret(token)
 
         if token.endswith('.uuid'):
             return self.get_secret(token)

@@ -31,12 +31,15 @@ information:
   - world
 
 links:
-  documentation: http://www.acme.com/
+  documentation: "http://www.acme.com/"
 
 defaults:
+
   domain:
     ipv4: auto
+
   cloud-config:
+
     disable_root: false
     ssh_pwauth: true
     ssh_keys:
@@ -45,18 +48,38 @@ defaults:
 
       rsa_public: "{{ pair1.ssh.rsa_public }}"
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU6
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: myDC
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: myVLAN
+
 ---
 # Frankfurt in Europe
-locationId: EU6
+locationId: "{{ locationId.parameter }}"
 regionId: dd-eu
 
 blueprints:
 
   - myBlueprint:
       domain:
-        name: myDC
+        name: "{{ domainName.parameter }}"
       ethernet:
-        name: myVLAN
+        name: "{{ networkName.parameter }}"
         subnet: 10.1.10.0
       nodes:
         - myServer:
