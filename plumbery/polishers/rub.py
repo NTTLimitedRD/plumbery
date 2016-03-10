@@ -493,7 +493,7 @@ class RubPolisher(PlumberyPolisher):
         except Exception as feedback:
             logging.error(str(feedback))
 
-        for item in self.facility.get_parameter('rub', []):
+        for item in self.facility.get_setting('rub', []):
             if not isinstance(item, dict):
                 continue
             if 'beachhead' not in item.keys():
@@ -504,10 +504,10 @@ class RubPolisher(PlumberyPolisher):
 
         if self.beachheading:
             logging.info("- beachheading at '{}'".format(
-                self.facility.get_parameter('locationId')))
+                self.facility.get_setting('locationId')))
         else:
             logging.debug("- '{}' is unreachable".format(
-                self.facility.get_parameter('locationId')))
+                self.facility.get_setting('locationId')))
 
     def shine_node(self, node, settings, container):
         """

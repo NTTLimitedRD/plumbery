@@ -685,8 +685,8 @@ class PlumberyEngine(object):
             facility = PlumberyFacility(self, facility)
 
         logging.debug("Adding facility")
-        for key in facility.parameters:
-            logging.debug("- {}: {}".format(key, facility.parameters[key]))
+        for key in facility.settings:
+            logging.debug("- {}: {}".format(key, facility.settings[key]))
 
         self.facilities.append(facility)
 
@@ -723,7 +723,7 @@ class PlumberyEngine(object):
                 matches.append(item)
 
         for facility in self.facilities:
-            if facility.get_parameter('locationId') in location:
+            if facility.get_setting('locationId') in location:
                 matches.append(facility)
 
         return matches

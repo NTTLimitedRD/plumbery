@@ -86,11 +86,11 @@ class InformationPolisher(PlumberyPolisher):
         environment = PlumberyContext(context=self.facility)
 
         lines = []
-        if ('information' in facility.parameters
-                and isinstance(facility.parameters['information'], list)
-                and len(facility.parameters['information']) > 0):
+        if ('information' in facility.settings
+                and isinstance(facility.settings['information'], list)
+                and len(facility.settings['information']) > 0):
 
-            for line in facility.parameters['information']:
+            for line in facility.settings['information']:
 
                 tokens = line.split(' ')
                 if tokens[0] == 'echo':

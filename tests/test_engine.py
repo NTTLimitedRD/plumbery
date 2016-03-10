@@ -202,8 +202,8 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(len(facilities), 1)
 
         facility = facilities[0]
-        self.assertEqual(facility.get_parameter('regionId'), 'dd-na')
-        self.assertEqual(facility.get_parameter('locationId'), 'NA9')
+        self.assertEqual(facility.get_setting('regionId'), 'dd-na')
+        self.assertEqual(facility.get_setting('locationId'), 'NA9')
 
         blueprint = facility.get_blueprint('fake')
         self.assertEqual(blueprint.keys(),
