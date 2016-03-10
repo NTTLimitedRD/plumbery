@@ -22,6 +22,7 @@ from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
 from polisher import PlumberyPolisher
 from nodes import PlumberyNodes
+from text import PlumberyText, PlumberyContext
 
 __all__ = ['PlumberyFacility']
 
@@ -61,9 +62,14 @@ class PlumberyFacility(object):
 
         self.plumbery = plumbery
 
+        self.facts = {}
+
         self.settings = {}
+
         self.blueprints = []
 
+        environment = PlumberyContext(context=self)
+        fittings = PlumberyText.expand_data(fittings, environment)
         for key in fittings.keys():
 
             if key == 'blueprints':
@@ -82,8 +88,6 @@ class PlumberyFacility(object):
         self._cache_images = []
         self._cache_network_domains = []
         self._cache_vlans = []
-
-        self._cache_lookup = {}
 
     def __repr__(self):
 
@@ -105,10 +109,6 @@ class PlumberyFacility(object):
                     raise ValueError("No value has been set for '{}'"
                                      .format(label))
                 self.settings[label] = value
-
-#        environment = PlumberyContext(context=self)
-#        self.settings = PlumberyText.expand_variables(
-#                                    self.settings, environment)
 
     def get_location_id(self):
         """
@@ -1038,8 +1038,8 @@ class PlumberyFacility(object):
         if token == 'location.id':
             return self.get_location_id()
 
-        if token in self._cache_lookup:
-            return self._cache_lookup[token]
+        if token in self.facts:
+            return self.facts[token]
 
         return self.plumbery.lookup(token)
 
@@ -1055,4 +1055,4 @@ class PlumberyFacility(object):
 
         """
 
-        self._cache_lookup[token] = value
+        self.facts[token] = value
