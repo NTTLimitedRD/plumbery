@@ -139,7 +139,8 @@ class PlumberyEngine(object):
         self._userPassword = None
 
         if plan is not None:
-            if plan.startswith(("https://", "http://")):
+            if (isinstance(plan, str) and
+                    plan.startswith(("https://", "http://"))):
                 self.from_url(plan)
             else:
                 self.from_file(plan)
