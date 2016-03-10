@@ -291,7 +291,7 @@ class RubPolisher(PlumberyPolisher):
 
                                 logging.debug("- expanding script '{}'"
                                               .format(script))
-                                text = PlumberyText.expand_variables(
+                                text = PlumberyText.expand_string(
                                     text, environment)
 
                             if len(text) > 0:
@@ -331,7 +331,7 @@ class RubPolisher(PlumberyPolisher):
 
                                 logging.debug("- expanding file '{}'"
                                               .format(file))
-                                content = PlumberyText.expand_variables(
+                                content = PlumberyText.expand_string(
                                     content, environment)
 
                             rubs.append({
@@ -349,7 +349,7 @@ class RubPolisher(PlumberyPolisher):
                     if tokens[0] == 'echo':
                         tokens.pop(0)
                     message = ' '.join(tokens)
-                    message = PlumberyText.expand_variables(
+                    message = PlumberyText.expand_string(
                         message, environment)
                     logging.info("- {}".format(message))
 
@@ -372,7 +372,7 @@ class RubPolisher(PlumberyPolisher):
 
             logging.debug('- preparing user-data')
 
-            expanded = PlumberyText.expand_variables(
+            expanded = PlumberyText.expand_string(
                 settings['cloud-config'], environment)
 
             user_data = '#cloud-config\n'+expanded

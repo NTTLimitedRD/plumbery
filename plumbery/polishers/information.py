@@ -52,7 +52,7 @@ class InformationPolisher(PlumberyPolisher):
             if tokens[0] == 'echo':
                 tokens.pop(0)
             message = ' '.join(tokens)
-            message = PlumberyText.expand_variables(
+            message = PlumberyText.expand_string(
                 message, environment)
             lines.append(message)
 
@@ -96,7 +96,7 @@ class InformationPolisher(PlumberyPolisher):
                 if tokens[0] == 'echo':
                     tokens.pop(0)
                 message = ' '.join(tokens)
-                message = PlumberyText.expand_variables(
+                message = PlumberyText.expand_string(
                     message, environment)
                 lines.append(message)
 
@@ -133,7 +133,7 @@ class InformationPolisher(PlumberyPolisher):
                 if tokens[0] == 'echo':
                     tokens.pop(0)
                 message = ' '.join(tokens)
-                message = PlumberyText.expand_variables(
+                message = PlumberyText.expand_string(
                     message, environment)
                 lines.append(message)
 
@@ -176,7 +176,7 @@ class InformationPolisher(PlumberyPolisher):
                 if tokens[0] == 'echo':
                     tokens.pop(0)
                 message = ' '.join(tokens)
-                message = PlumberyText.expand_variables(
+                message = PlumberyText.expand_string(
                     message, environment)
                 information.append(message)
 
