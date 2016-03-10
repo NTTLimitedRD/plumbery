@@ -123,7 +123,7 @@ fakeFacilitySettings = {
 
 class FakeFacility():
     plumbery = FakeEngine()
-    parameters = fakeFacilitySettings
+    settings = fakeFacilitySettings
     region = FakeRegion()
 
     def __repr__(self):
@@ -132,9 +132,9 @@ class FakeFacility():
     def get_location_id(self):
         return 'EU6'
 
-    def get_parameter(self, label, default=None):
-        if label in self.parameters:
-            return self.parameters[label]
+    def get_setting(self, label, default=None):
+        if label in self.settings:
+            return self.settings[label]
 
         return default
 
