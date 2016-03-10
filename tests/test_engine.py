@@ -31,12 +31,15 @@ information:
   - world
 
 links:
-  documentation: http://www.acme.com/
+  documentation: "http://www.acme.com/"
 
 defaults:
+
   domain:
     ipv4: auto
+
   cloud-config:
+
     disable_root: false
     ssh_pwauth: true
     ssh_keys:
@@ -45,18 +48,38 @@ defaults:
 
       rsa_public: "{{ pair1.ssh.rsa_public }}"
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU6
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: myDC
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: myVLAN
+
 ---
 # Frankfurt in Europe
-locationId: EU6
+locationId: "{{ locationId.parameter }}"
 regionId: dd-eu
 
 blueprints:
 
   - myBlueprint:
       domain:
-        name: myDC
+        name: "{{ domainName.parameter }}"
       ethernet:
-        name: myVLAN
+        name: "{{ networkName.parameter }}"
         subnet: 10.1.10.0
       nodes:
         - myServer:
@@ -111,7 +134,23 @@ class TestPlumberyEngine(unittest.TestCase):
 
         cloudConfig = engine.get_default('cloud-config', {})
         self.assertEqual(len(cloudConfig.keys()), 3)
+
+        parameter = engine.get_parameter('locationId')
+        self.assertEqual(parameter, 'EU6')
+
+        parameter = engine.get_parameter('domainName')
+        self.assertEqual(parameter, 'myDC')
+
+        parameter = engine.get_parameter('networkName')
+        self.assertEqual(parameter, 'myVLAN')
+
         self.assertEqual(len(engine.facilities), 1)
+        facility = engine.facilities[0]
+        self.assertEqual(facility.settings['locationId'], 'EU6')
+        self.assertEqual(facility.settings['regionId'], 'dd-eu')
+        blueprint = facility.blueprints[0]['myBlueprint']
+        self.assertEqual(blueprint['domain']['name'], 'myDC')
+        self.assertEqual(blueprint['ethernet']['name'], 'myVLAN')
 
     def test_set(self):
 
@@ -202,8 +241,8 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(len(facilities), 1)
 
         facility = facilities[0]
-        self.assertEqual(facility.get_parameter('regionId'), 'dd-na')
-        self.assertEqual(facility.get_parameter('locationId'), 'NA9')
+        self.assertEqual(facility.get_setting('regionId'), 'dd-na')
+        self.assertEqual(facility.get_setting('locationId'), 'NA9')
 
         blueprint = facility.get_blueprint('fake')
         self.assertEqual(blueprint.keys(),

@@ -45,22 +45,8 @@ defaults:
 
       hostname: "{{ node.name }}"
 
-#      bootcmd:
-#
-#        # remove apache
-#        - apt-get remove apache2 -y
-#        - apt-get autoremove -y
-
-#        # automate acceptance of oracle licence
-#        - echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
-#        - echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 seen true" | sudo debconf-set-selections
-
-#      apt_sources:
-#        - source: "ppa:webupd8team/java"
-
       packages:
         - ntp
-#        - oracle-java8-installer
 
       write_files:
 

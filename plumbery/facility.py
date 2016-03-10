@@ -22,6 +22,7 @@ from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
 from polisher import PlumberyPolisher
 from nodes import PlumberyNodes
+from text import PlumberyText, PlumberyContext
 
 __all__ = ['PlumberyFacility']
 
@@ -49,7 +50,7 @@ class PlumberyFacility(object):
     Attributes:
 
         plumbery:
-            global parameters and functions
+            global settings and functions
 
         fittings:
             the plan is available when needed
@@ -61,8 +62,14 @@ class PlumberyFacility(object):
 
         self.plumbery = plumbery
 
-        self.parameters = {}
+        self.facts = {}
+
+        self.settings = {}
+
         self.blueprints = []
+
+        environment = PlumberyContext(context=self)
+        fittings = PlumberyText.expand_data(fittings, environment)
 
         for key in fittings.keys():
 
@@ -70,9 +77,9 @@ class PlumberyFacility(object):
                 self.blueprints = fittings['blueprints']
 
             else:
-                self.parameters[key] = fittings[key]
+                self.settings[key] = fittings[key]
 
-        self.finalize_parameters()
+        self.finalize_settings()
         self.finalize_blueprints()
 
         # first call to the API is done in self.power_on()
@@ -83,27 +90,26 @@ class PlumberyFacility(object):
         self._cache_network_domains = []
         self._cache_vlans = []
 
-        self._cache_lookup = {}
-
     def __repr__(self):
 
-        return "<PlumberyFacility parameters: {}>".format(self.parameters)
+        return "<PlumberyFacility settings: {}>".format(self.settings)
 
-    def finalize_parameters(self):
+    def finalize_settings(self):
         """
-        Sets default values for parameters
+        Sets values for settings
 
-        This function gets missing parameters from default values set at
+        This function gets missing settings from default values set at
         the engine level.
         """
+
         mandatory = ['locationId', 'regionId']
         for label in mandatory:
-            if label not in self.parameters:
+            if label not in self.settings:
                 value = self.plumbery.get_default(label)
                 if value is None:
                     raise ValueError("No value has been set for '{}'"
                                      .format(label))
-                self.parameters[label] = value
+                self.settings[label] = value
 
     def get_location_id(self):
         """
@@ -114,7 +120,7 @@ class PlumberyFacility(object):
 
         """
 
-        return self.get_parameter('locationId')
+        return self.get_setting('locationId')
 
     def get_city(self, locationId=None):
         """
@@ -143,7 +149,7 @@ class PlumberyFacility(object):
         }
 
         if locationId is None:
-            locationId = self.get_parameter('locationId')
+            locationId = self.get_setting('locationId')
 
         if locationId not in cities.keys():
             return '*unknown*'
@@ -177,18 +183,18 @@ class PlumberyFacility(object):
         }
 
         if locationId is None:
-            locationId = self.get_parameter('locationId')
+            locationId = self.get_setting('locationId')
 
         if locationId not in coordinates.keys():
             return None
 
         return coordinates[locationId]
 
-    def get_parameter(self, label, default=None):
+    def get_setting(self, label, default=None):
         """
-        Retrieves the value of one parameter
+        Retrieves some setting
 
-        :param label: the name of the parameter to be retrieved
+        :param label: the name of the setting to be retrieved
         :type label: ``str``
 
         :param default: the default value to return
@@ -198,8 +204,8 @@ class PlumberyFacility(object):
 
         """
 
-        if label in self.parameters:
-            return self.parameters[label]
+        if label in self.settings:
+            return self.settings[label]
 
         return self.plumbery.get_default(label, default)
 
@@ -229,7 +235,7 @@ class PlumberyFacility(object):
 
         """
 
-        basement = self.get_parameter('basement')
+        basement = self.get_setting('basement')
 
         if basement is None:
             return []
@@ -241,7 +247,7 @@ class PlumberyFacility(object):
         Sets default values for blueprints
 
         This function expands blueprints defined for this facility with
-        default parameters and settings stored by the global engine.
+        default settings and settings stored by the global engine.
 
         """
 
@@ -314,6 +320,9 @@ class PlumberyFacility(object):
         provided in the dictionary additions.
 
         """
+
+        if not isinstance(additions, dict):
+            return
 
         for key in additions.keys():
             if key not in settings:
@@ -449,7 +458,7 @@ class PlumberyFacility(object):
                 labels = self.plumbery.get_default('blueprints', all)
 
             elif labels.lower() == 'basement':
-                labels = self.get_parameter('basement')
+                labels = self.get_setting('basement')
 
             if isinstance(labels, str):
                 labels = labels.split(' ')
@@ -658,8 +667,8 @@ class PlumberyFacility(object):
 
         """
 
-        regionId = self.get_parameter('regionId')
-        locationId = self.get_parameter('locationId')
+        regionId = self.get_setting('regionId')
+        locationId = self.get_setting('locationId')
 
         try:
 
@@ -1033,8 +1042,8 @@ class PlumberyFacility(object):
         if token == 'location.id':
             return self.get_location_id()
 
-        if token in self._cache_lookup:
-            return self._cache_lookup[token]
+        if token in self.facts:
+            return self.facts[token]
 
         return self.plumbery.lookup(token)
 
@@ -1050,4 +1059,4 @@ class PlumberyFacility(object):
 
         """
 
-        self._cache_lookup[token] = value
+        self.facts[token] = value

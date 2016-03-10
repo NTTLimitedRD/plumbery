@@ -11,7 +11,7 @@ except ImportError:
     from distutils.core import setup
 
 
-requirements = ['apache-libcloud', 'PyYAML', 'netifaces', 'paramiko']
+requirements = ['apache-libcloud', 'PyYAML', 'netifaces', 'paramiko', 'requests']
 
 test_requirements = []
 

@@ -325,15 +325,15 @@ class TestPlumberyFacility(unittest.TestCase):
         self.assertEqual(self.facility.lookup('location.id'), 'NA9')
         self.assertEqual(self.facility.lookup('*unknown*'), None)
 
-    def test_parameters(self):
+    def test_settings(self):
 
         engine = PlumberyEngine()
         engine.from_text(defaultsPlan)
         facility = engine.list_facility('EU6')[0]
-        self.assertEqual(facility.get_parameter('locationId'), 'EU6')
-        self.assertEqual(facility.get_parameter('regionId'), 'dd-eu')
-        self.assertEqual(facility.get_parameter('rub'), None)
-        self.assertEqual(facility.get_parameter('basement'), 'myBlueprint')
+        self.assertEqual(facility.get_setting('locationId'), 'EU6')
+        self.assertEqual(facility.get_setting('regionId'), 'dd-eu')
+        self.assertEqual(facility.get_setting('rub'), None)
+        self.assertEqual(facility.get_setting('basement'), 'myBlueprint')
 
         city = facility.get_city()
         self.assertEqual(city, 'Frankfurt')
