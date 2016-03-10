@@ -38,7 +38,7 @@ setup(
     long_description=get_long_description(),
     author="Bernard Paques",
     author_email='bernard.paques@gmail.com',
-    url='https://github.com/bernard357/plumbery',
+    url='https://github.com/DimensionDataCBUSydney/plumbery',
     packages=['plumbery'],
     package_dir={'plumbery': 'plumbery'},
     include_package_data=True,

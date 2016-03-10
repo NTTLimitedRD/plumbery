@@ -12,6 +12,62 @@ Plumbery is idempotent, so you can run it multiple times with the same outcome.
 
 Plumbery also includes a library of example "post-deploy" scripts, supporting cloud-config, for Linux distributions.
 
+A Fittings file is written in a basic YAML file, which can be either HTTP path, or a local file path
+
+```yaml
+locationId: EU6
+regionId: dd-eu
+
+blueprints:
+
+  - myBluePrint:
+      domain:
+        name: myDC
+      ethernet:
+        name: myVLAN
+        subnet: 10.1.10.0
+      nodes:
+        - myServer
+```
+
+This will provision:
+
+* A Network Domain called "myDC"
+* A VLAN inside that domain called "myVLAN" with the subnet 10.1.10.0/24
+* A server called "myServer" with a primary NIC on "myVLAN"
+
+Fittings files can be deployed in a single command
+
+```bash
+$ python -m plumbery fittings.yaml deploy
+```
+
+## Post-Deploy actions and cloud-config support
+
+Having actions run on the server, immediately after deployment is a common use case. Today, without plumbery this poses a challenge. Plumbery supports cloud-init's cloud-config syntax so post-deploy comamnds like:
+
+* Install packages
+* Setup DevOps tools like Puppet, Chef, Salt agent
+* Set SSH private keys
+* Create users
+* Map disk partitions
+* Run arbitrary commands
+
+```yaml
+  nodes:
+
+    - myServer:
+       cloud-config:
+         users:
+           - name: demo
+             groups: sudo
+             shell: /bin/bash
+             sudo: ['ALL=(ALL) NOPASSWD:ALL']
+             ssh-authorized-keys:
+               - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDf0q4PyG0doiBQYV7OlOxbRjle026hJPBWD+eKHWuVXIpAiQlSElEBqQn0pOqNJZ3IBCvSLnrdZTUph4czNC4885AArS9NkyM7lK27Oo8RV888jWc8hsx4CD2uNfkuHL+NI5xPB/QT3Um2Zi7GRkIwIgNPN5uqUtXvjgA+i1CS0Ku4ld8vndXvr504jV9BMQoZrXEST3YlriOb8Wf7hYqphVMpF3b+8df96Pxsj0+iZqayS9wFcL8ITPApHi0yVwS8TjxEtI3FDpCbf7Y/DmTGOv49+AWBkFhS2ZwwGTX65L61PDlTSAzL+rPFmHaQBHnsli8U9N6E4XHDEOjbSMRX user@example.com
+         runcmd:
+           - touch /test.txt
+```
 
 ## Infrastructure as code at Dimension Data with Apache Libcloud
 

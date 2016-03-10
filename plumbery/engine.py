@@ -18,6 +18,7 @@ import hashlib
 import logging
 import os
 import random
+import requests
 import string
 import time
 import uuid
@@ -135,7 +136,10 @@ class PlumberyEngine(object):
         self._userPassword = None
 
         if plan is not None:
-            self.from_file(plan)
+            if plan.startswith(("https://", "http://")):
+                self.from_url(plan)
+            else:
+                self.from_file(plan)
 
     def from_file(self, plan=None):
         """
@@ -245,6 +249,17 @@ class PlumberyEngine(object):
         """
 
         self.from_file(io.TextIOWrapper(io.BytesIO(plan)))
+
+    def from_url(self, url):
+        """
+        Reads the fittings plan from a HTTP/HTTPS URL
+
+        :param plan: the URL that contains fittings plan
+        :type plan: ``str``
+
+        """
+        response = requests.get(url)
+        self.from_file(io.TextIOWrapper(io.BytesIO(response.text)))
 
     def set(self, settings):
         """

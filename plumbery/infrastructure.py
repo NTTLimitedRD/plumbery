@@ -24,13 +24,8 @@ except ImportError:
 
 from libcloud.common.dimensiondata import DimensionDataFirewallRule
 from libcloud.common.dimensiondata import DimensionDataFirewallAddress
-from libcloud.common.dimensiondata import DimensionDataNatRule
 from libcloud.common.dimensiondata import TYPES_URN
-from libcloud.loadbalancer.base import Algorithm
-from libcloud.loadbalancer.base import Member
-from libcloud.loadbalancer.types import State
 
-from libcloud.utils.xml import fixxpath, findtext, findall
 
 from exception import PlumberyException
 
@@ -222,13 +217,13 @@ class PlumberyInfrastructure(object):
 
                 return self._cache_remote_vlan[2]
 
-            logging.info("Looking for remote Ethernet network '{}'"
-                         .format('::'.join(path)))
+            logging.info("Looking for remote Ethernet network '%s'",
+                         '::'.join(path))
 
             try:
                 remoteLocation = self.region.ex_get_location_by_id(path[0])
             except IndexError:
-                logging.info("- '{}' is unknown".format(path[0]))
+                logging.info("- '%s' is unknown", path[0])
                 return None
 
             vlans = self.region.ex_list_vlans(location=remoteLocation)
