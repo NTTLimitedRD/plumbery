@@ -134,7 +134,23 @@ class TestPlumberyEngine(unittest.TestCase):
 
         cloudConfig = engine.get_default('cloud-config', {})
         self.assertEqual(len(cloudConfig.keys()), 3)
+
+        parameter = engine.get_parameter('locationId')
+        self.assertEqual(parameter, 'EU6')
+
+        parameter = engine.get_parameter('domainName')
+        self.assertEqual(parameter, 'myDC')
+
+        parameter = engine.get_parameter('networkName')
+        self.assertEqual(parameter, 'myVLAN')
+
         self.assertEqual(len(engine.facilities), 1)
+        facility = engine.facilities[0]
+        self.assertEqual(facility.settings['locationId'], 'EU6')
+        self.assertEqual(facility.settings['regionId'], 'dd-eu')
+        blueprint = facility.blueprints[0]['myBlueprint']
+        self.assertEqual(blueprint['domain']['name'], 'myDC')
+        self.assertEqual(blueprint['ethernet']['name'], 'myVLAN')
 
     def test_set(self):
 
