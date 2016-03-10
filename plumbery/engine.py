@@ -359,8 +359,10 @@ class PlumberyEngine(object):
 
         """
 
+        label = label.split('.')[0]
+
         if label not in self.parameters:
-            raise KeyError("Parameter '{}' in unknown".format(label))
+            raise KeyError("Parameter '{}' is unknown".format(label))
 
         if 'value' in self.parameters[label]:
             return self.parameters[label]['value']
