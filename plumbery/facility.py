@@ -70,6 +70,7 @@ class PlumberyFacility(object):
 
         environment = PlumberyContext(context=self)
         fittings = PlumberyText.expand_data(fittings, environment)
+
         for key in fittings.keys():
 
             if key == 'blueprints':
@@ -319,6 +320,9 @@ class PlumberyFacility(object):
         provided in the dictionary additions.
 
         """
+
+        if not isinstance(additions, dict):
+            return
 
         for key in additions.keys():
             if key not in settings:
