@@ -58,6 +58,9 @@ def parse_args(args=[]):
              "If omitted, all locations will be considered.",
         default=None)
 
+    parser.add_argument('-p', '--parameters',
+        help='Parameters for this fittings plan')
+
     parser.add_argument(
         '-s', '--safe',
         help='Safe mode, no actual change is made to the infrastructure',
@@ -207,6 +210,9 @@ def main(args=[], engine=None):
     if engine is None:
         try:
             engine = PlumberyEngine(args.fittings)
+
+            if args.parameters:
+                engine.set_parameters(args.parameters)
 
             if args.safe:
                 engine.safeMode = True

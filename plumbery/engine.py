@@ -100,7 +100,7 @@ class PlumberyEngine(object):
 
     """
 
-    def __init__(self, plan=None):
+    def __init__(self, plan=None, parameters=None):
         """
         Ignites the plumbing engine
 
@@ -137,6 +137,9 @@ class PlumberyEngine(object):
         self._userName = None
 
         self._userPassword = None
+
+        if parameters is not None:
+            self.set_parameters(parameters)
 
         if plan is not None:
             if (isinstance(plan, str) and
@@ -301,20 +304,32 @@ class PlumberyEngine(object):
                 raise TypeError('links should be a dictionary')
 
         if 'parameters' in settings:
-            self.parameters = settings['parameters']
-            if not isinstance(self.parameters, dict):
+
+            if not isinstance(settings['parameters'], dict):
                 raise TypeError('parameters should be a dictionary')
 
-            for label in self.parameters.keys():
-                if 'information' not in self.parameters[label]:
+            for key in settings['parameters']:
+
+                if key not in self.parameters:
+                    self.parameters[key] = {}
+
+                if 'information' not in settings['parameters'][key]:
                     raise ValueError("Parameter '{}' has no information"
-                        .format(label))
-                if 'type' not in self.parameters[label]:
+                        .format(key))
+                self.parameters[key]['information'] = \
+                    settings['parameters'][key]['information']
+
+                if 'type' not in settings['parameters'][key]:
                     raise ValueError("Parameter '{}' has no type"
-                        .format(label))
-                if 'default' not in self.parameters[label]:
+                        .format(key))
+                self.parameters[key]['type'] = \
+                    settings['parameters'][key]['type']
+
+                if 'default' not in settings['parameters'][key]:
                     raise ValueError("Parameter '{}' has no default value"
-                        .format(label))
+                        .format(key))
+                self.parameters[key]['default'] = \
+                    settings['parameters'][key]['default']
 
         if 'polishers' in settings:
             for item in settings['polishers']:
@@ -346,6 +361,34 @@ class PlumberyEngine(object):
             return self.defaults[label]
 
         return default
+
+    def set_parameters(self, parameters):
+        """
+        Changes the parameters of the engine
+
+        :param parameters: the new parameters
+        :type parameters: ``dict`` or ``str``
+
+        """
+
+        if isinstance(parameters, str):
+            parameters = open(parameters, 'r')
+
+            if parameters.startswith(("https://", "http://")):
+                response = requests.get(parameters)
+                parameters = response.text
+
+            parameters = yaml.load(parameters)
+
+        if not isinstance(parameters, dict):
+            raise TypeError('parameters should be a dictionary')
+
+        logging.debug("Parameters:")
+        for key in parameters:
+            if key not in self.parameters:
+                self.parameters[key] = {}
+            self.parameters[key]['value'] = parameters[key]
+            logging.debug("- {}: {}".format(key, self.parameters[key]))
 
     def get_parameter(self, label):
         """
