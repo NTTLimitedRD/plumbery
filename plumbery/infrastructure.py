@@ -83,7 +83,7 @@ class PlumberyInfrastructure(object):
         self._vlans_already_built = []
 
     def get_region_id(self):
-        return self.facility.get_parameter('regionId')
+        return self.facility.get_setting('regionId')
 
     def get_default(self, label, default=None):
         """
@@ -91,7 +91,7 @@ class PlumberyInfrastructure(object):
 
         """
 
-        value = self.facility.get_parameter(label)
+        value = self.facility.get_setting(label)
         if value is not None:
             return value
         return default

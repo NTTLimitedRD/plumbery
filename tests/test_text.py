@@ -283,7 +283,7 @@ class TestPlumberyText(unittest.TestCase):
         context = PlumberyContext(dictionary={'test': 'toast'})
         expected = 'little toast with multiple toast and {{}} as well'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
     def test_engine(self):
 
@@ -293,7 +293,7 @@ class TestPlumberyText(unittest.TestCase):
         template = "we are running plumbery {{ plumbery.version }}"
         expected = "we are running plumbery "+__version__
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
@@ -301,18 +301,18 @@ class TestPlumberyText(unittest.TestCase):
         template = "{{ name.credentials }} {{ password.credentials }}"
         expected = engine.get_user_name()+" "+engine.get_user_password()
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
     def test_input1(self):
 
         context = PlumberyContext(dictionary={'node.private': '12.34.56.78'})
         self.assertEqual(
-            self.text.expand_variables(input1, context), expected1)
+            self.text.expand_string(input1, context), expected1)
 
     def test_input2(self):
 
         context = PlumberyContext(dictionary={})
-        transformed = yaml.load(self.text.expand_variables(input2, context))
+        transformed = yaml.load(self.text.expand_string(input2, context))
         unmatched = {o: (input2[o], transformed[o])
                      for o in input2.keys()
                      if input2[o] != transformed[o]}
@@ -321,7 +321,7 @@ class TestPlumberyText(unittest.TestCase):
         self.assertEqual(len(unmatched), 0)
 
         context = PlumberyContext(dictionary={'node.private': '12.34.56.78'})
-        transformed = yaml.load(self.text.expand_variables(input2, context))
+        transformed = yaml.load(self.text.expand_string(input2, context))
         unmatched = {o: (expected2[o], transformed[o])
                      for o in expected2.keys()
                      if expected2[o] != transformed[o]}
@@ -333,56 +333,56 @@ class TestPlumberyText(unittest.TestCase):
 
         loaded = yaml.load(input3)
         context = PlumberyContext(dictionary={'node.public': '12.34.56.78'})
-        transformed = yaml.load(self.text.expand_variables(loaded, context))
+        transformed = yaml.load(self.text.expand_string(loaded, context))
         self.assertEqual(transformed, yaml.load(expected3))
 
     def test_input4(self):
 
         loaded = yaml.load(input4)
         context = PlumberyContext(dictionary={})
-        transformed = yaml.load(self.text.expand_variables(loaded, context))
+        transformed = yaml.load(self.text.expand_string(loaded, context))
         self.assertEqual(transformed, loaded)
 
     def test_input5(self):
 
         loaded = yaml.load(input5)
         context = PlumberyContext(dictionary={})
-        transformed = yaml.load(self.text.expand_variables(loaded, context))
+        transformed = yaml.load(self.text.expand_string(loaded, context))
         self.assertEqual(transformed, loaded)
 
     def test_input6(self):
 
         loaded = yaml.load(input6)
         context = PlumberyContext(dict6)
-        transformed = self.text.expand_variables(loaded, context)
+        transformed = self.text.expand_string(loaded, context)
         self.assertEqual(transformed.strip(), expected6.strip())
 
     def test_input7(self):
 
         loaded = yaml.load(input7)
         context = PlumberyContext(dict7)
-        transformed = self.text.expand_variables(loaded, context)
+        transformed = self.text.expand_string(loaded, context)
         self.assertEqual(transformed.strip(), expected7.strip())
 
     def test_input8(self):
 
         loaded = yaml.load(input8)
         context = PlumberyContext(dictionary={})
-        expanded = self.text.expand_variables(loaded, context)
+        expanded = self.text.expand_string(loaded, context)
         self.assertEqual(expanded.strip(), input8.strip())
 
     def test_input9(self):
 
         loaded = yaml.load(input9)
         context = PlumberyContext(context=PlumberyEngine())
-        expanded = self.text.expand_variables(loaded, context)
+        expanded = self.text.expand_string(loaded, context)
         self.assertEqual(('  - |' in expanded), False)
 
     def test_input10(self):
 
         loaded = yaml.load(input10)
         context = PlumberyContext(dictionary={})
-        expanded = self.text.expand_variables(loaded, context)
+        expanded = self.text.expand_string(loaded, context)
         self.assertEqual(expanded.strip(), input10.strip())
 
     def test_node1(self):
@@ -391,22 +391,22 @@ class TestPlumberyText(unittest.TestCase):
         context = PlumberyNodeContext(node=FakeNode1())
         expected = '168.128.12.163'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
         template = "{{mongo_mongos01.private }}"
         expected = '192.168.50.11'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
         template = "{{ mongo_mongos01}}"
         expected = '192.168.50.11'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
         template = "{{ mongo_mongos01.ipv6 }}"
         expected = '2a00:47c0:111:1136:47c9:5a6a:911d:6c7f'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
     def test_node2(self):
 
@@ -415,22 +415,22 @@ class TestPlumberyText(unittest.TestCase):
                                       container=FakeContainer())
         expected = '168.128.12.164'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
         template = "{{ mongo_mongos02.private }}"
         expected = '192.168.50.12'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
         template = "{{ mongo_mongos02 }}"
         expected = '192.168.50.12'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
         template = "{{ mongo_mongos02.ipv6 }}"
         expected = '2a00:47c0:111:1136:47c9:5a6a:911d:6c7f'
         self.assertEqual(
-            self.text.expand_variables(template, context), expected)
+            self.text.expand_string(template, context), expected)
 
 if __name__ == '__main__':
     import sys

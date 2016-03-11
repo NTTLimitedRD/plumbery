@@ -24,11 +24,11 @@ __all__ = ['PlumberyText', 'PlumberyContext']
 class PlumberyText:
 
     @classmethod
-    def expand_variables(cls, text, context):
+    def expand_string(cls, text, context):
         """
-        Binds variables
+        Binds variables and produces a string
 
-        :param text: the text to be expanded
+        :param text: the text or the structure to be expanded
         :type text: ``str`` or ``dict``
 
         :param context: context for lookup of tokens
@@ -101,13 +101,39 @@ class PlumberyText:
             watermark2 = '-=*+_=-'
             expanded = expanded.replace('\\'+"'", watermark2+'|'+watermark2)
 
+            # protect  None
+            watermark3 = '=-_+*-='
+            expanded = expanded.replace('None', watermark3+'None'+watermark3)
+
             instanciated = yaml.load(expanded)
             expanded = PlumberyText.dump(instanciated)
 
             expanded = expanded.replace(watermark1+'|'+watermark1, '\\')
             expanded = expanded.replace(watermark2+'|'+watermark2, "'")
+            expanded = expanded.replace(watermark3+'None'+watermark3, 'None')
 
         return expanded
+
+    @classmethod
+    def expand_data(cls, data, context):
+        """
+        Binds variables and returns a python structure
+
+        :param data: the text or the structure to be expanded
+        :type data: ``str`` or ``dict``
+
+        :param context: context for lookup of tokens
+        :type context: :class:`PlumberyContext`
+
+        :return: the expanded data structure
+        :rtype: ``dict`` or ``list``
+
+        This function allows for dynamic binding of data known by plumbery.
+
+        """
+
+        expanded = cls.expand_string(data, context)
+        return yaml.load(expanded)
 
     @classmethod
     def could_expand(cls, content):

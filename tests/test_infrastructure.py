@@ -68,7 +68,7 @@ class FakeFacility:
 
     plumbery = FakePlumbery()
 
-    parameters = fakeParameters
+    settings = fakeParameters
     blueprints = fakeBlueprints
 
     DimensionDataNodeDriver.connectionCls.conn_classes = (
@@ -84,9 +84,9 @@ class FakeFacility:
     def get_location_id(self):
         return 'EU6'
 
-    def get_parameter(self, label):
-        if label in self.parameters:
-            return self.parameters[label]
+    def get_setting(self, label):
+        if label in self.settings:
+            return self.settings[label]
 
         return None
 
