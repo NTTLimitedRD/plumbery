@@ -11,6 +11,7 @@ ENV REGION=""
 ENV FITTING=""
 ENV ACTION="deploy"
 ENV OPTS="-d"
+ENV WGET_OPTS=""
 
 MAINTAINER "Dimension Data"
 
@@ -33,4 +34,4 @@ RUN pip install netifaces
 WORKDIR plumbery
 
 # Deploy fitting
-CMD wget ${FITTING} -O fitting.yaml && python -m plumbery ${OPTS} fitting.yaml ${ACTION}
+CMD wget ${WGET_OPTS} ${FITTING} -O fitting.yaml && python -m plumbery ${OPTS} fitting.yaml ${ACTION}
