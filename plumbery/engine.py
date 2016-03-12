@@ -243,7 +243,6 @@ class PlumberyEngine(object):
 
             # Frankfurt in Europe
             locationId: EU6
-            regionId: dd-eu
 
             blueprints:
 
