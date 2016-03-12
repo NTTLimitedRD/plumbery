@@ -327,8 +327,7 @@ class TestPlumberyFacility(unittest.TestCase):
 
     def test_settings(self):
 
-        engine = PlumberyEngine()
-        engine.from_text(defaultsPlan)
+        engine = PlumberyEngine(defaultsPlan)
         facility = engine.list_facility('EU6')[0]
         self.assertEqual(facility.get_setting('locationId'), 'EU6')
         self.assertEqual(facility.get_setting('regionId'), 'dd-eu')
@@ -345,8 +344,7 @@ class TestPlumberyFacility(unittest.TestCase):
 
     def test_blueprints(self):
 
-        engine = PlumberyEngine()
-        engine.from_text(defaultsPlan)
+        engine = PlumberyEngine(defaultsPlan)
         facility = engine.list_facility('EU6')[0]
         blueprint = facility.get_blueprint('myBlueprint')
         self.assertEqual(isinstance(blueprint, dict), True)

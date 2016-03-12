@@ -24,6 +24,77 @@ __all__ = ['PlumberyText', 'PlumberyContext']
 class PlumberyText:
 
     @classmethod
+    def expand_parameters(cls, text, context):
+        """
+        Binds parameters and produces a string
+
+        :param text: the text to be expanded
+        :type text: ``str``
+
+        :param context: context for lookup of parameters
+        :type context: :class:`PlumberyContext`
+
+        :return: the expanded text
+        :rtype: ``str``
+
+        This function provides low-level binding of parameters.
+
+        """
+
+        opening = '{{'
+        closing = '}}'
+
+        if not isinstance(text, str):
+            raise TypeError("Parameters expansion requires textual input")
+
+        expanded = ''
+        index = 0
+        debugged = []
+
+        while index < len(text):
+            head = text.find(opening, index)
+            if head < 0:
+                expanded += text[index:]
+                break
+
+            tail = text.find(closing, head+len(opening))
+            if tail < 0:
+                expanded += text[index:]
+                break
+
+            while True:
+                head_next = text.find(opening, head+len(opening), tail)
+                if head_next > head:
+                    head = head_next
+                else:
+                    break
+
+            token = text[head+len(opening):tail].strip(' \\\t')
+            if len(token) < 1:
+                expanded += text[index:tail+len(closing)]
+                index = tail+len(closing)
+                continue
+
+            replacement = context.lookup(token)
+            if replacement is None:   # preserve unmatched tag
+                if token not in debugged:
+                    logging.debug("- no match for '{}'".format(token))
+                    debugged.append(token)
+
+                expanded += text[index:tail+len(closing)]
+                index = tail+len(closing)
+
+            else: # actual expansion
+                if token not in debugged:
+                    logging.debug("- '{}' -> '{}'".format(token, replacement))
+                    debugged.append(token)
+
+                expanded += text[index:head]+str(replacement)
+                index = tail+len(closing)
+
+        return expanded
+
+    @classmethod
     def expand_string(cls, text, context):
         """
         Binds variables and produces a string
@@ -113,27 +184,6 @@ class PlumberyText:
             expanded = expanded.replace(watermark3+'None'+watermark3, 'None')
 
         return expanded
-
-    @classmethod
-    def expand_data(cls, data, context):
-        """
-        Binds variables and returns a python structure
-
-        :param data: the text or the structure to be expanded
-        :type data: ``str`` or ``dict``
-
-        :param context: context for lookup of tokens
-        :type context: :class:`PlumberyContext`
-
-        :return: the expanded data structure
-        :rtype: ``dict`` or ``list``
-
-        This function allows for dynamic binding of data known by plumbery.
-
-        """
-
-        expanded = cls.expand_string(data, context)
-        return yaml.load(expanded)
 
     @classmethod
     def could_expand(cls, content):

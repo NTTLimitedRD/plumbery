@@ -19,6 +19,7 @@ from libcloud.common.types import InvalidCredsError
 
 from plumbery.__main__ import parse_args, main
 from plumbery.engine import PlumberyEngine
+from plumbery.polisher import PlumberyPolisher
 from plumbery import __version__
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
@@ -79,6 +80,17 @@ parameters:
     type: str
     default: myVLAN
 
+buildPolisher: alien
+
+polishers:
+  - ansible:
+      reap: gigafox_ansible.yaml
+  - inventory:
+      reap: gigafox_inventory.yaml
+  - rub:
+      key: ~/.ssh/id_rsa.pub
+      reap: gigafox_rubs.yaml
+
 ---
 # Frankfurt in Europe
 locationId: "{{ locationId.parameter }}"
@@ -132,19 +144,28 @@ class TestPlumberyEngine(unittest.TestCase):
     def test_init(self):
 
         engine = PlumberyEngine()
-        engine.from_text(myPlan)
 
-        self.assertEqual(engine.safeMode, False)
+        engine.set_fittings(myPlan)
 
-        self.assertEqual(len(engine.information), 2)
-
-        self.assertEqual(len(engine.links), 1)
+        self.assertEqual(engine.buildPolisher, 'alien')
 
         domain = engine.get_default('domain')
         self.assertEqual(domain['ipv4'], 'auto')
 
         cloudConfig = engine.get_default('cloud-config', {})
         self.assertEqual(len(cloudConfig.keys()), 3)
+
+        self.assertEqual(len(engine.information), 2)
+
+        self.assertEqual(len(engine.links), 1)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['locationId.parameter'],
+                         'EU6')
+        self.assertEqual(parameters['domainName.parameter'],
+                         'myDC')
+        self.assertEqual(parameters['networkName.parameter'],
+                         'myVLAN')
 
         parameter = engine.get_parameter('locationId')
         self.assertEqual(parameter, 'EU6')
@@ -154,6 +175,12 @@ class TestPlumberyEngine(unittest.TestCase):
 
         parameter = engine.get_parameter('networkName')
         self.assertEqual(parameter, 'myVLAN')
+
+        self.assertEqual(len(engine.polishers), 3)
+        for polisher in engine.polishers:
+            self.assertTrue(isinstance(polisher, PlumberyPolisher))
+
+        self.assertEqual(engine.safeMode, False)
 
         self.assertEqual(len(engine.facilities), 1)
         facility = engine.facilities[0]
@@ -167,7 +194,24 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine = PlumberyEngine()
         engine.set_parameters(myParameters)
-        engine.from_text(myPlan)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['locationId.parameter'],
+                         'NA9')
+        self.assertEqual(parameters['domainName.parameter'],
+                         'justInTimeDomain')
+        self.assertEqual(parameters['networkName.parameter'],
+                         'justInTimeNetwork')
+
+        engine.set_fittings(myPlan)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['locationId.parameter'],
+                         'NA9')
+        self.assertEqual(parameters['domainName.parameter'],
+                         'justInTimeDomain')
+        self.assertEqual(parameters['networkName.parameter'],
+                         'justInTimeNetwork')
 
         self.assertEqual(engine.safeMode, False)
 
@@ -200,6 +244,12 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_set(self):
 
+        engine = PlumberyEngine()
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
+        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+
         settings = {
             'safeMode': False,
             'polishers': [
@@ -208,11 +258,11 @@ class TestPlumberyEngine(unittest.TestCase):
                 ]
             }
 
-        engine = PlumberyEngine()
-        DimensionDataNodeDriver.connectionCls.conn_classes = (
-            None, DimensionDataMockHttp)
-        DimensionDataMockHttp.type = None
-        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+        engine.set_settings(settings)
+        self.assertEqual(engine.safeMode, False)
+
+        engine.add_facility(myFacility)
+        self.assertEqual(len(engine.facilities), 1)
 
         engine.set_shared_secret('fake_secret')
         self.assertEqual(engine.get_shared_secret(), 'fake_secret')
@@ -226,12 +276,6 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine.set_user_password('fake_password')
         self.assertEqual(engine.get_user_password(), 'fake_password')
-
-        engine.set(settings)
-        self.assertEqual(engine.safeMode, False)
-
-        engine.add_facility(myFacility)
-        self.assertEqual(len(engine.facilities), 1)
 
     def test_lifecycle(self):
 
@@ -367,7 +411,6 @@ class TestPlumberyEngine(unittest.TestCase):
         engine = PlumberyEngine()
         engine.secrets = {'hello': 'world'}
         engine.save_secrets(plan='test_engine.yaml')
-        self.assertEqual(os.path.isfile('.test_engine.secrets'), True)
         engine.secrets = {}
         engine.load_secrets(plan='test_engine.yaml')
         self.assertEqual(engine.secrets['hello'], 'world')
@@ -435,7 +478,7 @@ class TestPlumberyEngine(unittest.TestCase):
     def test_main(self):
 
         engine = PlumberyEngine()
-        engine.from_text(myPlan)
+        engine.set_fittings(myPlan)
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
         with self.assertRaises(SystemExit):

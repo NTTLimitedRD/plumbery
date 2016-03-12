@@ -68,9 +68,6 @@ class PlumberyFacility(object):
 
         self.blueprints = []
 
-        environment = PlumberyContext(context=self)
-        fittings = PlumberyText.expand_data(fittings, environment)
-
         for key in fittings.keys():
 
             if key == 'blueprints':

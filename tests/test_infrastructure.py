@@ -175,8 +175,7 @@ class TestPlumberyInfrastructure(unittest.TestCase):
         self.infrastructure._get_ipv4()
 
     def test_get_default(self):
-        engine = PlumberyEngine()
-        engine.from_text(defaultsPlan)
+        engine = PlumberyEngine(defaultsPlan)
         facility = engine.list_facility('EU6')[0]
         infrastructure = PlumberyInfrastructure(facility)
         self.assertEqual(infrastructure.get_default('ipv4'), 'auto')
