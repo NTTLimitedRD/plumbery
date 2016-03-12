@@ -3,6 +3,32 @@
 information:
   - "A standalone Confluence server for a small team of developers."
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU8
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: ConfluenceFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: ConfluenceNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: confluence01
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.confluence.html
 
@@ -36,26 +62,25 @@ defaults:
     ssh_pwauth: false
 
 ---
-locationId: EU8
-regionId: dd-eu
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - confluence:
 
       domain:
-        name: ConfluenceFox
+        name: {{ domainName.parameter }}
         description: "Demonstration of a standalone Confluence server"
         service: essentials
         ipv4: 2
 
       ethernet:
-        name: confluencefox.servers
+        name: {{ networkName.parameter }}
         subnet: 192.168.20.0
 
       nodes:
 
-        - confluence01:
+        - {{ nodeName.parameter }}:
             cpu: 2
             memory: 4
             monitoring: essentials

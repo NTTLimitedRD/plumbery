@@ -3,28 +3,53 @@
 information:
   - "This node has both Plumbery and Apache Libcloud pre-installed."
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: NA12
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: BeachheadFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: BeachheadNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: apache01
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.beachhead.html
 
 ---
-locationId: NA12
-regionId: dd-na
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - beachhead:
 
       domain:
-        name: Acme
+        name: {{ domainName.parameter }}
         ipv4: 2
 
       ethernet:
-        name: acme.control
+        name: {{ networkName.parameter }}
         subnet: 10.0.0.0
 
       nodes:
 
-        - beachhead:
+        - {{ nodeName.parameter }}:
 
             description: '#beachhead #ops'
 

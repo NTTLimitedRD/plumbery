@@ -2,7 +2,32 @@
 
 information:
   - "Orchestration of fully-functional Docker node that you can access remotely and securely over the Internet."
-  - "Duplicate the 7 lines at the end of the fittings plan to add nodes at multiple locations."
+
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: NA12
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: DockerFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: DockerNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: docker01
 
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.docker.html
@@ -12,7 +37,7 @@ defaults:
   # the same network domain is used at various facilities
   #
   domain:
-    name: DockerFox
+    name: "{{ domainName.parameter }}"
     description: "Docker nodes"
     service: essentials
     ipv4: auto
@@ -20,7 +45,7 @@ defaults:
   # the same ethernet configuration is used at various facilities
   #
   ethernet:
-    name: DockerNetwork
+    name: "{{ networkName.parameter }}"
     subnet: 192.168.20.0
 
   # default settings for a Docker node
@@ -131,15 +156,12 @@ defaults:
     #
     ssh_pwauth: false
 
-# duplicate the below to deploy another node at another location, e.g. AU10 in dd-au, etc
-#
 ---
-locationId: NA12
-regionId: dd-na
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - docker:
       nodes:
-        - docker-NA12:
+        - {{ nodeName.parameter }}:
             default: dockerNode

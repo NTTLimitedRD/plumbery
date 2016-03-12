@@ -3,6 +3,32 @@
 information:
   - "Demonstration of Let's Chat server, self-hosted chat for small teams"
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: AU10
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: LetsChatFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: LetsChatNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: chat01
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.letschat.html
   credit: https://mborgerson.com/setting-up-lets-chat-on-ubuntu
@@ -36,23 +62,22 @@ defaults:
     ssh_pwauth: false
 
 ---
-locationId: AU10
-regionId: dd-au
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - letschat:
 
       domain:
-        name: LetsChatFox
+        name: {{ domainName.parameter }}
         ipv4: 2
 
       ethernet:
-        name: ethernet
+        name: {{ networkName.parameter }}
         subnet: 10.0.0.0
 
       nodes:
-        - letschat:
+        - {{ nodName.parameter }}:
 
             description: "#chat server #ubuntu"
 

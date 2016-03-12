@@ -4,26 +4,44 @@ information:
   - "Demonstrates a cluster of Apache web servers behind a load-balancer."
   - "The load-balancer is provided by the Managed Cloud Platform itself."
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU8
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: Apache2ClusterFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: Apache2ClusterNetwork
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.apache2.cluster.html
 
 ---
 
-# London
-locationId: EU8
-regionId: dd-eu
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - web:
 
       domain:
-        name: Acme
+        name: {{ domainName.parameter }}
         ipv4: 2
         service: advanced
 
       ethernet:
-        name: acme.control
+        name: {{ networkName.parameter }}
         subnet: 10.0.0.0
 
       nodes:

@@ -3,6 +3,32 @@
 information:
   - "Orchestration of a fully-functional Kubernetes node."
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: AU10
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: KubernetesFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: KubernetesNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: kubernetes01
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.kubernetes.html
 
@@ -11,7 +37,7 @@ defaults:
   # the same network domain is used at various facilities
   #
   domain:
-    name: KubernetesFox
+    name: {{ domainName.parameter }}
     description: "Kubernetes nodes"
     service: essentials
     ipv4: auto
@@ -19,7 +45,7 @@ defaults:
   # the same ethernet configuration is used at various facilities
   #
   ethernet:
-    name: KubernetesNetwork
+    name: {{ networkName.parameter }}
     subnet: 192.168.20.0
 
   # default settings for a Kubernetes node
@@ -160,12 +186,11 @@ defaults:
 # duplicate the below to deploy another node at another location, e.g. NA12 in dd-na, etc
 #
 ---
-locationId: AU9
-regionId: dd-au
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - kubernetes:
       nodes:
-        - kubernetes-AU9:
+        - {{ nodeName.parameter }}:
             default: kubernetesNode

@@ -4,6 +4,26 @@ information:
   - "Demonstration of Docker Swarm, with one queen and 7 bees."
   - "A container submitted to the queen is dispatched to bees."
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: AU10
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: DockerSwarmFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: DockerSwarmNetwork
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.docker.swarm.html
 
@@ -37,7 +57,7 @@ defaults:
     ssh_pwauth: false
 
 ---
-locationId: AU10
+locationId: {{ locationId.parameter }}
 regionId: dd-au
 
 blueprints:
@@ -47,12 +67,12 @@ blueprints:
   - queen: # the master node for the full swarm
 
       domain: &domain
-        name: DockerSwarmFox
+        name: {{ domainName.parameter }}
         description: "Demonstration of a Docker swarm"
         ipv4: auto
 
       ethernet: &ethernet
-        name: dockerSwarmNetwork
+        name: {{ networkName.parameter }}
         subnet: 10.0.0.0
 
       nodes:

@@ -3,30 +3,55 @@
 information:
   - "Demonstration of a Linux-Nginx-MySQL-PHP standalone web server"
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: NA12
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: LempFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: LempNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: web01
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.lemp.html
 
 ---
 
-locationId: NA12
-regionId: dd-na
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - lemp:
 
       domain:
-        name: LempFox
+        name: {{ domainName.parameter }}
         service: essentials
         ipv4: 2
 
       ethernet:
-        name: lempfox.servers
+        name: {{ networkName.parameter }}
         subnet: 192.168.20.0
 
       nodes:
 
-        - apache01:
+        - {{ nodeName.parameter }}:
 
             cpu: 2
             memory: 4
@@ -43,6 +68,10 @@ blueprints:
               disable_root: false
               ssh_pwauth: true
               apt_update: true
+
+              bootcmd:
+                - apt-get remove apache2 -y
+                - apt-get autoremove -y
 
               packages:
                 - nginx

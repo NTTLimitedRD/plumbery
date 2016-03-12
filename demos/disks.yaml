@@ -35,9 +35,7 @@ defaults:
     ssh_pwauth: false
 
 ---
-# Santa Clara - secondary site in USA
 locationId: NA12
-regionId: dd-na
 
 blueprints:
 

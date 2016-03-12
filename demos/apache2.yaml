@@ -3,11 +3,37 @@
 information:
   - "Demonstrates a standalone Apache 2 web server."
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU6
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: Apache2Fox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: Apache2Network
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: apache01
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.apache2.html
 
 ---
-locationId: EU6 # Frankfurt in Europe
+locationId: {{ locationId.parameter }}
 regionId: dd-eu
 
 blueprints:
@@ -15,18 +41,18 @@ blueprints:
   - apache2:
 
       domain:
-        name: Apache2Fox
+        name: {{ domainName.parameter }}
         description: "Demonstration of a standalone apache2 web server"
         service: essentials
         ipv4: 2
 
       ethernet:
-        name: apache2fox.servers
+        name: {{ networkname.parameter }}
         subnet: 192.168.20.0
 
       nodes:
 
-        - apache01:
+        - {{ nodeName.parameter }}:
 
             cpu: 1
             memory: 2

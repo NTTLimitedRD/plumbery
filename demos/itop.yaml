@@ -1,5 +1,31 @@
 ---
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: AU10
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: iTopFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: iTopNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: itop
+
 defaults:
 
   cloud-config: # default for all nodes created by plumbery
@@ -28,25 +54,24 @@ defaults:
     ssh_pwauth: false
 
 ---
-locationId: AU10
-regionId: dd-au
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - itop:
 
       domain: &domain
-        name: iTopFox
+        name: {{ domainName.parameter }}
         description: "Demonstration of iTop server"
         ipv4: auto
 
       ethernet: &ethernet
-        name: iTopNetwork
+        name: {{ networkName.parameter }}
         subnet: 10.0.0.0
 
       nodes:
 
-        - itop:
+        - {{ nodeName.parameter }}:
 
             description: "#itop #ubuntu"
 

@@ -3,6 +3,26 @@
 information:
   - "Demonstrates a cluster of Ceph servers."
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: AU10
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: CephFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: CephNetwork
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.ceph.html
   credit: http://blog.programster.org/ubuntu-14-04-deploy-a-ceph-cluster-part-1/
@@ -39,8 +59,7 @@ defaults:
     ssh_pwauth: false
 
 ---
-locationId: AU10
-regionId: dd-au
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
@@ -49,12 +68,12 @@ blueprints:
   - ceph-admin:
 
       domain: &domain
-        name: CephFox
+        name: {{ domainName.parameter }}
         description: "Demonstration of ceph cluster"
         ipv4: 4
 
       ethernet: &ethernet
-        name: ethernet
+        name: {{ networkName.parameter }}
         subnet: 10.0.0.0
 
       nodes:

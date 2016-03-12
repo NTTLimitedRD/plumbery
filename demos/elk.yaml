@@ -3,6 +3,32 @@
 information:
   - "Centralised logging with Elasticsearch, Logstash, and Kibana."
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: AU10
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: ELKFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: ELKNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: logstashServer
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.elk.html
   credit: http://www.exonet3i.net/evernote/How%20To%20Install%20Elasticsearch,%20Logstash,%20and%20K%20%5B3%5D.html
@@ -12,14 +38,14 @@ defaults:
   # the same network domain is used at various facilities
   #
   domain:
-    name: ELKFox
+    name: "{{ domainName.parameter }}"
     description: "Demonstration of Elasticsearch, Logstash and Kibana"
     ipv4: auto
 
   # the same ethernet configuration is used at various facilities
   #
   ethernet:
-    name: ELKNetwork
+    name: "{{ networkName.parameter }}"
     subnet: 10.0.0.0
 
   # default settings for a remote logger
@@ -55,19 +81,19 @@ defaults:
             #!/usr/bin/awk -f
             /^{{ node.private }}/ {next}
             /^{{ node.ipv6 }}/ {next}
-            /^{{ dd-au::AU10::logstashServer.ipv6 }}/ {next}
+            /^{{ {{ locationId.parameter }}::{{ nodeName.parameter }}.ipv6 }}/ {next}
             {print}
             END {
              print "{{ node.private }}    {{ node.name }}"
              print "{{ node.ipv6 }}    {{ node.name }}"
-             print "{{ dd-au::AU10::logstashServer.ipv6 }}    logstashServer"
+             print "{{ {{ locationId.parameter }}::{{ nodeName.parameter }}.ipv6 }}    {{ nodeName.parameter }}"
             }
 
         - path: /root/logstash-forwarder.conf
           content: |
             {
               "network": {
-                "servers": [ "{{ dd-au::AU10::logstashServer.ipv6 }}:5000" ],
+                "servers": [ "{{ {{ locationId.parameter }}::{{ nodeName.parameter }}.ipv6 }}:5000" ],
                 "timeout": 15,
                 "ssl ca": "/etc/logstash-pki/logstash-forwarder.crt"
               },
@@ -105,7 +131,7 @@ defaults:
         - echo "===== Securing logstash-forwarder"
         - sleep 1m
         - mkdir /etc/logstash-pki
-        - rsync -zhave "ssh -i /home/ubuntu/.ssh/id_rsa" ubuntu@logstashServer:/var/rsync/logstash-forwarder.crt /etc/logstash-pki
+        - rsync -zhave "ssh -i /home/ubuntu/.ssh/id_rsa" ubuntu@{{ nodeName.parameter }}:/var/rsync/logstash-forwarder.crt /etc/logstash-pki
 
         - echo "===== Configuring logstash"
         - cp -n /etc/logstash-forwarder.conf /etc/logstash-forwarder.conf.origin
@@ -142,8 +168,7 @@ defaults:
     ssh_pwauth: false
 
 ---
-locationId: AU10
-regionId: dd-au
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
@@ -151,11 +176,11 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-ap::AP5::ELKNetwork
+          - AP5::ELKNetwork
 
       nodes:
 
-        - logstashServer:  # a combo of logstash, elasticsearch, and kibana
+        - {{ nodeName.parameter }}:  # a combo of logstash, elasticsearch, and kibana
 
             description: "#logstash #elasticsearch #dashboard #kibana #ubuntu"
 
@@ -214,13 +239,13 @@ blueprints:
                     #!/usr/bin/awk -f
                     /^{{ node.private }}/ {next}
                     /^{{ node.ipv6 }}/ {next}
-                    /^{{ logstash-AU10.ipv6 }}/ {next}
+                    /^{{ logstash-{{ locationId.parameter }}.ipv6 }}/ {next}
                     /^{{ dd-ap::AP5::logstash-AP5.ipv6 }}/ {next}
                     {print}
                     END {
                      print "{{ node.private }}    {{ node.name }}"
                      print "{{ node.ipv6 }}    {{ node.name }}"
-                     print "{{ logstash-AU10.ipv6 }}    logstash-AU10"
+                     print "{{ logstash-{{ locationId.parameter }}.ipv6 }}    logstash-{{ locationId.parameter }}"
                      print "{{ dd-ap::AP5::logstash-AP5.ipv6 }}    logstash-AP5"
                     }
 
@@ -250,8 +275,8 @@ blueprints:
                       lumberjack {
                         port => 5000
                         type => "logs"
-                        ssl_certificate => "/etc/pki/tls/certs/logstash-forwarder.crt"
-                        ssl_key => "/etc/pki/tls/private/logstash-forwarder.key"
+                        ssl_certificate => "/etc/logstash-pki/logstash-forwarder.crt"
+                        ssl_key => "/etc/logstash-pki/logstash-forwarder.key"
                       }
                     }
 
@@ -343,12 +368,11 @@ blueprints:
                 - cp /root/etc-cron.d-elasticsearch_curator /etc/cron.d/elasticsearch_curator
 
 
-        - logstash-AU10:
+        - logstash-{{ locationId.parameter }}:
             default: logstashForwarder
 
 ---
 locationId: AP5
-regionId: dd-ap
 
 blueprints:
 
@@ -356,7 +380,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::ELKNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - logstash-AP5:
