@@ -911,8 +911,11 @@ class PlumberyEngine(object):
 
         """
 
-        if action == 'secrets':
-            self.display_secrets()
+        if action == 'build':
+            if blueprints is None:
+                self.build_all_blueprints(facilities)
+            else:
+                self.build_blueprint(blueprints, facilities)
 
         elif action == 'deploy':
             if blueprints is None:
@@ -930,6 +933,29 @@ class PlumberyEngine(object):
                                       facilities=facilities)
                 self.polish_blueprint(blueprints,
                                       filter='information',
+                                      facilities=facilities)
+
+        elif action == 'destroy':
+            if blueprints is None:
+                self.destroy_all_blueprints(facilities)
+            else:
+                self.destroy_blueprint(blueprints, facilities)
+
+        elif action == 'dispose':
+            if blueprints is None:
+                self.stop_all_blueprints(facilities)
+                self.destroy_all_blueprints(facilities)
+            else:
+                self.stop_blueprint(blueprints, facilities)
+                self.destroy_blueprint(blueprints, facilities)
+
+        elif action == 'polish':
+            if blueprints is None:
+                self.polish_all_blueprints(filter=None,
+                                           facilities=facilities)
+            else:
+                self.polish_blueprint(blueprints,
+                                      filter=None,
                                       facilities=facilities)
 
         elif action == 'refresh':
@@ -954,34 +980,14 @@ class PlumberyEngine(object):
                                       filter='information',
                                       facilities=facilities)
 
-        elif action == 'dispose':
-            if blueprints is None:
-                self.stop_all_blueprints(facilities)
-                self.destroy_all_blueprints(facilities)
-            else:
-                self.stop_blueprint(blueprints, facilities)
-                self.destroy_blueprint(blueprints, facilities)
-
-        elif action == 'build':
-            if blueprints is None:
-                self.build_all_blueprints(facilities)
-            else:
-                self.build_blueprint(blueprints, facilities)
+        elif action == 'secrets':
+            self.display_secrets()
 
         elif action == 'start':
             if blueprints is None:
                 self.start_all_blueprints(facilities)
             else:
                 self.start_blueprint(blueprints, facilities)
-
-        elif action == 'polish':
-            if blueprints is None:
-                self.polish_all_blueprints(filter=None,
-                                           facilities=facilities)
-            else:
-                self.polish_blueprint(blueprints,
-                                      filter=None,
-                                      facilities=facilities)
 
         elif action == 'stop':
             if blueprints is None:
@@ -994,12 +1000,6 @@ class PlumberyEngine(object):
                 self.wipe_all_blueprints(facilities)
             else:
                 self.wipe_blueprint(blueprints, facilities)
-
-        elif action == 'destroy':
-            if blueprints is None:
-                self.destroy_all_blueprints(facilities)
-            else:
-                self.destroy_blueprint(blueprints, facilities)
 
         else:
             if blueprints is None:

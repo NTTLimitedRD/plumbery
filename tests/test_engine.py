@@ -291,26 +291,44 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine.do('build')
         engine.build_all_blueprints()
+        engine.do('build', 'myBlueprint')
         engine.build_blueprint('myBlueprint')
 
-        engine.do('start')
-        engine.start_all_blueprints()
-        engine.start_blueprint('myBlueprint')
-
-        engine.do('polish')
-        engine.polish_all_blueprints()
-        engine.polish_blueprint('myBlueprint')
-
-        engine.do('stop')
-        engine.stop_all_blueprints()
-        engine.stop_blueprint('myBlueprint')
-
-        engine.wipe_all_blueprints()
-        engine.wipe_blueprint('myBlueprint')
+        engine.do('deploy')
+        engine.do('deploy', 'myBlueprint')
 
         engine.do('destroy')
         engine.destroy_all_blueprints()
+        engine.do('destroy', 'myBlueprint')
         engine.destroy_blueprint('myBlueprint')
+
+        engine.do('dispose')
+        engine.do('dispose', 'myBlueprint')
+
+        engine.do('polish')
+        engine.polish_all_blueprints()
+        engine.do('polish', 'myBlueprint')
+        engine.polish_blueprint('myBlueprint')
+
+        engine.do('refresh')
+        engine.do('refresh', 'myBlueprint')
+
+        engine.do('secrets')
+
+        engine.do('start')
+        engine.start_all_blueprints()
+        engine.do('start', 'myBlueprint')
+        engine.start_blueprint('myBlueprint')
+
+        engine.do('stop')
+        engine.stop_all_blueprints()
+        engine.do('stop', 'myBlueprint')
+        engine.stop_blueprint('myBlueprint')
+
+        engine.do('wipe')
+        engine.wipe_all_blueprints()
+        engine.do('wipe', 'myBlueprint')
+        engine.wipe_blueprint('myBlueprint')
 
         banner = engine.document_elapsed()
         self.assertEqual('Worked for you' in banner, True)
