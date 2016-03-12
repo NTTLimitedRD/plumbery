@@ -285,14 +285,17 @@ class PlumberyEngine(object):
             # load default values for parameters
             parameters = self.get_parameters()
 
-            documents = list(yaml.load_all(plan))
-            if len(documents) > 1:
-                settings = documents.pop(0)
-                if 'parameters' in settings:
-                    for key in settings['parameters'].keys():
-                        if key+'.parameter' in parameters:
-                            continue
-                        parameters[key+'.parameter'] = settings['parameters'][key]['default']
+            documents = plan.split('\n---')
+            for document in documents:
+                if '\n' in document:
+                    settings = yaml.load(document)
+
+                    if 'parameters' in settings:
+                        for key in settings['parameters'].keys():
+                            if key+'.parameter' in parameters:
+                                continue
+                            parameters[key+'.parameter'] = settings['parameters'][key]['default']
+                    break
 
             # expand parameters
             environment = PlumberyContext(dictionary=parameters)

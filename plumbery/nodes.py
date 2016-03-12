@@ -124,7 +124,7 @@ class PlumberyNodes(object):
                 if 'appliance' in settings:
                     imageName = settings['appliance']
                 else:
-                    imageName = 'Ubuntu'
+                    imageName = None
 
                 image = self.facility.get_image(imageName)
                 if image is None:

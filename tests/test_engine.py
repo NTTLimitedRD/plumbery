@@ -108,6 +108,105 @@ blueprints:
         - myServer:
 """
 
+myEuropeanPlan = """
+---
+safeMode: False
+
+information:
+  - hello
+  - world
+
+links:
+  documentation: "http://www.acme.com/"
+
+defaults:
+
+  domain:
+    ipv4: auto
+
+  cloud-config:
+
+    disable_root: false
+    ssh_pwauth: true
+    ssh_keys:
+      rsa_private: |
+        {{ pair1.rsa_private }}
+
+      rsa_public: "{{ pair1.ssh.rsa_public }}"
+
+    hostname: "{{ nodeName.parameter }}"
+
+    packages:
+      - ntp
+
+    write_files:
+
+      - path: /root/hosts.awk
+        content: |
+          #!/usr/bin/awk -f
+          /^{{ {{ nodeName.parameter }}.private }}/ {next}
+          /^{{ {{ nodeName.parameter }}.ipv6 }}/ {next}
+          {print}
+          END {
+           print "{{ {{ nodeName.parameter }}.private }}    {{ nodeName.parameter }}"
+           print "{{ {{ nodeName.parameter }}.ipv6 }}    {{ nodeName.parameter }}"
+          }
+
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU8
+
+  regionId:
+    information:
+      - "the target region for this deployment"
+    type: regions.list
+    default: dd-eu
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: myDC
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: myVLAN
+
+  nodeName:
+    information:
+      - "the name of the node to be deployed"
+    type: str
+    default: myServer
+
+---
+locationId: "{{ locationId.parameter }}"
+regionId: {{ regionId.parameter }}
+
+blueprints:
+
+  - myBlueprint:
+      domain:
+        name: "{{ domainName.parameter }}"
+      ethernet:
+        name: "{{ networkName.parameter }}"
+        subnet: 10.1.10.0
+      nodes:
+        - {{ nodeName.parameter }}:
+"""
+
+myAmericanBinding = {
+    'locationId': 'NA9',
+    'regionId': 'dd-na',
+    'nodeName': 'toto'
+    }
+
+
 myFacility = {
     'regionId': 'dd-na',
     'locationId': 'NA9',
@@ -335,7 +434,7 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_as_library(self):
 
-        engine = PlumberyEngine(myFacility)
+        engine = PlumberyEngine(myEuropeanPlan, myAmericanBinding)
         DimensionDataNodeDriver.connectionCls.conn_classes = (
             None, DimensionDataMockHttp)
         DimensionDataMockHttp.type = None
@@ -352,9 +451,17 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(facility.get_setting('regionId'), 'dd-na')
         self.assertEqual(facility.get_setting('locationId'), 'NA9')
 
-        blueprint = facility.get_blueprint('fake')
+        self.assertTrue(facility.get_blueprint('fake') is None)
+
+        blueprint = facility.get_blueprint('myBlueprint')
         self.assertEqual(blueprint.keys(),
                          ['ethernet', 'domain', 'nodes', 'target'])
+        node = blueprint['nodes'][0]
+        self.assertEqual(node.keys()[0], 'toto')
+
+        config = node['toto']['cloud-config']
+        self.assertEqual(config['hostname'], 'toto')
+        self.assertEqual(config['write_files'][0]['content'].count('toto'), 6)
 
         engine.do('deploy')
         engine.do('refresh')
