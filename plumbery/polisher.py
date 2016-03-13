@@ -141,7 +141,7 @@ class PlumberyPolisher(object):
                 locals(),
                 [polisherName])
 
-            logging.debug("Instanciating '{}'".format(polisherName))
+            logging.debug("Instantiating '{}'".format(polisherName))
             polisherClass = getattr(polisherModule, polisherName)
 
             settings['name'] = polishId
