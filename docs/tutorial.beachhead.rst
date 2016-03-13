@@ -29,9 +29,49 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/beachhead.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    locationId: NA12
+    regionId: dd-na
+
+    blueprints:
+
+      - beachhead:
+
+          domain:
+            name: Acme
+            ipv4: 2
+
+          ethernet:
+            name: acme.control
+            subnet: 10.0.0.0
+
+          nodes:
+
+            - beachhead:
+
+                description: '#beachhead #ops'
+
+                glue:
+                  - internet 22
+
+                running: always
+                monitoring: essentials
+
+                cloud-config:
+
+                  disable_root: false
+                  ssh_pwauth: True
+
+                  packages:
+                    - python-pip
+                    - python-dev
+                    - git
+
+                  runcmd:
+                    - pip install -e git+https://github.com/apache/libcloud.git#egg=apache-libcloud
+                    - pip install -e git+https://github.com/DimensionDataCBUSydney/plumbery.git#egg=plumbery
 
 In this example, the plan is to deploy a single node in the data centre
 at Frankfurt, in Europe. The node ``beachhead`` is placed in a

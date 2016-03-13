@@ -25,9 +25,47 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/minio.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    ---
+    locationId: NA12
+    regionId: dd-na
+
+    blueprints:
+
+      - minio:
+
+          domain:
+            name: MinioFox
+            ipv4: 2
+
+          ethernet:
+            name: miniofox.servers
+            subnet: 192.168.20.0
+
+          nodes:
+
+            - minio01:
+
+                glue:
+                  - internet 22 8080
+
+                information:
+                  - "connect to this server in a terminal window: ssh root@{{ node.public }}"
+                  - "then get AccessKey and SecretKey from minio banner: cat /root/minio_keys.txt"
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: true
+                  packages:
+                    - ntp
+                  runcmd:
+                    - su ubuntu -c "curl https://dl.minio.io/server/minio/release/linux-amd64/minio >/home/ubuntu/minio"
+                    - chmod +x /home/ubuntu/minio
+                    - mkdir /home/shared
+                    - chown ubuntu:ubuntu /home/shared
+                    - su ubuntu -c "~/minio --address {{ node.private }}:8080 server expiry 1h /home/shared" >/root/minio_keys.txt
 
 Some notes on directives used in this fittings plan:
 

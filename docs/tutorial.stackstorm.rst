@@ -20,9 +20,46 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/stackstorm.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    ---
+    locationId: AU10
+    regionId: dd-au
+
+    blueprints:
+
+      - stackstorm:
+
+          domain:
+            name: StackstormFox
+            service: essentials
+            ipv4: auto
+
+          ethernet:
+            name: stackstorm.ethernet
+            subnet: 192.168.20.0
+
+          nodes:
+
+            - stackstorm:
+
+                cpu: 4
+                memory: 8
+                monitoring: essentials
+                glue:
+                  - internet 22 80 443
+
+                information:
+                  - "open a browser at https://{{ node.public }}/ to view it live"
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: true
+                  packages:
+                    - ntp
+                  runcmd:
+                    - curl -sSL https://raw.githubusercontent.com/DimensionDataCBUSydney/st2_dimensiondata/master/install-au.sh | sh
 
 Deployment commands
 -------------------

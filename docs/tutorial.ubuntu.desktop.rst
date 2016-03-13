@@ -29,9 +29,135 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/ubuntu.desktop.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    ---
+    locationId: NA12
+    regionId: dd-na
+
+    blueprints:
+
+      - ubuntu:
+
+          domain:
+            name: UbuntuFox
+            service: essentials
+            ipv4: 2
+
+          ethernet:
+            name: ubuntufox.servers
+            subnet: 192.168.20.0
+
+          nodes:
+
+            - ubuntu01:
+
+                appliance: 'Ubuntu 14'
+                cpu: 2
+                memory: 8
+                monitoring: essentials
+                glue:
+                  - internet 22 5901
+
+                information:
+                  - "secure your connection: ssh -L 5901:127.0.0.1:5901 root@{{ node.public }}"
+                  - "open a VNC viewer at 127.0.0.1:5901 to access the desktop"
+                  - "enter password {{ vnc.secret }} when asked"
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: True
+                  packages:
+                    - ntp
+                    - expect
+                    - ubuntu-desktop
+                    - gnome-session-fallback
+                    - vnc4server
+
+                  write_files:
+
+                    - path: /root/.vnc/set_password
+                      permissions: "0700"
+                      content: |
+                            #!/bin/sh
+                            export USER="root"
+                            export HOME="/root"
+                            /usr/bin/expect <<EOF
+                            spawn "/usr/bin/vncpasswd"
+                            expect "Password:"
+                            send "{{ vnc.secret }}\r"
+                            expect "Verify:"
+                            send "{{ vnc.secret }}\r"
+                            expect eof
+                            exit
+                            EOF
+
+                    - path: /root/.vnc/xstartup
+                      permissions: "0755"
+                      content: |
+                            #!/bin/sh
+
+                            export XKL_XMODMAP_DISABLE=1
+                            unset SESSION_MANAGER
+                            unset DBUS_SESSION_BUS_ADDRESS
+
+                            [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+                            [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+                            xsetroot -solid grey
+                            vncconfig -iconic &
+
+                            gnome-session &
+                            gnome-panel &
+                            gnome-settings-daemon &
+                            metacity &
+                            nautilus &
+                            gnome-terminal &
+
+                    - path: /etc/init.d/vncserver
+                      permissions: "0755"
+                      content: |
+                            #!/bin/bash
+                            ### BEGIN INIT INFO
+                            # Provides: tightvncserver
+                            # Required-Start:
+                            # Required-Stop:
+                            # Default-Start: 2 3 4 5
+                            # Default-Stop: 0 1 6
+                            # Short-Description: start vnc server
+                            # Description:
+                            ### END INIT INFO
+
+                            export USER="root"
+                            export HOME="/root"
+
+                            . /lib/lsb/init-functions
+
+                            case "$1" in
+                            start)
+                                echo "Starting vncserver on :1"
+                                vncserver :1 -geometry 1280x800 -depth 24
+                            ;;
+
+                            stop)
+                                echo "Stopping vncserver on :1"
+                                vncserver -kill :1
+                            ;;
+
+                            restart)
+                                $0 stop
+                                $0 start
+                            ;;
+                            *)
+                                echo "Usage: $0 {start|stop|restart}"
+                                exit 1
+                            esac
+                            exit 0
+
+                  runcmd:
+                    - /root/.vnc/set_password
+                    - update-rc.d vncserver defaults
+                    - /etc/init.d/vncserver restart
 
 Some interesting remarks on this fittings plan:
 

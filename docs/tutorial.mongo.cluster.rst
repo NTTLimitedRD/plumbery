@@ -22,9 +22,121 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/mongo.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    ---
+    locationId: EU8 # London in Europe
+    regionId: dd-eu
+
+    blueprints:
+
+      - mongo: mongo_config mongo_mongos mongo_shard
+
+      - mongo_config:
+
+          domain: &domain
+            name: MongoFox
+            service: essentials
+            ipv4: 12
+
+          ethernet: &ethernet
+            name: mongofox.servers
+            subnet: 192.168.20.0
+
+          nodes:
+
+            - mongo_config0[1..3]:
+
+                glue:
+                  - internet 22
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: True
+                  packages:
+                    - ntp
+
+                  write_files: # replica set for configuration servers
+
+                    - path: /etc/mongod.conf.sed
+                      content: |
+                         s/#sharding:/sharding:\n   clusterRole: configsvr\nreplication:\n  replSetName: configReplSet/
+
+                  runcmd:
+                    - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
+                    - echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+                    - sudo apt-get update
+                    - sudo apt-get install -y mongodb-org
+                    - cp -n /etc/mongod.conf /etc/mongod.conf.original
+                    - sed -i -f /etc/mongod.conf.sed /etc/mongod.conf
+                    - sudo service mongod restart
+
+      - mongo_mongos:
+
+          domain: *domain
+          ethernet: *ethernet
+
+          nodes:
+
+            - mongo_mongos01:
+
+                glue:
+                  - internet 22
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: True
+                  packages:
+                    - ntp
+
+                  write_files: # replica set for mongos servers
+
+                    - path: /etc/mongod.conf.sed
+                      content: |
+                         s/#sharding:/sharding:\n   configDB: "configReplSet/{{mongo_config01}}:27019,{{mongo_config02}}:27019,{{mongo_config03}}:27019"/
+
+                  runcmd:
+                    - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
+                    - echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+                    - sudo apt-get update
+                    - sudo apt-get install -y mongodb-org
+                    - cp -n /etc/mongod.conf /etc/mongod.conf.original
+                    - sed -i -f /etc/mongod.conf.sed /etc/mongod.conf
+                    - sudo service mongod restart
+
+      - mongo_shard:
+
+          domain: *domain
+          ethernet: *ethernet
+
+          nodes:
+
+            - mongo_shard0[1..2]:
+
+                glue:
+                  - internet 22
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: True
+                  packages:
+                    - ntp
+
+                  write_files: # replica set for sharding servers
+
+                    - path: /etc/mongod.conf.sed
+                      content: |
+                         s/#sharding:/sharding:\n   clusterRole: shardsvr/
+
+                  runcmd:
+                    - "sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927"
+                    - echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+                    - sudo apt-get update
+                    - sudo apt-get install -y mongodb-org
+                    - cp -n /etc/mongod.conf /etc/mongod.conf.original
+                    - sed -i -f /etc/mongod.conf.sed /etc/mongod.conf
+                    - sudo service mongod restart
 
 Deployment commands
 -------------------

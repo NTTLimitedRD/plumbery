@@ -24,9 +24,55 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/owncloud.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    ---
+    locationId: NA12
+    regionId: dd-na
+
+    blueprints:
+
+      - owncloud:
+
+          domain:
+            name: OwncloudFox
+            service: essentials
+            ipv4: 2
+
+          ethernet:
+            name: owncloudfox.servers
+            subnet: 192.168.20.0
+
+          nodes:
+
+            - owncloud01:
+
+                appliance: 'Ubuntu 14'
+                cpu: 2
+                memory: 4
+                monitoring: essentials
+                glue:
+                  - internet 22 80
+
+                information:
+                  - "open a browser at http://{{ node.public }}/owncloud to view it live"
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: true
+                  bootcmd:
+                    - echo "mysql-server mysql-server/root_password password {{ mysql_root.secret }}" | sudo debconf-set-selections
+                    - echo "mysql-server mysql-server/root_password_again password {{ mysql_root.secret }}" | sudo debconf-set-selections
+                  packages:
+                    - ntp
+                  runcmd:
+                    - wget -nv https://download.owncloud.org/download/repositories/stable/Ubuntu_14.04/Release.key -O Release.key
+                    - apt-key add - < Release.key
+                    - echo "deb http://download.owncloud.org/download/repositories/stable/Ubuntu_14.04/ /" >> /etc/apt/sources.list.d/owncloud.list
+                    - apt-get update
+                    - apt-get install -y owncloud
+
 
 **SQL password** - You can note how plumbery is asked to generate a random
 password, and how this is transmitted to the server before the installation

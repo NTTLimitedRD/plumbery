@@ -24,9 +24,71 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/wordpress.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    ---
+    locationId: EU7 # Amsterdam in Europe
+    regionId: dd-eu
+
+    blueprints:
+
+      - wordpress:
+
+          domain:
+            name: WordpressFox
+            service: essentials
+            ipv4: 2
+
+          ethernet:
+            name: wordpressfox.servers
+            subnet: 192.168.20.0
+
+          nodes:
+
+            - wordpress01:
+
+                cpu: 2
+                memory: 4
+                monitoring: essentials
+                glue:
+                  - internet 22 80
+
+                information:
+                  - "open a browser at http://{{ node.public }}/ to view it live"
+                  - "administration user name is: wpuser"
+                  - "and the password when asked: {{ random.secret }}"
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: true
+                  packages:
+                    - ntp
+                    - apache2
+                    - mysql-server
+                    - libapache2-mod-php5
+                    - php5-mysql
+
+                  write_files:
+
+                    - path: /root/wordpress_db.sql
+                      content: |
+                        create database wordpress;
+                        create user 'wpuser'@'localhost' identified by '{{ random.secret }}';
+                        grant all privileges on wordpress.* to 'wpuser'@'localhost';
+                        flush privileges;
+                        drop database test;
+                        drop user 'test'@'localhost';
+                        flush privileges;
+
+                  runcmd:
+                    - cp -n /var/www/html/index.html /var/www/html/index.html.deprecated
+                    - wget http://wordpress.org/latest.tar.gz -P /tmp/
+                    - tar -zxf /tmp/latest.tar.gz -C /tmp/
+                    - sudo mv /tmp/wordpress/* /var/www/html/
+                    - sudo chown -R www-data:www-data /var/www
+                    - mysql -e "source /root/wordpress_db.sql"
+                    - mysqladmin -u root password '{{ random.secret }}'
 
 You can note how SQL instructions are transmitted to the server
 directly from within fittings plan.

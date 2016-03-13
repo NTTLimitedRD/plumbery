@@ -22,9 +22,38 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/apache2.cluster.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    # London
+    locationId: EU8
+    regionId: dd-eu
+
+    blueprints:
+
+      - web:
+
+          domain:
+            name: Acme
+            ipv4: 2
+            service: advanced
+
+          ethernet:
+            name: acme.control
+            subnet: 10.0.0.0
+
+          nodes:
+
+            - web[1..10]:
+                description: '#apache #eu'
+                monitoring: essentials
+
+          listeners:
+
+            - http:
+                port: 80
+                protocol: http
+                algorithm: round_robin
 
 Some notes on directives used in these fittings plan:
 
