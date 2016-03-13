@@ -5,6 +5,7 @@ information:
   - "Demonstrates how to configure a server with multiple disks"
 
 links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.disks.html
   credit: http://www.howtogeek.com/howto/40702/how-to-manage-and-use-lvm-logical-volume-management-in-ubuntu/
 
 defaults:

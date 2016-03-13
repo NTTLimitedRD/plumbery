@@ -29,6 +29,9 @@ parameters:
     type: str
     default: itop
 
+links:
+  documentation: https://plumbery.readthedocs.org/en/latest/tutorial.itop.html
+
 defaults:
 
   cloud-config:
