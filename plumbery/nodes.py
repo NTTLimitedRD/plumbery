@@ -119,7 +119,7 @@ class PlumberyNodes(object):
                 if 'appliance' in settings:
                     imageName = settings['appliance']
                 else:
-                    imageName = 'Ubuntu'
+                    imageName = None
 
                 image = self.facility.get_image(imageName)
                 if image is None:
@@ -441,6 +441,11 @@ class PlumberyNodes(object):
             path = path.split('::')
 
         node = None
+
+        if len(path) == 2:  # force offshore lookup if needed
+            target_region = self.facility.get_region(path[0])
+            if target_region != self.facility.get_region():
+                path.insert(0, target_region)
 
         if len(path) == 1:  # local name
 

@@ -68,9 +68,6 @@ class PlumberyFacility(object):
 
         self.blueprints = []
 
-        environment = PlumberyContext(context=self)
-        fittings = PlumberyText.expand_data(fittings, environment)
-
         for key in fittings.keys():
 
             if key == 'blueprints':
@@ -102,7 +99,7 @@ class PlumberyFacility(object):
         the engine level.
         """
 
-        mandatory = ['locationId', 'regionId']
+        mandatory = ['locationId']
         for label in mandatory:
             if label not in self.settings:
                 value = self.plumbery.get_default(label)
@@ -110,6 +107,9 @@ class PlumberyFacility(object):
                     raise ValueError("No value has been set for '{}'"
                                      .format(label))
                 self.settings[label] = value
+
+        if 'regionId' not in self.settings:
+            self.settings['regionId'] = self.get_region(self.settings['locationId'])
 
     def get_location_id(self):
         """
@@ -121,6 +121,40 @@ class PlumberyFacility(object):
         """
 
         return self.get_setting('locationId')
+
+    def get_region(self, locationId=None):
+        """
+        Retrieves the region for some location
+
+        :param locationId: if not provided, use location of this facility
+        :type locationId: ``str`` or None
+
+        :return:  the region, e.g., 'dd-eu' or 'dd-ap', etc.
+        :rtype: ``str``
+
+        """
+
+        regions = {
+            'AP3': 'dd-ap',
+            'AP4': 'dd-ap',
+            'AP5': 'dd-ap',
+            'AU9': 'dd-au',
+            'AU10': 'dd-au',
+            'AU11': 'dd-au',
+            'EU6': 'dd-eu',
+            'EU7': 'dd-eu',
+            'EU8': 'dd-eu',
+            'NA9': 'dd-na',
+            'NA12': 'dd-na',
+        }
+
+        if locationId is None:
+            locationId = self.get_setting('locationId')
+
+        if locationId not in regions.keys():
+            return '*unknown*'
+
+        return regions[locationId]
 
     def get_city(self, locationId=None):
         """

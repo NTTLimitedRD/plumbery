@@ -196,6 +196,11 @@ class PlumberyInfrastructure(object):
         if isinstance(path, str):
             path = path.split('::')
 
+        if len(path) == 2:  # force offshore lookup if needed
+            target_region = self.facility.get_region(path[0])
+            if target_region != self.facility.get_region():
+                path.insert(0, target_region)
+
         if len(path) == 1:  # local name
 
             if len(self.facility._cache_vlans) < 1:

@@ -3,12 +3,12 @@
 ###############
 
 FROM python:2.7
-ENV VERSION="0.4.4"
+ENV VERSION="0.5.0"
 ENV MCP_USERNAME=""
 ENV MCP_PASSWORD=""
 ENV SHARED_SECRET=""
 ENV REGION=""
-ENV FITTING=""
+ENV FITTINGS=""
 ENV ACTION="deploy"
 ENV OPTS="-d"
 ENV WGET_OPTS=""
@@ -30,8 +30,9 @@ RUN pip install -e git+https://github.com/apache/libcloud.git#egg=apache-libclou
 RUN pip install PyYAML
 RUN pip install paramiko
 RUN pip install netifaces
+
 # Set the default directory where CMD will execute
 WORKDIR plumbery
 
 # Deploy fitting
-CMD wget ${WGET_OPTS} ${FITTING} -O fitting.yaml && python -m plumbery ${OPTS} fitting.yaml ${ACTION}
+CMD wget ${WGET_OPTS} ${FITTINGS} -O fittings.yaml && python -m plumbery ${OPTS} fittings.yaml ${ACTION}
