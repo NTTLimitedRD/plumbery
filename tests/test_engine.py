@@ -8,6 +8,7 @@ import logging
 import os
 import socket
 import unittest
+import yaml
 
 from Crypto.PublicKey import RSA
 import ast
@@ -21,6 +22,16 @@ from plumbery.engine import PlumberyEngine
 from plumbery import __version__
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
+
+myParameters = {
+
+  'locationId': 'NA9',
+
+  'domainName': 'justInTimeDomain',
+
+  'networkName': 'justInTimeNetwork'
+
+  }
 
 myPlan = """
 ---
@@ -151,6 +162,41 @@ class TestPlumberyEngine(unittest.TestCase):
         blueprint = facility.blueprints[0]['myBlueprint']
         self.assertEqual(blueprint['domain']['name'], 'myDC')
         self.assertEqual(blueprint['ethernet']['name'], 'myVLAN')
+
+    def test_parameters(self):
+
+        engine = PlumberyEngine()
+        engine.set_parameters(myParameters)
+        engine.from_text(myPlan)
+
+        self.assertEqual(engine.safeMode, False)
+
+        self.assertEqual(len(engine.information), 2)
+
+        self.assertEqual(len(engine.links), 1)
+
+        domain = engine.get_default('domain')
+        self.assertEqual(domain['ipv4'], 'auto')
+
+        cloudConfig = engine.get_default('cloud-config', {})
+        self.assertEqual(len(cloudConfig.keys()), 3)
+
+        parameter = engine.get_parameter('locationId')
+        self.assertEqual(parameter, 'NA9')
+
+        parameter = engine.get_parameter('domainName')
+        self.assertEqual(parameter, 'justInTimeDomain')
+
+        parameter = engine.get_parameter('networkName')
+        self.assertEqual(parameter, 'justInTimeNetwork')
+
+        self.assertEqual(len(engine.facilities), 1)
+        facility = engine.facilities[0]
+        self.assertEqual(facility.settings['locationId'], 'NA9')
+        self.assertEqual(facility.settings['regionId'], 'dd-eu')
+        blueprint = facility.blueprints[0]['myBlueprint']
+        self.assertEqual(blueprint['domain']['name'], 'justInTimeDomain')
+        self.assertEqual(blueprint['ethernet']['name'], 'justInTimeNetwork')
 
     def test_set(self):
 
@@ -335,33 +381,51 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(args.action, 'build')
         self.assertEqual(args.blueprints, ['web'])
         self.assertEqual(args.facilities, None)
+
+        args = parse_args(['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml'])
+        self.assertEqual(args.parameters, 'parameters.yaml')
+
+        args = parse_args(['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml', '-s'])
+        self.assertEqual(args.parameters, 'parameters.yaml')
+        self.assertEqual(args.safe, True)
+
+        args = parse_args(['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml', '-d'])
+        self.assertEqual(args.parameters, 'parameters.yaml')
+        self.assertEqual(args.debug, True)
+
         args = parse_args(['fittings.yaml', 'build', 'web', '-s'])
         self.assertEqual(args.safe, True)
+
         args = parse_args(['fittings.yaml', 'build', 'web', '-d'])
         self.assertEqual(args.debug, True)
         self.assertEqual(
             logging.getLogger().getEffectiveLevel(), logging.DEBUG)
+
         args = parse_args(['fittings.yaml', 'build', 'web', '-q'])
         self.assertEqual(args.quiet, True)
         self.assertEqual(
             logging.getLogger().getEffectiveLevel(), logging.WARNING)
+
         args = parse_args(['fittings.yaml', 'start', '@NA12'])
         self.assertEqual(args.fittings, 'fittings.yaml')
         self.assertEqual(args.action, 'start')
         self.assertEqual(args.blueprints, None)
         self.assertEqual(args.facilities, ['NA12'])
+
         args = parse_args([
             'fittings.yaml', 'prepare', 'web', 'sql', '@NA9', '@NA12'])
         self.assertEqual(args.fittings, 'fittings.yaml')
         self.assertEqual(args.action, 'prepare')
         self.assertEqual(args.blueprints, ['web', 'sql'])
         self.assertEqual(args.facilities, ['NA9', 'NA12'])
+
         args = parse_args([
             'fittings.yaml', 'prepare', 'web', '@NA9', 'sql', '@NA12'])
         self.assertEqual(args.fittings, 'fittings.yaml')
         self.assertEqual(args.action, 'prepare')
         self.assertEqual(args.blueprints, ['web', 'sql'])
         self.assertEqual(args.facilities, ['NA9', 'NA12'])
+
         args = parse_args(['fittings.yaml', 'polish'])
         self.assertEqual(args.fittings, 'fittings.yaml')
         self.assertEqual(args.action, 'polish')
