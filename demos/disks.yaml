@@ -9,9 +9,9 @@ links:
 
 defaults:
 
-  cloud-config: # default for all nodes created by plumbery
+  cloud-config:
 
-    ssh_keys: # generated randomly, and used on subsequent invocations
+    ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
       rsa_public: "{{ key.rsa_public }}"
@@ -25,16 +25,11 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-      - name: root
-        ssh-authorized-keys:
-          - "{{ key.rsa_public }}"
-          - "{{ local.rsa_public }}"
-
-    disable_root: false
-
+    disable_root: true
     ssh_pwauth: false
 
 ---
+
 locationId: NA12
 
 blueprints:
@@ -51,6 +46,8 @@ blueprints:
 
         - disks01:
 
+            description: '#demo #ubuntu'
+
             information:
               - "6 disks have been added to this node"
               - "2 first disks extend standard storage coming with system disk"
@@ -63,8 +60,7 @@ blueprints:
               - "$ df -h"
               - "$ mount"
 
-            cpu: 2
-            memory: 2
+            appliance: 'Ubuntu 14'
 
             # manage disks of this node
             #
@@ -78,6 +74,7 @@ blueprints:
 
             glue:
               - internet 22
+
             monitoring: essentials
 
             cloud-config:
@@ -128,6 +125,13 @@ blueprints:
                     mount "${3}"
 
               runcmd:
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Installing scripts"
                 - chmod +x /root/set_pdisk.sh
                 - chmod +x /root/set_vdisk.sh
 

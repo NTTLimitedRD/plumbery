@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Demonstrates a standalone Apache 2 web server."
+  - "Standalone Apache 2 web server."
 
 parameters:
 
@@ -32,9 +32,30 @@ parameters:
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.apache2.html
 
+defaults:
+
+  cloud-config:
+
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: true
+    ssh_pwauth: false
+
 ---
+
 locationId: {{ locationId.parameter }}
-regionId: dd-eu
 
 blueprints:
 
@@ -54,21 +75,25 @@ blueprints:
 
         - {{ nodeName.parameter }}:
 
-            cpu: 1
-            memory: 2
+            description: "#apache #ubuntu"
 
-            monitoring: essentials
-
-            glue:
-              - internet 22 80
+            information:
+              - "ssh ubuntu@{{ node.public }}"
 
             information:
               - "open a browser at http://{{ node.public }}/ to view it live"
 
-            cloud-config:
+            appliance: 'Ubuntu 14'
 
-              disable_root: false
-              ssh_pwauth: true
+            disks:
+              - 1 50 standard
+
+            glue:
+              - internet 22 80
+
+            monitoring: essentials
+
+            cloud-config:
 
               packages:
                 - ntp
@@ -77,7 +102,8 @@ blueprints:
 
               write_files:
 
-                - content: |
+                - path: /var/www/html/index.php
+                  content: |
                     <html>
                      <head>
                       <title>Hello World</title>
@@ -87,7 +113,20 @@ blueprints:
                         <?php echo '<p>This is a warm welcome from plumbery {{ plumbery.version }}</p>'; ?>
                      </body>
                     </html>
-                  path: /var/www/html/index.php
 
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Providing PHP web index page"
                 - mv /var/www/html/index.html /var/www/html/index.html.deprecated

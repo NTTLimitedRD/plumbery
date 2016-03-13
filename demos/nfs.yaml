@@ -1,51 +1,108 @@
 ---
 
 information:
-  - "Demonstration of NFS client and server at two different data centres"
+  - "NFS client and server at two different data centres"
+
+parameters:
+
+  primaryId:
+    information:
+      - "the primary data centre for this deployment"
+    type: locations.list
+    default: AU10
+
+  secondaryId:
+    information:
+      - "the secondary data centre for this deployment"
+    type: locations.list
+    default: AU11
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: NfsFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: NfsNetwork
 
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.nfs.html
 
+defaults:
+
+  cloud-config:
+
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: true
+    ssh_pwauth: false
+
 ---
-locationId: AU10
-regionId: dd-au
+
+locationId: {{ primaryId.parameter }}
 
 blueprints:
 
   - nfs:
 
       domain:
-        name: NfsFox
-        description: "Demonstration of NFS - server side"
+        name: {{ domainName.parameter }}
+        description: "NFS - server side"
         ipv4: 2
 
       ethernet:
-        name: nfsfox.servers
+        name: {{ networkName.parameter }}
         subnet: 192.168.20.0
         accept:
-          - AU11::nfsfox.servers
+          - {{ secondaryId.parameter }}::{{ networkName.parameter }}
 
       nodes:
 
         - nfsServer:
 
+            description: "#nfs #ubuntu"
+
+            information:
+              - "NFS server"
+              - "ssh root@{{ nfsServer.public }}"
+              - "check service with: showmount -e nfsServer"
+
             appliance: 'Ubuntu 14'
             cpu: 2
             memory: 8
+
+            disks:
+              - 1 100 standard
+
             monitoring: essentials
+
             glue:
               - internet 22
-            information:
-              - "this is the NFS server"
-              - "ssh root@{{ nfsServer.public }}"
-              - "check service with: showmount -e nfsServer"
+
             cloud-config:
-              disable_root: false
-              ssh_pwauth: True
+
               packages:
                 - ntp
                 - nfs-kernel-server
+
               write_files:
+
                 - path: /etc/exports
                   content: |
                         /var/nfs    *(rw,sync,no_subtree_check)
@@ -54,14 +111,28 @@ blueprints:
                   content: |
                     #!/usr/bin/awk -f
                     /^{{ nfsServer.ipv6 }}/ {next}
-                    /^{{ AU11::nfsClient.ipv6 }}/ {next}
+                    /^{{ {{ secondaryId.parameter }}::nfsClient.ipv6 }}/ {next}
                     {print}
                     END {
                      print "{{ nfsServer.ipv6 }}    nfsServer"
-                     print "{{ AU11::nfsClient.ipv6 }}    nfsClient"
+                     print "{{ {{ secondaryId.parameter }}::nfsClient.ipv6 }}    nfsClient"
                     }
 
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Installing NFS"
                 - cp -n /etc/hosts /etc/hosts.original
                 - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
                 - mkdir /var/nfs
@@ -70,50 +141,58 @@ blueprints:
                 - service nfs-kernel-server start
 
 ---
-locationId: AU11
-regionId: dd-au
+
+locationId: {{ secondaryId.parameter }}
 
 blueprints:
 
   - nfs:
 
       domain:
-        name: NfsFox
-        description: "Demonstration of NFS - client side"
+        name: {{ domainName.parameter }}
+        description: "NFS - client side"
         ipv4: 2
 
       ethernet:
-        name: nfsfox.servers
+        name: {{ networkName.parameter }}
         subnet: 192.168.20.0
         accept:
-          - AU10::nfsfox.servers
+          - {{ primaryId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - nfsClient:
-            appliance: 'Ubuntu 14'
-            monitoring: essentials
-            glue:
-              - internet 22
+
+            description: "#nfs #ubuntu"
+
             information:
-              - "this is the NFS client, with automatic mount to the server"
+              - "NFS client, with automatic mount to the server"
               - "ssh root@{{ nfsClient.public }}"
               - "check connectivity to server with: showmount -e nfsServer"
               - "check actual service with: mount -t nfs"
+
+            appliance: 'Ubuntu 14'
+
+            monitoring: essentials
+
+            glue:
+              - internet 22
+
             cloud-config:
-              disable_root: false
-              ssh_pwauth: True
+
               packages:
                 - ntp
                 - nfs-common
+
               write_files:
+
                 - path: /root/hosts.awk
                   content: |
                     #!/usr/bin/awk -f
-                    /^{{ AU10::nfsServer.ipv6 }}/ {next}
+                    /^{{ {{ primaryId.parameter }}::nfsServer.ipv6 }}/ {next}
                     /^{{ nfsClient.ipv6 }}/ {next}
                     {print}
                     END {
-                     print "{{ AU10::nfsServer.ipv6 }}    nfsServer"
+                     print "{{ {{ primaryId.parameter }}::nfsServer.ipv6 }}    nfsServer"
                      print "{{ nfsClient.ipv6 }}    nfsClient"
                     }
 
@@ -126,6 +205,14 @@ blueprints:
                     }
 
               runcmd:
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Installing NFS"
                 - cp -n /etc/hosts /etc/hosts.original
                 - awk -f /root/hosts.awk /etc/hosts >/etc/hosts.new && mv /etc/hosts.new /etc/hosts
                 - mkdir -p /shared-nfs

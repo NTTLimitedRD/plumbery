@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Orchestration of a fully-functional Kubernetes node."
+  - "Kubernetes node"
 
 parameters:
 
@@ -62,10 +62,9 @@ defaults:
       - "cluster/kubectl.sh run my-nginx --image=nginx --replicas=2 --port=80"
       - "cluster/kubectl.sh get pods"
 
-    appliance: 'Ubuntu 14'
-
     # plenty of compute power
     #
+    appliance: 'Ubuntu 14'
     cpu: 32
     memory: 256
 
@@ -153,19 +152,13 @@ defaults:
         - cluster/kubectl.sh config set-context local --cluster=local
         - cluster/kubectl.sh config use-context local
 
-  # default settings for all nodes created by plumbery
-  #
   cloud-config:
 
-    # ask plumbery to generate a random key pair
-    #
     ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
       rsa_public: "{{ key.rsa_public }}"
 
-    # the ubuntu account will use this key as well
-    #
     users:
       - default
 
@@ -175,17 +168,11 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-    # prevent remote access from root
-    #
     disable_root: true
-
-    # force authentication with SSH key -- no password allowed
-    #
     ssh_pwauth: false
 
-# duplicate the below to deploy another node at another location, e.g. NA12 in dd-na, etc
-#
 ---
+
 locationId: {{ locationId.parameter }}
 
 blueprints:

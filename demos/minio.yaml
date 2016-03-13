@@ -1,44 +1,111 @@
 ---
 
 information:
-  - "Demonstration of a standalone minio s3-compatible object server"
+  - "Standalone minio s3-compatible object server"
+
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: NA12
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: MinioFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: MinioNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: minio01
 
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.minio.html
 
+defaults:
+
+  cloud-config:
+
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: true
+    ssh_pwauth: false
+
 ---
-locationId: NA12
-regionId: dd-na
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - minio:
 
       domain:
-        name: MinioFox
+        name: {{ domainName.parameter }}
         ipv4: 2
 
       ethernet:
-        name: miniofox.servers
+        name: {{ networkName.parameter }}
         subnet: 192.168.20.0
 
       nodes:
 
-        - minio01:
+        - {{ nodeName.parameter }}:
 
-            glue:
-              - internet 22 8080
+            description: "#minio #ubuntu"
 
             information:
               - "connect to this server in a terminal window: ssh root@{{ node.public }}"
               - "then get AccessKey and SecretKey from minio banner: cat /root/minio_keys.txt"
 
+            appliance: 'Ubuntu 14'
+
+            disks:
+              - 1 50 standard
+
+            glue:
+              - internet 22 8080
+
             cloud-config:
-              disable_root: false
-              ssh_pwauth: true
+
               packages:
                 - ntp
+
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Installing Minio"
                 - su ubuntu -c "curl https://dl.minio.io/server/minio/release/linux-amd64/minio >/home/ubuntu/minio"
                 - chmod +x /home/ubuntu/minio
                 - mkdir /home/shared

@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Demonstrates a cluster of Ceph servers."
+  - "Cluster of Ceph servers."
 
 parameters:
 
@@ -27,12 +27,8 @@ links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.ceph.html
   credit: http://blog.programster.org/ubuntu-14-04-deploy-a-ceph-cluster-part-1/
 
----
-
 defaults:
 
-  # these directives apply to all nodes created by plumbery
-  #
   cloud-config:
 
     ssh_keys:
@@ -55,10 +51,10 @@ defaults:
           - "{{ local.rsa_public }}"
 
     disable_root: false
-
     ssh_pwauth: false
 
 ---
+
 locationId: {{ locationId.parameter }}
 
 blueprints:
@@ -69,7 +65,7 @@ blueprints:
 
       domain: &domain
         name: {{ domainName.parameter }}
-        description: "Demonstration of ceph cluster"
+        description: "Cluster of ceph nodes"
         ipv4: 4
 
       ethernet: &ethernet
@@ -80,18 +76,22 @@ blueprints:
         - admin:
 
             description: "#ceph #admin #ubuntu"
+
             information:
-              - "this is the ceph admin server"
               - "$ ssh ubuntu@{{ node.public }}"
 
             appliance: 'Ubuntu 14'
+
             cpu: 2
             memory: 4
+
             glue:
               - internet 22
+
             monitoring: essentials
 
             cloud-config:
+
               hostname: "{{ node.name }}"
 
               packages:
@@ -193,14 +193,20 @@ blueprints:
         - node[1..3]:
 
             description: "#ceph #node #ubuntu"
+
             information:
-              - "this is a ceph node"
+              - "ssh ubuntu@{{ node.public }}"
 
             appliance: 'Ubuntu 14'
             cpu: 2
             memory: 4
+
+            disks:
+              - 1 100 economy
+
             glue:
               - internet 22
+
             monitoring: essentials
 
             cloud-config:
@@ -235,6 +241,12 @@ blueprints:
                     }
 
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
 
                 - echo "===== Installing ssh keys"
                 - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa

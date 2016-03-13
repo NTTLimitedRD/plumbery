@@ -1,35 +1,81 @@
 ---
 
 information:
-  - "Demonstration of a Redis cluster"
+  - "Cluster of Redis servers"
+
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: NA12
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: RedisFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: RedisNetwork
 
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.redis.html
 
+defaults:
+
+  cloud-config:
+
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: true
+    ssh_pwauth: false
+
 ---
-locationId: NA12
-regionId: dd-na
+
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - redis:
 
       domain:
-        name: RedisFox
+        name: {{ domainName.parameter }}
         service: essentials
         ipv4: 4
 
       ethernet:
-        name: redisfox.servers
+        name: {{ networkName.parameter }}
         subnet: 192.168.20.0
 
       nodes:
 
         - redis01: # master server
 
+            description: "#redis #ubuntu"
+
+            appliance: 'Ubuntu 14'
             cpu: 2
             memory: 4
+
             monitoring: essentials
+
             glue:
               - internet 22
 
@@ -46,14 +92,16 @@ blueprints:
               - "connected_slaves:3"
 
             cloud-config:
-              disable_root: false
-              ssh_pwauth: true
+
               apt_sources:
                 - source: "ppa:chris-lea/redis-server"
+
               packages:
                 - ntp
                 - redis-server
+
               write_files:
+
                 - path: /root/edit_redis_conf.sed
                   content: |
                     #!/usr/bin/sed
@@ -61,16 +109,30 @@ blueprints:
                     /^bind 127.0.0.1/s/^/#/
                     s/# requirepass foobared/requirepass {{ master.secret }}/
                     s/# maxmemory-policy volatile-lru/maxmemory-policy noeviction/
+
               runcmd:
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Installing Redis"
                 - cp -n /etc/redis/redis.conf /etc/redis/redis.conf.original
                 - sed -i -f /root/edit_redis_conf.sed /etc/redis/redis.conf
                 - sudo service redis-server restart
 
         - redis0[2..4]: # slave servers
 
+            description: "#redis #ubuntu"
+
+            appliance: 'Ubuntu 14'
             cpu: 2
             memory: 4
+
             monitoring: essentials
+
             glue:
               - internet 22
 
@@ -78,15 +140,18 @@ blueprints:
               - "this slave server connects automatically to the master server"
 
             cloud-config:
-              disable_root: false
-              ssh_pwauth: true
+
               apt_sources:
                 - source: "ppa:chris-lea/redis-server"
+
               packages:
                 - ntp
                 - redis-server
+
               write_files:
-                - content: |
+
+                - path: /root/edit_redis_conf.sed
+                  content: |
                     #!/usr/bin/sed
                     s/tcp-keepalive 0/tcp-keepalive 60/
                     /^bind 127.0.0.1/s/^/#/
@@ -95,8 +160,15 @@ blueprints:
                     s/# slaveof <masterip> <masterport>/slaveof {{ redis01.private }} 6379/
                     s/# masterauth <master-password>/masterauth {{ master.secret }}/
 
-                  path: /root/edit_redis_conf.sed
               runcmd:
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Installing Redis"
                 - cp -n /etc/redis/redis.conf /etc/redis/redis.conf.original
                 - sed -i -f /root/edit_redis_conf.sed /etc/redis/redis.conf
                 - sudo service redis-server restart

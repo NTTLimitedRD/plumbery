@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Demonstration of Let's Chat server, self-hosted chat for small teams"
+  - "Let's Chat server, self-hosted chat for private teams"
 
 parameters:
 
@@ -33,8 +33,6 @@ links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.letschat.html
   credit: https://mborgerson.com/setting-up-lets-chat-on-ubuntu
 
----
-
 defaults:
 
   cloud-config:
@@ -53,15 +51,11 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-      - name: root
-        ssh-authorized-keys:
-          - "{{ key.rsa_public }}"
-          - "{{ local.rsa_public }}"
-
-    disable_root: false
+    disable_root: true
     ssh_pwauth: false
 
 ---
+
 locationId: {{ locationId.parameter }}
 
 blueprints:
@@ -88,6 +82,10 @@ blueprints:
             appliance: 'Ubuntu 14'
             cpu: 8
             memory: 32
+
+            disks:
+              - 1 50 standard
+
             glue:
               - internet 22 5000
 
@@ -105,6 +103,12 @@ blueprints:
                 - git
 
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
 
                 - echo "===== Handling ubuntu identity"
                 - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa

@@ -58,7 +58,6 @@ defaults:
       - "a remote server with logstash-forwarder"
 
     appliance: 'Ubuntu 14'
-
     cpu: 2
     memory: 4
 
@@ -139,12 +138,8 @@ defaults:
         - service logstash-forwarder restart
 
 
-  # default settings for all nodes created by plumbery
-  #
   cloud-config:
 
-    # plumbery generates a random key pair
-    #
     ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
@@ -159,15 +154,11 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-      - name: root
-        ssh-authorized-keys:
-          - "{{ key.rsa_public }}"
-          - "{{ local.rsa_public }}"
-
-    disable_root: false
+    disable_root: true
     ssh_pwauth: false
 
 ---
+
 locationId: {{ locationId.parameter }}
 
 blueprints:
@@ -176,7 +167,7 @@ blueprints:
 
       ethernet:
         accept:
-          - AP5::ELKNetwork
+          - AP5::{{ networkName.parameter }}
 
       nodes:
 
@@ -196,7 +187,6 @@ blueprints:
               - "$ service logstash configtest"
 
             appliance: 'Ubuntu 14'
-
             cpu: 2
             memory: 4
 
@@ -372,6 +362,7 @@ blueprints:
             default: logstashForwarder
 
 ---
+
 locationId: AP5
 
 blueprints:

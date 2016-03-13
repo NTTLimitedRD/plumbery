@@ -3,17 +3,23 @@ locationId: EU6
 blueprints:
 
   - first:
+
       domain:
         description: "Demonstration of server orchestration at Dimension Data"
         name: MyDataCentre
         ipv4: 2
+
       ethernet:
         name: MyNetwork
         subnet: 10.0.0.0
+
       nodes:
+
         - MyServer:
+
             glue:
               - internet 22
             monitoring: essentials
+
             information:
               - "connect to this server in a terminal window: ssh root@{{ node.public }}"

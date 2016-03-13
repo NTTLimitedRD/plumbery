@@ -1,47 +1,100 @@
 ---
 
 information:
-  - "Demonstration of a standalone Ubuntu desktop"
+  - "Ubuntu desktop"
+
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: NA12
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: UbuntuFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: UbuntuNetwork
+
+  nodeName:
+    information:
+      - "the name of the main node to be deployed"
+    type: str
+    default: ubuntu01
 
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.ubuntu.desktop.html
 
+defaults:
+
+  cloud-config:
+
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: true
+    ssh_pwauth: false
+
 ---
-locationId: NA12
-regionId: dd-na
+
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
   - ubuntu:
 
       domain:
-        name: UbuntuFox
+        name: {{ domainName.parameter }}
         service: essentials
         ipv4: 2
 
       ethernet:
-        name: ubuntufox.servers
+        name: {{ networkName.parameter }}
         subnet: 192.168.20.0
 
       nodes:
 
-        - ubuntu01:
+        - {{ nodeName.parameter }}:
 
-            appliance: 'Ubuntu 14'
-            cpu: 2
-            memory: 8
-            monitoring: essentials
-            glue:
-              - internet 22 5901
+            description: "#ubuntu #desktop"
 
             information:
               - "secure your connection: ssh -L 5901:127.0.0.1:5901 root@{{ node.public }}"
               - "open a VNC viewer at 127.0.0.1:5901 to access the desktop"
               - "enter password {{ vnc.secret }} when asked"
 
+            appliance: 'Ubuntu 14'
+            cpu: 2
+            memory: 8
+
+            disks:
+              - 1 50 standard
+
+            monitoring: essentials
+
+            glue:
+              - internet 22 5901
+
             cloud-config:
-              disable_root: false
-              ssh_pwauth: True
+
               packages:
                 - ntp
                 - expect
@@ -129,6 +182,20 @@ blueprints:
                         exit 0
 
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Installing VNC"
                 - /root/.vnc/set_password
                 - update-rc.d vncserver defaults
                 - /etc/init.d/vncserver restart

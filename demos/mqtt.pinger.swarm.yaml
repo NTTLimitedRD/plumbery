@@ -4,6 +4,26 @@ information:
   - "These fittings plan are aiming to deploy multiple pingers connected"
   - "to a MQTT server and to a Kibana dashboard"
 
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: AU10
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: PingerSwarmFox
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: PingerSwarmNetwork
+
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.mqtt.pinger.swarm.html
   credit: https://github.com/athoune/swarming
@@ -17,14 +37,14 @@ defaults:
   # the same network domain is used at various facilities
   #
   domain:
-    name: PingerSwarmFox
+    name: "{{ domainName.parameter }}"
     description: "Demonstration of MQTT with multiple pingers"
     ipv4: auto
 
   # the same ethernet configuration is used at various facilities
   #
   ethernet:
-    name: SwarmNetwork
+    name: "{{ networkName.parameter }}"
     subnet: 10.0.0.0
 
   # default settings for a remote probe
@@ -39,9 +59,6 @@ defaults:
       - "$ ssh ubuntu@{{ node.public }}"
 
     appliance: 'Ubuntu 14'
-
-    cpu: 2
-    memory: 3
 
     glue:
       - internet 22
@@ -65,12 +82,12 @@ defaults:
             #!/usr/bin/awk -f
             /^{{ node.private }}/ {next}
             /^{{ node.ipv6 }}/ {next}
-            /^{{ dd-au::AU10::queen.ipv6 }}/ {next}
+            /^{{ {{ locationId.parameter }}::queen.ipv6 }}/ {next}
             {print}
             END {
              print "{{ node.private }}    {{ node.name }}"
              print "{{ node.ipv6 }}    {{ node.name }}"
-             print "{{ dd-au::AU10::queen.ipv6 }}    queen"
+             print "{{ {{ locationId.parameter }}::queen.ipv6 }}    queen"
             }
 
         - path: /etc/init/swarm-pinger.conf
@@ -102,12 +119,8 @@ defaults:
         - echo "===== Running swarming software"
         - service swarm-pinger start
 
-  # default settings for all nodes created by plumbery
-  #
   cloud-config:
 
-    # plumbery generates a random key pair
-    #
     ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
@@ -122,17 +135,12 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-      - name: root
-        ssh-authorized-keys:
-          - "{{ key.rsa_public }}"
-          - "{{ local.rsa_public }}"
-
-    disable_root: false
+    disable_root: true
     ssh_pwauth: false
 
 ---
-locationId: AU10
-regionId: dd-au
+
+locationId: {{ locationId.parameter }}
 
 blueprints:
 
@@ -140,14 +148,14 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-ap::AP3::SwarmNetwork
-          - dd-ap::AP4::SwarmNetwork
-          - dd-ap::AP5::SwarmNetwork
-          - dd-au::AU11::SwarmNetwork
-          - dd-eu::EU6::SwarmNetwork
-          - dd-eu::EU8::SwarmNetwork
-          - dd-na::NA9::SwarmNetwork
-          - dd-na::NA12::SwarmNetwork
+          - AP3::{{ networkName.parameter }}
+          - AP4::{{ networkName.parameter }}
+          - AP5::{{ networkName.parameter }}
+          - AU11::{{ networkName.parameter }}
+          - EU6::{{ networkName.parameter }}
+          - EU8::{{ networkName.parameter }}
+          - NA9::{{ networkName.parameter }}
+          - NA12::{{ networkName.parameter }}
 
       nodes:
 
@@ -164,9 +172,6 @@ blueprints:
               - '$ mosquitto_sub -t "ping/+" -v'
 
             appliance: 'Ubuntu 14'
-
-            cpu: 2
-            memory: 3
 
             glue:
               - internet 22
@@ -195,13 +200,13 @@ blueprints:
                     /^{{ node.private }}/ {next}
                     /^{{ queen.ipv6 }}/ {next}
                     /^{{ dashboard.ipv6 }}/ {next}
-                    /^{{ dd-na::NA9::bee-NA9.ipv6 }}/ {next}
+                    /^{{ NA9::bee-NA9.ipv6 }}/ {next}
                     {print}
                     END {
                      print "{{ node.private }}    {{ node.name }}"
                      print "{{ queen.ipv6 }}    queen"
                      print "{{ dashboard.ipv6 }}    dashboard"
-                     print "{{ dd-na::NA9::bee-NA9.ipv6 }}    bee-NA9"
+                     print "{{ NA9::bee-NA9.ipv6 }}    bee-NA9"
                     }
 
               runcmd:
@@ -237,9 +242,11 @@ blueprints:
               - "$ curl 'http://localhost:9200/_cat/indices?v'"
 
             appliance: 'Ubuntu 14'
-
             cpu: 2
             memory: 3
+
+            disks:
+              - 1 50 standard
 
             glue:
               - internet 22 80
@@ -281,13 +288,13 @@ blueprints:
                     /^{{ node.private }}/ {next}
                     /^{{ queen.ipv6 }}/ {next}
                     /^{{ dashboard.ipv6 }}/ {next}
-                    /^{{ dd-na::NA9::bee-NA9.ipv6 }}/ {next}
+                    /^{{ NA9::bee-NA9.ipv6 }}/ {next}
                     {print}
                     END {
                      print "{{ node.private }}    {{ node.name }}"
                      print "{{ queen.ipv6 }}    queen"
                      print "{{ dashboard.ipv6 }}    dashboard"
-                     print "{{ dd-na::NA9::bee-NA9.ipv6 }}    bee-NA9"
+                     print "{{ NA9::bee-NA9.ipv6 }}    bee-NA9"
                     }
 
                 - path: /etc/nginx/sites-available/default.swarm
@@ -319,6 +326,12 @@ blueprints:
                     exec /home/ubuntu/swarming/indexer.py queen
 
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
 
                 - echo "===== Handling ubuntu identity"
                 - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
@@ -365,7 +378,6 @@ blueprints:
 
 ---
 locationId: AP3
-regionId: dd-ap
 
 blueprints:
 
@@ -373,7 +385,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::SwarmNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - bee-AP3:
@@ -381,7 +393,6 @@ blueprints:
 
 ---
 locationId: AP4
-regionId: dd-ap
 
 blueprints:
 
@@ -389,7 +400,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::SwarmNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - bee-AP4:
@@ -397,7 +408,6 @@ blueprints:
 
 ---
 locationId: AP5
-regionId: dd-ap
 
 blueprints:
 
@@ -405,7 +415,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::SwarmNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - bee-AP5:
@@ -413,7 +423,6 @@ blueprints:
 
 ---
 locationId: AU11
-regionId: dd-au
 
 blueprints:
 
@@ -421,7 +430,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::SwarmNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - bee-AU11:
@@ -429,7 +438,6 @@ blueprints:
 
 ---
 locationId: EU6
-regionId: dd-eu
 
 blueprints:
 
@@ -437,7 +445,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::SwarmNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - bee-EU6:
@@ -445,7 +453,6 @@ blueprints:
 
 ---
 locationId: EU8
-regionId: dd-eu
 
 blueprints:
 
@@ -453,7 +460,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::SwarmNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - bee-EU8:
@@ -461,7 +468,6 @@ blueprints:
 
 ---
 locationId: NA9
-regionId: dd-na
 
 blueprints:
 
@@ -469,7 +475,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::SwarmNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - bee-NA9:
@@ -477,7 +483,6 @@ blueprints:
 
 ---
 locationId: NA12
-regionId: dd-na
 
 blueprints:
 
@@ -485,7 +490,7 @@ blueprints:
 
       ethernet:
         accept:
-          - dd-au::AU10::SwarmNetwork
+          - {{ locationId.parameter }}::{{ networkName.parameter }}
 
       nodes:
         - bee-NA12:

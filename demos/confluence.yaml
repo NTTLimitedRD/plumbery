@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "A standalone Confluence server for a small team of developers."
+  - "Confluence server"
 
 parameters:
 
@@ -32,13 +32,11 @@ parameters:
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.confluence.html
 
----
-
 defaults:
 
-  cloud-config: # default for all nodes created by plumbery
+  cloud-config:
 
-    ssh_keys: # generated randomly, and used on subsequent invocations
+    ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
       rsa_public: "{{ key.rsa_public }}"
@@ -52,16 +50,11 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-      - name: root
-        ssh-authorized-keys:
-          - "{{ key.rsa_public }}"
-          - "{{ local.rsa_public }}"
-
-    disable_root: false
-
+    disable_root: true
     ssh_pwauth: false
 
 ---
+
 locationId: {{ locationId.parameter }}
 
 blueprints:
@@ -70,7 +63,7 @@ blueprints:
 
       domain:
         name: {{ domainName.parameter }}
-        description: "Demonstration of a standalone Confluence server"
+        description: "Confluence server"
         service: essentials
         ipv4: 2
 
@@ -81,20 +74,24 @@ blueprints:
       nodes:
 
         - {{ nodeName.parameter }}:
-            cpu: 2
-            memory: 4
-            monitoring: essentials
-            glue:
-              - internet 22 8090
 
             description: "#confluence #atlassian #ubuntu"
 
             information:
-              - "this is a Confluence server for a small team"
               - "connect remotely with a browser at following address:"
               - "http://{{ node.public }}:8090/"
 
             appliance: 'Ubuntu 14'
+            cpu: 2
+            memory: 4
+
+            disks:
+              - 1 50 standard
+
+            glue:
+              - internet 22 8090
+
+            monitoring: essentials
 
             cloud-config:
 
@@ -115,6 +112,12 @@ blueprints:
                     sys.installationDir=/opt/atlassian/confluence
 
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
 
                 - echo "===== Handling ubuntu identity"
                 - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa

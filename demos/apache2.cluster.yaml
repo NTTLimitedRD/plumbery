@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Demonstrates a cluster of Apache web servers behind a load-balancer."
+  - "Cluster of Apache web servers behind a load-balancer."
   - "The load-balancer is provided by the Managed Cloud Platform itself."
 
 parameters:
@@ -27,6 +27,27 @@ parameters:
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.apache2.cluster.html
 
+defaults:
+
+  cloud-config:
+
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: true
+    ssh_pwauth: false
+
 ---
 
 locationId: {{ locationId.parameter }}
@@ -37,7 +58,7 @@ blueprints:
 
       domain:
         name: {{ domainName.parameter }}
-        ipv4: 2
+        ipv4: auto
         service: advanced
 
       ethernet:
@@ -47,8 +68,28 @@ blueprints:
       nodes:
 
         - web[1..10]:
-            description: '#apache #eu'
+
+            description: '#apache #ubuntu'
+
+            information:
+              - "ssh ubuntu@{{ node.public }}"
+
+            appliance: 'Ubuntu 14'
+
+            glue:
+              - internet 22
+
             monitoring: essentials
+
+            cloud-config:
+
+              runcmd:
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
 
       listeners:
 

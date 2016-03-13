@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Demonstration of a Linux-Nginx-MySQL-PHP standalone web server"
+  - "Linux-Nginx-MySQL-PHP standalone web server"
 
 parameters:
 
@@ -32,6 +32,27 @@ parameters:
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.lemp.html
 
+defaults:
+
+  cloud-config:
+
+    ssh_keys:
+      rsa_private: |
+        {{ key.rsa_private }}
+      rsa_public: "{{ key.rsa_public }}"
+
+    users:
+      - default
+
+      - name: ubuntu
+        sudo: 'ALL=(ALL) NOPASSWD:ALL'
+        ssh-authorized-keys:
+          - "{{ key.rsa_public }}"
+          - "{{ local.rsa_public }}"
+
+    disable_root: true
+    ssh_pwauth: false
+
 ---
 
 locationId: {{ locationId.parameter }}
@@ -53,21 +74,23 @@ blueprints:
 
         - {{ nodeName.parameter }}:
 
+            description: "#web #ubuntu"
+
+            information:
+              - "open a browser at http://{{ node.public }}/ to view it live"
+
+            appliance: 'Ubuntu 14'
             cpu: 2
             memory: 4
+
+            disks:
+              - 1 50 standard
 
             monitoring: essentials
             glue:
               - internet 22 80
 
-            information:
-              - "open a browser at http://{{ node.public }}/ to view it live"
-
             cloud-config:
-
-              disable_root: false
-              ssh_pwauth: true
-              apt_update: true
 
               bootcmd:
                 - apt-get remove apache2 -y
@@ -131,7 +154,22 @@ blueprints:
                       <?php
                       phpinfo();
                       ?>
+
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
+
+                - echo "===== Handling ubuntu identity"
+                - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
+                - cp -n /etc/ssh/ssh_host_rsa_key.pub /home/ubuntu/.ssh/id_rsa.pub
+                - chown ubuntu:ubuntu /home/ubuntu/.ssh/*
+                - sed -i "/StrictHostKeyChecking/s/^.*$/    StrictHostKeyChecking no/" /etc/ssh/ssh_config
+
+                - echo "===== Installing web services with NGINX"
                 - mv /var/www/html/index.html /var/www/html/index.html.deprecated
                 - mkdir -p /var/www/html
                 - cp /usr/share/nginx/html/index.html /var/www/html/

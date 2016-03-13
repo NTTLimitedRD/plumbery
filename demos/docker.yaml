@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Orchestration of fully-functional Docker node that you can access remotely and securely over the Internet."
+  - "Docker node that you can access remotely and securely over the Internet."
 
 parameters:
 
@@ -59,10 +59,9 @@ defaults:
       - "docker info"
       - "docker run hello-world"
 
-    appliance: 'Ubuntu 14'
-
     # plenty of compute power
     #
+    appliance: 'Ubuntu 14'
     cpu: 32
     memory: 256
 
@@ -126,19 +125,13 @@ defaults:
         - curl -sSL https://get.docker.com/ | sh
         - usermod -aG docker ubuntu
 
-  # default settings for all nodes created by plumbery
-  #
   cloud-config:
 
-    # ask plumbery to generate a random key pair
-    #
     ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
       rsa_public: "{{ key.rsa_public }}"
 
-    # the ubuntu account will use this key as well
-    #
     users:
       - default
 
@@ -148,15 +141,11 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-    # prevent remote access from root
-    #
     disable_root: true
-
-    # force authentication with SSH key -- no password allowed
-    #
     ssh_pwauth: false
 
 ---
+
 locationId: {{ locationId.parameter }}
 
 blueprints:

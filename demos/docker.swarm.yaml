@@ -1,7 +1,7 @@
 ---
 
 information:
-  - "Demonstration of Docker Swarm, with one queen and 7 bees."
+  - "Docker Swarm, with one queen and 7 bees."
   - "A container submitted to the queen is dispatched to bees."
 
 parameters:
@@ -27,13 +27,11 @@ parameters:
 links:
   documentation: https://plumbery.readthedocs.org/en/latest/tutorial.docker.swarm.html
 
----
-
 defaults:
 
-  cloud-config: # default for all nodes created by plumbery
+  cloud-config:
 
-    ssh_keys: # generated randomly, and used on subsequent invocations
+    ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
       rsa_public: "{{ key.rsa_public }}"
@@ -47,18 +45,12 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-      - name: root
-        ssh-authorized-keys:
-          - "{{ key.rsa_public }}"
-          - "{{ local.rsa_public }}"
-
-    disable_root: false
-
+    disable_root: true
     ssh_pwauth: false
 
 ---
+
 locationId: {{ locationId.parameter }}
-regionId: dd-au
 
 blueprints:
 
@@ -94,7 +86,6 @@ blueprints:
               - "$ docker -H :4000 ps -l | grep redis"
 
             appliance: 'Ubuntu 14'
-
             cpu: 8
             memory: 32
 
@@ -181,9 +172,6 @@ blueprints:
 
             appliance: 'Ubuntu 14'
 
-            cpu: 8
-            memory: 32
-
             glue:
               - internet 22
 
@@ -250,6 +238,3 @@ blueprints:
                 - sleep 1m
                 - docker run -d --name=swarm --restart=always swarm join --advertise={{ node.private }}:2375 consul://{{ queen.private }}:8500
                 - docker ps
-
-
-

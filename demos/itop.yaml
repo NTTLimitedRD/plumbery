@@ -1,5 +1,8 @@
 ---
 
+information:
+  - "iTop server for open-source ITSM"
+
 parameters:
 
   locationId:
@@ -28,9 +31,9 @@ parameters:
 
 defaults:
 
-  cloud-config: # default for all nodes created by plumbery
+  cloud-config:
 
-    ssh_keys: # generated randomly, and used on subsequent invocations
+    ssh_keys:
       rsa_private: |
         {{ key.rsa_private }}
       rsa_public: "{{ key.rsa_public }}"
@@ -44,16 +47,11 @@ defaults:
           - "{{ key.rsa_public }}"
           - "{{ local.rsa_public }}"
 
-      - name: root
-        ssh-authorized-keys:
-          - "{{ key.rsa_public }}"
-          - "{{ local.rsa_public }}"
-
-    disable_root: false
-
+    disable_root: true
     ssh_pwauth: false
 
 ---
+
 locationId: {{ locationId.parameter }}
 
 blueprints:
@@ -84,9 +82,11 @@ blueprints:
               - "password: {{ mysql_root.secret }}"
 
             appliance: 'Ubuntu 14'
-
             cpu: 2
             memory: 4
+
+            disks:
+              - 1 50 standard
 
             glue:
               - internet 22 80
@@ -134,6 +134,12 @@ blueprints:
                     password={{ mysql_root.secret }}
 
               runcmd:
+
+                - echo "===== Growing LVM with added disk"
+                - pvcreate /dev/sdb
+                - vgextend rootvol00 /dev/sdb
+                - lvextend -l +100%FREE /dev/mapper/rootvol00-rootlvol00
+                - resize2fs /dev/mapper/rootvol00-rootlvol00
 
                 - echo "===== Handling ubuntu identity"
                 - cp -n /etc/ssh/ssh_host_rsa_key /home/ubuntu/.ssh/id_rsa
