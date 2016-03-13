@@ -63,7 +63,7 @@ determine the data type fairly easily and the indentation indicates the relation
 Plumbery will push the cloud-config directive to target nodes with the following
 command::
 
-  python -m plumbery fittings.yaml rub
+  python -m plumbery fittings.yaml prepare
 
 By now, you should have a working knowledge of the YAML format and feel comfortable
 working with information using the rules we discussed above.
