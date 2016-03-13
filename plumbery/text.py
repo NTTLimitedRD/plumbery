@@ -75,22 +75,21 @@ class PlumberyText:
                 index = tail+len(closing)
                 continue
 
-            replacement = context.lookup(token)
-            if replacement is None:   # preserve unmatched tag
-                if token not in debugged:
-                    logging.debug("- no match for '{}'".format(token))
-                    debugged.append(token)
-
+            if not token.endswith('.parameter'):
                 expanded += text[index:tail+len(closing)]
                 index = tail+len(closing)
+                continue
 
-            else: # actual expansion
-                if token not in debugged:
-                    logging.debug("- '{}' -> '{}'".format(token, replacement))
-                    debugged.append(token)
+            replacement = context.lookup(token)
+            if replacement is None:
+                raise KeyError("Missing parameter '{}'".format(token))
 
-                expanded += text[index:head]+str(replacement)
-                index = tail+len(closing)
+            if token not in debugged:
+                logging.debug("- '{}' -> '{}'".format(token, replacement))
+                debugged.append(token)
+
+            expanded += text[index:head]+str(replacement)
+            index = tail+len(closing)
 
         return expanded
 
