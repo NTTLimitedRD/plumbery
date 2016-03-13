@@ -3,6 +3,28 @@
 History
 -------
 
+0.5.0 (2016-03-13)
+~~~~~~~~~~~~~~~~~~
+
+* Handover project governance to Dimension Data R&D team
+* 26 tutorials are now provided in separate plumbery-contribs project at GitHub
+* Introduce deployment parameters (location, domain name, network name, ...)
+* Add tutorial on log consolidation (ELK)
+* Add tutorial on disk orchestration (standard, high-performance, economy)
+* Secure SSH communications in most tutorials (no password, no root access)
+* Add virtual storage to many tutorials
+* Derive regionId from locationId to streamline fittings plan
+* Add action 'refresh' to ease iterations in fittings plan
+* Add option -p to load parameters from the command line
+* Accept web links for fittings plan and for parameters file
+* Restructure code to accomodate for more complex data processing
+* Fix multiple bugs and errors
+* Augment test coverage
+* Improve information provided in debug mode
+* Passing Travis CI
+* 3286 python statements
+* Test coverage 53%
+
 0.4.3 (2016-02-28)
 ~~~~~~~~~~~~~~~~~~
 
