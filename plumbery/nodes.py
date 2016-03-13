@@ -17,14 +17,9 @@ import logging
 import re
 import time
 
-try:
-    from lxml import etree as ET
-except ImportError:
-    from xml.etree import ElementTree as ET
-
 from libcloud.compute.base import NodeAuthPassword
 from libcloud.compute.base import NodeState
-from libcloud.utils.xml import fixxpath, findtext, findall
+from libcloud.utils.xml import fixxpath, findall
 from libcloud.common.dimensiondata import TYPES_URN
 from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 

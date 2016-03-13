@@ -117,7 +117,7 @@ class FakeContainer:
 
 fakeFacilitySettings = {
     'locationId': 'EU6',
-    'rub': [{'beachhead': '10.1.10.9'}, {'beachhead': '10.1.10.10'}],
+    'prepare': [{'beachhead': '10.1.10.9'}, {'beachhead': '10.1.10.10'}],
     'regionId': 'dd-eu'}
 
 
@@ -164,9 +164,9 @@ fakeNodeSettings = {
     'description': 'fake',
     'appliance': 'RedHat 6 64-bit 4 CPU',
     'information': ['hello world'],
-    'rub': ['rub.update.sh', 'rub.docker.sh']}
+    'prepare': ['prepare.update.sh', 'prepare.docker.sh']}
 
-fakeRubConfiguration = {
+fakePrepareConfiguration = {
     'key': 'test_polisher.pub'}
 
 
@@ -205,9 +205,9 @@ blueprints:
             monitoring: essentials
             information:
               - hello world
-            rub:
-              - rub.update.sh
-              - rub.docker.sh
+            prepare:
+              - prepare.update.sh
+              - prepare.docker.sh
         - node1:
             information:
               - node-level information
@@ -276,9 +276,9 @@ class TestPlumberyPolisher(unittest.TestCase):
         polisher = PlumberyPolisher.from_shelf('ping', {})
         do_polish(polisher)
 
-    def test_rub(self):
+    def test_prepare(self):
         polisher = PlumberyPolisher.from_shelf(
-            'rub', fakeRubConfiguration)
+            'prepare', fakePrepareConfiguration)
         do_polish(polisher)
 
     def test_spit(self):

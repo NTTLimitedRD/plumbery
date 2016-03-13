@@ -80,7 +80,7 @@ class PlumberyText:
                 expanded += text[index:tail+len(closing)]
                 index = tail+len(closing)
 
-            else: # actual expansion
+            else:  # actual expansion
                 if token not in debugged:
                     logging.debug("- '{}' -> '{}'".format(token, replacement))
                     debugged.append(token)

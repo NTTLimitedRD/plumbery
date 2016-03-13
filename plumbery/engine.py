@@ -847,7 +847,7 @@ class PlumberyEngine(object):
             if blueprints is None:
                 self.build_all_blueprints(facilities)
                 self.start_all_blueprints(facilities)
-                self.polish_all_blueprints(filter='rub',
+                self.polish_all_blueprints(filter='prepare',
                                            facilities=facilities)
                 self.polish_all_blueprints(filter='information',
                                            facilities=facilities)
@@ -855,7 +855,7 @@ class PlumberyEngine(object):
                 self.build_blueprint(blueprints, facilities)
                 self.start_blueprint(blueprints, facilities)
                 self.polish_blueprint(blueprints,
-                                      filter='rub',
+                                      filter='prepare',
                                       facilities=facilities)
                 self.polish_blueprint(blueprints,
                                       filter='information',
@@ -867,7 +867,7 @@ class PlumberyEngine(object):
                 self.wipe_all_blueprints(facilities)
                 self.build_all_blueprints(facilities)
                 self.start_all_blueprints(facilities)
-                self.polish_all_blueprints(filter='rub',
+                self.polish_all_blueprints(filter='prepare',
                                            facilities=facilities)
                 self.polish_all_blueprints(filter='information',
                                            facilities=facilities)
@@ -877,7 +877,7 @@ class PlumberyEngine(object):
                 self.build_blueprint(blueprints, facilities)
                 self.start_blueprint(blueprints, facilities)
                 self.polish_blueprint(blueprints,
-                                      filter='rub',
+                                      filter='prepare',
                                       facilities=facilities)
                 self.polish_blueprint(blueprints,
                                       filter='information',

@@ -29,7 +29,7 @@ class PlumberyPolisher(object):
     polishing is about. You know the usual sequence:
 
     * at some point, decide that all appliances have to be visited
-    * find every appliance and rub it
+    * find every appliance and prepare it
     * after the hard work, go back home for some rest
 
     This is exactly what plumbery is offering to you in a straightforward
@@ -188,7 +188,7 @@ class PlumberyPolisher(object):
 
     def shine_container(self, container):
         """
-        Rubs a container until it shines
+        prepares a container until it shines
 
         :param container: the container to be polished
         :type container: :class:`plumbery.PlumberyInfrastructure`
@@ -203,7 +203,7 @@ class PlumberyPolisher(object):
 
     def shine_node(self, node, settings, container):
         """
-        Rubs a node until it shines
+        prepares a node until it shines
 
         :param node: the node to be polished
         :type node: :class:`libcloud.compute.base.Node`
