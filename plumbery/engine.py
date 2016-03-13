@@ -669,7 +669,8 @@ class PlumberyEngine(object):
                 handle.close()
 
                 logging.debug("Loading {} secrets".format(
-                    len(self.secrets), secretsFile))
+                    len(self.secrets)))
+                logging.debug("- from file {}".format(secretsFile))
 
             except IOError:
                 logging.warning("Unable to load secrets")
