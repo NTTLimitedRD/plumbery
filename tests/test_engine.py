@@ -19,6 +19,7 @@ from libcloud.common.types import InvalidCredsError
 
 from plumbery.__main__ import parse_args, main
 from plumbery.engine import PlumberyEngine
+from plumbery.polisher import PlumberyPolisher
 from plumbery import __version__
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
@@ -79,6 +80,17 @@ parameters:
     type: str
     default: myVLAN
 
+buildPolisher: alien
+
+polishers:
+  - ansible:
+      reap: gigafox_ansible.yaml
+  - inventory:
+      reap: gigafox_inventory.yaml
+  - rub:
+      key: ~/.ssh/id_rsa.pub
+      reap: gigafox_rubs.yaml
+
 ---
 # Frankfurt in Europe
 locationId: "{{ locationId.parameter }}"
@@ -95,6 +107,105 @@ blueprints:
       nodes:
         - myServer:
 """
+
+myEuropeanPlan = """
+---
+safeMode: False
+
+information:
+  - hello
+  - world
+
+links:
+  documentation: "http://www.acme.com/"
+
+defaults:
+
+  domain:
+    ipv4: auto
+
+  cloud-config:
+
+    disable_root: false
+    ssh_pwauth: true
+    ssh_keys:
+      rsa_private: |
+        {{ pair1.rsa_private }}
+
+      rsa_public: "{{ pair1.ssh.rsa_public }}"
+
+    hostname: "{{ nodeName.parameter }}"
+
+    packages:
+      - ntp
+
+    write_files:
+
+      - path: /root/hosts.awk
+        content: |
+          #!/usr/bin/awk -f
+          /^{{ {{ nodeName.parameter }}.private }}/ {next}
+          /^{{ {{ nodeName.parameter }}.ipv6 }}/ {next}
+          {print}
+          END {
+           print "{{ {{ nodeName.parameter }}.private }}    {{ nodeName.parameter }}"
+           print "{{ {{ nodeName.parameter }}.ipv6 }}    {{ nodeName.parameter }}"
+          }
+
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU8
+
+  regionId:
+    information:
+      - "the target region for this deployment"
+    type: regions.list
+    default: dd-eu
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: myDC
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: myVLAN
+
+  nodeName:
+    information:
+      - "the name of the node to be deployed"
+    type: str
+    default: myServer
+
+---
+locationId: "{{ locationId.parameter }}"
+regionId: {{ regionId.parameter }}
+
+blueprints:
+
+  - myBlueprint:
+      domain:
+        name: "{{ domainName.parameter }}"
+      ethernet:
+        name: "{{ networkName.parameter }}"
+        subnet: 10.1.10.0
+      nodes:
+        - {{ nodeName.parameter }}:
+"""
+
+myAmericanBinding = {
+    'locationId': 'NA9',
+    'regionId': 'dd-na',
+    'nodeName': 'toto'
+    }
+
 
 myFacility = {
     'regionId': 'dd-na',
@@ -132,19 +243,28 @@ class TestPlumberyEngine(unittest.TestCase):
     def test_init(self):
 
         engine = PlumberyEngine()
-        engine.from_text(myPlan)
 
-        self.assertEqual(engine.safeMode, False)
+        engine.set_fittings(myPlan)
 
-        self.assertEqual(len(engine.information), 2)
-
-        self.assertEqual(len(engine.links), 1)
+        self.assertEqual(engine.buildPolisher, 'alien')
 
         domain = engine.get_default('domain')
         self.assertEqual(domain['ipv4'], 'auto')
 
         cloudConfig = engine.get_default('cloud-config', {})
         self.assertEqual(len(cloudConfig.keys()), 3)
+
+        self.assertEqual(len(engine.information), 2)
+
+        self.assertEqual(len(engine.links), 1)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['locationId.parameter'],
+                         'EU6')
+        self.assertEqual(parameters['domainName.parameter'],
+                         'myDC')
+        self.assertEqual(parameters['networkName.parameter'],
+                         'myVLAN')
 
         parameter = engine.get_parameter('locationId')
         self.assertEqual(parameter, 'EU6')
@@ -154,6 +274,12 @@ class TestPlumberyEngine(unittest.TestCase):
 
         parameter = engine.get_parameter('networkName')
         self.assertEqual(parameter, 'myVLAN')
+
+        self.assertEqual(len(engine.polishers), 3)
+        for polisher in engine.polishers:
+            self.assertTrue(isinstance(polisher, PlumberyPolisher))
+
+        self.assertEqual(engine.safeMode, False)
 
         self.assertEqual(len(engine.facilities), 1)
         facility = engine.facilities[0]
@@ -167,7 +293,24 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine = PlumberyEngine()
         engine.set_parameters(myParameters)
-        engine.from_text(myPlan)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['locationId.parameter'],
+                         'NA9')
+        self.assertEqual(parameters['domainName.parameter'],
+                         'justInTimeDomain')
+        self.assertEqual(parameters['networkName.parameter'],
+                         'justInTimeNetwork')
+
+        engine.set_fittings(myPlan)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['locationId.parameter'],
+                         'NA9')
+        self.assertEqual(parameters['domainName.parameter'],
+                         'justInTimeDomain')
+        self.assertEqual(parameters['networkName.parameter'],
+                         'justInTimeNetwork')
 
         self.assertEqual(engine.safeMode, False)
 
@@ -200,6 +343,12 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_set(self):
 
+        engine = PlumberyEngine()
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
+        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+
         settings = {
             'safeMode': False,
             'polishers': [
@@ -208,11 +357,11 @@ class TestPlumberyEngine(unittest.TestCase):
                 ]
             }
 
-        engine = PlumberyEngine()
-        DimensionDataNodeDriver.connectionCls.conn_classes = (
-            None, DimensionDataMockHttp)
-        DimensionDataMockHttp.type = None
-        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+        engine.set_settings(settings)
+        self.assertEqual(engine.safeMode, False)
+
+        engine.add_facility(myFacility)
+        self.assertEqual(len(engine.facilities), 1)
 
         engine.set_shared_secret('fake_secret')
         self.assertEqual(engine.get_shared_secret(), 'fake_secret')
@@ -226,12 +375,6 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine.set_user_password('fake_password')
         self.assertEqual(engine.get_user_password(), 'fake_password')
-
-        engine.set(settings)
-        self.assertEqual(engine.safeMode, False)
-
-        engine.add_facility(myFacility)
-        self.assertEqual(len(engine.facilities), 1)
 
     def test_lifecycle(self):
 
@@ -247,33 +390,51 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine.do('build')
         engine.build_all_blueprints()
+        engine.do('build', 'myBlueprint')
         engine.build_blueprint('myBlueprint')
 
-        engine.do('start')
-        engine.start_all_blueprints()
-        engine.start_blueprint('myBlueprint')
-
-        engine.do('polish')
-        engine.polish_all_blueprints()
-        engine.polish_blueprint('myBlueprint')
-
-        engine.do('stop')
-        engine.stop_all_blueprints()
-        engine.stop_blueprint('myBlueprint')
-
-        engine.wipe_all_blueprints()
-        engine.wipe_blueprint('myBlueprint')
+        engine.do('deploy')
+        engine.do('deploy', 'myBlueprint')
 
         engine.do('destroy')
         engine.destroy_all_blueprints()
+        engine.do('destroy', 'myBlueprint')
         engine.destroy_blueprint('myBlueprint')
+
+        engine.do('dispose')
+        engine.do('dispose', 'myBlueprint')
+
+        engine.do('polish')
+        engine.polish_all_blueprints()
+        engine.do('polish', 'myBlueprint')
+        engine.polish_blueprint('myBlueprint')
+
+        engine.do('refresh')
+        engine.do('refresh', 'myBlueprint')
+
+        engine.do('secrets')
+
+        engine.do('start')
+        engine.start_all_blueprints()
+        engine.do('start', 'myBlueprint')
+        engine.start_blueprint('myBlueprint')
+
+        engine.do('stop')
+        engine.stop_all_blueprints()
+        engine.do('stop', 'myBlueprint')
+        engine.stop_blueprint('myBlueprint')
+
+        engine.do('wipe')
+        engine.wipe_all_blueprints()
+        engine.do('wipe', 'myBlueprint')
+        engine.wipe_blueprint('myBlueprint')
 
         banner = engine.document_elapsed()
         self.assertEqual('Worked for you' in banner, True)
 
     def test_as_library(self):
 
-        engine = PlumberyEngine(myFacility)
+        engine = PlumberyEngine(myEuropeanPlan, myAmericanBinding)
         DimensionDataNodeDriver.connectionCls.conn_classes = (
             None, DimensionDataMockHttp)
         DimensionDataMockHttp.type = None
@@ -290,9 +451,17 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(facility.get_setting('regionId'), 'dd-na')
         self.assertEqual(facility.get_setting('locationId'), 'NA9')
 
-        blueprint = facility.get_blueprint('fake')
+        self.assertTrue(facility.get_blueprint('fake') is None)
+
+        blueprint = facility.get_blueprint('myBlueprint')
         self.assertEqual(blueprint.keys(),
                          ['ethernet', 'domain', 'nodes', 'target'])
+        node = blueprint['nodes'][0]
+        self.assertEqual(node.keys()[0], 'toto')
+
+        config = node['toto']['cloud-config']
+        self.assertEqual(config['hostname'], 'toto')
+        self.assertEqual(config['write_files'][0]['content'].count('toto'), 6)
 
         engine.do('deploy')
         engine.do('refresh')
@@ -367,7 +536,6 @@ class TestPlumberyEngine(unittest.TestCase):
         engine = PlumberyEngine()
         engine.secrets = {'hello': 'world'}
         engine.save_secrets(plan='test_engine.yaml')
-        self.assertEqual(os.path.isfile('.test_engine.secrets'), True)
         engine.secrets = {}
         engine.load_secrets(plan='test_engine.yaml')
         self.assertEqual(engine.secrets['hello'], 'world')
@@ -435,7 +603,7 @@ class TestPlumberyEngine(unittest.TestCase):
     def test_main(self):
 
         engine = PlumberyEngine()
-        engine.from_text(myPlan)
+        engine.set_fittings(myPlan)
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
         with self.assertRaises(SystemExit):

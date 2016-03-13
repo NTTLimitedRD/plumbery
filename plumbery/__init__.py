@@ -17,13 +17,12 @@
 Are you looking for a cloud plumber? We hope this one will be useful to you
 """
 
-# treat logs as event streams - http://12factor.net/logs
 import logging
 import sys
 
 __all__ = ['__version__']
 
-__version__ = '0.4.3'
+__version__ = '0.5.0'
 
 logging.basicConfig(
     format='%(message)s',

@@ -17,7 +17,7 @@ else
     exit 1;
 fi
 
-# allow for repeated rubs
+# allow for repeated prepare
 rm -rf /var/lib/cloud/instance*
 
 

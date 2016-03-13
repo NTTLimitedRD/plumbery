@@ -35,6 +35,7 @@ from libcloud.loadbalancer.types import Provider as BalancerProvider
 from exception import PlumberyException
 from facility import PlumberyFacility
 from polisher import PlumberyPolisher
+from text import PlumberyText, PlumberyContext
 from plumbery import __version__
 
 __all__ = ['PlumberyEngine']
@@ -44,8 +45,11 @@ class PlumberyEngine(object):
     """
     Infrastructure as code at Dimension Data with Apache Libcloud
 
-    :param fileName: the location of the plan for the fittings
-    :type fileName: ``str``
+    :param plan: the fittings plan
+    :type plan: ``str`` or ``file`` or ``dict`` or ``list`` of ``dict``
+
+    :param parameters: the external parameters
+    :type plan: ``str`` or ``file`` or ``dict``
 
     Plumbery is a convenient tool for infrastructure managers at cloud times.
     It allows for easy and repeatable deployments of various
@@ -104,7 +108,10 @@ class PlumberyEngine(object):
         """
         Ignites the plumbing engine
 
-        :param plan: the file that contains fittings plan
+        :param plan: the fittings plan
+        :type plan: ``str`` or ``file`` or ``dict`` or ``list`` of ``dict``
+
+        :param parameters: the external parameters
         :type plan: ``str`` or ``file`` or ``dict``
 
         """
@@ -116,8 +123,6 @@ class PlumberyEngine(object):
 
         self.facilities = []
 
-        self.fittingsFile = None
-
         self.information = []
 
         self.links = {}
@@ -128,267 +133,74 @@ class PlumberyEngine(object):
 
         self.polishers = []
 
-        self._buildPolisher = 'spit'
+        self.buildPolisher = 'spit'
 
         self._sharedSecret = None
 
         self.secrets = {}
+        self.secretsId = None
 
         self._userName = None
 
         self._userPassword = None
 
-        if parameters is not None:
-            self.set_parameters(parameters)
+        self.set_parameters(parameters)
+        self.set_fittings(plan)
 
-        if plan is not None:
-            if (isinstance(plan, str) and
-                    plan.startswith(("https://", "http://"))):
-                self.from_url(plan)
-            else:
-                self.from_file(plan)
-
-    def from_file(self, plan=None):
+    def set_parameters(self, parameters=None):
         """
-        Reads the fittings plan from a file
-
-        :param plan: the file that contains fittings plan
-        :type plan: ``str`` or ``file`` or ``dict``
-
-        The fittings plan is expected to follow YAML specifications, and it
-        must have multiple documents in it. The first document provides
-        general configuration parameters for the engine. Subsequent documents
-        describe the various locations for the fittings.
-
-        An example of a minimum fittings plan::
-
-            # Frankfurt in Europe
-            locationId: EU6
-            regionId: dd-eu
-
-            blueprints:
-
-              - myBluePrint:
-                  domain:
-                    name: myDC
-                  ethernet:
-                    name: myVLAN
-                    subnet: 10.1.10.0
-                  nodes:
-                    - myServer
-
-        In this example, the plan is to deploy a single node in the data centre
-        at Frankfurt, in Europe. The node `myServer` will be placed in a
-        network named `myVLAN`, and the network will be part of a network
-        domain acting as a virtual data centre, `myDC`. The blueprint has a
-        name, `myBluePrint`, so that it can be handled independently from
-        other blueprints.
-
-        """
-
-        if plan is None:
-            plan = os.getenv('PLUMBERY')
-
-        if isinstance(plan, str):
-            self.fittingsFile = plan
-            plan = open(plan, 'r')
-
-        if isinstance(plan, dict):
-            documents = [plan]
-        else:
-            documents = list(yaml.load_all(plan))
-
-        # first document contains engine settings
-        if len(documents) > 1:
-            self.set(documents.pop(0))
-
-        # then one document per facility
-        for document in documents:
-            self.add_facility(document)
-
-        self.load_secrets()
-
-        if self.safeMode:
-            logging.info(
-                "Running in safe mode"
-                " - no actual change will be made to the fittings")
-
-    def from_text(self, plan):
-        """
-        Reads the fittings plan
-
-        :param plan: the fittings plan
-        :type plan: ``str``
-
-        The fittings plan is expected to follow YAML specifications, and it
-        must have multiple documents in it. The first document provides
-        general configuration parameters for the engine. Subsequent documents
-        describe the various locations for the fittings.
-
-        Example of use::
-
-            myPlan = \"\"\"
-            locationId: EU6
-            regionId: dd-eu
-
-            blueprints:
-
-              - myBlueprint:
-                  domain:
-                    name: myDC
-                  ethernet:
-                    name: myVLAN
-                    subnet: 10.1.10.0
-                  nodes:
-                    - myServer
-            \"\"\"
-
-            engine = PlumberyEngine()
-            engine.from_text(myPlan)
-
-        In this example, the plan is to deploy a single node in the data centre
-        at Frankfurt, in Europe. The node `myServer` will be placed in a
-        network named `myVLAN`, and the network will be part of a network
-        domain acting as a virtual data centre, `myDC`. The blueprint has a
-        name, `myBluePrint`, so that it can be handled independently from
-        other blueprints.
-
-        """
-
-        self.from_file(io.TextIOWrapper(io.BytesIO(plan)))
-
-    def from_url(self, url):
-        """
-        Reads the fittings plan from a HTTP/HTTPS URL
-
-        :param plan: the URL that contains fittings plan
-        :type plan: ``str``
-
-        """
-        response = requests.get(url)
-        self.from_file(io.TextIOWrapper(io.BytesIO(response.text)))
-
-    def set(self, settings):
-        """
-        Changes the settings of the engine
-
-        :param settings: the new settings
-        :type settings: ``dict``
-
-        """
-
-        if not isinstance(settings, dict):
-            raise TypeError('settings should be a dictionary')
-
-        if 'buildPolisher' in settings:
-            self._buildPolisher = settings['buildPolisher']
-
-        if 'defaults' in settings:
-            self.defaults = settings['defaults']
-            if not isinstance(self.defaults, dict):
-                raise TypeError('defaults should be a dictionary')
-
-        if len(self.defaults) > 1:
-            logging.debug("Default values:")
-            for key in self.defaults.keys():
-                logging.debug("- {}: {}".format(key, self.defaults[key]))
-
-        if 'information' in settings:
-            self.information = settings['information']
-            if not isinstance(self.information, list):
-                raise TypeError('information should be a list')
-
-        if 'links' in settings:
-            self.links = settings['links']
-            if not isinstance(self.links, dict):
-                raise TypeError('links should be a dictionary')
-
-        if 'parameters' in settings:
-
-            if not isinstance(settings['parameters'], dict):
-                raise TypeError('parameters should be a dictionary')
-
-            for key in settings['parameters']:
-
-                if key not in self.parameters:
-                    self.parameters[key] = {}
-
-                if 'information' not in settings['parameters'][key]:
-                    raise ValueError("Parameter '{}' has no information"
-                        .format(key))
-                self.parameters[key]['information'] = \
-                    settings['parameters'][key]['information']
-
-                if 'type' not in settings['parameters'][key]:
-                    raise ValueError("Parameter '{}' has no type"
-                        .format(key))
-                self.parameters[key]['type'] = \
-                    settings['parameters'][key]['type']
-
-                if 'default' not in settings['parameters'][key]:
-                    raise ValueError("Parameter '{}' has no default value"
-                        .format(key))
-                self.parameters[key]['default'] = \
-                    settings['parameters'][key]['default']
-
-        if 'polishers' in settings:
-            for item in settings['polishers']:
-                key = item.keys()[0]
-                value = item[key]
-                self.polishers.append(
-                    PlumberyPolisher.from_shelf(key, value))
-
-        if 'safeMode' in settings:
-            self.safeMode = settings['safeMode']
-            if self.safeMode not in [True, False]:
-                raise ValueError('safeMode should be either True or False')
-
-    def get_default(self, label, default=None):
-        """
-        Retrieves default settings
-
-        :param label: the name of the settings to be retrieved
-        :type label: ``str``
-
-        :param default: the default value to return
-
-        :return: the value set in fittings plan, or `None`
-        :rtype: ``dict`` most often, or ``str`` or something else
-
-        """
-
-        if label in self.defaults:
-            return self.defaults[label]
-
-        return default
-
-    def set_parameters(self, parameters):
-        """
-        Changes the parameters of the engine
+        Changes the parameters of the running engine
 
         :param parameters: the new parameters
-        :type parameters: ``dict`` or ``str``
+        :type parameters: ``str`` or ``file`` or ``dict``
+
+        Parameters are a dictionary of key-value pairs.
+        If a string is provided, it will contain a reference to some textual
+        content (file name or URL).
+        If a file handle is provided, content is read as YAML.
 
         """
 
+        if not parameters:
+            return
+
         if isinstance(parameters, str):
-            parameters = open(parameters, 'r')
 
             if parameters.startswith(("https://", "http://")):
                 response = requests.get(parameters)
                 parameters = response.text
 
+            else:
+                parameters = open(parameters, 'r')
+
+        if not isinstance(parameters, dict):
             parameters = yaml.load(parameters)
 
         if not isinstance(parameters, dict):
-            raise TypeError('parameters should be a dictionary')
+            raise TypeError('Parameters should be a dictionary')
 
         logging.debug("Parameters:")
         for key in parameters:
             if key not in self.parameters:
                 self.parameters[key] = {}
             self.parameters[key]['value'] = parameters[key]
-            logging.debug("- {}: {}".format(key, self.parameters[key]))
+            logging.debug("- {}: {}".format(key, self.parameters[key]['value']))
+
+    def get_parameters(self):
+        """
+        Retrieves values of all parameters
+
+        :return: a dictionary of all parameters
+        :rtype: ``dict``
+
+        """
+
+        parameters = {}
+
+        for key in self.parameters:
+            parameters[key+'.parameter'] = self.get_parameter(key)
+
+        return parameters
 
     def get_parameter(self, label):
         """
@@ -414,6 +226,218 @@ class PlumberyEngine(object):
             raise ValueError("Parameter '{}' has no default value".format(label))
 
         return self.parameters[label]['default']
+
+    def set_fittings(self, plan=None):
+        """
+        Loads the fittings plan for this engine instance
+
+        :param plan: the file that contains fittings plan
+        :type plan: ``str`` or ``file`` or ``dict`` or ``list`` of ``dict``
+
+        The fittings plan is expected to follow YAML specifications, and it
+        must have multiple documents in it. The first document provides
+        general configuration parameters for the engine. Subsequent documents
+        describe the various locations for the fittings.
+
+        An example of a minimum fittings plan::
+
+            # Frankfurt in Europe
+            locationId: EU6
+
+            blueprints:
+
+              - myBluePrint:
+                  domain:
+                    name: myDC
+                  ethernet:
+                    name: myVLAN
+                    subnet: 10.1.10.0
+                  nodes:
+                    - myServer
+
+        In this example, the plan is to deploy a single node in the data centre
+        at Frankfurt, in Europe. The node `myServer` will be placed in a
+        network named `myVLAN`, and the network will be part of a network
+        domain acting as a virtual data centre, `myDC`. The blueprint has a
+        name, `myBluePrint`, so that it can be handled independently from
+        other blueprints.
+
+        """
+
+        if plan is None:
+            plan = os.getenv('PLUMBERY')
+
+        if isinstance(plan, str):
+
+            if plan.startswith(("https://", "http://")):
+                response = requests.get(plan)
+                plan = response.text
+                self.secretsId = MD5.new(plan).hexdigest()
+
+            elif not '\n' in plan:
+                plan = open(plan, 'r').read()
+                self.secretsId = MD5.new(plan).hexdigest()
+
+            else:
+                self.secretsId = MD5.new(plan).hexdigest()
+
+            # load default values for parameters
+            parameters = self.get_parameters()
+
+            documents = plan.split('\n---')
+            for document in documents:
+                if '\n' in document:
+                    settings = yaml.load(document)
+
+                    if 'parameters' in settings:
+                        for key in settings['parameters'].keys():
+                            if key+'.parameter' in parameters:
+                                continue
+                            parameters[key+'.parameter'] = settings['parameters'][key]['default']
+                    break
+
+            # expand parameters
+            environment = PlumberyContext(dictionary=parameters)
+            plan = PlumberyText.expand_parameters(plan, environment)
+
+        if not plan:
+            return
+
+        if isinstance(plan, dict):
+            documents = [plan]
+            self.secretsId = MD5.new(str(plan)).hexdigest()
+
+        elif isinstance(plan, list):
+            documents = plan
+            self.secretsId = MD5.new(str(plan)).hexdigest()
+
+        else:
+            documents = list(yaml.load_all(plan))
+
+        if not isinstance(documents, list):
+            raise TypeError('Fittings should be a list of dictionaries')
+
+        # first document contains engine settings
+        if len(documents) > 1:
+            self.set_settings(documents.pop(0))
+
+        # then one document per facility
+        for document in documents:
+            self.add_facility(document)
+
+        self.load_secrets()
+
+        if self.safeMode:
+            logging.info(
+                "Running in safe mode"
+                " - no actual change will be made to the fittings")
+
+    def set_settings(self, settings):
+        """
+        Changes the settings of the engine
+
+        :param settings: the new settings
+        :type settings: ``dict``
+
+        """
+
+        if not isinstance(settings, dict):
+            raise TypeError('settings should be a dictionary')
+
+        if 'buildPolisher' in settings:
+            if not isinstance(settings['buildPolisher'], str):
+                raise TypeError('buildPolisher should be a string')
+
+            self.buildPolisher = settings['buildPolisher']
+            logging.debug("Build polisher: {}".format(self.buildPolisher))
+
+        if 'defaults' in settings:
+            if not isinstance(settings['defaults'], dict):
+                raise TypeError('defaults should be a dictionary')
+
+            logging.debug("Default values:")
+            for key in settings['defaults'].keys():
+                self.defaults[key] = settings['defaults'][key]
+                logging.debug("- {}: {}".format(key, self.defaults[key]))
+
+        if 'information' in settings:
+            if not isinstance(settings['information'], list):
+                raise TypeError('information should be a list')
+
+            self.information = settings['information']
+
+        if 'links' in settings:
+            if not isinstance(settings['links'], dict):
+                raise TypeError('links should be a dictionary')
+
+            self.links = settings['links']
+
+        if 'parameters' in settings:
+            if not isinstance(settings['parameters'], dict):
+                raise TypeError('parameters should be a dictionary')
+
+            logging.debug("Parameters:")
+            for key in settings['parameters']:
+
+                if key not in self.parameters:
+                    self.parameters[key] = {}
+
+                if 'information' not in settings['parameters'][key]:
+                    raise ValueError("Parameter '{}' has no information"
+                        .format(key))
+                self.parameters[key]['information'] = \
+                    settings['parameters'][key]['information']
+
+                if 'type' not in settings['parameters'][key]:
+                    raise ValueError("Parameter '{}' has no type"
+                        .format(key))
+                self.parameters[key]['type'] = \
+                    settings['parameters'][key]['type']
+
+                if 'default' not in settings['parameters'][key]:
+                    raise ValueError("Parameter '{}' has no default value"
+                        .format(key))
+                self.parameters[key]['default'] = \
+                    settings['parameters'][key]['default']
+                logging.debug("- {}: {}".format(
+                    key,
+                    self.parameters[key]['default']))
+
+        if 'polishers' in settings:
+            if not isinstance(settings['polishers'], list):
+                raise TypeError('polishers should be a list')
+
+            logging.debug("Polishers:")
+            for item in settings['polishers']:
+                key = item.keys()[0]
+                value = item[key]
+                self.polishers.append(
+                    PlumberyPolisher.from_shelf(key, value))
+                logging.debug("- {}".format(key))
+
+        if 'safeMode' in settings:
+            if settings['safeMode'] not in [True, False]:
+                raise ValueError('safeMode should be either True or False')
+            self.safeMode = settings['safeMode']
+
+    def get_default(self, label, default=None):
+        """
+        Retrieves default settings
+
+        :param label: the name of the settings to be retrieved
+        :type label: ``str``
+
+        :param default: the default value to return
+
+        :return: the value set in fittings plan, or `None`
+        :rtype: ``dict`` most often, or ``str`` or something else
+
+        """
+
+        if label in self.defaults:
+            return self.defaults[label]
+
+        return default
 
     def set_shared_secret(self, secret):
         """
@@ -529,8 +553,8 @@ class PlumberyEngine(object):
 
         The `format` parameter specifies the kind of string that is expected:
         * 'user' - to be read by a human being
-        * 'sha1' - rather long string too
-        * 'md5' - rather long string
+        * 'sha1' - rather long string
+        * 'md5' - rather long string too
         * 'sha256' - longest and most secure
 
         Some examples:
@@ -589,19 +613,22 @@ class PlumberyEngine(object):
     def save_secrets(self, plan=None):
         """
         Saves secrets attached to this fittings plan
+
+        :param plan: the file that contains fittings plan
+        :type plan: ``str`` or ``file`` or ``dict`` or ``list`` of ``dict``
+
         """
 
-        if plan is None:
+        if plan:
+            secretsId = MD5.new(plan).hexdigest()
 
-            if self.fittingsFile is None:
-                return
+        elif self.secretsId:
+            secretsId = self.secretsId
 
-            plan = self.fittingsFile
-
-        if plan.endswith('.yaml'):
-            secretsFile = '.'+plan[0:-len('.yaml')]+'.secrets'
         else:
-            secretsFile = '.'+plan+'.secrets'
+            return
+
+        secretsFile = secretsId+'.secrets'
 
         try:
             handle = open(secretsFile, 'w')
@@ -611,26 +638,30 @@ class PlumberyEngine(object):
             handle.close()
 
         except IOError:
-            logging.warning("Unable to forget secrets")
+            logging.warning("Unable to save secrets")
             logging.debug("- cannot write to file '{}'".format(
                 secretsFile))
 
     def load_secrets(self, plan=None):
         """
         Loads secrets attached to this fittings plan
+
+        :param plan: the file that contains fittings plan
+        :type plan: ``str`` or ``file`` or ``dict`` or ``list`` of ``dict``
+
         """
 
-        if plan is None:
+        if plan:
+            secretsId = MD5.new(plan).hexdigest()
 
-            if self.fittingsFile is None:
-                return
+        elif self.secretsId:
+            secretsId = self.secretsId
 
-            plan = self.fittingsFile
-
-        if plan.endswith('.yaml'):
-            secretsFile = '.'+plan[0:-len('.yaml')]+'.secrets'
         else:
-            secretsFile = '.'+plan+'.secrets'
+            return
+
+        secretsFile = secretsId+'.secrets'
+        logging.debug("Loading secrets from '{}'".format(secretsFile))
 
         if os.path.isfile(secretsFile):
             try:
@@ -638,32 +669,32 @@ class PlumberyEngine(object):
                 self.secrets = yaml.load(handle)
                 handle.close()
 
-                logging.debug("Loading {} secrets".format(
-                    len(self.secrets), secretsFile))
+                logging.debug("- found {} secrets".format(
+                    len(self.secrets)))
 
             except IOError:
-                logging.warning("Unable to load secrets")
-                logging.debug("- cannot read and process file '{}'".format(
-                    secretsFile))
+                logging.debug("- unable to load secrets")
 
     def forget_secrets(self, plan=None):
         """
         Destroys secrets attached to this fittings plan
         """
 
-        self.secrets = {}
+        if plan:
+            secretsId = MD5.new(plan).hexdigest()
 
-        if plan is None:
+        elif self.secretsId:
+            secretsId = self.secretsId
 
-            if self.fittingsFile is None:
-                return
-
-            plan = self.fittingsFile
-
-        if plan.endswith('.yaml'):
-            secretsFile = '.'+plan[0:-len('.yaml')]+'.secrets'
         else:
-            secretsFile = '.'+plan+'.secrets'
+            return
+
+        secretsFile = secretsId+'.secrets'
+
+        if self.safeMode:
+            logging.info("Secrets cannot be forgotten in safe mode")
+
+        self.secrets = {}
 
         if os.path.isfile(secretsFile):
             try:
@@ -883,8 +914,11 @@ class PlumberyEngine(object):
 
         """
 
-        if action == 'secrets':
-            self.display_secrets()
+        if action == 'build':
+            if blueprints is None:
+                self.build_all_blueprints(facilities)
+            else:
+                self.build_blueprint(blueprints, facilities)
 
         elif action == 'deploy':
             if blueprints is None:
@@ -902,6 +936,29 @@ class PlumberyEngine(object):
                                       facilities=facilities)
                 self.polish_blueprint(blueprints,
                                       filter='information',
+                                      facilities=facilities)
+
+        elif action == 'destroy':
+            if blueprints is None:
+                self.destroy_all_blueprints(facilities)
+            else:
+                self.destroy_blueprint(blueprints, facilities)
+
+        elif action == 'dispose':
+            if blueprints is None:
+                self.stop_all_blueprints(facilities)
+                self.destroy_all_blueprints(facilities)
+            else:
+                self.stop_blueprint(blueprints, facilities)
+                self.destroy_blueprint(blueprints, facilities)
+
+        elif action == 'polish':
+            if blueprints is None:
+                self.polish_all_blueprints(filter=None,
+                                           facilities=facilities)
+            else:
+                self.polish_blueprint(blueprints,
+                                      filter=None,
                                       facilities=facilities)
 
         elif action == 'refresh':
@@ -926,34 +983,14 @@ class PlumberyEngine(object):
                                       filter='information',
                                       facilities=facilities)
 
-        elif action == 'dispose':
-            if blueprints is None:
-                self.stop_all_blueprints(facilities)
-                self.destroy_all_blueprints(facilities)
-            else:
-                self.stop_blueprint(blueprints, facilities)
-                self.destroy_blueprint(blueprints, facilities)
-
-        elif action == 'build':
-            if blueprints is None:
-                self.build_all_blueprints(facilities)
-            else:
-                self.build_blueprint(blueprints, facilities)
+        elif action == 'secrets':
+            self.display_secrets()
 
         elif action == 'start':
             if blueprints is None:
                 self.start_all_blueprints(facilities)
             else:
                 self.start_blueprint(blueprints, facilities)
-
-        elif action == 'polish':
-            if blueprints is None:
-                self.polish_all_blueprints(filter=None,
-                                           facilities=facilities)
-            else:
-                self.polish_blueprint(blueprints,
-                                      filter=None,
-                                      facilities=facilities)
 
         elif action == 'stop':
             if blueprints is None:
@@ -966,12 +1003,6 @@ class PlumberyEngine(object):
                 self.wipe_all_blueprints(facilities)
             else:
                 self.wipe_blueprint(blueprints, facilities)
-
-        elif action == 'destroy':
-            if blueprints is None:
-                self.destroy_all_blueprints(facilities)
-            else:
-                self.destroy_blueprint(blueprints, facilities)
 
         else:
             if blueprints is None:
@@ -1019,7 +1050,7 @@ class PlumberyEngine(object):
             facility.focus()
             facility.build_all_blueprints()
 
-        self.polish_all_blueprints(filter=self._buildPolisher,
+        self.polish_all_blueprints(filter=self.buildPolisher,
                                    facilities=facilities)
 
     def build_blueprint(self, names, facilities=None):
@@ -1061,7 +1092,7 @@ class PlumberyEngine(object):
             facility.build_blueprint(names)
 
         self.polish_blueprint(names=names,
-                              filter=self._buildPolisher,
+                              filter=self.buildPolisher,
                               facilities=facilities)
 
     def start_all_blueprints(self, facilities=None):

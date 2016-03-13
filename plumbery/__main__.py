@@ -209,10 +209,7 @@ def main(args=[], engine=None):
 
     if engine is None:
         try:
-            engine = PlumberyEngine(args.fittings)
-
-            if args.parameters:
-                engine.set_parameters(args.parameters)
+            engine = PlumberyEngine(args.fittings, args.parameters)
 
             if args.safe:
                 engine.safeMode = True

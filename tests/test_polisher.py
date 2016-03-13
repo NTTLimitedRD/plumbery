@@ -216,11 +216,10 @@ blueprints:
 
 def do_polish(polisher):
 
-    engine = PlumberyEngine()
+    engine = PlumberyEngine(myInformation)
     engine.set_shared_secret('fake_secret')
     engine.set_user_name('fake_name')
     engine.set_user_password('fake_password')
-    engine.from_text(myInformation)
 
     polisher.go(engine)
 
