@@ -112,4 +112,4 @@ blueprints:
 
                 - echo "===== Installing libcloud and plumbery"
                 - pip install -e git+https://github.com/apache/libcloud.git#egg=apache-libcloud
-                - pip install -e git+https://github.com/bernard357/plumbery.git#egg=plumbery
+                - pip install -e git+https://github.com/DimensionDataCBUSydney/plumbery.git#egg=plumbery
