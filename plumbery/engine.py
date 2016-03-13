@@ -638,7 +638,7 @@ class PlumberyEngine(object):
             handle.close()
 
         except IOError:
-            logging.warning("Unable to forget secrets")
+            logging.warning("Unable to save secrets")
             logging.debug("- cannot write to file '{}'".format(
                 secretsFile))
 
@@ -661,6 +661,7 @@ class PlumberyEngine(object):
             return
 
         secretsFile = secretsId+'.secrets'
+        logging.debug("Loading secrets from '{}'".format(secretsFile))
 
         if os.path.isfile(secretsFile):
             try:
@@ -668,33 +669,32 @@ class PlumberyEngine(object):
                 self.secrets = yaml.load(handle)
                 handle.close()
 
-                logging.debug("Loading {} secrets".format(
+                logging.debug("- found {} secrets".format(
                     len(self.secrets)))
-                logging.debug("- from file {}".format(secretsFile))
 
             except IOError:
-                logging.warning("Unable to load secrets")
-                logging.debug("- cannot read and process file '{}'".format(
-                    secretsFile))
+                logging.debug("- unable to load secrets")
 
     def forget_secrets(self, plan=None):
         """
         Destroys secrets attached to this fittings plan
         """
 
-        self.secrets = {}
+        if plan:
+            secretsId = MD5.new(plan).hexdigest()
 
-        if plan is None:
+        elif self.secretsId:
+            secretsId = self.secretsId
 
-            if self.fittingsFile is None:
-                return
-
-            plan = self.fittingsFile
-
-        if plan.endswith('.yaml'):
-            secretsFile = '.'+plan[0:-len('.yaml')]+'.secrets'
         else:
-            secretsFile = '.'+plan+'.secrets'
+            return
+
+        secretsFile = secretsId+'.secrets'
+
+        if self.safeMode:
+            logging.info("Secrets cannot be forgotten in safe mode")
+
+        self.secrets = {}
 
         if os.path.isfile(secretsFile):
             try:
