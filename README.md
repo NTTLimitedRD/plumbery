@@ -71,7 +71,7 @@ Having actions run on the server, immediately after deployment is a common use c
 
 ## Infrastructure as code at Dimension Data with Apache Libcloud
 
-* Documentation: [Plumbery at ReadTheDocs](https://plumbery.readthedocs.org)
+* Documentation: [Plumbery at developer.dimensiondata.com](https://developer.dimensiondata.com/display/PLUM/Getting+started)
 * Python package: [Plumbery at PyPi](https://pypi.python.org/pypi/plumbery)
 * Source code: [Plumbery at GitHub](https://github.com/DimensionDataCBUSydney/plumbery)
 * Free software: [Apache License (2.0)](http://www.apache.org/licenses/LICENSE-2.0)
