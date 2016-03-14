@@ -144,12 +144,12 @@ The table below presents succinctly all actions that are supported by plumbery.
   ============  =============================================================
   Action        Description
   ============  =============================================================
-  deploy        equivalent to: build + spit + start + rub
+  deploy        equivalent to: build + spit + start + prepare
   dispose       equivalent to: stop + destroy
   build         create network domains, networks, and nodes
   spit          adds public IP addresses, NAT and firewall rules
   start         start nodes
-  rub           contextualise nodes via ssh and cloud-init
+  prepare       contextualise nodes via ssh and cloud-init
   information   display information put in fittings plan
   inventory     produce an inventory of all assets deployed
   ansible       allow ansible to handle nodes and groups deployed by plumbery
@@ -193,13 +193,13 @@ How to apply a specific polisher?
 
 To apply a polisher just mention its name on the command line. For example,
 if fittings plan has a blueprint for nodes running Docker, then you may
-use the polisher ``rub`` to install Docker itself at each node:
+use the polisher ``prepare`` to install Docker itself at each node:
 
 .. sourcecode:: bash
 
     $ python -m plumbery fittings.yaml build docker
     $ python -m plumbery fittings.yaml start docker
-    $ python -m plumbery fittings.yaml rub docker
+    $ python -m plumbery fittings.yaml prepare docker
 
     ... Docker is up and running at multiple nodes ...
 
@@ -270,7 +270,7 @@ the engine and use it, as with any other python module. For example:
     engine = PlumberyEngine('fittings.yaml')
     engine.build_blueprint('docker')
     engine.start_blueprint('docker')
-    engine.polish_blueprint('docker', 'rub')
+    engine.polish_blueprint('docker', 'prepare')
 
 
 To go deeper into the code itself, you could have a look at the documentation

@@ -331,7 +331,7 @@ class TestPlumberyFacility(unittest.TestCase):
         facility = engine.list_facility('EU6')[0]
         self.assertEqual(facility.get_setting('locationId'), 'EU6')
         self.assertEqual(facility.get_setting('regionId'), 'dd-eu')
-        self.assertEqual(facility.get_setting('rub'), None)
+        self.assertEqual(facility.get_setting('prepare'), None)
         self.assertEqual(facility.get_setting('basement'), 'myBlueprint')
 
         city = facility.get_city()

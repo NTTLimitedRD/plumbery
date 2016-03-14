@@ -51,7 +51,7 @@ class SpitPolisher(PlumberyPolisher):
 
     def shine_container(self, container):
         """
-        Rubs a container until it shines
+        prepares a container until it shines
 
         :param container: the container to be polished
         :type container: :class:`plumbery.PlumberyInfrastructure`

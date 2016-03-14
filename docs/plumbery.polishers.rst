@@ -40,10 +40,10 @@ plumbery.polishers.ping module
     :show-inheritance:
     :noindex:
 
-plumbery.polishers.rub module
+plumbery.polishers.prepare module
 -----------------------------
 
-.. automodule:: plumbery.polishers.rub
+.. automodule:: plumbery.polishers.prepare
     :members:
     :undoc-members:
     :show-inheritance:

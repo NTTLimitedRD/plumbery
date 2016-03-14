@@ -7,6 +7,6 @@ Polishing extensions
     plumbery.polishers.information
     plumbery.polishers.inventory
     plumbery.polishers.ping
-    plumbery.polishers.rub
+    plumbery.polishers.prepare
     plumbery.polishers.spit
 

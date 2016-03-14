@@ -393,7 +393,7 @@ Deployment commands
 
     $ python -m plumbery fittings.yaml build
     $ python -m plumbery fittings.yaml start
-    $ python -m plumbery fittings.yaml rub
+    $ python -m plumbery fittings.yaml prepare
 
 These commands will build fittings as per the provided plan, and start
 the server as well. Look at messages displayed by plumbery while it is

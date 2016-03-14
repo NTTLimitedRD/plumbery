@@ -45,7 +45,7 @@ def parse_args(args=[]):
         'action',
         nargs=1,
         help="An action, or a polisher: 'deploy', 'refresh', dispose', "
-             "'secrets', 'build', 'spit', 'start', 'rub', "
+             "'secrets', 'build', 'spit', 'start', 'prepare', "
              "'information', 'ping', 'inventory', 'ansible', "
              "'stop', 'wipe', 'destroy'")
 
@@ -174,7 +174,7 @@ def main(args=[], engine=None):
 
         $ python -m plumbery fittings.yaml build docker
         $ python -m plumbery fittings.yaml start docker
-        $ python -m plumbery fittings.yaml rub docker
+        $ python -m plumbery fittings.yaml prepare docker
 
         ... Docker is up and running at multiple nodes ...
 

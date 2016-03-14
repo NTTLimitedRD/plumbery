@@ -65,9 +65,9 @@ compact directive. Here plumbery will create ``web1_eu8``, ``web2_eu8``, etc.
 Indicate the minimum and the maximum numbers, and plumbery will populate
 the full range. This is so powerful for collections of similar nodes!
 
-``rub:`` - These are directives reserved to the polisher ``rub``, and applied
+``prepare:`` - These are directives reserved to the polisher ``prepare``, and applied
 to each node via ssh connection. The first step is to copy a Puppet manifest
-to each node with ``put rub.puppet.apache.pp /root/apache.pp``. Then a script
+to each node with ``put prepare.puppet.apache.pp /root/apache.pp``. Then a script
 is applied to install Puppet, and to apply the provided manifest.
 
 ``listeners:`` - On this directive, Plumbery will put all nodes of this

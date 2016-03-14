@@ -15,7 +15,6 @@ import ast
 
 from mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
-from libcloud.common.types import InvalidCredsError
 
 from plumbery.__main__ import parse_args, main
 from plumbery.engine import PlumberyEngine
@@ -87,9 +86,9 @@ polishers:
       reap: gigafox_ansible.yaml
   - inventory:
       reap: gigafox_inventory.yaml
-  - rub:
+  - prepare:
       key: ~/.ssh/id_rsa.pub
-      reap: gigafox_rubs.yaml
+      reap: gigafox_prepares.yaml
 
 ---
 # Frankfurt in Europe
@@ -454,8 +453,7 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertTrue(facility.get_blueprint('fake') is None)
 
         blueprint = facility.get_blueprint('myBlueprint')
-        self.assertEqual(blueprint.keys(),
-                         ['ethernet', 'domain', 'nodes', 'target'])
+
         node = blueprint['nodes'][0]
         self.assertEqual(node.keys()[0], 'toto')
 
@@ -581,16 +579,16 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(args.facilities, ['NA12'])
 
         args = parse_args([
-            'fittings.yaml', 'rub', 'web', 'sql', '@NA9', '@NA12'])
+            'fittings.yaml', 'prepare', 'web', 'sql', '@NA9', '@NA12'])
         self.assertEqual(args.fittings, 'fittings.yaml')
-        self.assertEqual(args.action, 'rub')
+        self.assertEqual(args.action, 'prepare')
         self.assertEqual(args.blueprints, ['web', 'sql'])
         self.assertEqual(args.facilities, ['NA9', 'NA12'])
 
         args = parse_args([
-            'fittings.yaml', 'rub', 'web', '@NA9', 'sql', '@NA12'])
+            'fittings.yaml', 'prepare', 'web', '@NA9', 'sql', '@NA12'])
         self.assertEqual(args.fittings, 'fittings.yaml')
-        self.assertEqual(args.action, 'rub')
+        self.assertEqual(args.action, 'prepare')
         self.assertEqual(args.blueprints, ['web', 'sql'])
         self.assertEqual(args.facilities, ['NA9', 'NA12'])
 

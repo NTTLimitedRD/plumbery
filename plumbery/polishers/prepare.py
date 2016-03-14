@@ -83,12 +83,12 @@ class RebootDeployment(Deployment):
         return node
 
 
-class RubPolisher(PlumberyPolisher):
+class PreparePolisher(PlumberyPolisher):
     """
     Bootstraps nodes via ssh
 
     This polisher looks at each node in sequence, and contact selected nodes
-    via ssh to rub them. The goal here is to accelerate post-creation tasks as
+    via ssh to prepare them. The goal here is to accelerate post-creation tasks as
     much as possible.
 
     Bootstrapping steps can consist of multiple tasks:
@@ -108,7 +108,7 @@ class RubPolisher(PlumberyPolisher):
         ---
         safeMode: False
         polishers:
-          - rub:
+          - prepare:
               key: ~/.ssh/id_rsa.pub
         ---
         # Frankfurt in Europe
@@ -116,7 +116,7 @@ class RubPolisher(PlumberyPolisher):
         regionId: dd-eu
         ...
 
-    Plumbery will only rub nodes that have been configured for it. The example
+    Plumbery will only prepare nodes that have been configured for it. The example
     below demonstrates how this can be done for multiple docker containers::
 
         # some docker resources
@@ -125,16 +125,16 @@ class RubPolisher(PlumberyPolisher):
             ethernet: *containers
             nodes:
               - docker1:
-                  rub: &docker
-                    - run rub.update.sh
-                    - run rub.docker.sh
+                  prepare: &docker
+                    - run prepare.update.sh
+                    - run prepare.docker.sh
               - docker2:
-                  rub: *docker
+                  prepare: *docker
               - docker3:
-                  rub: *docker
+                  prepare: *docker
 
 
-    In the real life when you have to rub any appliance, you need to be close
+    In the real life when you have to prepare any appliance, you need to be close
     to the stuff and to touch it. This is the same for virtual fittings.
     This polisher has the need to communicate directly with target
     nodes over the network.
@@ -153,23 +153,23 @@ class RubPolisher(PlumberyPolisher):
         regionId: dd-eu
 
         # network subnets are 10.1.x.y
-        rub:
+        prepare:
           - beachhead: 10.1.3.4
 
-    Here nodes at EU6 will be rubbed only if the machine that is
+    Here nodes at EU6 will be prepared only if the machine that is
     executing plumbery has the adress 10.1.3.4. In other cases, plumbery will
     state that the location is out of reach.
 
     """
 
-    def _apply_rubs(self, node, steps):
+    def _apply_prepares(self, node, steps):
         """
         Does the actual job over SSH
 
         :param node: the node to be polished
         :type node: :class:`libcloud.compute.base.Node`
 
-        :param steps: the various steps of the rubbing
+        :param steps: the various steps of the preparing
         :type steps: :class:`libcloud.compute.deployment.MultiStepDeployment`
 
         :return: ``True`` if everything went fine, ``False`` otherwise
@@ -210,7 +210,7 @@ class RubPolisher(PlumberyPolisher):
                 node = steps.run(node, session)
 
         except Exception as feedback:
-            logging.info("Error: unable to rub '{}' at '{}'!".format(
+            logging.info("Error: unable to prepare '{}' at '{}'!".format(
                 node.name, target_ip))
             logging.error(str(feedback))
             logging.info("- failed")
@@ -226,7 +226,7 @@ class RubPolisher(PlumberyPolisher):
 
         return result
 
-    def _get_rubs(self, node, settings, container):
+    def _get_prepares(self, node, settings, container):
         """
         Defines the set of actions to be done on a node
 
@@ -251,20 +251,20 @@ class RubPolisher(PlumberyPolisher):
                                           container=container,
                                           context=self.facility)
 
-        rubs = []
+        prepares = []
 
         if self.key is not None:
-            rubs.append({
+            prepares.append({
                 'description': 'deploy SSH public key',
                 'genius': SSHKeyDeployment(self.key)})
 
-        if ('rub' in settings
-                and isinstance(settings['rub'], list)
-                and len(settings['rub']) > 0):
+        if ('prepare' in settings
+                and isinstance(settings['prepare'], list)
+                and len(settings['prepare']) > 0):
 
-            logging.debug('- using rub commands')
+            logging.debug('- using prepare commands')
 
-            for script in settings['rub']:
+            for script in settings['prepare']:
 
                 tokens = script.split(' ')
                 if len(tokens) == 1:
@@ -295,7 +295,7 @@ class RubPolisher(PlumberyPolisher):
                                     text, environment)
 
                             if len(text) > 0:
-                                rubs.append({
+                                prepares.append({
                                     'description': ' '.join(tokens),
                                     'genius': ScriptDeployment(
                                         script=text,
@@ -334,7 +334,7 @@ class RubPolisher(PlumberyPolisher):
                                 content = PlumberyText.expand_string(
                                     content, environment)
 
-                            rubs.append({
+                            prepares.append({
                                 'description': ' '.join(tokens),
                                 'genius': FileContentDeployment(
                                     content=content,
@@ -364,7 +364,7 @@ class RubPolisher(PlumberyPolisher):
             meta_data = 'instance_id: dummy\n'
 
             destination = '/var/lib/cloud/seed/nocloud-net/meta-data'
-            rubs.append({
+            prepares.append({
                 'description': 'put meta-data',
                 'genius': FileContentDeployment(
                     content=meta_data,
@@ -379,7 +379,7 @@ class RubPolisher(PlumberyPolisher):
             logging.debug(user_data)
 
             destination = '/var/lib/cloud/seed/nocloud-net/user-data'
-            rubs.append({
+            prepares.append({
                 'description': 'put user-data',
                 'genius': FileContentDeployment(
                     content=user_data,
@@ -387,13 +387,13 @@ class RubPolisher(PlumberyPolisher):
 
             logging.debug('- preparing remote install of cloud-init')
 
-            script = 'rub.cloud-init.sh'
+            script = 'prepare.cloud-init.sh'
             try:
                 path = os.path.dirname(__file__)+'/'+script
                 with open(path) as stream:
                     text = stream.read()
                     if text:
-                        rubs.append({
+                        prepares.append({
                             'description': 'run '+script,
                             'genius': ScriptDeployment(
                                 script=text,
@@ -405,23 +405,23 @@ class RubPolisher(PlumberyPolisher):
 
             logging.debug('- preparing reboot to trigger cloud-init')
 
-            rubs.append({
+            prepares.append({
                 'description': 'reboot node',
                 'genius': RebootDeployment(
                     container=container)})
 
-        return rubs
+        return prepares
 
     def go(self, engine):
         """
-        Starts the rubbing process
+        Starts the prepare process
 
         :param engine: access to global parameters and functions
         :type engine: :class:`plumbery.PlumberyEngine`
 
         """
 
-        super(RubPolisher, self).go(engine)
+        super(PreparePolisher, self).go(engine)
 
         self.report = []
 
@@ -493,7 +493,7 @@ class RubPolisher(PlumberyPolisher):
         except Exception as feedback:
             logging.error(str(feedback))
 
-        for item in self.facility.get_setting('rub', []):
+        for item in self.facility.get_setting('prepare', []):
             if not isinstance(item, dict):
                 continue
             if 'beachhead' not in item.keys():
@@ -511,7 +511,7 @@ class RubPolisher(PlumberyPolisher):
 
     def shine_node(self, node, settings, container):
         """
-        Rubs a node
+        prepares a node
 
         :param node: the node to be polished
         :type node: :class:`libcloud.compute.base.Node`
@@ -524,7 +524,7 @@ class RubPolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Rubbing node '{}'".format(settings['name']))
+        logging.info("preparing node '{}'".format(settings['name']))
         if node is None:
             logging.info("- not found")
             return
@@ -542,8 +542,8 @@ class RubPolisher(PlumberyPolisher):
             logging.info("- skipped - node is not running")
             return
 
-        rubs = self._get_rubs(node, settings, container)
-        if len(rubs) < 1:
+        prepares = self._get_prepares(node, settings, container)
+        if len(prepares) < 1:
             logging.info('- nothing to do')
             self.report.append({node.name: {
                 'status': 'skipped - nothing to do'
@@ -563,26 +563,26 @@ class RubPolisher(PlumberyPolisher):
 
         descriptions = []
         steps = []
-        for item in rubs:
+        for item in prepares:
             descriptions.append(item['description'])
             steps.append(item['genius'])
 
-        if self._apply_rubs(node, MultiStepDeployment(steps)):
+        if self._apply_prepares(node, MultiStepDeployment(steps)):
             logging.info('- done')
             self.report.append({node.name: {
                 'status': 'completed',
-                'rubs': descriptions
+                'prepares': descriptions
                 }})
 
         else:
             self.report.append({node.name: {
                 'status': 'failed',
-                'rubs': descriptions
+                'prepares': descriptions
                 }})
 
     def reap(self):
         """
-        Reports on rubbing
+        Reports on preparing
 
         """
 
@@ -590,7 +590,7 @@ class RubPolisher(PlumberyPolisher):
             return
 
         fileName = self.settings['reap']
-        logging.info("Reporting on rubs in '{}'".format(fileName))
+        logging.info("Reporting on preparations in '{}'".format(fileName))
         with open(fileName, 'w') as stream:
             stream.write(yaml.dump(self.report, default_flow_style=False))
             stream.close()
