@@ -953,7 +953,7 @@ class PlumberyEngine(object):
                 self.stop_blueprint(blueprints, facilities)
                 self.destroy_blueprint(blueprints, facilities)
 
-        elif action == 'polish':
+        elif action == 'polish' or action == 'finalize' or action == 'finalise':
             if blueprints is None:
                 self.polish_all_blueprints(filter=None,
                                            facilities=facilities)

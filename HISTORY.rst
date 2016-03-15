@@ -3,6 +3,14 @@
 History
 -------
 
+0.6.0 (2016-03-15)
+~~~~~~~~~~~~~~~~~~
+
+* Added private MCP support (compute only)
+* Updated Dockerfile to support parameters
+* Set 'finalize' (or 'finalise' for the English) as the new phrase for 'polish'
+* Removed coordinate and city lookups (we are adding 40 MCPs this year, I really don't want to maintain that list!)
+
 0.5.0 (2016-03-13)
 ~~~~~~~~~~~~~~~~~~
 
