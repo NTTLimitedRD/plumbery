@@ -326,6 +326,7 @@ class TestPlumberyFacility(unittest.TestCase):
         self.assertEqual(self.facility.lookup('*unknown*'), None)
 
     def test_settings(self):
+
         engine = PlumberyEngine(defaultsPlan)
         facility = engine.list_facility('EU6')[0]
         self.assertEqual(facility.get_setting('locationId'), 'EU6')
@@ -342,6 +343,7 @@ class TestPlumberyFacility(unittest.TestCase):
         self.assertEqual(coordinates, facility.get_coordinates('EU6'))
 
     def test_blueprints(self):
+
         engine = PlumberyEngine(defaultsPlan)
         facility = engine.list_facility('EU6')[0]
         blueprint = facility.get_blueprint('myBlueprint')

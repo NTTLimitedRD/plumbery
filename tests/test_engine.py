@@ -230,34 +230,6 @@ myFacility = {
     }
 
 
-myPrivatePlan = """
----
-safeMode: True
-apiHost: quasimoto.com
-locationId: NA9
-blueprints:
-
-  - myBlueprint:
-      domain:
-        name: myDC
-      ethernet:
-        accept:
-          - NA19::remoteNetwork
-      nodes:
-        - myServer:
-            default: bee
-            information:
-              - complementary information
-            memory: 5
-            cloud-config:
-              packages:
-                - smtp
-              runcmd:
-                - echo "world"
-
-"""
-
-
 class FakeLocation:
 
     id = 'EU7'
@@ -402,17 +374,6 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine.set_user_password('fake_password')
         self.assertEqual(engine.get_user_password(), 'fake_password')
-
-    def test_settings_private(self):
-        engine = PlumberyEngine()
-        engine.set_shared_secret('fake_secret')
-        engine.set_user_name('fake_name')
-        engine.set_user_password('fake_password')
-        engine.set_fittings(myPrivatePlan)
-        facilities = engine.list_facility('quasimoto.com')
-        self.assertEqual(len(facilities), 1)
-        facilities[0].power_on()
-        self.assertEqual(facilities[0].region.connection.host, 'quasimoto.com')
 
     def test_lifecycle(self):
 

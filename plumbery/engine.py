@@ -842,8 +842,7 @@ class PlumberyEngine(object):
                 matches.append(item)
 
         for facility in self.facilities:
-            if facility.get_setting('locationId') in location \
-             or facility.get_setting('apiHost') in location:
+            if facility.get_setting('locationId') in location:
                 matches.append(facility)
 
         return matches
@@ -1459,7 +1458,7 @@ class PlumberyEngine(object):
             facility.focus()
             facility.destroy_blueprint(names)
 
-    def get_compute_driver(self, region=None, host=None):
+    def get_compute_driver(self, region):
         """
         Loads a compute driver from Apache Libcloud
 
@@ -1467,15 +1466,12 @@ class PlumberyEngine(object):
 
         driver = get_compute_driver(ComputeProvider.DIMENSIONDATA)
 
-        instance = driver(
+        return driver(
             key=self.get_user_name(),
             secret=self.get_user_password(),
             region=region)
-        if host is not None:
-            instance.connection.host = host
-        return instance
 
-    def get_balancer_driver(self, region=None, host=None):
+    def get_balancer_driver(self, region):
         """
         Loads a load balancer driver from Apache Libcloud
 
@@ -1483,13 +1479,10 @@ class PlumberyEngine(object):
 
         driver = get_balancer_driver(BalancerProvider.DIMENSIONDATA)
 
-        instance = driver(
+        return driver(
             key=self.get_user_name(),
             secret=self.get_user_password(),
             region=region)
-        if host is not None:
-            instance.connection.host = host
-        return instance
 
     def lookup(self, token):
         """

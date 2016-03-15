@@ -22,6 +22,7 @@ from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
 from polisher import PlumberyPolisher
 from nodes import PlumberyNodes
+from text import PlumberyText, PlumberyContext
 
 __all__ = ['PlumberyFacility']
 
@@ -98,7 +99,7 @@ class PlumberyFacility(object):
         the engine level.
         """
 
-        mandatory = []
+        mandatory = ['locationId']
         for label in mandatory:
             if label not in self.settings:
                 value = self.plumbery.get_default(label)
@@ -107,9 +108,8 @@ class PlumberyFacility(object):
                                      .format(label))
                 self.settings[label] = value
 
-        if 'regionId' not in self.settings and 'locationId' in self.settings:
-            self.settings['regionId'] = self.get_region(
-                self.settings['locationId'])
+        if 'regionId' not in self.settings:
+            self.settings['regionId'] = self.get_region(self.settings['locationId'])
 
     def get_location_id(self):
         """
@@ -702,16 +702,14 @@ class PlumberyFacility(object):
         """
 
         regionId = self.get_setting('regionId')
-        host = self.get_setting('apiHost')
         locationId = self.get_setting('locationId')
 
         try:
 
             if self.region is None:
-                logging.debug("Getting driver for '%s / %s'", regionId, host)
+                logging.debug("Getting driver for '{}'".format(regionId))
                 self.region = self.plumbery.get_compute_driver(
-                    region=regionId,
-                    host=host)
+                    region=regionId)
 
                 if os.getenv('LIBCLOUD_HTTP_PROXY') is not None:
                     logging.debug('Setting proxy to %s' %
