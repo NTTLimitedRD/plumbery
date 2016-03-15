@@ -23,9 +23,67 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/nodejs.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    ---
+    locationId: EU6 # Frankfurt in Europe
+    regionId: dd-eu
+
+    blueprints:
+
+      - nodejs:
+
+          domain:
+            name: NodejsFox
+            service: essentials
+            ipv4: 2
+
+          ethernet:
+            name: nodejsfox.servers
+            subnet: 192.168.20.0
+
+          nodes:
+            - nodejs02:
+
+                cpu: 2
+                memory: 8
+                monitoring: essentials
+                glue:
+                  - internet 22 8080
+
+                information:
+                  - "open a browser at http://{{ node.public }}:8080/ to view it live"
+
+                cloud-config:
+                  disable_root: false
+                  ssh_pwauth: True
+
+                  bootcmd:
+                    - "curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -"
+
+                  packages:
+                    - ntp
+                    - git
+                    - nodejs
+
+                  write_files:
+
+                    - path: /root/hello.js
+                      content: |
+                        var http = require('http');
+                        http.createServer(function (req, res) {
+                          res.writeHead(200, {'Content-Type': 'text/html'});
+                          res.end('<h2>Hello World</h2>\nThis is a warm welcome from plumbery {{ plumbery.version }}');
+                        }).listen(8080, '0.0.0.0');
+                        console.log('Server running at http://{{ node.public }}:8080/');
+
+                  runcmd:
+                    - npm install pm2 -g
+                    - rm /etc/init.d/pm2-init.sh
+                    - pm2 startup
+                    - pm2 start /root/hello.js
+                    - pm2 save
 
 Deployment commands
 -------------------

@@ -25,9 +25,22 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/first.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    locationId: EU6
+    regionId: dd-eu
+
+    blueprints:
+
+      - myBluePrint:
+          domain:
+            name: myDC
+          ethernet:
+            name: myVLAN
+            subnet: 10.1.10.0
+          nodes:
+            - myServer
 
 In this example the server ``MyServer`` is placed in a
 network named ``MyNetwork``, and the network is part of a network
