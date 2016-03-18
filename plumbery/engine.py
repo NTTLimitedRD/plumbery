@@ -966,6 +966,7 @@ class PlumberyEngine(object):
             if blueprints is None:
                 self.stop_all_blueprints(facilities)
                 self.wipe_all_blueprints(facilities)
+                time.sleep(30)
                 self.build_all_blueprints(facilities)
                 self.start_all_blueprints(facilities)
                 self.polish_all_blueprints(filter='prepare',
@@ -975,6 +976,7 @@ class PlumberyEngine(object):
             else:
                 self.stop_blueprint(blueprints, facilities)
                 self.wipe_blueprint(blueprints, facilities)
+                time.sleep(30)
                 self.build_blueprint(blueprints, facilities)
                 self.start_blueprint(blueprints, facilities)
                 self.polish_blueprint(blueprints,
