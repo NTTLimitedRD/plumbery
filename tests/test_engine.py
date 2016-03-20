@@ -380,7 +380,7 @@ class TestPlumberyEngine(unittest.TestCase):
             'safeMode': False,
             'polishers': [
                 {'ansible': {}},
-                {'spit': {}},
+                {'configure': {}},
                 ]
             }
 

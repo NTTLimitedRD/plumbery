@@ -133,7 +133,7 @@ class PlumberyEngine(object):
 
         self.polishers = []
 
-        self.buildPolisher = 'spit'
+        self.buildPolisher = 'configure'
 
         self._sharedSecret = None
 

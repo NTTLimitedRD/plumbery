@@ -6,7 +6,7 @@ and ask plumbery to invoke it from the command line. Plumbery will look at every
 Functionally, it is equivalent to “for node in listAllNodes(): polish(node)”.
 
 For the time being, plumbery has 4 polishers:
-- spit – this polisher is launched automatically by plumbery when blueprints are built. It wait for nodes to be created, then assign IP public addresses, manages pools for load balancers, and the like
+- configure – this polisher is launched automatically by plumbery when blueprints are built. It wait for nodes to be created, then assign IP public addresses, manages pools for load balancers, and the like
 - ansible – this polisher builds an inventory file that can be used directly with ansible. Quite useful if ansible and plumbery have been installed on the same machine…
 - inventory – dump a YAML inventory of all known information about nodes. This could be put in a database, or used for inspection…
 - prepare – execute post-start commands via ssh
