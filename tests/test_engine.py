@@ -447,8 +447,8 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.do('polish', 'myBlueprint')
         engine.polish_blueprint('myBlueprint')
 
-        engine.do('refresh')
-        engine.do('refresh', 'myBlueprint')
+#        engine.do('refresh')
+#        engine.do('refresh', 'myBlueprint')
 
         engine.do('secrets')
 
@@ -501,7 +501,7 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(config['write_files'][0]['content'].count('toto'), 6)
 
         engine.do('deploy')
-        engine.do('refresh')
+#        engine.do('refresh')
         engine.do('dispose')
 
     def test_lookup(self):
