@@ -23,9 +23,67 @@ Fittings plan
 
 Copy the text below and put it in a text file named ``fittings.yaml``:
 
-.. literalinclude:: ../demos/apache2.yaml
-   :language: yaml
+.. code-block:: yaml
    :linenos:
+
+    locationId: EU6 # Frankfurt in Europe
+    regionId: dd-eu
+
+    blueprints:
+
+      - apache2:
+
+          domain:
+            name: Apache2Fox
+            description: "Demonstration of a standalone apache2 web server"
+            service: essentials
+            ipv4: 2
+
+          ethernet:
+            name: apache2fox.servers
+            subnet: 192.168.20.0
+
+          nodes:
+
+            - apache01:
+
+                cpu: 1
+                memory: 2
+
+                monitoring: essentials
+
+                glue:
+                  - internet 22 80
+
+                information:
+                  - "open a browser at http://{{ node.public }}/ to view it live"
+
+                cloud-config:
+
+                  disable_root: false
+                  ssh_pwauth: true
+
+                  packages:
+                    - ntp
+                    - apache2
+                    - libapache2-mod-php5
+
+                  write_files:
+
+                    - content: |
+                        <html>
+                         <head>
+                          <title>Hello World</title>
+                         </head>
+                         <body>
+                         <h1>Hello World</h1>
+                            <?php echo '<p>This is a warm welcome from plumbery {{ plumbery.version }}</p>'; ?>
+                         </body>
+                        </html>
+                      path: /var/www/html/index.php
+
+                  runcmd:
+                    - mv /var/www/html/index.html /var/www/html/index.html.deprecated
 
 Some notes on directives used in these fittings plan:
 
