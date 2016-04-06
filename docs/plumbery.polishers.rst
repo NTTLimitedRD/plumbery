@@ -13,6 +13,15 @@ plumbery.polishers.ansible module
     :show-inheritance:
     :noindex:
 
+plumbery.polishers.configure module
+-----------------------------------
+
+.. automodule:: plumbery.polishers.configure
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :noindex:
+
 plumbery.polishers.information module
 -------------------------------------
 
@@ -41,18 +50,9 @@ plumbery.polishers.ping module
     :noindex:
 
 plumbery.polishers.prepare module
------------------------------
+---------------------------------
 
 .. automodule:: plumbery.polishers.prepare
-    :members:
-    :undoc-members:
-    :show-inheritance:
-    :noindex:
-
-plumbery.polishers.spit module
-------------------------------
-
-.. automodule:: plumbery.polishers.spit
     :members:
     :undoc-members:
     :show-inheritance:

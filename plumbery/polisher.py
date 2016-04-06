@@ -41,11 +41,11 @@ class PlumberyPolisher(object):
         python file, and define a class that repeats the file name. For example
         the file::
 
-            plumbery\\polishers\\spit.py
+            plumbery\\polishers\\configure.py
 
         should contain::
 
-            class SpitPolisher(PlumberyPolisher):
+            class ConfigurePolisher(PlumberyPolisher):
             ...
 
         Once this is done properly, you can use the polisher by mentioning it
@@ -57,7 +57,7 @@ class PlumberyPolisher(object):
             ---
             safeMode: False
             polishers:
-              - spit:
+              - configure:
                   file: nodes.yaml
               - ansible:
                   file: inventory.yaml

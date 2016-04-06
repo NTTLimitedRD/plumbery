@@ -263,6 +263,10 @@ class TestPlumberyPolisher(unittest.TestCase):
         polisher = PlumberyPolisher.from_shelf('ansible', {})
         do_polish(polisher)
 
+    def test_configure(self):
+        polisher = PlumberyPolisher.from_shelf('configure', {})
+        do_polish(polisher)
+
     def test_information(self):
         polisher = PlumberyPolisher.from_shelf('information', {})
         do_polish(polisher)
@@ -278,10 +282,6 @@ class TestPlumberyPolisher(unittest.TestCase):
     def test_prepare(self):
         polisher = PlumberyPolisher.from_shelf(
             'prepare', fakePrepareConfiguration)
-        do_polish(polisher)
-
-    def test_spit(self):
-        polisher = PlumberyPolisher.from_shelf('spit', {})
         do_polish(polisher)
 
 if __name__ == '__main__':

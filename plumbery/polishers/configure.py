@@ -22,7 +22,7 @@ from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
 
 
-class SpitPolisher(PlumberyPolisher):
+class ConfigurePolisher(PlumberyPolisher):
     """
     Finalizes the setup of fittings
 
@@ -62,7 +62,7 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Spitting at blueprint '{}'".format(
+        logging.info("Configuring blueprint '{}'".format(
             container.blueprint['target']))
 
         if container.network is None:
@@ -363,7 +363,7 @@ class SpitPolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Spitting at node '{}'".format(settings['name']))
+        logging.info("Configuring node '{}'".format(settings['name']))
         if node is None:
             logging.info("- not found")
             return

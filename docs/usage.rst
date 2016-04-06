@@ -144,10 +144,10 @@ The table below presents succinctly all actions that are supported by plumbery.
   ============  =============================================================
   Action        Description
   ============  =============================================================
-  deploy        equivalent to: build + spit + start + prepare
+  deploy        equivalent to: build + configure + start + prepare
   dispose       equivalent to: stop + destroy
   build         create network domains, networks, and nodes
-  spit          adds public IP addresses, NAT and firewall rules
+  configure     adds public IP addresses, NAT and firewall rules
   start         start nodes
   prepare       contextualise nodes via ssh and cloud-init
   information   display information put in fittings plan
