@@ -3,7 +3,7 @@
 ###############
 
 FROM python:2.7
-ENV VERSION="0.6.0"
+ENV VERSION="0.7.0"
 ENV MCP_USERNAME=""
 ENV MCP_PASSWORD=""
 ENV SHARED_SECRET=""
