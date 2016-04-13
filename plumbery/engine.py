@@ -31,6 +31,8 @@ from libcloud.compute.providers import get_driver as get_compute_driver
 from libcloud.compute.types import Provider as ComputeProvider
 from libcloud.loadbalancer.providers import get_driver as get_balancer_driver
 from libcloud.loadbalancer.types import Provider as BalancerProvider
+from libcloud.backup.providers import get_driver as get_backup_driver
+from libcloud.backup.types import Provider as BackupProvider
 
 from exception import PlumberyException
 from facility import PlumberyFacility
@@ -1484,6 +1486,22 @@ class PlumberyEngine(object):
         """
 
         driver = get_balancer_driver(BalancerProvider.DIMENSIONDATA)
+
+        instance = driver(
+            key=self.get_user_name(),
+            secret=self.get_user_password(),
+            region=region)
+        if host is not None:
+            instance.connection.host = host
+        return instance
+
+    def get_backup_driver(self, region=None, host=None):
+        """
+        Loads a backup driver from Apache Libcloud
+
+        """
+
+        driver = get_backup_driver(BackupProvider.DIMENSIONDATA)
 
         instance = driver(
             key=self.get_user_name(),

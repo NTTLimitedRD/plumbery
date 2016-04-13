@@ -731,28 +731,42 @@ class PlumberyNodes(object):
         :type  backup: ``dict`` or ``str``
 
         """
-
+        default_email = self.backup.connection.get_account_details().email
         if isinstance(backup, basestring):
             backup = {
-                'plan': backup
+                'plan': backup,
+                'email': default_email,
+                'clients': [{
+                    'type': 'filesystem'
+                }]
             }
 
-        plan = backup['plan'].upper()
+        plan = backup['plan'].lower().capitalize()
         logging.info("Starting {} backup of node '{}'".format(
             plan.lower(), node.name))
 
-        if plan not in ['ESSENTIALS', 'ADVANCED', 'ENTERPRISE']:
+        if plan not in ['Essentials', 'Advanced', 'Enterprise']:
             logging.info("- backup should be "
                          "either 'essentials' or 'advanced'")
             return False
-        target = self.backup.create_target_from_node(
+        backup_details = None
+        try:
+            self.backup.create_target_from_node(
                         node,
                         extra={'servicePlan': plan})
-        while True:
+        except Exception as feedback:
+            if feedback.msg == 'Cloud backup for this server is already enabled or being enabled (state: NORMAL).':
+                logging.info("- already there")
+                backup_details = self.backup.ex_get_backup_details_for_target(node.id)
+            else:
+                logging.info("- unable to start backup")
+                logging.error(str(feedback))
+                return False
+
+        while backup_details is not None and backup_details.status is not 'NORMAL':
             try:
-                target = self.backup.ex_get_target_by_id(target.id)
-                logging.info("- in progress")
-                return True
+                backup_details = self.backup.ex_get_backup_details_for_target(node.id)
+                logging.info("- in progress, found asset %s", backup_details.asset_id)
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -775,7 +789,7 @@ class PlumberyNodes(object):
                     logging.error(str(feedback))
 
             break
-
+        target = self.backup.ex_get_target_by_id(node.id)
         storage_policies = self.backup.ex_list_available_storage_policies(
             target=target
         )
@@ -787,11 +801,13 @@ class PlumberyNodes(object):
         )
         clients = backup.get('clients', [{'type': 'filesystem'}])
         for client in clients:
+            logging.info("- adding backup client")
+
             client_type = client.get('type', 'filesystem').lower()
             storage_policy = client.get('storagePolicy', '14 Day Storage Policy').lower()
             schedule_policy = client.get('schedulePolicy', '12AM - 6AM').lower()
-            trigger = client.get('trigger', 'ON_SUCCESS_OR_FAILURE')
-            email = client.get('email', '')
+            trigger = client.get('trigger', 'ON_FAILURE')
+            email = client.get('email', default_email)
 
             storage_policy = [x for x in storage_policies
                               if x.name.lower() == storage_policy][0]
