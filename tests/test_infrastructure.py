@@ -7,10 +7,10 @@ Tests for `infrastructure` module.
 import unittest
 
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
+from libcloud.backup.drivers.dimensiondata import DimensionDataBackupDriver
 from mock_api import DimensionDataMockHttp
 
 from plumbery.engine import PlumberyEngine
-from plumbery.facility import PlumberyFacility
 from plumbery.infrastructure import PlumberyInfrastructure
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
@@ -73,9 +73,11 @@ class FakeFacility:
 
     DimensionDataNodeDriver.connectionCls.conn_classes = (
         None, DimensionDataMockHttp)
+    DimensionDataBackupDriver.connectionCls.conn_classes = (
+        None, DimensionDataMockHttp)
     DimensionDataMockHttp.type = None
     region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
-
+    backup = DimensionDataBackupDriver(*DIMENSIONDATA_PARAMS)
     location = FakeLocation()
 
     _cache_network_domains = []

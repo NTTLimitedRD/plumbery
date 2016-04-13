@@ -811,7 +811,6 @@ class PlumberyNodes(object):
                 trigger=trigger,
                 email=email
             )
-=
 
     def start_node(self, node):
         """
