@@ -81,6 +81,7 @@ class PlumberyFacility(object):
         # first call to the API is done in self.power_on()
         self.region = None
         self.location = None
+        self.backup = None
 
         self._cache_images = []
         self._cache_network_domains = []
@@ -644,11 +645,16 @@ class PlumberyFacility(object):
                 self.region = self.plumbery.get_compute_driver(
                     region=regionId,
                     host=host)
+                self.backup = self.plumbery.get_backup_driver(
+                    region=regionId,
+                    host=host)
 
                 if os.getenv('LIBCLOUD_HTTP_PROXY') is not None:
                     logging.debug('Setting proxy to %s' %
                                   (os.getenv('LIBCLOUD_HTTP_PROXY')))
                     self.region.connection.set_http_proxy(
+                        proxy_url=os.getenv('LIBCLOUD_HTTP_PROXY'))
+                    self.backup.connection.set_http_proxy(
                         proxy_url=os.getenv('LIBCLOUD_HTTP_PROXY'))
                     logging.debug('Disabling SSL verification')
                     import libcloud.security

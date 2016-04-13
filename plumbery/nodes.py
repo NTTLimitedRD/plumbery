@@ -65,6 +65,7 @@ class PlumberyNodes(object):
         # handle to parent parameters and functions
         self.facility = facility
         self.region = facility.region
+        self.backup = facility.backup
         self.plumbery = facility.plumbery
 
     def __repr__(self):
@@ -718,6 +719,99 @@ class PlumberyNodes(object):
                 break
 
         return False
+
+    def _configure_backup(self, node, backup):
+        """
+        Configure backup on a node
+
+        :param node: the target node
+        :type node: :class:`libcloud.compute.base.Node`
+
+        :param backup: The backup settings
+        :type  backup: ``dict`` or ``str``
+
+        """
+
+        if isinstance(backup, basestring):
+            backup = {
+                'plan': backup
+            }
+
+        plan = backup['plan'].upper()
+        logging.info("Starting {} backup of node '{}'".format(
+            plan.lower(), node.name))
+
+        if plan not in ['ESSENTIALS', 'ADVANCED', 'ENTERPRISE']:
+            logging.info("- backup should be "
+                         "either 'essentials' or 'advanced'")
+            return False
+        target = self.backup.create_target_from_node(
+                        node,
+                        extra={'servicePlan': plan})
+        while True:
+            try:
+                target = self.backup.ex_get_target_by_id(target.id)
+                logging.info("- in progress")
+                return True
+
+            except Exception as feedback:
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'RETRYABLE_SYSTEM_ERROR' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                elif 'NO_CHANGE' in str(feedback):
+                    logging.info("- already there")
+
+                elif 'RESOURCE_LOCKED' in str(feedback):
+                    logging.info("- unable to start backup "
+                                 "- node has been locked")
+
+                else:
+                    logging.info("- unable to start backup")
+                    logging.error(str(feedback))
+
+            break
+
+        storage_policies = self.backup.ex_list_available_storage_policies(
+            target=target
+        )
+        schedule_policies = self.backup.ex_list_available_schedule_policies(
+            target=target
+        )
+        client_types = self.backup.ex_list_available_client_types(
+            target=target
+        )
+        clients = backup.get('clients', [{'type': 'filesystem'}])
+        for client in clients:
+            client_type = client.get('type', 'filesystem').lower()
+            storage_policy = client.get('storagePolicy', '14 Day Storage Policy').lower()
+            schedule_policy = client.get('schedulePolicy', '12AM - 6AM').lower()
+            trigger = client.get('trigger', 'ON_SUCCESS_OR_FAILURE')
+            email = client.get('email', '')
+
+            storage_policy = [x for x in storage_policies
+                              if x.name.lower() == storage_policy][0]
+            schedule_policy = [x for x in schedule_policies
+                               if x.name.lower() == schedule_policy][0]
+
+            if client_type in ['file', 'filesystem']:
+                client = [x for x in client_types if x.is_file_system][0]
+            else:
+                client = [x for x in client_types
+                          if x.description.startswith(client_type)][0]
+            self.backup.ex_add_client_to_target(
+                target=target,
+                client_type=client,
+                storage_policy=storage_policy,
+                schedule_policy=schedule_policy,
+                trigger=trigger,
+                email=email
+            )
+=
 
     def start_node(self, node):
         """

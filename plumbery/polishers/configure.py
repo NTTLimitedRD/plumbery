@@ -433,6 +433,9 @@ class ConfigurePolisher(PlumberyPolisher):
         if 'monitoring' in settings:
             self.nodes._start_monitoring(node, settings['monitoring'])
 
+        if 'backup' in settings:
+            self.nodes._configure_backup(node, settings['backup'])
+
         if 'glue' in settings:
             container._attach_node(node, settings['glue'])
 

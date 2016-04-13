@@ -26,7 +26,7 @@ from libcloud.common.dimensiondata import DimensionDataFirewallRule
 from libcloud.common.dimensiondata import DimensionDataFirewallAddress
 from libcloud.common.dimensiondata import TYPES_URN
 
-from libcloud.utils.xml import fixxpath, findtext, findall
+from libcloud.utils.xml import findall
 
 from exception import PlumberyException
 
