@@ -92,7 +92,8 @@ class PlumberyNodes(object):
         if ('nodes' not in blueprint
                 or not isinstance(blueprint['nodes'], list)):
 
-            logging.info("No nodes have been defined")
+            logging.debug("No nodes have been defined in '{}'".format(
+                blueprint['target']))
             return
 
         for item in blueprint['nodes']:
@@ -186,20 +187,62 @@ class PlumberyNodes(object):
                     logging.info("- missing Ethernet network")
                     continue
 
+                primary_ipv4 = None
+                if 'glue' in settings:
+                    for line in settings['glue']:
+
+                        tokens = line.strip(' ').split(' ')
+                        token = tokens.pop(0)
+
+                        if token != container.network.name:
+                            continue
+
+                        if len(tokens) < 1:
+                            break
+
+                        logging.info("Glueing node '{}' to network '{}'"
+                                     .format(label, token))
+
+                        numbers = tokens.pop(0).strip('.').split('.')
+                        subnet = container.network.private_ipv4_range_address.split('.')
+                        while len(numbers) < 4:
+                            numbers.insert(0, subnet[3-len(numbers)])
+
+                        primary_ipv4 = '.'.join(numbers)
+                        logging.debug("- using address '{}'"
+                                      .format(primary_ipv4))
+
+                        break
+
                 while True:
 
                     try:
-                        self.region.create_node(
-                            name=label,
-                            image=image,
-                            auth=NodeAuthPassword(
-                                self.plumbery.get_shared_secret()),
-                            ex_network_domain=container.domain,
-                            ex_vlan=container.network,
-                            ex_cpu_specification=cpu,
-                            ex_memory_gb=memory,
-                            ex_is_started=False,
-                            ex_description=description)
+                        if primary_ipv4 is not None:
+                            self.region.create_node(
+                                name=label,
+                                image=image,
+                                auth=NodeAuthPassword(
+                                    self.plumbery.get_shared_secret()),
+                                ex_network_domain=container.domain,
+                                ex_primary_ipv4=primary_ipv4,
+                                ex_cpu_specification=cpu,
+                                ex_memory_gb=memory,
+                                ex_is_started=False,
+                                ex_description=description)
+
+                        else:
+                            self.region.create_node(
+                                name=label,
+                                image=image,
+                                auth=NodeAuthPassword(
+                                    self.plumbery.get_shared_secret()),
+                                ex_network_domain=container.domain,
+                                ex_vlan=container.network,
+                                ex_cpu_specification=cpu,
+                                ex_memory_gb=memory,
+                                ex_is_started=False,
+                                ex_description=description)
+
                         logging.info("- in progress")
 
                     except Exception as feedback:
