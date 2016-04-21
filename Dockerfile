@@ -27,7 +27,7 @@ ADD plumbery plumbery
 
 # Get pip to download and install requirements:
 RUN pip install requests
-RUN pip install apache-libcloud=1.0.0-rc2
+RUN pip install apache-libcloud==1.0.0-rc2
 RUN pip install PyYAML
 RUN pip install paramiko
 RUN pip install netifaces
