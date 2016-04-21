@@ -194,7 +194,8 @@ class PlumberyNodes(object):
                         tokens = line.strip(' ').split(' ')
                         token = tokens.pop(0)
 
-                        if token != container.network.name:
+                        if (token != container.network.name and
+                            token.lower() != 'primary'):
                             continue
 
                         if len(tokens) < 1:

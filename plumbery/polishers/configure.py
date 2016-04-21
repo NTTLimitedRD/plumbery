@@ -401,11 +401,14 @@ class ConfigurePolisher(PlumberyPolisher):
             tokens = line.strip(' ').split(' ')
             token = tokens.pop(0)
 
-            if token == 'internet':
+            if token.lower() == 'internet':
                 self.attach_node_to_internet(node, tokens)
                 continue
 
             if token == self.container.blueprint['ethernet']['name']:
+                continue
+
+            if token.lower() == 'primary':
                 continue
 
             logging.info("Glueing node '{}' to network '{}'"
