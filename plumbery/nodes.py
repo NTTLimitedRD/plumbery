@@ -215,6 +215,7 @@ class PlumberyNodes(object):
 
                         break
 
+                should_start = False
                 while True:
 
                     try:
@@ -228,7 +229,7 @@ class PlumberyNodes(object):
                                 ex_primary_ipv4=primary_ipv4,
                                 ex_cpu_specification=cpu,
                                 ex_memory_gb=memory,
-                                ex_is_started=False,
+                                ex_is_started=should_start,
                                 ex_description=description)
 
                         else:
@@ -241,10 +242,36 @@ class PlumberyNodes(object):
                                 ex_vlan=container.network,
                                 ex_cpu_specification=cpu,
                                 ex_memory_gb=memory,
-                                ex_is_started=False,
+                                ex_is_started=should_start,
                                 ex_description=description)
 
                         logging.info("- in progress")
+
+                        if should_start:  # stop the node after start
+
+                            logging.info("- waiting for node to be deployed")
+                            node = None
+                            while True:
+                                node = self.get_node(label)
+                                if node is None:
+                                    logging.info("- aborted - missing node '{}'".format(label))
+                                    return
+
+                                if node.extra['status'].action is None:
+                                    break
+
+                                if (node is not None
+                                        and node.extra['status'].failure_reason is not None):
+
+                                    logging.info("- aborted - failed deployment "
+                                                 "of node '{}'".format(label))
+                                    return
+
+                                time.sleep(20)
+
+                            if node is not None:
+                                self.region.ex_shutdown_graceful(node)
+                                logging.info("- shutting down after deployment")
 
                     except Exception as feedback:
 
@@ -259,6 +286,12 @@ class PlumberyNodes(object):
                         elif 'RESOURCE_LOCKED' in str(feedback):
                             logging.info("- not now - locked")
                             logging.error(str(feedback))
+
+                        elif ('INVALID_INPUT_DATA: Cannot deploy server '
+                              'with Software Labels in the "Stopped" state.' in
+                              str(feedback)):
+                              is_started = True
+                              continue
 
                         else:
                             logging.info("- unable to create node")
