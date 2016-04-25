@@ -1130,6 +1130,9 @@ class PlumberyNodes(object):
                     time.sleep(10)
                     continue
 
+                elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                    logging.info("- not found")
+
                 elif 'RESOURCE_LOCKED' in str(feedback):
                     logging.info("- not now - locked")
 
