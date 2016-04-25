@@ -23,7 +23,10 @@ from plumbery import __version__
 
 def parse_args(args=[]):
     """
-    Attempts to guess the intention of the runner of this program
+    Guesses the intention of the runner of this program
+
+    :param args: arguments to be considered for this invocation
+    :type args: a list of ``str``
 
     You have to run the following command to know more::
 
@@ -124,9 +127,15 @@ def parse_args(args=[]):
     return args
 
 
-def main(args=[], engine=None):
+def main(args=None, engine=None):
     """
     Runs plumbery from the command line
+
+    :param args: arguments to be considered for this invocation
+    :type args: a list of ``str``
+
+    :param engine: an instance of the plumbery engine
+    :type engine: :class:`plumbery.PlumberEngine`
 
     Example::
 
@@ -168,9 +177,9 @@ def main(args=[], engine=None):
 
         $ python -m plumbery fittings.yaml build @NA12
 
-    To apply a polisher just mention its name on the command line. For example,
-    if fittings plan has a blueprint for nodes running Docker, then you may
-    use following statements to bootstrap each node::
+    To focus on one blueprint just mention its name on the command line.
+    For example, if fittings plan has a blueprint for nodes running Docker,
+    then you may use following statements to bootstrap each node::
 
         $ python -m plumbery fittings.yaml build docker
         $ python -m plumbery fittings.yaml start docker
@@ -191,6 +200,9 @@ def main(args=[], engine=None):
 
     # part 1 - understand what the user wants
 
+    if args is None:
+        args = sys.argv[1:]
+
     try:
         args = parse_args(args)
 
@@ -205,7 +217,7 @@ def main(args=[], engine=None):
                 str(feedback)))
         sys.exit(2)
 
-    # part 2 - acquire the toolbox
+    # part 2 - get a valid and configured engine
 
     if engine is None:
         try:
@@ -249,7 +261,7 @@ def main(args=[], engine=None):
 
 if __name__ == "__main__":
     try:
-        main(sys.argv[1:])
+        main()
     except KeyboardInterrupt:
         logging.info("Aborted by user")
         sys.exit(0)
