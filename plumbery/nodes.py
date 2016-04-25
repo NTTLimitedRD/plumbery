@@ -307,8 +307,8 @@ class PlumberyNodes(object):
                         elif ('INVALID_INPUT_DATA: Cannot deploy server '
                               'with Software Labels in the "Stopped" state.' in
                               str(feedback)):
-                              is_started = True
-                              continue
+                            should_start = True
+                            continue
 
                         else:
                             logging.info("- unable to create node")
