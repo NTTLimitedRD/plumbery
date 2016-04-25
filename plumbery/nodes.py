@@ -16,6 +16,8 @@
 import logging
 import re
 import time
+from socket import error as SocketError
+import errno
 
 from libcloud.compute.base import NodeAuthPassword
 from libcloud.compute.base import NodeState
@@ -25,6 +27,7 @@ from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
 from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
+from util import retry
 
 __all__ = ['PlumberyNodes']
 
@@ -217,6 +220,7 @@ class PlumberyNodes(object):
 
                         break
 
+                retries = 2
                 should_start = False
                 while True:
 
@@ -274,6 +278,17 @@ class PlumberyNodes(object):
                             if node is not None:
                                 self.region.ex_shutdown_graceful(node)
                                 logging.info("- shutting down after deployment")
+
+                    except SocketError as feedback:
+
+                        if feedback.errno == errno.ECONNRESET and retries > 0:
+                            retries -= 1
+                            time.sleep(10)
+                            continue
+
+                        else:
+                            logging.info("- unable to create node")
+                            logging.error(str(feedback))
 
                     except Exception as feedback:
 
@@ -484,6 +499,7 @@ class PlumberyNodes(object):
 
         return labels
 
+    @retry(SocketError)
     def get_node(self, path):
         """
         Retrieves a node by name
