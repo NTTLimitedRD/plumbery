@@ -252,6 +252,7 @@ class FakeFacility:
 
     plumbery = PlumberyEngine()
     region = FakeRegion()
+    backup = None
 
     def list_nodes(self):
         return ['mongo_mongos01', 'mongo_mongos02']
