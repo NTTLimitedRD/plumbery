@@ -418,7 +418,7 @@ class ConfigurePolisher(PlumberyPolisher):
                 logging.info("- network '{}' is unknown".format(token))
                 continue
 
-            private_ipv4 = None
+            kwargs = {}
             if len(tokens) > 0:
 
                 numbers = tokens.pop(0).strip('.').split('.')
@@ -428,18 +428,18 @@ class ConfigurePolisher(PlumberyPolisher):
 
                 private_ipv4 = '.'.join(numbers)
                 logging.debug("- using address '{}'".format(private_ipv4))
+                kwargs['private_ipv4'] = private_ipv4
 
             if self.engine.safeMode:
                 logging.info("- skipped - safe mode")
                 continue
 
+            if 'private_ipv4' not in kwargs:
+                kwargs['vlan'] = vlan
+
             while True:
                 try:
-                    if private_ipv4 is not None:
-                        self.region.ex_attach_node_to_vlan(
-                            node, private_ipv4=private_ipv4)
-                    else:
-                        self.region.ex_attach_node_to_vlan(node, vlan=vlan)
+                    self.region.ex_attach_node_to_vlan(node, **kwargs)
                     logging.info("- in progress")
                     hasChanged = True
 
