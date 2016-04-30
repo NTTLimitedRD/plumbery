@@ -124,7 +124,9 @@ class ConfigurePolisher(PlumberyPolisher):
                     cpu.cpu_count))
                 changed = True
 
-            if int(cpu.cores_per_socket) != int(node.extra['cpu'].cores_per_socket):
+            if (int(cpu.cores_per_socket) !=
+                    int(node.extra['cpu'].cores_per_socket)):
+
                 logging.info("- changing to {} core(s) per socket".format(
                     cpu.cores_per_socket))
                 changed = True
@@ -386,8 +388,8 @@ class ConfigurePolisher(PlumberyPolisher):
         with the attribute ``ipv4``. In the example above, 6 addresses are
         assigned to the network domain, of which 3 are given to web nodes.
 
-        If one or multiple numbers are mentioned after the keyword `internet`, they
-        are used to configure the firewall appropriately.
+        If one or multiple numbers are mentioned after the keyword `internet`,
+        they are used to configure the firewall appropriately.
 
         """
 

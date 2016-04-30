@@ -562,13 +562,13 @@ class PlumberyNodes(object):
             self.facility.power_on()
 
             try:
-                remoteLocation = self.region.ex_get_location_by_id(path[0])
+                self.region.ex_get_location_by_id(path[0])
             except IndexError:
                 logging.warning("'{}' is unknown".format(path[0]))
                 return None
 
             logging.debug("Looking for remote node '{}'"
-                         .format('::'.join(path)))
+                          .format('::'.join(path)))
 
             for node in self.region.list_nodes():
 
@@ -847,8 +847,8 @@ class PlumberyNodes(object):
         backup_details = None
         try:
             self.backup.create_target_from_node(
-                        node,
-                        extra={'servicePlan': plan})
+                node,
+                extra={'servicePlan': plan})
         except Exception as feedback:
             if feedback.msg == 'Cloud backup for this server is already enabled or being enabled (state: NORMAL).':
                 logging.info("- already there")
@@ -858,7 +858,8 @@ class PlumberyNodes(object):
                 logging.error(str(feedback))
                 return False
 
-        while backup_details is not None and backup_details.status is not 'NORMAL':
+        while (backup_details is not None and
+               backup_details.status is not 'NORMAL'):
             try:
                 backup_details = self.backup.ex_get_backup_details_for_target(node.id)
                 logging.info("- in progress, found asset %s", backup_details.asset_id)
@@ -899,8 +900,10 @@ class PlumberyNodes(object):
             logging.info("- adding backup client")
 
             client_type = client.get('type', 'filesystem').lower()
-            storage_policy = client.get('storagePolicy', '14 Day Storage Policy').lower()
-            schedule_policy = client.get('schedulePolicy', '12AM - 6AM').lower()
+            storage_policy = client.get(
+                'storagePolicy', '14 Day Storage Policy').lower()
+            schedule_policy = client.get(
+                'schedulePolicy', '12AM - 6AM').lower()
             trigger = client.get('trigger', 'ON_FAILURE')
             email = client.get('email', default_email)
 

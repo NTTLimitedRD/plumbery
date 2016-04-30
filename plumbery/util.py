@@ -17,6 +17,7 @@ import logging
 import time
 from functools import wraps
 
+
 def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=logging):
     """Retry calling the decorated function using an exponential backoff.
 

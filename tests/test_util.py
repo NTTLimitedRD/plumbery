@@ -8,7 +8,6 @@ http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
 """
 
 import logging
-import os
 import unittest
 
 from plumbery.util import retry

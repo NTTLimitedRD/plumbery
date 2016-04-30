@@ -61,7 +61,8 @@ def parse_args(args=[]):
              "If omitted, all locations will be considered.",
         default=None)
 
-    parser.add_argument('-p', '--parameters',
+    parser.add_argument(
+        '-p', '--parameters',
         help='Parameters for this fittings plan')
 
     parser.add_argument(
