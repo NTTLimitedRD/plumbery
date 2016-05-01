@@ -101,6 +101,7 @@ def parse_args(args=[]):
         print(args.version)
 
     args.fittings = args.fittings[0]
+    logging.debug("- loading '{}'".format(args.fittings))
 
     args.action = args.action[0].lower()
 
