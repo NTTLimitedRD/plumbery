@@ -364,6 +364,8 @@ class PlumberyEngine(object):
                 logging.debug("- {}: {}".format(key, self.defaults[key]))
 
         if 'information' in settings:
+            if isinstance(settings['information'], str):
+                settings['information'] = settings['information'].split('\n')
             if not isinstance(settings['information'], list):
                 raise TypeError('information should be a list')
 

@@ -85,10 +85,16 @@ class InformationPolisher(PlumberyPolisher):
 
         environment = PlumberyContext(context=self.facility)
 
+        if ('information' in facility.settings and
+                istype(facility.settings['information'], str)):
+
+            facility.settings['information'] = \
+                facility.settings['information'].split('\n')
+
         lines = []
-        if ('information' in facility.settings
-                and isinstance(facility.settings['information'], list)
-                and len(facility.settings['information']) > 0):
+        if ('information' in facility.settings and
+                isinstance(facility.settings['information'], list) and
+                len(facility.settings['information']) > 0):
 
             for line in facility.settings['information']:
 
@@ -122,10 +128,16 @@ class InformationPolisher(PlumberyPolisher):
                                           container=container,
                                           context=self.facility)
 
+        if ('information' in container.blueprint.keys() and
+                istype(container.blueprint['information'], str)):
+
+            container.blueprint['information'] = \
+                container.blueprint['information'].split('\n')
+
         lines = []
-        if ('information' in container.blueprint.keys()
-                and isinstance(container.blueprint['information'], list)
-                and len(container.blueprint['information']) > 0):
+        if ('information' in container.blueprint.keys() and
+                isinstance(container.blueprint['information'], list) and
+                len(container.blueprint['information']) > 0):
 
             for line in container.blueprint['information']:
 
@@ -164,6 +176,12 @@ class InformationPolisher(PlumberyPolisher):
         environment = PlumberyNodeContext(node=node,
                                           container=container,
                                           context=self.facility)
+
+        if ('information' in settings and
+                istype(settings['information'], str)):
+
+            settings['information'] = \
+                settings['information'].split('\n')
 
         information = []
         if ('information' in settings
