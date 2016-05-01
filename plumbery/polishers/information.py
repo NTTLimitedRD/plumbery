@@ -89,7 +89,7 @@ class InformationPolisher(PlumberyPolisher):
                 isinstance(facility.settings['information'], str)):
 
             facility.settings['information'] = \
-                facility.settings['information'].split('\n')
+                facility.settings['information'].strip('\n').split('\n')
 
         lines = []
         if ('information' in facility.settings and
@@ -132,7 +132,7 @@ class InformationPolisher(PlumberyPolisher):
                 isinstance(container.blueprint['information'], str)):
 
             container.blueprint['information'] = \
-                container.blueprint['information'].split('\n')
+                container.blueprint['information'].strip('\n').split('\n')
 
         lines = []
         if ('information' in container.blueprint.keys() and
@@ -181,7 +181,7 @@ class InformationPolisher(PlumberyPolisher):
                 isinstance(settings['information'], str)):
 
             settings['information'] = \
-                settings['information'].split('\n')
+                settings['information'].strip('\n').split('\n')
 
         information = []
         if ('information' in settings

@@ -365,7 +365,8 @@ class PlumberyEngine(object):
 
         if 'information' in settings:
             if isinstance(settings['information'], str):
-                settings['information'] = settings['information'].split('\n')
+                settings['information'] = \
+                    settings['information'].strip('\n').split('\n')
             if not isinstance(settings['information'], list):
                 raise TypeError('information should be a list')
 
