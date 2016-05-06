@@ -42,7 +42,7 @@ def parse_args(args=[]):
     parser.add_argument(
         'fittings',
         nargs=1,
-        help='File that is containing fittings plan')
+        help="File that is containing fittings plan, or '-' to read stdin")
 
     parser.add_argument(
         'action',

@@ -19,6 +19,7 @@ import os
 import random
 import requests
 import string
+import sys
 import time
 import uuid
 import yaml
@@ -278,6 +279,9 @@ class PlumberyEngine(object):
             if plan.startswith(("https://", "http://")):
                 response = requests.get(plan)
                 plan = response.text
+
+            elif plan == '-':
+                plan = sys.stdin.read()
 
             elif '\n' not in plan:
                 plan = open(plan, 'r').read()
