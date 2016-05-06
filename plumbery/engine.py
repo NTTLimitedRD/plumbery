@@ -272,17 +272,15 @@ class PlumberyEngine(object):
 
         if isinstance(plan, str):
 
+            # hash reference to the fittings plan, not content of it
+            self.secretsId = MD5.new(plan).hexdigest()
+
             if plan.startswith(("https://", "http://")):
                 response = requests.get(plan)
                 plan = response.text
-                self.secretsId = MD5.new(plan).hexdigest()
 
             elif '\n' not in plan:
                 plan = open(plan, 'r').read()
-                self.secretsId = MD5.new(plan).hexdigest()
-
-            else:
-                self.secretsId = MD5.new(plan).hexdigest()
 
             # load default values for parameters
             parameters = self.get_parameters()
