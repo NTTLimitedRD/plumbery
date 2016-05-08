@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import io
 import hashlib
 import logging
 import os
 import random
 import requests
 import string
+import sys
 import time
 import uuid
 import yaml
@@ -186,7 +186,8 @@ class PlumberyEngine(object):
             if key not in self.parameters:
                 self.parameters[key] = {}
             self.parameters[key]['value'] = parameters[key]
-            logging.debug("- {}: {}".format(key, self.parameters[key]['value']))
+            logging.debug("- {}: {}".format(
+                key, self.parameters[key]['value']))
 
     def get_parameters(self):
         """
@@ -225,7 +226,8 @@ class PlumberyEngine(object):
             return self.parameters[label]['value']
 
         if 'default' not in self.parameters[label]:
-            raise ValueError("Parameter '{}' has no default value".format(label))
+            raise ValueError("Parameter '{}' has no default value"
+                             .format(label))
 
         return self.parameters[label]['default']
 
@@ -271,17 +273,18 @@ class PlumberyEngine(object):
 
         if isinstance(plan, str):
 
+            # hash reference to the fittings plan, not content of it
+            self.secretsId = MD5.new(plan).hexdigest()
+
             if plan.startswith(("https://", "http://")):
                 response = requests.get(plan)
                 plan = response.text
-                self.secretsId = MD5.new(plan).hexdigest()
 
-            elif not '\n' in plan:
+            elif plan == '-':
+                plan = sys.stdin.read()
+
+            elif '\n' not in plan:
                 plan = open(plan, 'r').read()
-                self.secretsId = MD5.new(plan).hexdigest()
-
-            else:
-                self.secretsId = MD5.new(plan).hexdigest()
 
             # load default values for parameters
             parameters = self.get_parameters()
@@ -363,6 +366,9 @@ class PlumberyEngine(object):
                 logging.debug("- {}: {}".format(key, self.defaults[key]))
 
         if 'information' in settings:
+            if isinstance(settings['information'], str):
+                settings['information'] = \
+                    settings['information'].strip('\n').split('\n')
             if not isinstance(settings['information'], list):
                 raise TypeError('information should be a list')
 
@@ -386,19 +392,19 @@ class PlumberyEngine(object):
 
                 if 'information' not in settings['parameters'][key]:
                     raise ValueError("Parameter '{}' has no information"
-                        .format(key))
+                                     .format(key))
                 self.parameters[key]['information'] = \
                     settings['parameters'][key]['information']
 
                 if 'type' not in settings['parameters'][key]:
                     raise ValueError("Parameter '{}' has no type"
-                        .format(key))
+                                     .format(key))
                 self.parameters[key]['type'] = \
                     settings['parameters'][key]['type']
 
                 if 'default' not in settings['parameters'][key]:
                     raise ValueError("Parameter '{}' has no default value"
-                        .format(key))
+                                     .format(key))
                 self.parameters[key]['default'] = \
                     settings['parameters'][key]['default']
                 logging.debug("- {}: {}".format(
@@ -844,8 +850,8 @@ class PlumberyEngine(object):
                 matches.append(item)
 
         for facility in self.facilities:
-            if facility.get_setting('locationId') in location \
-             or facility.get_setting('apiHost') in location:
+            if (facility.get_setting('locationId') in location or
+                    facility.get_setting('apiHost') in location):
                 matches.append(facility)
 
         return matches
@@ -955,7 +961,7 @@ class PlumberyEngine(object):
                 self.stop_blueprint(blueprints, facilities)
                 self.destroy_blueprint(blueprints, facilities)
 
-        elif action == 'polish' or action == 'finalize' or action == 'finalise':
+        elif action in ('polish', 'finalize', 'finalise'):
             if blueprints is None:
                 self.polish_all_blueprints(filter=None,
                                            facilities=facilities)

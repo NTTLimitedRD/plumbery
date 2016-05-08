@@ -5,7 +5,6 @@ Tests for `polisher` module.
 """
 
 from collections import namedtuple
-import logging
 import unittest
 
 from mock_api import DimensionDataMockHttp
@@ -14,7 +13,6 @@ from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 from libcloud.compute.types import NodeState
 
 from plumbery.engine import PlumberyEngine
-from plumbery.facility import PlumberyFacility
 from plumbery.infrastructure import PlumberyInfrastructure
 from plumbery.nodes import PlumberyNodes
 from plumbery.polisher import PlumberyPolisher

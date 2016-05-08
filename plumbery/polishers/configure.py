@@ -32,6 +32,7 @@ class ConfigurePolisher(PlumberyPolisher):
     - number of CPU
     - quantity of RAM
     - monitoring
+    - network interfaces
 
     """
 
@@ -68,6 +69,8 @@ class ConfigurePolisher(PlumberyPolisher):
         if container.network is None:
             logging.info("- aborted - no network here")
             return
+
+        self.container = container
 
         logging.info("- waiting for nodes to be deployed")
 
@@ -121,7 +124,9 @@ class ConfigurePolisher(PlumberyPolisher):
                     cpu.cpu_count))
                 changed = True
 
-            if int(cpu.cores_per_socket) != int(node.extra['cpu'].cores_per_socket):
+            if (int(cpu.cores_per_socket) !=
+                    int(node.extra['cpu'].cores_per_socket)):
+
                 logging.info("- changing to {} core(s) per socket".format(
                     cpu.cores_per_socket))
                 changed = True
@@ -348,6 +353,218 @@ class ConfigurePolisher(PlumberyPolisher):
 
             break
 
+    def attach_node(self, node, networks):
+        """
+        Glues a node to multiple networks
+
+        :param node: the target node
+        :type node: :class:`libcloud.compute.base.Node`
+
+        :param networks: a list of networks to connect, and ``internet``
+        :type networks: list of ``str``
+
+        This function adds network interfaces to a node, or adds address
+        translation to the public Internet.
+
+        Example in the fittings plan::
+
+          - web:
+              domain:
+                ipv4: 6
+              ethernet:
+                name: gigafox.data
+              nodes:
+                - web[10..12]:
+                    glue:
+                      - gigafox.control
+                      - internet 80 443
+
+        In this example, another network interface is added to each node for
+        connection to the Ethernet network ``gigafox.control``.
+
+        Also, public IPv4 addresses are mapped on private addresses, so that
+        each node web10, web11 and web12 is reachable from the internet.
+        Public IPv4 addresses are taken from pool declared at the domain level,
+        with the attribute ``ipv4``. In the example above, 6 addresses are
+        assigned to the network domain, of which 3 are given to web nodes.
+
+        If one or multiple numbers are mentioned after the keyword `internet`,
+        they are used to configure the firewall appropriately.
+
+        """
+
+        hasChanged = False
+
+        if node is None:
+            return hasChanged
+
+        for line in networks:
+
+            tokens = line.strip(' ').split(' ')
+            token = tokens.pop(0)
+
+            if token.lower() == 'internet':
+                self.attach_node_to_internet(node, tokens)
+                continue
+
+            if token == self.container.blueprint['ethernet']['name']:
+                continue
+
+            if token.lower() == 'primary':
+                continue
+
+            logging.info("Glueing node '{}' to network '{}'"
+                         .format(node.name, token))
+            vlan = self.container.get_ethernet(token.split('::'))
+            if vlan is None:
+                logging.info("- network '{}' is unknown".format(token))
+                continue
+
+            kwargs = {}
+            if len(tokens) > 0:
+
+                numbers = tokens.pop(0).strip('.').split('.')
+                subnet = vlan.private_ipv4_range_address.split('.')
+                while len(numbers) < 4:
+                    numbers.insert(0, subnet[3-len(numbers)])
+
+                private_ipv4 = '.'.join(numbers)
+                logging.debug("- using address '{}'".format(private_ipv4))
+                kwargs['private_ipv4'] = private_ipv4
+
+            if self.engine.safeMode:
+                logging.info("- skipped - safe mode")
+                continue
+
+            if 'private_ipv4' not in kwargs:
+                kwargs['vlan'] = vlan
+
+            while True:
+                try:
+                    self.region.ex_attach_node_to_vlan(node, **kwargs)
+                    logging.info("- in progress")
+                    hasChanged = True
+
+                except Exception as feedback:
+
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
+
+                    elif 'INVALID_INPUT_DATA' in str(feedback):
+                        logging.info("- already there")
+
+                    else:
+                        logging.info("- unable to glue node")
+                        logging.error(str(feedback))
+
+                break
+
+        return hasChanged
+
+    def attach_node_to_internet(self, node, ports=[]):
+        """
+        Adds address translation for one node
+
+        :param node: node that has to be reachable from the internet
+        :type node: :class:`libcloud.common.Node`
+
+        :param ports: the ports that have to be opened
+        :type ports: a list of ``str``
+
+        """
+
+        logging.info("Making node '{}' reachable from the internet"
+                     .format(node.name))
+
+        domain = self.container.get_network_domain(
+            self.container.blueprint['domain']['name'])
+
+        internal_ip = node.private_ips[0]
+
+        external_ip = None
+        for rule in self.region.ex_list_nat_rules(domain):
+            if rule.internal_ip == internal_ip:
+                external_ip = rule.external_ip
+                logging.info("- node is reachable at '{}'".format(external_ip))
+
+        if self.engine.safeMode:
+            logging.info("- skipped - safe mode")
+            return
+
+        if external_ip is None:
+            external_ip = self.container._get_ipv4()
+
+            if external_ip is None:
+                logging.info("- no more ipv4 address available -- assign more")
+                return
+
+            while True:
+                try:
+                    self.region.ex_create_nat_rule(
+                        domain,
+                        internal_ip,
+                        external_ip)
+                    logging.info("- node is reachable at '{}'".format(
+                        external_ip))
+
+                except Exception as feedback:
+                    if 'RESOURCE_BUSY' in str(feedback):
+                        time.sleep(10)
+                        continue
+
+                    elif 'RESOURCE_LOCKED' in str(feedback):
+                        logging.info("- not now - locked")
+                        return
+
+                    else:
+                        logging.info("- unable to add address translation")
+                        logging.error(str(feedback))
+
+                break
+
+        candidates = self.container._list_candidate_firewall_rules(node, ports)
+
+        for rule in self.container._list_firewall_rules():
+
+            if rule.name in candidates.keys():
+                logging.info("Creating firewall rule '{}'"
+                             .format(rule.name))
+                logging.info("- already there")
+                candidates = {k: candidates[k]
+                              for k in candidates if k != rule.name}
+
+        for name, rule in candidates.items():
+
+            logging.info("Creating firewall rule '{}'"
+                         .format(name))
+
+            if self.engine.safeMode:
+                logging.info("- skipped - safe mode")
+
+            else:
+
+                try:
+
+                    self.container._ex_create_firewall_rule(
+                        network_domain=domain,
+                        rule=rule,
+                        position='LAST')
+
+                    logging.info("- in progress")
+
+                except Exception as feedback:
+
+                    if 'NAME_NOT_UNIQUE' in str(feedback):
+                        logging.info("- already there")
+
+                    else:
+                        logging.info("- unable to create firewall rule")
+                        logging.error(str(feedback))
+
     def shine_node(self, node, settings, container):
         """
         Finalizes setup of one node
@@ -437,6 +654,6 @@ class ConfigurePolisher(PlumberyPolisher):
             self.nodes._configure_backup(node, settings['backup'])
 
         if 'glue' in settings:
-            container._attach_node(node, settings['glue'])
+            self.attach_node(node, settings['glue'])
 
         container._add_to_pool(node)

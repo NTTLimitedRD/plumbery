@@ -6,12 +6,8 @@ Tests for `text` module.
 
 import unittest
 import yaml
-from mock_api import DimensionDataMockHttp
-
-from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 from plumbery.engine import PlumberyEngine
-from plumbery.facility import PlumberyFacility
 from plumbery.text import PlumberyText, PlumberyContext, PlumberyNodeContext
 from plumbery import __version__
 
@@ -252,6 +248,7 @@ class FakeFacility:
 
     plumbery = PlumberyEngine()
     region = FakeRegion()
+    backup = None
 
     def list_nodes(self):
         return ['mongo_mongos01', 'mongo_mongos02']

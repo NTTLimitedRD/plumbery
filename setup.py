@@ -43,6 +43,9 @@ setup(
     package_dir={'plumbery': 'plumbery'},
     include_package_data=True,
     install_requires=requirements,
+    entry_points = {
+        'console_scripts': ['plumbery=plumbery.__main__:main'],
+    },
     license='Apache License (2.0)',
     zip_safe=False,
     keywords='plumbery',

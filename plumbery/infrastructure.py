@@ -1067,197 +1067,6 @@ class PlumberyInfrastructure(object):
                 logging.info("- unable to destroy membership")
                 logging.error(str(feedback))
 
-    def _attach_node(self, node, networks):
-        """
-        Glues a node to multiple networks
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param networks: a list of networks to connect, and ``internet``
-        :type networks: list of ``str``
-
-        This function adds network interfaces to a node, or adds address
-        translation to the public Internet.
-
-        Example in the fittings plan::
-
-          - web:
-              domain:
-                ipv4: 6
-              ethernet:
-                name: gigafox.data
-              nodes:
-                - web[10..12]:
-                    glue:
-                      - gigafox.control
-                      - internet 80 443
-
-        In this example, another network interface is added to each node for
-        connection to the Ethernet network ``gigafox.control``.
-
-        Also, public IPv4 addresses are mapped on private addresses, so that
-        each node web10, web11 and web12 is reachable from the internet.
-        Public IPv4 addresses are taken from pool declared at the domain level,
-        with the attribute ``ipv4``. In the example above, 6 addresses are
-        assigned to the network domain, of which 3 are given to web nodes.
-
-        If one or multiple numbers are mentioned after the network name, they
-        are used to configure the firewall appropriately.
-
-        """
-
-        hasChanged = False
-
-        if node is None:
-            return hasChanged
-
-        for line in networks:
-
-            tokens = line.split(' ')
-            label = tokens.pop(0)
-
-            if self.plumbery.safeMode:
-                logging.info("Glueing node '{}' to network '{}'"
-                             .format(node.name, label))
-                logging.info("- skipped - safe mode")
-                continue
-
-            if label == 'internet':
-                self._attach_node_to_internet(node, tokens)
-                continue
-
-            logging.info("Glueing node '{}' to network '{}'"
-                         .format(node.name, label))
-            target = self.get_ethernet(label.split('::'))
-            if target is None:
-                logging.info("- network '{}' is unknown".format(label))
-                continue
-
-            while True:
-                try:
-                    self.region.ex_attach_node_to_vlan(node, target)
-                    logging.info("- in progress")
-                    hasChanged = True
-
-                except Exception as feedback:
-
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
-
-                    elif 'INVALID_INPUT_DATA' in str(feedback):
-                        logging.info("- already there")
-
-                    else:
-                        logging.info("- unable to glue node")
-                        logging.error(str(feedback))
-
-                break
-
-        return hasChanged
-
-    def _attach_node_to_internet(self, node, ports=[]):
-        """
-        Adds address translation for one node
-
-        :param node: node that has to be reachable from the internet
-        :type node: :class:`libcloud.common.Node`
-
-        :param ports: the ports that have to be opened
-        :type ports: a list of ``str``
-
-        """
-
-        domain = self.get_network_domain(self.blueprint['domain']['name'])
-
-        internal_ip = node.private_ips[0]
-
-        external_ip = None
-        for rule in self.region.ex_list_nat_rules(domain):
-            if rule.internal_ip == internal_ip:
-                external_ip = rule.external_ip
-                logging.info("Making node '{}' reachable from the internet"
-                             .format(node.name))
-                logging.info("- node is reachable at '{}'".format(external_ip))
-
-        if external_ip is None:
-            external_ip = self._get_ipv4()
-
-            if external_ip is None:
-                logging.info("Making node '{}' reachable from the internet"
-                             .format(node.name))
-                logging.info("- no more ipv4 address available -- assign more")
-                return
-
-            logging.info("Making node '{}' reachable from the internet"
-                         .format(node.name))
-            while True:
-                try:
-                    self.region.ex_create_nat_rule(
-                        domain,
-                        internal_ip,
-                        external_ip)
-                    logging.info("- node is reachable at '{}'".format(
-                        external_ip))
-
-                except Exception as feedback:
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
-                        return
-
-                    else:
-                        logging.info("- unable to add address translation")
-                        logging.error(str(feedback))
-
-                break
-
-        candidates = self._list_candidate_firewall_rules(node, ports)
-
-        for rule in self._list_firewall_rules():
-
-            if rule.name in candidates.keys():
-                logging.info("Creating firewall rule '{}'"
-                             .format(rule.name))
-                logging.info("- already there")
-                candidates = {k: candidates[k]
-                              for k in candidates if k != rule.name}
-
-        for name, rule in candidates.items():
-
-            logging.info("Creating firewall rule '{}'"
-                         .format(name))
-
-            if self.plumbery.safeMode:
-                logging.info("- skipped - safe mode")
-
-            else:
-
-                try:
-
-                    self._ex_create_firewall_rule(
-                        network_domain=domain,
-                        rule=rule,
-                        position='LAST')
-
-                    logging.info("- in progress")
-
-                except Exception as feedback:
-
-                    if 'NAME_NOT_UNIQUE' in str(feedback):
-                        logging.info("- already there")
-
-                    else:
-                        logging.info("- unable to create firewall rule")
-                        logging.error(str(feedback))
-
     def _detach_node_from_internet(self, node):
         """
         Destroys address translation for one node
@@ -1843,14 +1652,18 @@ class PlumberyInfrastructure(object):
                 ip_address=network.private_ipv4_range_address,
                 ip_prefix_size=network.private_ipv4_range_size,
                 port_begin=None,
-                port_end=None)
+                port_end=None,
+                address_list_id=None,
+                port_list_id=None)
 
             destinationIPv4 = DimensionDataFirewallAddress(
                 any_ip=False,
                 ip_address=external_ip,
                 ip_prefix_size=None,
                 port_begin=port_begin,
-                port_end=port_end)
+                port_end=port_end,
+                address_list_id=None,
+                port_list_id=None)
 
             ruleIPv4 = DimensionDataFirewallRule(
                 id=uuid4(),

@@ -78,6 +78,7 @@ class FakeRegion:
 
 class FakeFacility:
 
+    backup = None
     _cache_network_domains = []
     _cache_vlans = []
 

@@ -442,4 +442,23 @@ class PlumberyNodeContext:
             else:
                 return ''
 
+        ethernet = self.container.get_ethernet(tokens[1])
+        if ethernet is not None:
+
+            if tokens[2] == 'gateway':
+
+                if len(tokens) > 3 and tokens[3] == 'ipv6':
+                    return ethernet.ipv6_gateway
+
+                else:
+                    return ethernet.ipv4_gateway
+
+            elif tokens[2] == 'netmask':
+
+                if len(tokens) > 3 and tokens[3] == 'ipv6':
+                    return ethernet.ipv6_range_size
+
+                else:
+                    return ethernet.private_ipv4_range_address
+
         return None
