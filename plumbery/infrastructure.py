@@ -1598,6 +1598,68 @@ class PlumberyInfrastructure(object):
                                                    destination,
                                                    protocol)
 
+    @classmethod
+    def parse_firewall_port(cls, port):
+        """
+        Parses port definition for a firewall rule
+
+        :param port: string definition of a target port
+        :type port: ``str``
+
+        :return: elements of the port definition
+
+        This function analyses the provided string and returns
+        a tuple that can be used for firewall configuration.
+
+        Some examples:
+        >>>container.parse_firewall_port('icmp')
+        ('ICMP', 'any', None, None)
+        >>>container.parse_firewall_port('tcp:80')
+        ('TCP', '80', '80', None)
+        >>>container.parse_firewall_port(':80')
+        ('TCP', '80', '80', None)
+        >>>container.parse_firewall_port('80')
+        ('TCP', '80', '80', None)
+        >>>container.parse_firewall_port('udp:137..138')
+        ('UDP', '137..138', '137', '138')
+        >>>container.parse_firewall_port('any')
+        ('TCP', 'any', None, None)
+
+        """
+
+        protocols = ('ip', 'icmp', 'tcp', 'udp')
+
+        tokens = port.lower()strip(':').split(':')
+        if len(tokens) > 1:  # example: 'TCP:80'
+            protocol = tokens[0].upper()
+            port = tokens[1]
+
+        elif tokens[0] in protocols:  # example: 'icmp'
+            protocol = tokens[0].upper()
+            port = 'any'
+
+        else:  # example: '80'
+            protocol = 'TCP'
+            port = tokens[0]
+
+        if protocol.lower() not in protocols:
+            raise ValueError("'{}' is not a valid protocol"
+                             .format(protocol))
+
+        tokens = port.split('..')
+        if len(tokens) == 1:
+            if tokens[0].lower() == 'any':
+                port_begin = None
+            else:
+                port_begin = tokens[0]
+            port_end = None
+
+        else:
+            port_begin = tokens[0]
+            port_end = tokens[1]
+
+        return (protocol, port, port_begin, port_end)
+
     def _list_candidate_firewall_rules(self, node, ports=[]):
         """
         Lists rules that should apply to one node
@@ -1630,22 +1692,12 @@ class PlumberyInfrastructure(object):
 
         for port in ports:
 
-            tokens = port.split('..')
-            if len(tokens) == 1:
-                if tokens[0].lower() == 'any':
-                    port_begin = None
-                else:
-                    port_begin = tokens[0]
-                port_end = None
-                port = tokens[0]
-            else:
-                port_begin = tokens[0]
-                port_end = tokens[1]
-                port = port_begin+'..'+port_end
+            protocol, port, port_begin, port_end = \
+                self.parse_firewall_port(port)
 
             ruleIPv4Name = self.name_firewall_rule(
                 'Internet',
-                node.name, 'TCPv4_'+port)
+                node.name, protocol+'v4_'+port)
 
             sourceIPv4 = DimensionDataFirewallAddress(
                 any_ip=True,
@@ -1673,7 +1725,7 @@ class PlumberyInfrastructure(object):
                 network_domain=network.network_domain,
                 status='NORMAL',
                 ip_version='IPV4',
-                protocol='TCP',
+                protocol=protocol,
                 enabled='true',
                 source=sourceIPv4,
                 destination=destinationIPv4)

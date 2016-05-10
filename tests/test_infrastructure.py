@@ -152,6 +152,26 @@ class TestPlumberyInfrastructure(unittest.TestCase):
     def tearDown(self):
         self.infrastructure = None
 
+    def test_parse_firewall_port(self):
+
+        elements = self.infrastructure.parse_firewall_port('icmp')
+        self.assertEqual(elements, ('ICMP', 'any', None, None))
+
+        elements = self.infrastructure.parse_firewall_port('tcp:80')
+        self.assertEqual(elements, ('TCP', '80', '80', None))
+
+        elements = self.infrastructure.parse_firewall_port(':80')
+        self.assertEqual(elements, ('TCP', '80', '80', None))
+
+        elements = self.infrastructure.parse_firewall_port('80')
+        self.assertEqual(elements, ('TCP', '80', '80', None))
+
+        elements = self.infrastructure.parse_firewall_port('udp:137..138')
+        self.assertEqual(elements, ('UDP', '137..138', '137', '138'))
+
+        elements = self.infrastructure.parse_firewall_port('any')
+        self.assertEqual(elements, ('TCP', 'any', None, None))
+
     def test_build(self):
         self.infrastructure.build(fakeBluePrint)
 
