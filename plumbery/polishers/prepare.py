@@ -172,13 +172,14 @@ class PreparePolisher(PlumberyPolisher):
         """
 
         if self.engine.safeMode:
-            return
+            return True
 
         while True:
             try:
                 self.region.ex_update_vm_tools(node=node)
 
                 logging.info("- upgrading vmware tools")
+                return True
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -189,10 +190,13 @@ class PreparePolisher(PlumberyPolisher):
                     time.sleep(10)
                     continue
 
+                if 'NO_CHANGE' in str(feedback):
+                    logging.debug("- vmware tools is already up-to-date")
+                    return True
+
                 logging.info("- unable to upgrade vmware tools")
                 logging.error(str(feedback))
-
-            break
+                return False
 
     def _apply_prepares(self, node, steps):
         """
