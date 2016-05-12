@@ -123,6 +123,7 @@ class FakeFacility():
     plumbery = FakeEngine()
     settings = fakeFacilitySettings
     region = FakeRegion()
+    backup = None
 
     def __repr__(self):
         return "<FakeFacility fittings: {}>".format(self.fittings)
