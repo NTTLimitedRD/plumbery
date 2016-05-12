@@ -1629,7 +1629,7 @@ class PlumberyInfrastructure(object):
 
         protocols = ('ip', 'icmp', 'tcp', 'udp')
 
-        tokens = port.lower()strip(':').split(':')
+        tokens = port.lower().strip(':').split(':')
         if len(tokens) > 1:  # example: 'TCP:80'
             protocol = tokens[0].upper()
             port = tokens[1]
