@@ -24,7 +24,7 @@ from plumbery.nodes import PlumberyNodes
 
 class ConfigurePolisher(PlumberyPolisher):
     """
-    Finalizes the setup of fittings
+    Configures various elements in fittings plan
 
     This polisher looks at each node in sequence, and adjust settings
     according to fittings plan. This is covering various features that
@@ -52,7 +52,7 @@ class ConfigurePolisher(PlumberyPolisher):
 
     def shine_container(self, container):
         """
-        prepares a container until it shines
+        Configures a container
 
         :param container: the container to be polished
         :type container: :class:`plumbery.PlumberyInfrastructure`
