@@ -1333,14 +1333,18 @@ class PlumberyInfrastructure(object):
             ip_address=destination.private_ipv4_range_address,
             ip_prefix_size=destination.private_ipv4_range_size,
             port_begin=None,
-            port_end=None)
+            port_end=None,
+            address_list_id=None,
+            port_list_id=None)
 
         destinationIPv6 = DimensionDataFirewallAddress(
             any_ip=False,
             ip_address=destination.ipv6_range_address,
             ip_prefix_size=destination.ipv6_range_size,
             port_begin=None,
-            port_end=None)
+            port_end=None,
+            address_list_id=None,
+            port_list_id=None)
 
         for item in self.blueprint['ethernet']['accept']:
 
@@ -1409,7 +1413,9 @@ class PlumberyInfrastructure(object):
                         ip_address=source.private_ipv4_range_address,
                         ip_prefix_size=source.private_ipv4_range_size,
                         port_begin=None,
-                        port_end=None)
+                        port_end=None,
+                        address_list_id=None,
+                        port_list_id=None)
 
                     ruleIPv4 = DimensionDataFirewallRule(
                         id=uuid4(),
@@ -1457,7 +1463,9 @@ class PlumberyInfrastructure(object):
                         ip_address=source.ipv6_range_address,
                         ip_prefix_size=source.ipv6_range_size,
                         port_begin=None,
-                        port_end=None)
+                        port_end=None,
+                        address_list_id=None,
+                        port_list_id=None)
 
                     ruleIPv6 = DimensionDataFirewallRule(
                         id=uuid4(),
