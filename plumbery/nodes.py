@@ -484,6 +484,10 @@ class PlumberyNodes(object):
         """
         matches = re.match(r'(.*)\[([0-9]+)..([0-9]+)\](.*)', label)
         if matches is None:
+            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$",
+                label) is None:
+                logging.warning("Warning: '{}' is not a valid hostname"
+                                .format(label))
             return [label]
 
         labels = []
