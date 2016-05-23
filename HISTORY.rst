@@ -3,6 +3,11 @@
 History
 -------
 
+0.8.1 (2016-05-23)
+~~~~~~~~~~~~~~~~~~
+
+* Remove windows line endings from unix shell fixtures.
+
 0.8.0 (2016-04-13)
 ~~~~~~~~~~~~~~~~~~
 
