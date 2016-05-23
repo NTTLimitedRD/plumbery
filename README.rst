@@ -12,6 +12,21 @@ Plumbery
         :target: https://readthedocs.org/projects/plumbery/?badge=latest
         :alt: Documentation Status
 
+.. image:: https://img.shields.io/pypi/v/plumbery.svg?maxAge=2592000
+   :target: https://pypi.python.org/pypi/plumbery
+   
+.. image:: https://img.shields.io/pypi/l/plumbery.svg?maxAge=2592000
+   :target: https://pypi.python.org/pypi/plumbery
+   
+.. image:: https://img.shields.io/pypi/pyversions/plumbery.svg?maxAge=2592000
+   :target: https://pypi.python.org/pypi/plumbery
+   
+.. image:: https://readthedocs.org/projects/plumbery/badge/?version=latest
+   :target: http://plumbery.readthedocs.io/en/latest/?badge=latest
+   
+.. image:: https://coveralls.io/repos/github/DimensionDataCBUSydney/plumbery/badge.svg?branch=master
+   :target: https://coveralls.io/github/DimensionDataCBUSydney/plumbery?branch=master
+
 
 Infrastructure as code at Dimension Data with Apache Libcloud
 
