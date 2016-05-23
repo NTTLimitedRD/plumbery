@@ -23,13 +23,13 @@ DIMENSIONDATA_PARAMS = ('user', 'password')
 
 myParameters = {
 
-  'locationId': 'NA9',
+    'locationId': 'NA9',
 
-  'domainName': 'justInTimeDomain',
+    'domainName': 'justInTimeDomain',
 
-  'networkName': 'justInTimeNetwork'
+    'networkName': 'justInTimeNetwork'
 
-  }
+    }
 
 myPlan = """
 ---
@@ -581,14 +581,17 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(args.blueprints, ['web'])
         self.assertEqual(args.facilities, None)
 
-        args = parse_args(['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml'])
+        args = parse_args(
+            ['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml'])
         self.assertEqual(args.parameters, 'parameters.yaml')
 
-        args = parse_args(['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml', '-s'])
+        args = parse_args(
+            ['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml', '-s'])
         self.assertEqual(args.parameters, 'parameters.yaml')
         self.assertEqual(args.safe, True)
 
-        args = parse_args(['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml', '-d'])
+        args = parse_args(
+            ['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml', '-d'])
         self.assertEqual(args.parameters, 'parameters.yaml')
         self.assertEqual(args.debug, True)
 

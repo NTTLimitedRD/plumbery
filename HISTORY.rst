@@ -6,7 +6,11 @@ History
 0.8.0 (2016-04-13)
 ~~~~~~~~~~~~~~~~~~
 
+<<<<<<< HEAD
 * Added support for cloud backup
+=======
+* Add the capability to backup nodes
+>>>>>>> 86f6ada7e5fc0eaef921871831c94b3d145174cb
 
 0.7.0 (2016-04-06)
 ~~~~~~~~~~~~~~~~~~

@@ -16,6 +16,8 @@
 import logging
 import re
 import time
+from socket import error as SocketError
+import errno
 
 from libcloud.compute.base import NodeAuthPassword
 from libcloud.compute.base import NodeState
@@ -25,6 +27,7 @@ from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
 from exception import PlumberyException
 from infrastructure import PlumberyInfrastructure
+from util import retry
 
 __all__ = ['PlumberyNodes']
 
@@ -92,7 +95,8 @@ class PlumberyNodes(object):
         if ('nodes' not in blueprint
                 or not isinstance(blueprint['nodes'], list)):
 
-            logging.info("No nodes have been defined")
+            logging.debug("No nodes have been defined in '{}'".format(
+                blueprint['target']))
             return
 
         for item in blueprint['nodes']:
@@ -186,21 +190,105 @@ class PlumberyNodes(object):
                     logging.info("- missing Ethernet network")
                     continue
 
+                primary_ipv4 = None
+                if 'glue' in settings:
+                    for line in settings['glue']:
+
+                        tokens = line.strip(' ').split(' ')
+                        token = tokens.pop(0)
+
+                        if token.lower() == 'primary':
+                            token = container.network.name
+
+                        if token != container.network.name:
+                            continue
+
+                        if len(tokens) < 1:
+                            break
+
+                        logging.info("Glueing node '{}' to network '{}'"
+                                     .format(label, token))
+
+                        numbers = tokens.pop(0).strip('.').split('.')
+                        subnet = container.network.private_ipv4_range_address.split('.')
+                        while len(numbers) < 4:
+                            numbers.insert(0, subnet[3-len(numbers)])
+
+                        primary_ipv4 = '.'.join(numbers)
+                        logging.debug("- using address '{}'"
+                                      .format(primary_ipv4))
+
+                        break
+
+                retries = 2
+                should_start = False
                 while True:
 
                     try:
-                        self.region.create_node(
-                            name=label,
-                            image=image,
-                            auth=NodeAuthPassword(
-                                self.plumbery.get_shared_secret()),
-                            ex_network_domain=container.domain,
-                            ex_vlan=container.network,
-                            ex_cpu_specification=cpu,
-                            ex_memory_gb=memory,
-                            ex_is_started=False,
-                            ex_description=description)
+                        if primary_ipv4 is not None:
+                            self.region.create_node(
+                                name=label,
+                                image=image,
+                                auth=NodeAuthPassword(
+                                    self.plumbery.get_shared_secret()),
+                                ex_network_domain=container.domain,
+                                ex_primary_ipv4=primary_ipv4,
+                                ex_cpu_specification=cpu,
+                                ex_memory_gb=memory,
+                                ex_is_started=should_start,
+                                ex_description=description)
+
+                        else:
+                            self.region.create_node(
+                                name=label,
+                                image=image,
+                                auth=NodeAuthPassword(
+                                    self.plumbery.get_shared_secret()),
+                                ex_network_domain=container.domain,
+                                ex_vlan=container.network,
+                                ex_cpu_specification=cpu,
+                                ex_memory_gb=memory,
+                                ex_is_started=should_start,
+                                ex_description=description)
+
                         logging.info("- in progress")
+
+                        if should_start:  # stop the node after start
+
+                            logging.info("- waiting for node to be deployed")
+                            node = None
+                            while True:
+                                node = self.get_node(label)
+                                if node is None:
+                                    logging.info("- aborted - missing node '{}'".format(label))
+                                    return
+
+                                if node.extra['status'].action is None:
+                                    break
+
+                                if (node is not None
+                                        and node.extra['status'].failure_reason is not None):
+
+                                    logging.info("- aborted - failed deployment "
+                                                 "of node '{}'".format(label))
+                                    return
+
+                                time.sleep(20)
+
+                            if node is not None:
+                                self.region.ex_shutdown_graceful(node)
+                                logging.info("- shutting down after deployment")
+
+                    except SocketError as feedback:
+
+                        if feedback.errno == errno.ECONNRESET and retries > 0:
+                            retries -= 1
+                            time.sleep(10)
+                            continue
+
+                        else:
+                            logging.info("- unable to create node")
+                            logging.error(str(feedback))
 
                     except Exception as feedback:
 
@@ -215,6 +303,12 @@ class PlumberyNodes(object):
                         elif 'RESOURCE_LOCKED' in str(feedback):
                             logging.info("- not now - locked")
                             logging.error(str(feedback))
+
+                        elif ('INVALID_INPUT_DATA: Cannot deploy server '
+                              'with Software Labels in the "Stopped" state.' in
+                              str(feedback)):
+                            should_start = True
+                            continue
 
                         else:
                             logging.info("- unable to create node")
@@ -405,6 +499,7 @@ class PlumberyNodes(object):
 
         return labels
 
+    @retry(SocketError)
     def get_node(self, path):
         """
         Retrieves a node by name
@@ -467,13 +562,13 @@ class PlumberyNodes(object):
             self.facility.power_on()
 
             try:
-                remoteLocation = self.region.ex_get_location_by_id(path[0])
+                self.region.ex_get_location_by_id(path[0])
             except IndexError:
                 logging.warning("'{}' is unknown".format(path[0]))
                 return None
 
             logging.debug("Looking for remote node '{}'"
-                         .format('::'.join(path)))
+                          .format('::'.join(path)))
 
             for node in self.region.list_nodes():
 
@@ -752,8 +847,8 @@ class PlumberyNodes(object):
         backup_details = None
         try:
             self.backup.create_target_from_node(
-                        node,
-                        extra={'servicePlan': plan})
+                node,
+                extra={'servicePlan': plan})
         except Exception as feedback:
             if feedback.msg == 'Cloud backup for this server is already enabled or being enabled (state: NORMAL).':
                 logging.info("- already there")
@@ -763,7 +858,8 @@ class PlumberyNodes(object):
                 logging.error(str(feedback))
                 return False
 
-        while backup_details is not None and backup_details.status is not 'NORMAL':
+        while (backup_details is not None and
+               backup_details.status is not 'NORMAL'):
             try:
                 backup_details = self.backup.ex_get_backup_details_for_target(node.id)
                 logging.info("- in progress, found asset %s", backup_details.asset_id)
@@ -804,8 +900,10 @@ class PlumberyNodes(object):
             logging.info("- adding backup client")
 
             client_type = client.get('type', 'filesystem').lower()
-            storage_policy = client.get('storagePolicy', '14 Day Storage Policy').lower()
-            schedule_policy = client.get('schedulePolicy', '12AM - 6AM').lower()
+            storage_policy = client.get(
+                'storagePolicy', '14 Day Storage Policy').lower()
+            schedule_policy = client.get(
+                'schedulePolicy', '12AM - 6AM').lower()
             trigger = client.get('trigger', 'ON_FAILURE')
             email = client.get('email', default_email)
 
@@ -1034,6 +1132,9 @@ class PlumberyNodes(object):
                 elif 'RESOURCE_BUSY' in str(feedback):
                     time.sleep(10)
                     continue
+
+                elif 'RESOURCE_NOT_FOUND' in str(feedback):
+                    logging.info("- not found")
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
                     logging.info("- not now - locked")

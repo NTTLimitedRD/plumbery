@@ -22,7 +22,6 @@ import netifaces
 
 from libcloud.compute.base import NodeState
 from libcloud.compute.deployment import Deployment
-from libcloud.compute.deployment import FileDeployment
 from libcloud.compute.deployment import MultiStepDeployment
 from libcloud.compute.deployment import ScriptDeployment
 from libcloud.compute.deployment import SSHKeyDeployment
@@ -88,8 +87,8 @@ class PreparePolisher(PlumberyPolisher):
     Bootstraps nodes via ssh
 
     This polisher looks at each node in sequence, and contact selected nodes
-    via ssh to prepare them. The goal here is to accelerate post-creation tasks as
-    much as possible.
+    via ssh to prepare them. The goal here is to accelerate post-creation
+    tasks as much as possible.
 
     Bootstrapping steps can consist of multiple tasks:
 
@@ -116,8 +115,9 @@ class PreparePolisher(PlumberyPolisher):
         regionId: dd-eu
         ...
 
-    Plumbery will only prepare nodes that have been configured for it. The example
-    below demonstrates how this can be done for multiple docker containers::
+    Plumbery will only prepare nodes that have been configured for it. The
+    example below demonstrates how this can be done for multiple docker
+    containers::
 
         # some docker resources
         - docker:
@@ -134,8 +134,8 @@ class PreparePolisher(PlumberyPolisher):
                   prepare: *docker
 
 
-    In the real life when you have to prepare any appliance, you need to be close
-    to the stuff and to touch it. This is the same for virtual fittings.
+    In the real life when you have to prepare any appliance, you need to be
+    close to the stuff and to touch it. This is the same for virtual fittings.
     This polisher has the need to communicate directly with target
     nodes over the network.
 

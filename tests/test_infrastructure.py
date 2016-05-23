@@ -117,6 +117,9 @@ defaults:
       rsa_public: "{{ pair1.ssh.rsa_public }}"
 
 ---
+
+basement: central
+
 blueprints:
 
   - myBlueprint:
@@ -127,6 +130,16 @@ blueprints:
         subnet: 10.1.10.0
       nodes:
         - myServer:
+            glue:
+              - primary .11
+              - centralVLAN .12
+
+  - central:
+      domain:
+        name: myDC
+      ethernet:
+        name: centralVLAN
+        subnet: 10.2.10.0
 """
 
 
