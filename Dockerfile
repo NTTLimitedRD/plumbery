@@ -26,11 +26,7 @@ RUN git clone -b $VERSION --single-branch https://github.com/DimensionDataCBUSyd
 ADD plumbery plumbery
 
 # Get pip to download and install requirements:
-RUN pip install requests
-RUN pip install apache-libcloud==1.0.0-rc2
-RUN pip install PyYAML
-RUN pip install paramiko
-RUN pip install netifaces
+RUN pip install requests apache-libcloud==1.0.0-rc2 PyYAML paramiko netifaces pywinexe
 
 # install winexe for remote windows commands.
 RUN wget http://download.opensuse.org/repositories/home:/uibmz:/opsi:/opsi40-testing/xUbuntu_12.04/amd64/winexe_1.00.1-1_amd64.deb && sudo dpkg --install winexe_1.00.1-1_amd64.deb
