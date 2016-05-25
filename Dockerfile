@@ -32,6 +32,9 @@ RUN pip install PyYAML
 RUN pip install paramiko
 RUN pip install netifaces
 
+# install winexe for remote windows commands.
+RUN wget http://download.opensuse.org/repositories/home:/uibmz:/opsi:/opsi40-testing/xUbuntu_12.04/amd64/winexe_1.00.1-1_amd64.deb && sudo dpkg --install winexe_1.00.1-1_amd64.deb
+
 # Set the default directory where CMD will execute
 WORKDIR plumbery
 
