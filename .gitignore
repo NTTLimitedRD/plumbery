@@ -18,4 +18,4 @@ plumbery.egg-info/
 .pydevproject
 .settings
 .DS_Store
-
+.eggs/

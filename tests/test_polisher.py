@@ -122,6 +122,7 @@ fakeFacilitySettings = {
 class FakeFacility():
     plumbery = FakeEngine()
     settings = fakeFacilitySettings
+    backup = None
     region = FakeRegion()
 
     def __repr__(self):

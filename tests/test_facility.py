@@ -318,9 +318,6 @@ class TestPlumberyFacility(unittest.TestCase):
         self.facility.destroy_blueprint('fake')
 
     def test_lookup(self):
-#        self.assertEqual(self.facility.lookup('location.city'), 'Ashburn')
-#        self.assertEqual(self.facility.lookup('location.coordinates'),
-#                         [39.04372, -77.48749])
         self.assertEqual(self.facility.lookup('location.country'), 'US')
         self.assertEqual(self.facility.lookup('location.id'), 'NA9')
         self.assertEqual(self.facility.lookup('*unknown*'), None)
