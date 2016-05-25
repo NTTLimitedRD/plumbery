@@ -5,7 +5,8 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
-install: 
+install:
+  - pip install -e ".[test]"
   - pip install -r requirements_dev.txt
   - pip install tox
   - TOX_ENV=py$TRAVIS_PYTHON_VERSION
