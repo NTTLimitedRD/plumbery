@@ -20,7 +20,7 @@ import requests
 import pywinexe
 
 from libcloud.compute.types import NodeState
-from pywinrm.protocol import Protocol
+from winrm.protocol import Protocol
 
 from plumbery.polishers.prepare import PreparePolisher
 from plumbery.polisher import PlumberyPolisher
