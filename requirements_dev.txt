@@ -1,4 +1,4 @@
-apache-libcloud==1.0.0-rc2
+-e git+https://github.com/DimensionDataCBUSydney/libcloud.git#egg=apache-libcloud
 netifaces
 bumpversion==0.5.3
 paramiko
@@ -12,3 +12,5 @@ cryptography
 PyYAML==3.11
 requests
 pywinexe
+requests_ntlm
+-e git+https://github.com/diyan/pywinrm.git#egg=pywinrm
