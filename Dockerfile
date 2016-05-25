@@ -17,7 +17,7 @@ ENV PARAMETERS=""
 MAINTAINER "Dimension Data"
 
 # Install basic applications
-RUN apt-get install -y git
+RUN apt-get install -y git wget
 
 # Download the code
 RUN git clone -b $VERSION --single-branch https://github.com/DimensionDataCBUSydney/plumbery
@@ -29,7 +29,7 @@ ADD plumbery plumbery
 RUN pip install requests apache-libcloud==1.0.0-rc2 PyYAML paramiko netifaces pywinexe
 
 # install winexe for remote windows commands.
-RUN wget http://download.opensuse.org/repositories/home:/uibmz:/opsi:/opsi40-testing/xUbuntu_12.04/amd64/winexe_1.00.1-1_amd64.deb && sudo dpkg --install winexe_1.00.1-1_amd64.deb
+RUN wget http://download.opensuse.org/repositories/home:/uibmz:/opsi:/opsi40-testing/xUbuntu_12.04/amd64/winexe_1.00.1-1_amd64.deb && dpkg --install winexe_1.00.1-1_amd64.deb
 
 # Set the default directory where CMD will execute
 WORKDIR plumbery
