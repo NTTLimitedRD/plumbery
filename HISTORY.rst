@@ -3,6 +3,11 @@
 History
 -------
 
+0.9.0 (2016-05-25)
+~~~~~~~~~~~~~~~~~~
+
+* Added initial windows polisher for command execution
+
 0.8.1 (2016-05-23)
 ~~~~~~~~~~~~~~~~~~
 
