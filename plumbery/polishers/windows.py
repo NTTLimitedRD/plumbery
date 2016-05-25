@@ -30,6 +30,44 @@ class WindowsPolisher(PlumberyPolisher):
     # I don't like this..
     setup_winrm = "Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))"
 
+    def _try_winrm(self, node):
+        ipv6 = node.extra['ipv6']
+        p = Protocol(
+                endpoint='https://[%s]:5986/wsman' % ipv6,  # RFC 2732
+                transport='ntlm',
+                username=self.username,
+                password=self.secret,
+                server_cert_validation='ignore')
+        shell_id = p.open_shell()
+        command_id = p.run_command(shell_id, 'ipconfig', ['/all'])
+        std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
+        p.cleanup_command(shell_id, command_id)
+        p.close_shell(shell_id)
+        return std_out
+
+    def _winrm_commands(self, node, commands):
+        ipv6 = node.extra['ipv6']
+        p = Protocol(
+                endpoint='https://[%s]:5986/wsman' % ipv6,  # RFC 2732
+                transport='ntlm',
+                username=self.username,
+                password=self.secret,
+                server_cert_validation='ignore')
+        shell_id = p.open_shell()
+        std_out_logs = []
+        std_err_logs = []
+
+        # run the commands in sequence.
+        for command, params in commands:
+            command_id = p.run_ps(shell_id, command, params)
+            std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
+            std_out_logs.append(std_out)
+            std_err_logs.append(std_err)
+            p.cleanup_command(shell_id, command_id)
+
+        p.close_shell(shell_id)
+        return std_out_logs, std_err_logs
+
     def _setup_winrm(self, node):
         """
         Setup WinRM on a remote node
@@ -91,16 +129,24 @@ class WindowsPolisher(PlumberyPolisher):
 
         # Check to see if WinRM works..
         try:
-            p = Protocol(
-                endpoint='https://[%s]:5986/wsman' % ipv6, #  RFC 2732
-                transport='ntlm',
-                username=self.username,
-                password=self.secret,
-                server_cert_validation='ignore')
-            shell_id = p.open_shell()
-            command_id = p.run_command(shell_id, 'ipconfig', ['/all'])
-            std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
-            p.cleanup_command(shell_id, command_id)
-            p.close_shell(shell_id)
+            self._try_winrm(node)
         except requests.exceptions.ConnectionError:
+            logging.warn('initial connection failed, trying to setup winrm remotely')
             self._setup_winrm(node)
+            self._try_winrm(node)
+
+        # OK, we're all ready. Let's look at the node config and start commands
+        cmds = []
+        hostname = settings.get('hostname', None)
+        if hostname is not None and isinstance(hostname, str):
+            cmds.append(('Rename-Computer', ['-NewName', hostname]))
+
+        extra_cmds = settings.get('cmds', [])
+        for command in extra_cmds:
+            command = command.rstrip()
+            command_parts = command.split(' ')
+            cmds.append((command_parts[0], command_parts[1:]))
+
+        out, err = self._winrm_commands(node, cmds)
+        logging.info(out)
+        logging.warning(err)
