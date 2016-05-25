@@ -92,7 +92,7 @@ class WindowsPolisher(PlumberyPolisher):
         # Check to see if WinRM works..
         try:
             p = Protocol(
-                endpoint='https://[%s]:5986/wsman' % ipv6, # RFC 2732
+                endpoint='https://[%s]:5986/wsman' % ipv6, #  RFC 2732
                 transport='ntlm',
                 username=self.username,
                 password=self.secret,
