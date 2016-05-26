@@ -432,6 +432,8 @@ class ConfigurePolisher(PlumberyPolisher):
             try:
                 configuration_prop = prop_cls()
                 configuration_prop.validate(settings)
+                
+                configuration_prop.configure(node, settings)
             except ConfigurationError as ce:
                 if self.engine.safeMode:
                     logging.warn(ce.message)
