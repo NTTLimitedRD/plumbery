@@ -19,12 +19,16 @@ import time
 from plumbery.exception import ConfigurationError
 from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
+from plumbery.polishers.memory import MemoryConfiguration
 from plumbery.polishers.cpu import CpuConfiguration
 from plumbery.polishers.monitoring import MonitoringConfiguration
+from plumbery.polishers.disks import DisksConfiguration
+from plumbery.polishers.backup import BackupConfiguration
 
 
 class ConfigurePolisher(PlumberyPolisher):
-    configuration_props = (CpuConfiguration, MonitoringConfiguration)
+    configuration_props = (MonitoringConfiguration,
+                           DisksConfiguration, BackupConfiguration)
     """
     Finalizes the setup of fittings
 
@@ -174,183 +178,6 @@ class ConfigurePolisher(PlumberyPolisher):
                     continue
 
                 logging.info("- unable to reconfigure node")
-                logging.error(str(feedback))
-
-            break
-
-    def change_node_disk_size(self, node, id, size):
-        """
-        Changes an existing virtual disk
-
-        :param node: the node to be polished
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param id: the disk unique identifier, as reported by the API
-        :type id: ``str``
-
-        :param size: the disk size, expressed in Giga bytes
-        :type size: ``int``
-
-        """
-
-        if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
-            return
-
-        while True:
-            try:
-                self.region.ex_change_storage_size(
-                    node=node,
-                    disk_id=id,
-                    size=size)
-
-                logging.info("- in progress")
-
-            except Exception as feedback:
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                if 'Please try again later' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                logging.info("- unable to change disk size to {}GB"
-                             .format(size))
-                logging.error(str(feedback))
-
-            break
-
-    def change_node_disk_speed(self, node, id, speed):
-        """
-        Changes an existing virtual disk
-
-        :param node: the node to be polished
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param id: the disk unique identifier, as reported by the API
-        :type id: ``str``
-
-        :param speed: storage type, either 'standard',
-            'highperformance' or 'economy'
-        :type speed: ``str``
-
-        """
-
-        if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
-            return
-
-        while True:
-            try:
-                self.region.ex_change_storage_speed(
-                    node=node,
-                    disk_id=id,
-                    speed=speed)
-
-                logging.info("- in progress")
-
-            except Exception as feedback:
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                if 'Please try again later' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                logging.info("- unable to change disk to '{}'"
-                             .format(speed))
-                logging.error(str(feedback))
-
-            break
-
-    def set_node_disk(self, node, id, size, speed='standard'):
-        """
-        Sets a virtual disk
-
-        :param node: the node to be polished
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param id: the disk id, starting at 0 and growing
-        :type id: ``int``
-
-        :param size: the disk size, expressed in Giga bytes
-        :type size: ``int``
-
-        :param speed: storage type, either 'standard',
-            'highperformance' or 'economy'
-        :type speed: ``str``
-
-        """
-
-        if size < 1:
-            logging.info("- minimum disk size is 1 GB")
-            return
-
-        if size > 1000:
-            logging.info("- disk size cannot exceed 1000 GB")
-            return
-
-        if speed not in ['standard', 'highperformance', 'economy']:
-            logging.info("- disk speed should be either 'standard' "
-                         "or 'highperformance' or 'economy'")
-            return
-
-        if 'disks' in node.extra:
-            for disk in node.extra['disks']:
-                if disk['scsiId'] == id:
-                    changed = False
-
-                    if disk['size'] > size:
-                        logging.info("- disk shrinking could break the node")
-                        logging.info("- skipped - disk {} will not be reduced"
-                                     .format(id))
-
-                    if disk['size'] < size:
-                        logging.info("- expanding disk {} to {} GB"
-                                     .format(id, size))
-                        self.change_node_disk_size(node, disk['id'], size)
-                        changed = True
-
-                    if disk['speed'].lower() != speed.lower():
-                        logging.info("- changing disk {} to '{}'"
-                                     .format(id, speed))
-                        self.change_node_disk_speed(node, disk['id'], speed)
-                        changed = True
-
-                    if not changed:
-                        logging.debug("- no change in disk {}".format(id))
-
-                    return
-
-        logging.info("- adding {} GB '{}' disk".format(
-            size, speed))
-
-        if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
-            return
-
-        while True:
-            try:
-                self.region.ex_add_storage_to_node(
-                    node=node,
-                    amount=size,
-                    speed=speed.upper())
-
-                logging.info("- in progress")
-
-            except Exception as feedback:
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                if 'Please try again later' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                logging.info("- unable to add disk {} GB '{}'"
-                             .format(size, speed))
                 logging.error(str(feedback))
 
             break
@@ -587,6 +414,20 @@ class ConfigurePolisher(PlumberyPolisher):
             logging.info("- not found")
             return
 
+        try:
+            cpu_prop = CpuConfiguration()
+            cpu_prop.validate(settings)
+            cpu = cpu_prop.configure(node, settings)
+            ram_prop = MemoryConfiguration()
+            ram_prop.validate(settings)
+            memory = ram_prop.configure(node, settings)
+            self.set_node_compute(node, cpu, memory)
+        except ConfigurationError as ce:
+            if self.engine.safeMode:
+                logging.warn(ce.message)
+            else:
+                raise ce
+
         for prop in self.configuration_props:
             try:
                 prop.validate(settings)
@@ -595,40 +436,6 @@ class ConfigurePolisher(PlumberyPolisher):
                     logging.warn(ce.message)
                 else:
                     raise ce
-
-        memory = None
-        if 'memory' in settings:
-            memory = int(settings['memory'])
-            if memory < 1 or memory > 256:
-                logging.info("- memory should be between 1 and 256")
-                memory = None
-            else:
-                logging.debug("- setting {} GB of memory".format(
-                    memory))
-
-        self.set_node_compute(node, cpu, memory)
-
-        if 'disks' in settings:
-            for item in settings['disks']:
-                logging.debug("- setting disk {}".format(item))
-                attributes = item.split()
-                if len(attributes) < 2:
-                    logging.info("- malformed disk attributes;"
-                                 " provide disk id and size in GB, e.g., 1 50;"
-                                 " add disk type if needed, e.g., economy")
-                elif len(attributes) < 3:
-                    id = int(attributes[0])
-                    size = int(attributes[1])
-                    speed = 'standard'
-                else:
-                    id = int(attributes[0])
-                    size = int(attributes[1])
-                    speed = attributes[2]
-
-                self.set_node_disk(node, id, size, speed)
-
-        if 'backup' in settings:
-            self.nodes._configure_backup(node, settings['backup'])
 
         if 'glue' in settings:
             self.attach_node(node, settings['glue'])
