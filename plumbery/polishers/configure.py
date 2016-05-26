@@ -418,10 +418,14 @@ class ConfigurePolisher(PlumberyPolisher):
             cpu_prop = CpuConfiguration()
             cpu_prop.validate(settings)
             cpu = cpu_prop.configure(node, settings)
+
             ram_prop = MemoryConfiguration()
             ram_prop.validate(settings)
+
             memory = ram_prop.configure(node, settings)
-            self.set_node_compute(node, cpu, memory)
+
+            if memory is not False and cpu is not False:
+                self.set_node_compute(node, cpu, memory)
         except ConfigurationError as ce:
             if self.engine.safeMode:
                 logging.warn(ce.message)
