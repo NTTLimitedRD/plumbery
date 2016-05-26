@@ -3,6 +3,11 @@
 History
 -------
 
+0.9.1 (2016-05-26)
+~~~~~~~~~~~~~~~~~~
+
+* Added validation phase to all post-deploy configuration tasks
+
 0.9.0 (2016-05-25)
 ~~~~~~~~~~~~~~~~~~
 
