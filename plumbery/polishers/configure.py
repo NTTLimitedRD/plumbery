@@ -16,13 +16,15 @@
 import logging
 import time
 
-from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
-
+from plumbery.exception import ConfigurationError
 from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
+from plumbery.polishers.cpu import CpuConfiguration
+from plumbery.polishers.monitoring import MonitoringConfiguration
 
 
 class ConfigurePolisher(PlumberyPolisher):
+    configuration_props = (CpuConfiguration, MonitoringConfiguration)
     """
     Finalizes the setup of fittings
 
@@ -585,36 +587,14 @@ class ConfigurePolisher(PlumberyPolisher):
             logging.info("- not found")
             return
 
-        cpu = None
-        if 'cpu' in settings:
-            tokens = str(settings['cpu']).split(' ')
-            if len(tokens) < 2:
-                tokens.append('1')
-            if len(tokens) < 3:
-                tokens.append('standard')
-
-            if (int(tokens[0]) < 1
-                    or int(tokens[0]) > 32):
-
-                logging.info("- cpu should be between 1 and 32")
-
-            elif (int(tokens[1]) < 1
-                    or int(tokens[1]) > 2):
-
-                logging.info("- core per cpu should be either 1 or 2")
-
-            elif tokens[2].upper() not in ('STANDARD',
-                                           'HIGHPERFORMANCE'):
-
-                logging.info("- cpu speed should be either 'standard'"
-                             " or 'highspeed'")
-
-            else:
-                logging.debug("- setting compute {}".format(' '.join(tokens)))
-                cpu = DimensionDataServerCpuSpecification(
-                    cpu_count=tokens[0],
-                    cores_per_socket=tokens[1],
-                    performance=tokens[2].upper())
+        for prop in self.configuration_props:
+            try:
+                prop.validate(settings)
+            except ConfigurationError as ce:
+                if self.engine.safeMode:
+                    logging.warn(ce.message)
+                else:
+                    raise ce
 
         memory = None
         if 'memory' in settings:
@@ -646,9 +626,6 @@ class ConfigurePolisher(PlumberyPolisher):
                     speed = attributes[2]
 
                 self.set_node_disk(node, id, size, speed)
-
-        if 'monitoring' in settings:
-            self.nodes._start_monitoring(node, settings['monitoring'])
 
         if 'backup' in settings:
             self.nodes._configure_backup(node, settings['backup'])

@@ -12,13 +12,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+__all__ = ['NodeConfiguration']
 
 
-class PlumberyException(Exception):
-    def __init__(self, message):
-        self.message = message
-        super(PlumberyException, self).__init__(message)
+class NodeConfiguration(object):
+    __name__ = 'BaseNodeConfiguration'
+    _element_name_ = 'base'
+    _configuration_ = {}
 
+    def validate(self, settings):
+        raise NotImplementedError()
 
-class ConfigurationError(PlumberyException):
-    pass
+    def configure(self, node, settings):
+        raise NotImplementedError()
+
+    def deconfigure(self, node, settings):
+        raise NotImplementedError()

@@ -765,56 +765,6 @@ class PlumberyNodes(object):
             for label in self.expand_labels(label):
                 self.start_node(label)
 
-    def _start_monitoring(self, node, monitoring='ESSENTIALS'):
-        """
-        Enables monitoring of one node
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param monitoring: either 'ESSENTIALS' or 'ADVANCED'
-        :type monitoring: ``str``
-
-        """
-
-        value = monitoring.upper()
-        logging.info("Starting {} monitoring of node '{}'".format(
-            value.lower(), node.name))
-
-        if value not in ['ESSENTIALS', 'ADVANCED']:
-            logging.info("- monitoring should be "
-                         "either 'essentials' or 'advanced'")
-        else:
-            while True:
-                try:
-                    self.region.ex_enable_monitoring(node, service_plan=value)
-                    logging.info("- in progress")
-                    return True
-
-                except Exception as feedback:
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'RETRYABLE_SYSTEM_ERROR' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'NO_CHANGE' in str(feedback):
-                        logging.info("- already there")
-
-                    elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- unable to start monitoring "
-                                     "- node has been locked")
-
-                    else:
-                        logging.info("- unable to start monitoring")
-                        logging.error(str(feedback))
-
-                break
-
-        return False
-
     def _configure_backup(self, node, backup):
         """
         Configure backup on a node
@@ -1092,55 +1042,4 @@ class PlumberyNodes(object):
 
             break
 
-    def _stop_monitoring(self, node, settings):
-        """
-        Disables monitoring of one node
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        """
-
-        if node is None:
-            return
-
-        if ('running' in settings
-                and settings['running'] == 'always'
-                and node.state == NodeState.RUNNING):
-
-            return
-
-        if self.plumbery.safeMode:
-            return
-
-        logging.info("Stopping monitoring of node '{}'".format(node.name))
-
-        while True:
-
-            try:
-                self.region.ex_disable_monitoring(node)
-                logging.info("- in progress")
-
-            except Exception as feedback:
-
-                if 'NO_CHANGE' in str(feedback):
-                    pass
-
-                elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
-                    pass
-
-                elif 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                    logging.info("- not found")
-
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
-
-                else:
-                    logging.info("- unable to stop monitoring")
-                    logging.error(str(feedback))
-
-            break
+    
