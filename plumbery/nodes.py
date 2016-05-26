@@ -930,5 +930,3 @@ class PlumberyNodes(object):
                     logging.error(str(feedback))
 
             break
-
-    

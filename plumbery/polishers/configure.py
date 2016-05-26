@@ -428,9 +428,10 @@ class ConfigurePolisher(PlumberyPolisher):
             else:
                 raise ce
 
-        for prop in self.configuration_props:
+        for prop_cls in self.configuration_props:
             try:
-                prop.validate(settings)
+                configuration_prop = prop_cls()
+                configuration_prop.validate(settings)
             except ConfigurationError as ce:
                 if self.engine.safeMode:
                     logging.warn(ce.message)
