@@ -89,7 +89,7 @@ class WindowsConfiguration(NodeConfiguration):
         ipv6 = node.extra['ipv6']
         run(
             WindowsConfiguration.setup_winrm[0],
-            WindowsConfiguration.setup_winrm[1],
+            args=[WindowsConfiguration.setup_winrm[1]],
             user=self.username,
             password=self.secret,
             host=ipv6)
