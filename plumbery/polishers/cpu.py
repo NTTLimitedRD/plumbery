@@ -16,7 +16,8 @@ from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
 from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
-import logging
+from plumbery.logging import setup_logging
+logging = setup_logging()
 
 
 class CpuConfiguration(NodeConfiguration):

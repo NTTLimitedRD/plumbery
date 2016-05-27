@@ -16,15 +16,5 @@
 """
 Are you looking for a cloud plumber? We hope this one will be useful to you
 """
-
-import logging
-import sys
-
 __all__ = ['__version__']
-
 __version__ = '0.9.2'
-
-logging.basicConfig(
-    format='%(message)s',
-    level=logging.INFO,
-    stream=sys.stdout)

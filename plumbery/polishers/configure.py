@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import logging
 import time
 
 from plumbery.exception import ConfigurationError
@@ -24,6 +22,8 @@ from plumbery.polishers.cpu import CpuConfiguration
 from plumbery.polishers.monitoring import MonitoringConfiguration
 from plumbery.polishers.disks import DisksConfiguration
 from plumbery.polishers.backup import BackupConfiguration
+from plumbery.logging import setup_logging
+logging = setup_logging()
 
 
 class ConfigurePolisher(PlumberyPolisher):

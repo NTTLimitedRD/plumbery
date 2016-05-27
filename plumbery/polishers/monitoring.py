@@ -13,12 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import time
-import logging
 
 from libcloud.compute.types import NodeState
 
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
+from plumbery.logging import setup_logging
+logging = setup_logging()
 
 
 class MonitoringConfiguration(NodeConfiguration):

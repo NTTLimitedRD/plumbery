@@ -12,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import logging
 import sys
 
 from libcloud.compute.base import NodeState
@@ -22,6 +20,8 @@ from plumbery.polisher import PlumberyPolisher
 from plumbery.text import PlumberyText
 from plumbery.text import PlumberyContext
 from plumbery.text import PlumberyNodeContext
+from plumbery.logging import setup_logging
+logging = setup_logging()
 
 
 class InformationPolisher(PlumberyPolisher):

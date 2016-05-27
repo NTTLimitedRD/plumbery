@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import logging
+from __future__ import absolute_import
 import time
 from uuid import uuid4
 
@@ -28,7 +27,8 @@ from libcloud.common.dimensiondata import TYPES_URN
 
 from libcloud.utils.xml import findall
 
-from exception import PlumberyException
+from .exception import PlumberyException
+from .logging import setup_logging
 
 __all__ = ['PlumberyInfrastructure']
 
@@ -66,6 +66,7 @@ class PlumberyInfrastructure(object):
 
     def __init__(self, facility=None):
         """A virtual data centre attached to a physical data centre"""
+        self.log = setup_logging()
 
         # handle to parent parameters and functions
         self.facility = facility
@@ -153,11 +154,11 @@ class PlumberyInfrastructure(object):
         """
 
         if len(self.facility._cache_network_domains) < 1:
-            logging.debug("Listing network domains")
+            self.log.debug("Listing network domains")
             self.facility._cache_network_domains = \
                 self.region.ex_list_network_domains(
                     self.facility.get_location_id())
-            logging.debug("- found {} network domains"
+            self.log.debug("- found {} network domains"
                           .format(len(self.facility._cache_network_domains)))
 
         for domain in self.facility._cache_network_domains:
@@ -205,10 +206,10 @@ class PlumberyInfrastructure(object):
         if len(path) == 1:  # local name
 
             if len(self.facility._cache_vlans) < 1:
-                logging.debug("Listing Ethernet networks")
+                self.log.debug("Listing Ethernet networks")
                 self.facility._cache_vlans = self.region.ex_list_vlans(
                     location=self.facility.get_location_id())
-                logging.debug("- found {} Ethernet networks"
+                self.log.debug("- found {} Ethernet networks"
                               .format(len(self.facility._cache_vlans)))
 
             for network in self.facility._cache_vlans:
@@ -223,13 +224,13 @@ class PlumberyInfrastructure(object):
 
                 return self._cache_remote_vlan[2]
 
-            logging.info("Looking for remote Ethernet network '%s'",
+            self.log.info("Looking for remote Ethernet network '%s'",
                          '::'.join(path))
 
             try:
                 remoteLocation = self.region.ex_get_location_by_id(path[0])
             except IndexError:
-                logging.info("- '%s' is unknown", path[0])
+                self.log.info("- '%s' is unknown", path[0])
                 return None
 
             vlans = self.region.ex_list_vlans(location=remoteLocation)
@@ -237,10 +238,10 @@ class PlumberyInfrastructure(object):
                 if network.name == path[1]:
                     self._cache_remote_vlan += path
                     self._cache_remote_vlan.append(network)
-                    logging.info("- found it")
+                    self.log.info("- found it")
                     return network
 
-            logging.info("- not found")
+            self.log.info("- not found")
 
         elif len(path) == 3:  # other region
 
@@ -251,7 +252,7 @@ class PlumberyInfrastructure(object):
 
                 return self._cache_offshore_vlan[3]
 
-            logging.info("Looking for offshore Ethernet network '{}'"
+            self.log.info("Looking for offshore Ethernet network '{}'"
                          .format('::'.join(path)))
 
             offshore = self.plumbery.get_compute_driver(region=path[0])
@@ -259,7 +260,7 @@ class PlumberyInfrastructure(object):
             try:
                 remoteLocation = offshore.ex_get_location_by_id(path[1])
             except IndexError:
-                logging.info("- '{}' is unknown".format(path[1]))
+                self.log.info("- '{}' is unknown".format(path[1]))
                 return None
 
             vlans = offshore.ex_list_vlans(location=remoteLocation)
@@ -267,10 +268,10 @@ class PlumberyInfrastructure(object):
                 if network.name == path[2]:
                     self._cache_offshore_vlan += path
                     self._cache_offshore_vlan.append(network)
-                    logging.info("- found it")
+                    self.log.info("- found it")
                     return network
 
-            logging.info("- not found")
+            self.log.info("- not found")
 
         return None
 
@@ -305,7 +306,7 @@ class PlumberyInfrastructure(object):
 
         self.blueprint = blueprint
 
-        logging.debug("Building infrastructure of blueprint '{}'".format(
+        self.log.debug("Building infrastructure of blueprint '{}'".format(
             blueprint['target']))
 
         if 'domain' not in blueprint or type(blueprint['domain']) is not dict:
@@ -331,19 +332,19 @@ class PlumberyInfrastructure(object):
 
         self.domain = self.get_network_domain(domainName)
         if self.domain is not None:
-            logging.info("Creating network domain '{}'".format(domainName))
-            logging.info("- already there")
+            self.log.info("Creating network domain '{}'".format(domainName))
+            self.log.info("- already there")
 
         elif self.plumbery.safeMode:
-            logging.info("Creating network domain '{}'".format(domainName))
-            logging.info("- skipped - safe mode")
-            logging.info("Creating Ethernet network '{}'"
+            self.log.info("Creating network domain '{}'".format(domainName))
+            self.log.info("- skipped - safe mode")
+            self.log.info("Creating Ethernet network '{}'"
                          .format(networkName))
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
             return False
 
         else:
-            logging.info("Creating network domain '{}'".format(domainName))
+            self.log.info("Creating network domain '{}'".format(domainName))
 
             # the description attribute is a smart way to tag resources
             description = '#plumbery'
@@ -362,7 +363,7 @@ class PlumberyInfrastructure(object):
                         name=domainName,
                         service_plan=service,
                         description=description)
-                    logging.info("- in progress")
+                    self.log.info("- in progress")
 
                     # prevent locks in xops
                     self.region.ex_wait_for_state(
@@ -379,34 +380,34 @@ class PlumberyInfrastructure(object):
                         continue
 
                     elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
-                        logging.info("- operation not supported")
+                        self.log.info("- operation not supported")
                         return False
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
+                        self.log.info("- not now - locked")
                         return False
 
                     else:
-                        logging.info("- unable to create network domain")
-                        logging.error(str(feedback))
+                        self.log.info("- unable to create network domain")
+                        self.log.error(str(feedback))
                         return False
 
                 break
 
         self.network = self.get_ethernet(networkName)
         if self.network is not None:
-            logging.info("Creating Ethernet network '{}'"
+            self.log.info("Creating Ethernet network '{}'"
                          .format(networkName))
-            logging.info("- already there")
+            self.log.info("- already there")
 
         elif self.plumbery.safeMode:
-            logging.info("Creating Ethernet network '{}'"
+            self.log.info("Creating Ethernet network '{}'"
                          .format(networkName))
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
             return False
 
         else:
-            logging.info("Creating Ethernet network '{}'"
+            self.log.info("Creating Ethernet network '{}'"
                          .format(networkName))
 
             # the description attribute is a smart way to tag resources
@@ -421,7 +422,7 @@ class PlumberyInfrastructure(object):
                         name=networkName,
                         private_ipv4_base_address=blueprint['ethernet']['subnet'],
                         description=description)
-                    logging.info("- in progress")
+                    self.log.info("- in progress")
 
                     # prevent locks in xops
                     self.region.ex_wait_for_state(
@@ -439,20 +440,20 @@ class PlumberyInfrastructure(object):
                         continue
 
                     elif 'NAME_NOT_UNIQUE' in str(feedback):
-                        logging.info("- not possible "
+                        self.log.info("- not possible "
                                      "- network already exists elsewhere")
 
                     elif 'IP_ADDRESS_NOT_UNIQUE' in str(feedback):
-                        logging.info("- not possible "
+                        self.log.info("- not possible "
                                      "- subnet is used elsewhere")
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
+                        self.log.info("- not now - locked")
                         return False
 
                     else:
-                        logging.info("- unable to create Ethernet network")
-                        logging.error(str(feedback))
+                        self.log.info("- unable to create Ethernet network")
+                        self.log.error(str(feedback))
                         return False
 
                 break
@@ -501,11 +502,11 @@ class PlumberyInfrastructure(object):
 
         domain = self.get_network_domain(domainName)
         if domain is None:
-            logging.info("Destroying Ethernet network '{}'"
+            self.log.info("Destroying Ethernet network '{}'"
                          .format(networkName))
-            logging.info("- not found")
-            logging.info("Destroying network domain '{}'".format(domainName))
-            logging.info("- not found")
+            self.log.info("- not found")
+            self.log.info("Destroying network domain '{}'".format(domainName))
+            self.log.info("- not found")
             return
 
         self._destroy_firewall_rules()
@@ -514,18 +515,18 @@ class PlumberyInfrastructure(object):
 
         self._release_ipv4()
 
-        logging.info("Destroying Ethernet network '{}'".format(networkName))
+        self.log.info("Destroying Ethernet network '{}'".format(networkName))
 
         network = self.get_ethernet(networkName)
         if network is None:
-            logging.info("- not found")
+            self.log.info("- not found")
 
         elif ('destroy' in blueprint['ethernet']
                 and blueprint['ethernet']['destroy'] == 'never'):
-            logging.info("- this network can never be destroyed")
+            self.log.info("- this network can never be destroyed")
 
         elif self.plumbery.safeMode:
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
 
         else:
 
@@ -533,7 +534,7 @@ class PlumberyInfrastructure(object):
             while True:
                 try:
                     self.region.ex_delete_vlan(vlan=network)
-                    logging.info("- in progress")
+                    self.log.info("- in progress")
 
                     while True:
                         try:
@@ -550,7 +551,7 @@ class PlumberyInfrastructure(object):
                         continue
 
                     elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                        logging.info("- not found")
+                        self.log.info("- not found")
 
                     elif 'HAS_DEPENDENCY' in str(feedback):
 
@@ -560,31 +561,31 @@ class PlumberyInfrastructure(object):
                             time.sleep(30)
                             continue
 
-                        logging.info("- not now - stuff on it")
+                        self.log.info("- not now - stuff on it")
                         return
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
-                        logging.info(feedback)
+                        self.log.info("- not now - locked")
+                        self.log.info(feedback)
                         return
 
                     else:
-                        logging.info("- unable to destroy Ethernet network")
-                        logging.error(str(feedback))
+                        self.log.info("- unable to destroy Ethernet network")
+                        self.log.error(str(feedback))
                         return
 
                 break
 
-        logging.info("Destroying network domain '{}'".format(domainName))
+        self.log.info("Destroying network domain '{}'".format(domainName))
 
         if self.plumbery.safeMode:
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
             return
 
         while True:
             try:
                 self.region.ex_delete_network_domain(network_domain=domain)
-                logging.info("- in progress")
+                self.log.info("- in progress")
 
             except Exception as feedback:
 
@@ -593,19 +594,19 @@ class PlumberyInfrastructure(object):
                     continue
 
                 elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                    logging.info("- not found")
+                    self.log.info("- not found")
 
                 elif 'HAS_DEPENDENCY' in str(feedback):
-                    logging.info("- not now - stuff on it")
+                    self.log.info("- not now - stuff on it")
                     return
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
+                    self.log.info("- not now - locked")
                     return
 
                 else:
-                    logging.info("- unable to destroy Ethernet network")
-                    logging.error(str(feedback))
+                    self.log.info("- unable to destroy Ethernet network")
+                    self.log.error(str(feedback))
                     return
 
             break
@@ -689,10 +690,10 @@ class PlumberyInfrastructure(object):
                     "Error: unknown algorithm has been defined "
                     "for the pool '{}'!".format(name))
 
-            logging.info("Creating pool '{}'".format(name))
+            self.log.info("Creating pool '{}'".format(name))
 
             if self.plumbery.safeMode:
-                logging.info("- skipped - safe mode")
+                self.log.info("- skipped - safe mode")
 
             else:
                 try:
@@ -709,16 +710,16 @@ class PlumberyInfrastructure(object):
                         self._cache_pools = []
                     self._cache_pools.append(pool)
 
-                    logging.info("- in progress")
+                    self.log.info("- in progress")
 
                 except Exception as feedback:
 
                     if 'NAME_NOT_UNIQUE' in str(feedback):
-                        logging.info("- already there")
+                        self.log.info("- already there")
 
                     else:
-                        logging.info("- unable to create pool")
-                        logging.error(str(feedback))
+                        self.log.info("- unable to create pool")
+                        self.log.error(str(feedback))
 
         for item in self.blueprint['listeners']:
 
@@ -732,8 +733,8 @@ class PlumberyInfrastructure(object):
             name = self.name_listener(label, settings)
 
             if self._get_listener(name):
-                logging.info("Creating listener '{}'".format(name))
-                logging.info("- already there")
+                self.log.info("Creating listener '{}'".format(name))
+                self.log.info("- already there")
                 continue
 
             if 'port' in settings:
@@ -759,10 +760,10 @@ class PlumberyInfrastructure(object):
                     "Error: unknown protocol has been defined "
                     "for the listener '{}'!".format(label))
 
-            logging.info("Creating listener '{}'".format(name))
+            self.log.info("Creating listener '{}'".format(name))
 
             if self.plumbery.safeMode:
-                logging.info("- skipped - safe mode")
+                self.log.info("- skipped - safe mode")
                 continue
 
             try:
@@ -784,20 +785,20 @@ class PlumberyInfrastructure(object):
                     self._cache_listeners = []
                 self._cache_listeners.append(listener)
 
-                logging.info("- in progress")
+                self.log.info("- in progress")
 
             except Exception as feedback:
 
                 if 'NAME_NOT_UNIQUE' in str(feedback):
-                    logging.info("- already there")
+                    self.log.info("- already there")
 
                 elif 'NO_IP_ADDRESS_AVAILABLE' in str(feedback):
-                    logging.info("- no more ipv4 address available "
+                    self.log.info("- no more ipv4 address available "
                                  "-- assign more")
 
                 else:
-                    logging.info("- unable to create listener")
-                    logging.error(str(feedback))
+                    self.log.info("- unable to create listener")
+                    self.log.error(str(feedback))
 
         return True
 
@@ -827,52 +828,52 @@ class PlumberyInfrastructure(object):
 
             listener = self._get_listener(name)
 
-            logging.info("Destroying listener '{}'".format(name))
+            self.log.info("Destroying listener '{}'".format(name))
 
             if listener is None:
-                logging.info("- not found")
+                self.log.info("- not found")
                 continue
 
             if self.plumbery.safeMode:
-                logging.info("- skipped - safe mode")
+                self.log.info("- skipped - safe mode")
                 continue
 
             try:
                 driver.destroy_balancer(listener)
-                logging.info("- in progress")
+                self.log.info("- in progress")
 
             except Exception as feedback:
 
                 if 'NOT_FOUND' in str(feedback):
-                    logging.info("- not found")
+                    self.log.info("- not found")
 
                 else:
-                    logging.info("- unable to destroy listener")
-                    logging.error(str(feedback))
+                    self.log.info("- unable to destroy listener")
+                    self.log.error(str(feedback))
 
         pool = self._get_pool()
 
-        logging.info("Destroying pool '{}'".format(self._name_pool()))
+        self.log.info("Destroying pool '{}'".format(self._name_pool()))
 
         if pool is None:
-            logging.info("- not found")
+            self.log.info("- not found")
 
         elif self.plumbery.safeMode:
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
 
         else:
             try:
                 driver.ex_destroy_pool(pool)
-                logging.info("- in progress")
+                self.log.info("- in progress")
 
             except Exception as feedback:
 
                 if 'NAME_NOT_UNIQUE' in str(feedback):
-                    logging.info("- already there")
+                    self.log.info("- already there")
 
                 else:
-                    logging.info("- unable to destroy pool")
-                    logging.error(str(feedback))
+                    self.log.info("- unable to destroy pool")
+                    self.log.error(str(feedback))
 
     def name_listener(self, label, settings={}):
         return self.blueprint['target']                 \
@@ -894,9 +895,9 @@ class PlumberyInfrastructure(object):
         driver.ex_set_current_network_domain(domain.id)
 
         if self._cache_listeners is None:
-            logging.info("Listing listeners")
+            self.log.info("Listing listeners")
             self._cache_listeners = driver.list_balancers()
-            logging.info("- found {} listeners"
+            self.log.info("- found {} listeners"
                          .format(len(self._cache_listeners)))
 
         for listener in self._cache_listeners:
@@ -926,9 +927,9 @@ class PlumberyInfrastructure(object):
         name = self._name_pool()
 
         if self._cache_pools is None:
-            logging.info("Listing pools")
+            self.log.info("Listing pools")
             self._cache_pools = driver.ex_get_pools()
-            logging.info("- found {} pools".format(len(self._cache_pools)))
+            self.log.info("- found {} pools".format(len(self._cache_pools)))
 
         for pool in self._cache_pools:
 
@@ -957,18 +958,18 @@ class PlumberyInfrastructure(object):
         driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
-        logging.info("Adding '{}' to pool '{}'".format(node.name, pool.name))
+        self.log.info("Adding '{}' to pool '{}'".format(node.name, pool.name))
 
         name = self.name_member(node)
         members = driver.ex_get_pool_members(pool.id)
         for member in members:
 
             if member.name == name:
-                logging.info("- already there")
+                self.log.info("- already there")
                 return
 
         if self.plumbery.safeMode:
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
             return
 
         try:
@@ -983,17 +984,17 @@ class PlumberyInfrastructure(object):
                 node=member,
                 port='*padding*')
 
-            logging.info("- in progress")
+            self.log.info("- in progress")
 
         except Exception as feedback:
 
             if 'NAME_NOT_UNIQUE' in str(feedback):
-                logging.info("- already there")
-                logging.error(str(feedback))
+                self.log.info("- already there")
+                self.log.error(str(feedback))
 
             else:
-                logging.info("- unable to add to pool")
-                logging.error(str(feedback))
+                self.log.info("- unable to add to pool")
+                self.log.error(str(feedback))
 
     def _remove_from_pool(self, node):
         """
@@ -1011,7 +1012,7 @@ class PlumberyInfrastructure(object):
         pool = self._get_pool()
         if pool is not None:
 
-            logging.info("Removing '{}' from pool '{}'".format(
+            self.log.info("Removing '{}' from pool '{}'".format(
                 node.name,
                 pool.name))
 
@@ -1023,32 +1024,32 @@ class PlumberyInfrastructure(object):
                 if member.name == self.name_member(node):
 
                     if self.plumbery.safeMode:
-                        logging.info("- skipped - safe mode")
+                        self.log.info("- skipped - safe mode")
                         return
 
                     try:
                         driver.balancer_detach_member(
                             balancer='*unused*',
                             member=member)
-                        logging.info("- in progress")
+                        self.log.info("- in progress")
 
                     except Exception as feedback:
 
                         if 'RESOURCE_NOT_FOUND' in str(feedback):
-                            logging.info("- not found")
+                            self.log.info("- not found")
 
                         else:
-                            logging.info("- unable to remove from pool")
-                            logging.error(str(feedback))
+                            self.log.info("- unable to remove from pool")
+                            self.log.error(str(feedback))
 
                     found = True
                     break
 
             if not found:
-                logging.info("- already there")
+                self.log.info("- already there")
 
         try:
-            logging.info("Destroying membership of '{}'".format(node.name))
+            self.log.info("Destroying membership of '{}'".format(node.name))
 
             members = driver.ex_get_nodes()
             for member in members:
@@ -1056,16 +1057,16 @@ class PlumberyInfrastructure(object):
                     driver.ex_destroy_node(member.id)
                     break
 
-            logging.info("- in progress")
+            self.log.info("- in progress")
 
         except Exception as feedback:
 
             if 'RESOURCE_NOT_FOUND' in str(feedback):
-                logging.info("- not found")
+                self.log.info("- not found")
 
             else:
-                logging.info("- unable to destroy membership")
-                logging.error(str(feedback))
+                self.log.info("- unable to destroy membership")
+                self.log.error(str(feedback))
 
     def _detach_node_from_internet(self, node):
         """
@@ -1081,13 +1082,13 @@ class PlumberyInfrastructure(object):
         for rule in self.region.ex_list_nat_rules(domain):
             if rule.internal_ip == internal_ip:
 
-                logging.info("Detaching node '{}' from the internet"
+                self.log.info("Detaching node '{}' from the internet"
                              .format(node.name))
 
                 while True:
                     try:
                         self.region.ex_delete_nat_rule(rule)
-                        logging.info("- in progress")
+                        self.log.info("- in progress")
 
                     except Exception as feedback:
                         if 'RESOURCE_BUSY' in str(feedback):
@@ -1095,13 +1096,13 @@ class PlumberyInfrastructure(object):
                             continue
 
                         elif 'RESOURCE_LOCKED' in str(feedback):
-                            logging.info("- not now - locked")
+                            self.log.info("- not now - locked")
                             return
 
                         else:
-                            logging.info("- unable to remove "
+                            self.log.info("- unable to remove "
                                          "address translation")
-                            logging.error(str(feedback))
+                            self.log.error(str(feedback))
 
                     break
 
@@ -1109,15 +1110,15 @@ class PlumberyInfrastructure(object):
 
             if rule.name.lower().startswith(node.name.lower()):
 
-                logging.info("Destroying firewall rule '{}'"
+                self.log.info("Destroying firewall rule '{}'"
                              .format(rule.name))
 
                 if self.plumbery.safeMode:
-                    logging.info("- skipped - safe mode")
+                    self.log.info("- skipped - safe mode")
 
                 else:
                     self.region.ex_delete_firewall_rule(rule)
-                    logging.info("- in progress")
+                    self.log.info("- in progress")
 
     def _get_ipv4(self):
         """
@@ -1164,16 +1165,16 @@ class PlumberyInfrastructure(object):
             count = actual + 2
 
         if count < 2 or count > 128:
-            logging.warning("Invalid count of requested IPv4 public addresses")
+            self.log.warning("Invalid count of requested IPv4 public addresses")
             return None
 
         if actual >= count:
             return None
 
-        logging.info('Reserving additional public IPv4 addresses')
+        self.log.info('Reserving additional public IPv4 addresses')
 
         if self.plumbery.safeMode:
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
             return None
 
         count = actual + 2
@@ -1182,7 +1183,7 @@ class PlumberyInfrastructure(object):
                 block = self.region.ex_add_public_ip_block_to_network_domain(
                     self.get_network_domain(self.blueprint['domain']['name']))
                 actual += int(block.size)
-                logging.info("- reserved {} addresses"
+                self.log.info("- reserved {} addresses"
                              .format(int(block.size)))
                 return block.base_ip
 
@@ -1193,7 +1194,7 @@ class PlumberyInfrastructure(object):
                     continue
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
+                    self.log.info("- not now - locked")
                     return None
 
                 # compensate for bug in Libcloud driver
@@ -1202,8 +1203,8 @@ class PlumberyInfrastructure(object):
                     continue
 
                 else:
-                    logging.info("- unable to reserve IPv4 public addresses")
-                    logging.error(str(feedback))
+                    self.log.info("- unable to reserve IPv4 public addresses")
+                    self.log.error(str(feedback))
                     return None
 
     def _list_ipv4(self):
@@ -1234,8 +1235,8 @@ class PlumberyInfrastructure(object):
                     continue
 
                 else:
-                    logging.info("Unable to list IPv4 public addresses")
-                    logging.error(str(feedback))
+                    self.log.info("Unable to list IPv4 public addresses")
+                    self.log.error(str(feedback))
                     return []
 
             break
@@ -1258,17 +1259,17 @@ class PlumberyInfrastructure(object):
         if len(blocks) < 1:
             return
 
-        logging.info('Releasing public IPv4 addresses')
+        self.log.info('Releasing public IPv4 addresses')
 
         if self.plumbery.safeMode:
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
             return
 
         for block in blocks:
             while True:
                 try:
                     self.region.ex_delete_public_ip_block(block)
-                    logging.info('- in progress')
+                    self.log.info('- in progress')
 
                 except Exception as feedback:
 
@@ -1277,16 +1278,16 @@ class PlumberyInfrastructure(object):
                         continue
 
                     elif 'HAS_DEPENDENCY' in str(feedback):
-                        logging.info("- not now - stuff at '{}' and beyond"
+                        self.log.info("- not now - stuff at '{}' and beyond"
                                      .format(block.base_ip))
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
+                        self.log.info("- not now - locked")
 
                     else:
-                        logging.info("- unable to release "
+                        self.log.info("- unable to release "
                                      "IPv4 public addresses ")
-                        logging.error(str(feedback))
+                        self.log.error(str(feedback))
 
                 break
 
@@ -1351,7 +1352,7 @@ class PlumberyInfrastructure(object):
 
             source = self.get_ethernet(label)
             if source is None:
-                logging.debug("Source network '{}' is unknown".format(label))
+                self.log.debug("Source network '{}' is unknown".format(label))
                 continue
 
             # avoid name collisions across local, remote and off-shore networks
@@ -1379,28 +1380,28 @@ class PlumberyInfrastructure(object):
                 if (shouldCreateRuleIPv4
                         and rule.name.lower() == ruleIPv4Name.lower()):
 
-                    logging.info("Creating firewall rule '{}'"
+                    self.log.info("Creating firewall rule '{}'"
                                  .format(rule.name))
-                    logging.info("- already there")
+                    self.log.info("- already there")
                     shouldCreateRuleIPv4 = False
                     continue
 
                 if (shouldCreateRuleIPv6
                         and rule.name.lower() == ruleIPv6Name.lower()):
 
-                    logging.info("Creating firewall rule '{}'"
+                    self.log.info("Creating firewall rule '{}'"
                                  .format(rule.name))
-                    logging.info("- already there")
+                    self.log.info("- already there")
                     shouldCreateRuleIPv6 = False
                     continue
 
             if shouldCreateRuleIPv4:
 
-                logging.info("Creating firewall rule '{}'"
+                self.log.info("Creating firewall rule '{}'"
                              .format(ruleIPv4Name))
 
                 if self.plumbery.safeMode:
-                    logging.info("- skipped - safe mode")
+                    self.log.info("- skipped - safe mode")
 
                 else:
 
@@ -1431,24 +1432,24 @@ class PlumberyInfrastructure(object):
                             rule=ruleIPv4,
                             position='LAST')
 
-                        logging.info("- in progress")
+                        self.log.info("- in progress")
 
                     except Exception as feedback:
 
                         if 'NAME_NOT_UNIQUE' in str(feedback):
-                            logging.info("- already there")
+                            self.log.info("- already there")
 
                         else:
-                            logging.info("- unable to create firewall rule")
-                            logging.error(str(feedback))
+                            self.log.info("- unable to create firewall rule")
+                            self.log.error(str(feedback))
 
             if shouldCreateRuleIPv6:
 
-                logging.info("Creating firewall rule '{}'"
+                self.log.info("Creating firewall rule '{}'"
                              .format(ruleIPv6Name))
 
                 if self.plumbery.safeMode:
-                    logging.info("- skipped - safe mode")
+                    self.log.info("- skipped - safe mode")
 
                 else:
 
@@ -1479,33 +1480,33 @@ class PlumberyInfrastructure(object):
                             rule=ruleIPv6,
                             position='LAST')
 
-                        logging.info("- in progress")
+                        self.log.info("- in progress")
 
                     except Exception as feedback:
 
                         if 'NAME_NOT_UNIQUE' in str(feedback):
-                            logging.info("- already there")
+                            self.log.info("- already there")
 
                         else:
-                            logging.info("- unable to create firewall rule")
-                            logging.error(str(feedback))
+                            self.log.info("- unable to create firewall rule")
+                            self.log.error(str(feedback))
 
         ruleName = 'CCDEFAULT.DenyExternalInboundIPv6'
         for rule in self._list_firewall_rules():
             if rule.name.lower() == ruleName.lower():
-                logging.info("Disabling firewall rule '{}'".format(ruleName))
+                self.log.info("Disabling firewall rule '{}'".format(ruleName))
 
                 try:
                     if rule.enabled:
                         self.region.ex_set_firewall_rule_state(rule, False)
-                        logging.info("- in progress")
+                        self.log.info("- in progress")
 
                     else:
-                        logging.info("- already there")
+                        self.log.info("- already there")
 
                 except Exception as feedback:
-                    logging.info("- unable to disable firewall rule")
-                    logging.error(str(feedback))
+                    self.log.info("- unable to disable firewall rule")
+                    self.log.error(str(feedback))
 
         return True
 
@@ -1539,26 +1540,26 @@ class PlumberyInfrastructure(object):
 
                 if rule.name == ruleIPv4Name or rule.name == ruleIPv6Name:
 
-                    logging.info("Destroying firewall rule '{}'"
+                    self.log.info("Destroying firewall rule '{}'"
                                  .format(rule.name))
 
                     if self.plumbery.safeMode:
-                        logging.info("- skipped - safe mode")
+                        self.log.info("- skipped - safe mode")
 
                     else:
                         try:
                             self.region.ex_delete_firewall_rule(rule)
-                            logging.info("- in progress")
+                            self.log.info("- in progress")
 
                         except Exception as feedback:
 
                             if 'RESOURCE_NOT_FOUND' in str(feedback):
-                                logging.info("- not found")
+                                self.log.info("- not found")
 
                             else:
-                                logging.info("- unable to destroy "
+                                self.log.info("- unable to destroy "
                                              "firewall rule")
-                                logging.error(str(feedback))
+                                self.log.error(str(feedback))
 
     def name_firewall_rule(self, source, destination, protocol):
         """

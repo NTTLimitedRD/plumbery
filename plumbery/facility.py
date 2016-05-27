@@ -12,16 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from __future__ import absolute_import
 import copy
 import socket
-import logging
 import os
 
-from exception import PlumberyException
-from infrastructure import PlumberyInfrastructure
-from polisher import PlumberyPolisher
-from nodes import PlumberyNodes
+from .exception import PlumberyException
+from .infrastructure import PlumberyInfrastructure
+from .polisher import PlumberyPolisher
+from .nodes import PlumberyNodes
+from .logging import setup_logging
 
 __all__ = ['PlumberyFacility']
 
@@ -58,7 +58,7 @@ class PlumberyFacility(object):
 
     def __init__(self, plumbery=None, fittings={}):
         """Puts this facility in context"""
-
+        self.log = setup_logging()
         self.plumbery = plumbery
 
         self.facts = {}
@@ -453,13 +453,13 @@ class PlumberyFacility(object):
 
         if names != labels:
             if len(names) > 1:
-                logging.info("- working on blueprints '{}'".format(
+                self.log.info("- working on blueprints '{}'".format(
                     "', '".join(names)))
             elif len(names) > 0:
-                logging.info("- working on blueprint '{}'".format(
+                self.log.info("- working on blueprint '{}'".format(
                     "', '".join(names)))
             else:
-                logging.info("- skipped - nothing to do here")
+                self.log.info("- skipped - nothing to do here")
 
         return names
 
@@ -557,7 +557,7 @@ class PlumberyFacility(object):
 
                     for label in PlumberyNodes.expand_labels(label):
                         if label in labels:
-                            logging.warning("Duplicate node name '{}'"
+                            self.log.warning("Duplicate node name '{}'"
                                             .format(label))
                         else:
                             labels.append(label)
@@ -611,21 +611,21 @@ class PlumberyFacility(object):
         """
 
         self.power_on()
-        logging.info("Plumbing at '{}' {} ({})".format(
+        self.log.info("Plumbing at '{}' {} ({})".format(
             self.location.id,
             self.location.name,
             self.location.country))
 
         blueprints = self.list_blueprints()
         if len(blueprints) < 1:
-            logging.warning("- no blueprint has been found")
+            self.log.warning("- no blueprint has been found")
         else:
-            logging.debug("- available blueprints: {}".format(
+            self.log.debug("- available blueprints: {}".format(
                 "'"+"', '".join(blueprints)+"'"))
 
         basement = self.list_basement()
         if len(basement) > 0:
-            logging.debug("- basement: {}".format(
+            self.log.debug("- basement: {}".format(
                 "'"+"', '".join(basement)+"'"))
 
     def power_on(self):
@@ -641,7 +641,7 @@ class PlumberyFacility(object):
         try:
 
             if self.region is None:
-                logging.debug("Getting driver for '%s / %s'", regionId, host)
+                self.log.debug("Getting driver for '%s / %s'", regionId, host)
                 self.region = self.plumbery.get_compute_driver(
                     region=regionId,
                     host=host)
@@ -650,18 +650,18 @@ class PlumberyFacility(object):
                     host=host)
 
                 if os.getenv('LIBCLOUD_HTTP_PROXY') is not None:
-                    logging.debug('Setting proxy to %s' %
+                    self.log.debug('Setting proxy to %s' %
                                   (os.getenv('LIBCLOUD_HTTP_PROXY')))
                     self.region.connection.set_http_proxy(
                         proxy_url=os.getenv('LIBCLOUD_HTTP_PROXY'))
                     self.backup.connection.set_http_proxy(
                         proxy_url=os.getenv('LIBCLOUD_HTTP_PROXY'))
-                    logging.debug('Disabling SSL verification')
+                    self.log.debug('Disabling SSL verification')
                     import libcloud.security
                     libcloud.security.VERIFY_SSL_CERT = False
 
             if self.location is None:
-                logging.debug("Getting location '{}'".format(locationId))
+                self.log.debug("Getting location '{}'".format(locationId))
                 locations = []
                 for location in self.region.list_locations():
                     locations.append(location.id)
@@ -669,7 +669,7 @@ class PlumberyFacility(object):
                         self.location = location
 
                 if self.location is None:
-                    logging.info("Known locations: {}".format(locations))
+                    self.log.info("Known locations: {}".format(locations))
                     raise PlumberyException("Unknown location '{}' in '{}'"
                                             .format(locationId, regionId))
 
@@ -821,12 +821,12 @@ class PlumberyFacility(object):
 
         basement = self.list_basement()
         for name in basement:
-            logging.debug("Polishing blueprint '{}'".format(name))
+            self.log.debug("Polishing blueprint '{}'".format(name))
             self.polish_blueprint(name, polishers)
 
         for name in self.expand_blueprint('*'):
             if name not in basement:
-                logging.debug("Polishing blueprint '{}'".format(name))
+                self.log.debug("Polishing blueprint '{}'".format(name))
                 self.polish_blueprint(name, polishers)
 
     def polish_blueprint(self, names, polishers):
@@ -923,12 +923,12 @@ class PlumberyFacility(object):
             if name in basement:
                 continue
             blueprint = self.get_blueprint(name)
-            logging.debug("Wiping blueprint '{}'".format(name))
+            self.log.debug("Wiping blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
 
         for name in basement:
             blueprint = self.get_blueprint(name)
-            logging.debug("Wiping blueprint '{}'".format(name))
+            self.log.debug("Wiping blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
 
     def wipe_blueprint(self, names):
@@ -964,13 +964,13 @@ class PlumberyFacility(object):
             if name in basement:
                 continue
             blueprint = self.get_blueprint(name)
-            logging.debug("Destroying blueprint '{}'".format(name))
+            self.log.debug("Destroying blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
             infrastructure.destroy_blueprint(blueprint)
 
         for name in basement:
             blueprint = self.get_blueprint(name)
-            logging.debug("Destroying blueprint '{}'".format(name))
+            self.log.debug("Destroying blueprint '{}'".format(name))
             nodes.destroy_blueprint(blueprint)
             infrastructure.destroy_blueprint(blueprint)
 

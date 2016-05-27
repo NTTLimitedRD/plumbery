@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+from __future__ import absolute_import
 import yaml
+from .logging import setup_logging
+from .nodes import PlumberyNodes
 
-from nodes import PlumberyNodes
+logging = setup_logging()
 
 __all__ = ['PlumberyText', 'PlumberyContext']
 

@@ -14,11 +14,13 @@
 # limitations under the License.
 
 import argparse
-import logging
 import sys
 
 from plumbery.engine import PlumberyEngine
 from plumbery import __version__
+from plumbery.logging import setup_logging
+
+logging = setup_logging()
 
 
 def parse_args(args=[]):

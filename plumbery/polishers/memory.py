@@ -15,7 +15,8 @@
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
 
-import logging
+from plumbery.logging import setup_logging
+logging = setup_logging()
 
 
 class MemoryConfiguration(NodeConfiguration):
