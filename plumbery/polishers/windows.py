@@ -15,7 +15,7 @@
 import time
 import requests
 
-import pywinexe
+from pywinexe.api import run
 
 from libcloud.compute.types import NodeState
 from winrm.protocol import Protocol
@@ -86,12 +86,12 @@ class WindowsConfiguration(NodeConfiguration):
         :type node: :class:`libcloud.compute.base.Node`
         """
         ipv6 = node.extra['ipv6']
-        pywinexe.api.run(
-                [WindowsConfiguration.setup_winrm],
-                cmd='powershell.exe',
-                user=self.username,
-                password=self.secret,
-                host=ipv6)
+        run(
+            [WindowsConfiguration.setup_winrm],
+            cmd='powershell.exe',
+            user=self.username,
+            password=self.secret,
+            host=ipv6)
 
     def validate(self, settings):
         return True
@@ -142,7 +142,8 @@ class WindowsConfiguration(NodeConfiguration):
         try:
             self._try_winrm(node)
         except requests.exceptions.ConnectionError:
-            logging.warn('initial connection failed, trying to setup winrm remotely')
+            logging.warn('initial connection to %s failed, trying to setup winrm remotely',
+                         ipv6)
             self._setup_winrm(node)
             self._try_winrm(node)
 
