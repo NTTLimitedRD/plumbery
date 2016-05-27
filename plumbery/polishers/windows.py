@@ -99,6 +99,7 @@ class WindowsConfiguration(NodeConfiguration):
             "winrm set winrm/config/service @{AllowUnencrypted=\"true\"}"
         ]
         for cmd in cmds:
+            logging.debug('Running command "%s"', cmd)
             out = run(
                 cmd,
                 args=[],
