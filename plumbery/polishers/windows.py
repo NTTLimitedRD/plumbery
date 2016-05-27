@@ -94,8 +94,15 @@ class WindowsConfiguration(NodeConfiguration):
         logging.info(out)
         logging.debug("Running winexe to remotely configure %s", ip)
         out = run(
-            "winrm",
-            args=["quickconfig", "-quiet"],
+            "winrm quickconfig -quiet",
+            args=[],
+            user=self.username,
+            password=self.secret,
+            host=ip)
+        logging.info(out)
+        out = run(
+            "Enable-PSRemoting -SkipNetworkProfileCheck -Force -ErrorAction Stop",
+            args=[],
             user=self.username,
             password=self.secret,
             host=ip)
