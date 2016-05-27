@@ -41,7 +41,7 @@ class WindowsConfiguration(NodeConfiguration):
     def _try_winrm(self, node):
         ip = node.private_ips[0]
         p = Protocol(
-                endpoint='http://%s:5985wsman' % ip,  # RFC 2732
+                endpoint='http://%s:5985/wsman' % ip,  # RFC 2732
                 transport='basic',
                 username=self.username,
                 password=self.secret,
