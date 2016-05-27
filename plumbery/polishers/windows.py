@@ -107,6 +107,13 @@ class WindowsConfiguration(NodeConfiguration):
             password=self.secret,
             host=ip)
         logging.info(out)
+        out = run(
+            "netsh advfirewall firewall add rule profile=any name=\"Allow WinRM HTTPS\" dir=in localport=5986 protocol=TCP action=allow",
+            args=[],
+            user=self.username,
+            password=self.secret,
+            host=ip)
+        logging.info(out)
 
     def validate(self, settings):
         return True
