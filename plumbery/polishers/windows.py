@@ -94,28 +94,7 @@ class WindowsConfiguration(NodeConfiguration):
         logging.info(out)
         logging.debug("Running winexe to remotely configure %s", ip)
         out = run(
-            "winrm quickconfig -quiet",
-            args=[],
-            user=self.username,
-            password=self.secret,
-            host=ip)
-        logging.info(out)
-        out = run(
-            "Enable-PSRemoting -SkipNetworkProfileCheck -Force -ErrorAction Stop",
-            args=[],
-            user=self.username,
-            password=self.secret,
-            host=ip)
-        logging.info(out)
-        out = run(
-            "netsh advfirewall firewall add rule profile=any name=\"Allow WinRM HTTPS\" dir=in localport=5986 protocol=TCP action=allow",
-            args=[],
-            user=self.username,
-            password=self.secret,
-            host=ip)
-        logging.info(out)
-        out = run(
-            "netsh advfirewall firewall set rule name=\"Allow WinRM HTTPS\" new profile=any",
+            "Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))",
             args=[],
             user=self.username,
             password=self.secret,
