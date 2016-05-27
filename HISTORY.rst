@@ -3,6 +3,11 @@
 History
 -------
 
+0.9.4 (2016-05-27)
+~~~~~~~~~~~~~~~~~~
+
+* fixed various bugs for windows - UAT for windows complete.
+
 0.9.3 (2016-05-27)
 ~~~~~~~~~~~~~~~~~~
 
