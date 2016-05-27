@@ -15,7 +15,7 @@
 import time
 import requests
 
-from pywinexe.api import run
+from pywinexe.api import ps as run
 
 from libcloud.compute.types import NodeState
 from winrm.protocol import Protocol
@@ -32,7 +32,8 @@ class WindowsConfiguration(NodeConfiguration):
     _configuration_ = {
     }
     # I don't like this..
-    setup_winrm = "Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))"
+    setup_winrm = ["Invoke-Expression",
+                   "((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))"]
 
     def __init__(self, engine):
         self.secret = engine.get_shared_secret()
@@ -87,8 +88,8 @@ class WindowsConfiguration(NodeConfiguration):
         """
         ipv6 = node.extra['ipv6']
         run(
-            [WindowsConfiguration.setup_winrm],
-            cmd='powershell.exe',
+            WindowsConfiguration.setup_winrm[0],
+            WindowsConfiguration.setup_winrm[1],
             user=self.username,
             password=self.secret,
             host=ipv6)
