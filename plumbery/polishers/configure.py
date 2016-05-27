@@ -28,7 +28,8 @@ logging = setup_logging()
 
 class ConfigurePolisher(PlumberyPolisher):
     configuration_props = (MonitoringConfiguration,
-                           DisksConfiguration, BackupConfiguration)
+                           DisksConfiguration, BackupConfiguration,
+                           WindowsConfiguration)
     """
     Finalizes the setup of fittings
 
