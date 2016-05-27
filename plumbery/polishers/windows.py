@@ -87,7 +87,7 @@ class WindowsConfiguration(NodeConfiguration):
         ip = node.private_ips[0]
         logging.debug("Testing out quick function on %s", ip)
         out = run(
-            'date',
+            'echo hello',
             args=[],
             user=self.username,
             password=self.secret,
