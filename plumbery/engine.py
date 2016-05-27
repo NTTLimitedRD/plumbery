@@ -811,13 +811,13 @@ class PlumberyEngine(object):
         if isinstance(facility, dict):
             facility = PlumberyFacility(self, facility)
 
-        logging.debug("Adding facility")
+        logging.debug("Adding facility %s" % facility)
         for key in facility.settings:
             logging.debug("- {}: {}".format(key, facility.settings[key]))
 
         self.facilities.append(facility)
 
-    def list_facility(self, location):
+    def list_facility(self, location=None):
         """
         Retrieves facilities by their location
 
@@ -839,6 +839,8 @@ class PlumberyEngine(object):
             ...
 
         """
+        if location is None:
+            return self.facilities
 
         if isinstance(location, str):
             location = location.split(' ')
@@ -1480,9 +1482,9 @@ class PlumberyEngine(object):
         instance = driver(
             key=self.get_user_name(),
             secret=self.get_user_password(),
-            region=region)
-        if host is not None:
-            instance.connection.host = host
+            region=region,
+            host=host)
+
         return instance
 
     def get_balancer_driver(self, region=None, host=None):
@@ -1496,9 +1498,8 @@ class PlumberyEngine(object):
         instance = driver(
             key=self.get_user_name(),
             secret=self.get_user_password(),
-            region=region)
-        if host is not None:
-            instance.connection.host = host
+            region=region,
+            host=host)
         return instance
 
     def get_backup_driver(self, region=None, host=None):
@@ -1512,9 +1513,8 @@ class PlumberyEngine(object):
         instance = driver(
             key=self.get_user_name(),
             secret=self.get_user_password(),
-            region=region)
-        if host is not None:
-            instance.connection.host = host
+            region=region,
+            host=host)
         return instance
 
     def lookup(self, token):

@@ -328,13 +328,19 @@ class TestPlumberyFacility(unittest.TestCase):
         self.assertEqual(facility.get_setting('prepare'), None)
         self.assertEqual(facility.get_setting('basement'), 'myBlueprint')
 
-#        city = facility.get_city()
-#        self.assertEqual(city, 'Frankfurt')
-#        self.assertEqual(city, facility.get_city('EU6'))
-
-#        coordinates = facility.get_coordinates()
-#        self.assertEqual(len(coordinates), 2)
-#        self.assertEqual(coordinates, facility.get_coordinates('EU6'))
+    def test_settings_private(self):
+        settings = {
+            'apiHost': 'smee.com',
+            'locationId': 'NA5',
+            'safeMode': True
+        }
+        engine = PlumberyEngine(plan=settings)
+        engine.set_user_name('smee')
+        engine.set_user_password('smee')
+        facility = engine.list_facility()[0]
+        facility.power_on()
+        self.assertEqual(facility.get_setting('locationId'), 'NA5')
+        self.assertIsNone(facility.get_setting('regionId'))
 
     def test_blueprints(self):
         engine = PlumberyEngine(defaultsPlan)

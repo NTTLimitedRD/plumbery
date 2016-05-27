@@ -153,7 +153,7 @@ class PlumberyFacility(object):
             locationId = self.get_setting('locationId')
 
         if locationId not in regions.keys():
-            return '*unknown*'
+            return None
 
         return regions[locationId]
 
