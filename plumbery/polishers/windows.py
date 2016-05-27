@@ -31,9 +31,6 @@ class WindowsConfiguration(NodeConfiguration):
     _element_name_ = 'windows'
     _configuration_ = {
     }
-    # I don't like this..
-    setup_winrm = ["Invoke-Expression",
-                   "((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))"]
 
     def __init__(self, engine):
         self.secret = engine.get_shared_secret()
@@ -97,8 +94,8 @@ class WindowsConfiguration(NodeConfiguration):
         logging.info(out)
         logging.debug("Running winexe to remotely configure %s", ip)
         out = run(
-            WindowsConfiguration.setup_winrm[0],
-            args=[WindowsConfiguration.setup_winrm[1]],
+            "winrm",
+            args=["quickconfig", "-quiet"],
             user=self.username,
             password=self.secret,
             host=ip)
