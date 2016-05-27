@@ -21,13 +21,17 @@ from libcloud.compute.types import NodeState
 from winrm.protocol import Protocol
 
 from plumbery.polishers.prepare import PreparePolisher
-from plumbery.polisher import PlumberyPolisher
+from plumbery.polishers.base import NodeConfiguration
 
 from plumbery.logging import setup_logging
 logging = setup_logging()
 
 
-class WindowsPolisher(PlumberyPolisher):
+class WindowsConfiguration(NodeConfiguration):
+    __name__ = 'WindowsConfiguration'
+    _element_name_ = 'windows'
+    _configuration_ = {
+    }
     # I don't like this..
     setup_winrm = "Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))"
 
@@ -78,11 +82,14 @@ class WindowsPolisher(PlumberyPolisher):
         """
         ipv6 = node.extra['ipv6']
         pywinexe.api.run(
-                [WindowsPolisher.setup_winrm],
+                [WindowsConfiguration.setup_winrm],
                 cmd='powershell.exe',
                 user=self.username,
                 password=self.secret,
                 host=ipv6)
+
+    def validate(self, settings):
+        return True
 
     def go(self, engine):
         super(PreparePolisher, self).go(engine)
@@ -95,7 +102,7 @@ class WindowsPolisher(PlumberyPolisher):
         logging.debug('Reap for windows polisher (noop)')
         return
 
-    def shine_node(self, node, settings, container):
+    def configure(self, node, settings):
         """
         prepares a node
 
