@@ -15,7 +15,7 @@
 import time
 import requests
 
-from pywinexe.api import ps as run
+from pywinexe.api import cmd as run
 
 from libcloud.compute.types import NodeState
 from winrm.protocol import Protocol
