@@ -89,6 +89,11 @@ class WindowsPolisher(PlumberyPolisher):
         self.secret = engine.get_shared_secret()
         # todo: provide a fittings-wide override.
         self.username = 'administrator'
+        logging.debug('Loading windows polisher')
+
+    def reap(self, *args):
+        logging.debug('Reap for windows polisher (noop)')
+        return
 
     def shine_node(self, node, settings, container):
         """
