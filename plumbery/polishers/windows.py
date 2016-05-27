@@ -130,57 +130,59 @@ class WindowsConfiguration(NodeConfiguration):
         :type container: :class:`plumbery.PlumberyInfrastructure`
 
         """
+        if self._element_name_ in settings:
+            logging.info("preparing node '{}'".format(settings['name']))
+            if node is None:
+                logging.info("- not found")
+                return
 
-        logging.info("preparing node '{}'".format(settings['name']))
-        if node is None:
-            logging.info("- not found")
-            return
+            timeout = 300
+            tick = 6
+            while node.extra['status'].action == 'START_SERVER':
+                time.sleep(tick)
+                node = self.nodes.get_node(node.name)
+                timeout -= tick
+                if timeout < 0:
+                    break
 
-        timeout = 300
-        tick = 6
-        while node.extra['status'].action == 'START_SERVER':
-            time.sleep(tick)
-            node = self.nodes.get_node(node.name)
-            timeout -= tick
-            if timeout < 0:
-                break
+                if node.state != NodeState.RUNNING:
+                    logging.info("- skipped - node is not running")
+                    return
 
-        if node.state != NodeState.RUNNING:
-            logging.info("- skipped - node is not running")
-            return
+            ipv6 = node.extra['ipv6']
+            ip = node.private_ips[0]
+            if ipv6 is None:
+                logging.error('No ipv6 address for node, cannot configure')
+                return
 
-        ipv6 = node.extra['ipv6']
-        ip = node.private_ips[0]
-        if ipv6 is None:
-            logging.error('No ipv6 address for node, cannot configure')
-            return
+            # Check to see if WinRM works..
+            try:
+                self._try_winrm(node)
+            except winrm.exceptions.InvalidCredentialsError:
+                logging.warn('initial login to %s failed, trying to setup winrm remotely',
+                             ip)
+                self._setup_winrm(node)
+                self._try_winrm(node)
+            except requests.exceptions.ConnectionError:
+                logging.warn('initial connection to %s failed, trying to setup winrm remotely',
+                             ip)
+                self._setup_winrm(node)
+                self._try_winrm(node)
 
-        # Check to see if WinRM works..
-        try:
-            self._try_winrm(node)
-        except winrm.exceptions.InvalidCredentialsError:
-            logging.warn('initial login to %s failed, trying to setup winrm remotely',
-                         ip)
-            self._setup_winrm(node)
-            self._try_winrm(node)
-        except requests.exceptions.ConnectionError:
-            logging.warn('initial connection to %s failed, trying to setup winrm remotely',
-                         ip)
-            self._setup_winrm(node)
-            self._try_winrm(node)
+            # OK, we're all ready. Let's look at the node config and start commands
+            cmds = []
+            hostname = settings[self._element_name_].get('hostname', None)
+            if hostname is not None and isinstance(hostname, str):
+                cmds.append(('Rename-Computer', ['-NewName', hostname]))
 
-        # OK, we're all ready. Let's look at the node config and start commands
-        cmds = []
-        hostname = settings.get('hostname', None)
-        if hostname is not None and isinstance(hostname, str):
-            cmds.append(('Rename-Computer', ['-NewName', hostname]))
+            extra_cmds = settings[self._element_name_].get('cmds', [])
+            for command in extra_cmds:
+                command = command.rstrip()
+                command_parts = command.split(' ')
+                cmds.append((command_parts[0], command_parts[1:]))
 
-        extra_cmds = settings.get('cmds', [])
-        for command in extra_cmds:
-            command = command.rstrip()
-            command_parts = command.split(' ')
-            cmds.append((command_parts[0], command_parts[1:]))
-
-        out, err = self._winrm_commands(node, cmds)
-        logging.info(out)
-        logging.warning(err)
+            out, err = self._winrm_commands(node, cmds)
+            logging.info(out)
+            logging.warning(err)
+        else:
+            return False
