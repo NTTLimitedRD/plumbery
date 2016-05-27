@@ -41,7 +41,7 @@ class WindowsConfiguration(NodeConfiguration):
     def _try_winrm(self, node):
         ip = node.private_ips[0]
         p = Protocol(
-                endpoint='https://%s:5986/wsman' % ip,  # RFC 2732
+                endpoint='http://%s:5986/wsman' % ip,  # RFC 2732
                 transport='ntlm',
                 username=self.username,
                 password=self.secret,
@@ -56,7 +56,7 @@ class WindowsConfiguration(NodeConfiguration):
     def _winrm_commands(self, node, commands):
         ip = node.private_ips[0]
         p = Protocol(
-                endpoint='https://%s:5986/wsman' % ip,  # RFC 2732
+                endpoint='http://%s:5986/wsman' % ip,  # RFC 2732
                 transport='ntlm',
                 username=self.username,
                 password=self.secret,
@@ -93,13 +93,19 @@ class WindowsConfiguration(NodeConfiguration):
             host=ip)
         logging.info(out)
         logging.debug("Running winexe to remotely configure %s", ip)
-        out = run(
-            "Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('http://pastebin.com/raw/eDL4ThmG'))",
-            args=[],
-            user=self.username,
-            password=self.secret,
-            host=ip)
-        logging.info(out)
+        cmds = [
+            "powershell.exe winrm quickconfig -transport:http",
+            "winrm set winrm/config/service/auth @{Basic=\"true\"}",
+            "winrm set winrm/config/service @{AllowUnencrypted=\"true\"}"
+        ]
+        for cmd in cmds:
+            out = run(
+                cmd,
+                args=[],
+                user=self.username,
+                password=self.secret,
+                host=ip)
+            logging.info(out)
 
     def validate(self, settings):
         return True
