@@ -110,6 +110,29 @@ class WindowsConfiguration(NodeConfiguration):
                 host=ip)
             logging.info(out)
 
+    def _lockdown_winrm(self, node):
+        """
+        Setup WinRM on a remote node
+
+        :param node: the node to be polished
+        :type node: :class:`libcloud.compute.base.Node`
+        """
+        ip = node.private_ips[0]
+        logging.debug("Running winexe to remotely deconfigure %s", ip)
+        cmds = [
+            "winrm set winrm/config/service/auth @{Basic=\"false\"}",
+            "winrm set winrm/config/service @{AllowUnencrypted=\"false\"}"
+        ]
+        for cmd in cmds:
+            logging.debug('Running command "%s"', cmd)
+            out = run_cmd(
+                cmd,
+                args=[],
+                user=self.username,
+                password=self.secret,
+                host=ip)
+            logging.info(out)
+
     def validate(self, settings):
         return True
 
@@ -185,5 +208,8 @@ class WindowsConfiguration(NodeConfiguration):
             out, err = self._winrm_commands(node, cmds)
             logging.info(out)
             logging.warning(err)
+
+            logging.debug('locking down winrm')
+            self._lockdown_winrm(node)
         else:
             return False
