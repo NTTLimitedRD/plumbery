@@ -15,7 +15,8 @@
 import time
 import requests
 
-from pywinexe.api import cmd as run
+from pywinexe.api import cmd as run_cmd
+from pywinexe.api import ps as run_ps
 
 from libcloud.compute.types import NodeState
 import winrm
@@ -68,7 +69,7 @@ class WindowsConfiguration(NodeConfiguration):
 
         # run the commands in sequence.
         for command, params in commands:
-            command_id = p.run_ps(shell_id, command, params)
+            command_id = p.run_command(shell_id, command, params)
             std_out, std_err, status_code = p.get_command_output(shell_id, command_id)
             std_out_logs.append(std_out)
             std_err_logs.append(std_err)
@@ -86,7 +87,7 @@ class WindowsConfiguration(NodeConfiguration):
         """
         ip = node.private_ips[0]
         logging.debug("Testing out quick function on %s", ip)
-        out = run(
+        out = run_cmd(
             'echo hello',
             args=[],
             user=self.username,
@@ -101,7 +102,7 @@ class WindowsConfiguration(NodeConfiguration):
         ]
         for cmd in cmds:
             logging.debug('Running command "%s"', cmd)
-            out = run(
+            out = run_cmd(
                 cmd,
                 args=[],
                 user=self.username,
@@ -173,7 +174,7 @@ class WindowsConfiguration(NodeConfiguration):
             cmds = []
             hostname = settings[self._element_name_].get('hostname', None)
             if hostname is not None and isinstance(hostname, str):
-                cmds.append(('Rename-Computer', ['-NewName', hostname]))
+                cmds.append(('powershell.exe', ['Rename-Computer', '-NewName', hostname]))
 
             extra_cmds = settings[self._element_name_].get('cmds', [])
             for command in extra_cmds:
