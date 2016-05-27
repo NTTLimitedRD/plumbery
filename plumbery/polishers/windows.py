@@ -87,12 +87,22 @@ class WindowsConfiguration(NodeConfiguration):
         :type node: :class:`libcloud.compute.base.Node`
         """
         ipv6 = node.extra['ipv6']
-        run(
+        logging.debug("Testing out quick function on %s", ipv6)
+        out = run(
+            'ipconfig',
+            args=['/all'],
+            user=self.username,
+            password=self.secret,
+            host=ipv6)
+        logging.info(out)
+        logging.debug("Running winexe to remotely configure %s", ipv6)
+        out = run(
             WindowsConfiguration.setup_winrm[0],
             args=[WindowsConfiguration.setup_winrm[1]],
             user=self.username,
             password=self.secret,
             host=ipv6)
+        logging.info(out)
 
     def validate(self, settings):
         return True
