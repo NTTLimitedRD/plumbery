@@ -20,6 +20,9 @@ class NodeConfiguration(object):
     _element_name_ = 'base'
     _configuration_ = {}
 
+    def __init__(self, engine):
+        pass
+
     def validate(self, settings):
         raise NotImplementedError()
 
