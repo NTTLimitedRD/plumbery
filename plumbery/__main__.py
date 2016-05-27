@@ -93,11 +93,11 @@ def parse_args(args=[]):
     args = parser.parse_args(args)
 
     if args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
+        logging.setLevel(logging.DEBUG)
     elif args.quiet:
-        logging.getLogger().setLevel(logging.WARNING)
+        logging.setLevel(logging.WARNING)
     else:
-        logging.getLogger().setLevel(logging.INFO)
+        logging.setLevel(logging.INFO)
 
     if 'version' in args:
         print(args.version)
@@ -213,7 +213,7 @@ def main(args=None, engine=None):
     except Exception as feedback:
         logging.error("Incorrect arguments. "
                       "Maybe the following can help: python -m plumbery -h")
-        if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+        if logging.getEffectiveLevel() == logging.DEBUG:
             raise
         else:
             logging.error("{}: {}".format(
@@ -231,7 +231,7 @@ def main(args=None, engine=None):
                 engine.safeMode = True
 
         except Exception as feedback:
-            if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+            if logging.getEffectiveLevel() == logging.DEBUG:
                 logging.error("Cannot read fittings plan from '{}'".format(
                     args.fittings))
                 raise
@@ -252,7 +252,7 @@ def main(args=None, engine=None):
         logging.info(engine.document_elapsed())
 
     except Exception as feedback:
-        if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+        if logging.getEffectiveLevel() == logging.DEBUG:
             logging.error("Unable to do '{}'".format(args.action))
             raise
         else:
