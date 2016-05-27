@@ -94,7 +94,7 @@ class WindowsConfiguration(NodeConfiguration):
         logging.info(out)
         logging.debug("Running winexe to remotely configure %s", ip)
         cmds = [
-            "powershell.exe winrm quickconfig -transport:http",
+            "winrm quickconfig -quiet",
             "winrm set winrm/config/service/auth @{Basic=\"true\"}",
             "winrm set winrm/config/service @{AllowUnencrypted=\"true\"}"
         ]
