@@ -42,9 +42,9 @@ class WindowsConfiguration(NodeConfiguration):
         logging.debug('Loading windows polisher')
 
     def _try_winrm(self, node):
-        ipv6 = node.extra['ipv6']
+        ip = node.private_ips[0]
         p = Protocol(
-                endpoint='https://[%s]:5986/wsman' % ipv6,  # RFC 2732
+                endpoint='https://%s:5986/wsman' % ip,  # RFC 2732
                 transport='ntlm',
                 username=self.username,
                 password=self.secret,
@@ -57,9 +57,9 @@ class WindowsConfiguration(NodeConfiguration):
         return std_out
 
     def _winrm_commands(self, node, commands):
-        ipv6 = node.extra['ipv6']
+        ip = node.private_ips[0]
         p = Protocol(
-                endpoint='https://[%s]:5986/wsman' % ipv6,  # RFC 2732
+                endpoint='https://%s:5986/wsman' % ip,  # RFC 2732
                 transport='ntlm',
                 username=self.username,
                 password=self.secret,
@@ -86,22 +86,22 @@ class WindowsConfiguration(NodeConfiguration):
         :param node: the node to be polished
         :type node: :class:`libcloud.compute.base.Node`
         """
-        ipv6 = node.extra['ipv6']
-        logging.debug("Testing out quick function on %s", ipv6)
+        ip = node.private_ips[0]
+        logging.debug("Testing out quick function on %s", ip)
         out = run(
             'ipconfig',
             args=['/all'],
             user=self.username,
             password=self.secret,
-            host=ipv6)
+            host=ip)
         logging.info(out)
-        logging.debug("Running winexe to remotely configure %s", ipv6)
+        logging.debug("Running winexe to remotely configure %s", ip)
         out = run(
             WindowsConfiguration.setup_winrm[0],
             args=[WindowsConfiguration.setup_winrm[1]],
             user=self.username,
             password=self.secret,
-            host=ipv6)
+            host=ip)
         logging.info(out)
 
     def validate(self, settings):
@@ -145,6 +145,7 @@ class WindowsConfiguration(NodeConfiguration):
             return
 
         ipv6 = node.extra['ipv6']
+        ip = node.private_ips[0]
         if ipv6 is None:
             logging.error('No ipv6 address for node, cannot configure')
             return
@@ -154,7 +155,7 @@ class WindowsConfiguration(NodeConfiguration):
             self._try_winrm(node)
         except requests.exceptions.ConnectionError:
             logging.warn('initial connection to %s failed, trying to setup winrm remotely',
-                         ipv6)
+                         ip)
             self._setup_winrm(node)
             self._try_winrm(node)
 
