@@ -18,6 +18,7 @@ import requests
 from pywinexe.api import cmd as run
 
 from libcloud.compute.types import NodeState
+import winrm
 from winrm.protocol import Protocol
 
 from plumbery.polishers.base import NodeConfiguration
@@ -42,7 +43,7 @@ class WindowsConfiguration(NodeConfiguration):
         ip = node.private_ips[0]
         p = Protocol(
                 endpoint='http://%s:5985/wsman' % ip,  # RFC 2732
-                transport='basic',
+                transport='ntlm',
                 username=self.username,
                 password=self.secret,
                 server_cert_validation='ignore')
@@ -57,7 +58,7 @@ class WindowsConfiguration(NodeConfiguration):
         ip = node.private_ips[0]
         p = Protocol(
                 endpoint='http://%s:5985/wsman' % ip,  # RFC 2732
-                transport='basic',
+                transport='ntlm',
                 username=self.username,
                 password=self.secret,
                 server_cert_validation='ignore')
@@ -156,6 +157,11 @@ class WindowsConfiguration(NodeConfiguration):
 
         # Check to see if WinRM works..
         try:
+            self._try_winrm(node)
+        except winrm.exceptions.InvalidCredentialsError:
+            logging.warn('initial login to %s failed, trying to setup winrm remotely',
+                         ip)
+            self._setup_winrm(node)
             self._try_winrm(node)
         except requests.exceptions.ConnectionError:
             logging.warn('initial connection to %s failed, trying to setup winrm remotely',
