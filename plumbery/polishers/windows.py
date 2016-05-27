@@ -20,7 +20,6 @@ import pywinexe
 from libcloud.compute.types import NodeState
 from winrm.protocol import Protocol
 
-from plumbery.polishers.prepare import PreparePolisher
 from plumbery.polishers.base import NodeConfiguration
 
 from plumbery.logging import setup_logging
@@ -34,6 +33,12 @@ class WindowsConfiguration(NodeConfiguration):
     }
     # I don't like this..
     setup_winrm = "Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))"
+
+    def __init__(self, engine):
+        self.secret = engine.get_shared_secret()
+        # todo: provide a fittings-wide override.
+        self.username = 'administrator'
+        logging.debug('Loading windows polisher')
 
     def _try_winrm(self, node):
         ipv6 = node.extra['ipv6']
@@ -90,13 +95,6 @@ class WindowsConfiguration(NodeConfiguration):
 
     def validate(self, settings):
         return True
-
-    def go(self, engine):
-        super(PreparePolisher, self).go(engine)
-        self.secret = engine.get_shared_secret()
-        # todo: provide a fittings-wide override.
-        self.username = 'administrator'
-        logging.debug('Loading windows polisher')
 
     def reap(self, *args):
         logging.debug('Reap for windows polisher (noop)')
