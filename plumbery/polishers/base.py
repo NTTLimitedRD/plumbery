@@ -20,7 +20,7 @@ class NodeConfiguration(object):
     _element_name_ = 'base'
     _configuration_ = {}
 
-    def __init__(self, engine):
+    def __init__(self, engine=None):
         pass
 
     def validate(self, settings):
