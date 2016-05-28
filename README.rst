@@ -14,16 +14,16 @@ Plumbery
 
 .. image:: https://img.shields.io/pypi/v/plumbery.svg?maxAge=2592000
    :target: https://pypi.python.org/pypi/plumbery
-   
+
 .. image:: https://img.shields.io/pypi/l/plumbery.svg?maxAge=2592000
    :target: https://pypi.python.org/pypi/plumbery
-   
+
 .. image:: https://img.shields.io/pypi/pyversions/plumbery.svg?maxAge=2592000
    :target: https://pypi.python.org/pypi/plumbery
-   
+
 .. image:: https://readthedocs.org/projects/plumbery/badge/?version=latest
    :target: http://plumbery.readthedocs.io/en/latest/?badge=latest
-   
+
 .. image:: https://coveralls.io/repos/github/DimensionDataCBUSydney/plumbery/badge.svg?branch=master
    :target: https://coveralls.io/github/DimensionDataCBUSydney/plumbery?branch=master
 
@@ -38,7 +38,7 @@ Infrastructure as code at Dimension Data with Apache Libcloud
 Features
 --------
 
-* 26 tutorials covering popular use cases
+* 35 tutorials covering popular use cases
 * Read fittings plan in YAML
 * Load parameters in separate YAMl file
 * Use cloud API to create the network infrastructure, and to build nodes
@@ -56,8 +56,10 @@ Features
 * Specify node memory
 * Add virtual disks and specify tiers of storage
 * Add multiple network interfaces to nodes
+* Set private IPv4 statically
 * Add public IPv4 addresses to nodes
 * Add monitoring to nodes
+* Add backup to nodes
 * Build all blueprints
 * Build a blueprint across multiple locations
 * Start all nodes
