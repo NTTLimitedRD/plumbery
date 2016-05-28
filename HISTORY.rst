@@ -3,10 +3,19 @@
 History
 -------
 
+0.9.5 (2016-05-28)
+~~~~~~~~~~~~~~~~~~
+
+* 35 reference configurations are now provided in separate plumbery-contrib
+* Passing Travis CI
+* 3787 python statements
+* Test coverage 53%
+
 0.9.4 (2016-05-27)
 ~~~~~~~~~~~~~~~~~~
 
-* fixed various bugs for windows - UAT for windows complete.
+* Adapt Dockerfile to Windows targets
+* Fix various bugs for windows - UAT for windows complete.
 
 0.9.3 (2016-05-27)
 ~~~~~~~~~~~~~~~~~~
@@ -32,6 +41,13 @@ History
 ~~~~~~~~~~~~~~~~~~
 
 * Remove windows line endings from unix shell fixtures.
+* Accept static IPv4 settings
+* Support ICMP, TCP, UDP and IP in firewall definitions
+* Add alias 'primary' for main NIC network
+* Upgrade VMware tools automatically
+* Fix calls to API 2.2
+* Add the ability to read fittings plan from stdin
+* Add entry point to launch plumbery from command line
 
 0.8.0 (2016-04-13)
 ~~~~~~~~~~~~~~~~~~

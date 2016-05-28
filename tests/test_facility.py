@@ -338,7 +338,7 @@ class TestPlumberyFacility(unittest.TestCase):
         engine.set_user_name('smee')
         engine.set_user_password('smee')
         facility = engine.list_facility()[0]
-        facility.power_on()
+#        facility.power_on()
         self.assertEqual(facility.get_setting('locationId'), 'NA5')
         self.assertIsNone(facility.get_setting('regionId'))
 

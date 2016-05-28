@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import absolute_import
+
 import time
 from uuid import uuid4
 
@@ -66,6 +68,7 @@ class PlumberyInfrastructure(object):
 
     def __init__(self, facility=None):
         """A virtual data centre attached to a physical data centre"""
+
         self.log = setup_logging()
 
         # handle to parent parameters and functions
@@ -1165,7 +1168,7 @@ class PlumberyInfrastructure(object):
             count = actual + 2
 
         if count < 2 or count > 128:
-            self.log.warning("Invalid count of requested IPv4 public addresses")
+            logging.warning("Invalid count of requested IPv4 public addresses")
             return None
 
         if actual >= count:
@@ -1334,14 +1337,18 @@ class PlumberyInfrastructure(object):
             ip_address=destination.private_ipv4_range_address,
             ip_prefix_size=destination.private_ipv4_range_size,
             port_begin=None,
-            port_end=None)
+            port_end=None,
+            address_list_id=None,
+            port_list_id=None)
 
         destinationIPv6 = DimensionDataFirewallAddress(
             any_ip=False,
             ip_address=destination.ipv6_range_address,
             ip_prefix_size=destination.ipv6_range_size,
             port_begin=None,
-            port_end=None)
+            port_end=None,
+            address_list_id=None,
+            port_list_id=None)
 
         for item in self.blueprint['ethernet']['accept']:
 
@@ -1410,7 +1417,9 @@ class PlumberyInfrastructure(object):
                         ip_address=source.private_ipv4_range_address,
                         ip_prefix_size=source.private_ipv4_range_size,
                         port_begin=None,
-                        port_end=None)
+                        port_end=None,
+                        address_list_id=None,
+                        port_list_id=None)
 
                     ruleIPv4 = DimensionDataFirewallRule(
                         id=uuid4(),
@@ -1458,7 +1467,9 @@ class PlumberyInfrastructure(object):
                         ip_address=source.ipv6_range_address,
                         ip_prefix_size=source.ipv6_range_size,
                         port_begin=None,
-                        port_end=None)
+                        port_end=None,
+                        address_list_id=None,
+                        port_list_id=None)
 
                     ruleIPv6 = DimensionDataFirewallRule(
                         id=uuid4(),
@@ -1599,6 +1610,68 @@ class PlumberyInfrastructure(object):
                                                    destination,
                                                    protocol)
 
+    @classmethod
+    def parse_firewall_port(cls, port):
+        """
+        Parses port definition for a firewall rule
+
+        :param port: string definition of a target port
+        :type port: ``str``
+
+        :return: elements of the port definition
+
+        This function analyses the provided string and returns
+        a tuple that can be used for firewall configuration.
+
+        Some examples:
+        >>>container.parse_firewall_port('icmp')
+        ('ICMP', 'any', None, None)
+        >>>container.parse_firewall_port('tcp:80')
+        ('TCP', '80', '80', None)
+        >>>container.parse_firewall_port(':80')
+        ('TCP', '80', '80', None)
+        >>>container.parse_firewall_port('80')
+        ('TCP', '80', '80', None)
+        >>>container.parse_firewall_port('udp:137..138')
+        ('UDP', '137..138', '137', '138')
+        >>>container.parse_firewall_port('any')
+        ('TCP', 'any', None, None)
+
+        """
+
+        protocols = ('ip', 'icmp', 'tcp', 'udp')
+
+        tokens = port.lower().strip(':').split(':')
+        if len(tokens) > 1:  # example: 'TCP:80'
+            protocol = tokens[0].upper()
+            port = tokens[1]
+
+        elif tokens[0] in protocols:  # example: 'icmp'
+            protocol = tokens[0].upper()
+            port = 'any'
+
+        else:  # example: '80'
+            protocol = 'TCP'
+            port = tokens[0]
+
+        if protocol.lower() not in protocols:
+            raise ValueError("'{}' is not a valid protocol"
+                             .format(protocol))
+
+        tokens = port.split('..')
+        if len(tokens) == 1:
+            if tokens[0].lower() == 'any':
+                port_begin = None
+            else:
+                port_begin = tokens[0]
+            port_end = None
+
+        else:
+            port_begin = tokens[0]
+            port_end = tokens[1]
+
+        return (protocol, port, port_begin, port_end)
+
     def _list_candidate_firewall_rules(self, node, ports=[]):
         """
         Lists rules that should apply to one node
@@ -1631,22 +1704,12 @@ class PlumberyInfrastructure(object):
 
         for port in ports:
 
-            tokens = port.split('..')
-            if len(tokens) == 1:
-                if tokens[0].lower() == 'any':
-                    port_begin = None
-                else:
-                    port_begin = tokens[0]
-                port_end = None
-                port = tokens[0]
-            else:
-                port_begin = tokens[0]
-                port_end = tokens[1]
-                port = port_begin+'..'+port_end
+            protocol, port, port_begin, port_end = \
+                self.parse_firewall_port(port)
 
             ruleIPv4Name = self.name_firewall_rule(
                 'Internet',
-                node.name, 'TCPv4_'+port)
+                node.name, protocol+'v4_'+port)
 
             sourceIPv4 = DimensionDataFirewallAddress(
                 any_ip=True,
@@ -1674,7 +1737,7 @@ class PlumberyInfrastructure(object):
                 network_domain=network.network_domain,
                 status='NORMAL',
                 ip_version='IPV4',
-                protocol='TCP',
+                protocol=protocol,
                 enabled='true',
                 source=sourceIPv4,
                 destination=destinationIPv4)

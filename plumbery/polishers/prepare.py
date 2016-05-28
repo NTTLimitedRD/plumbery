@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
 import time
 import yaml
@@ -32,7 +33,6 @@ from plumbery.text import PlumberyText
 from plumbery.text import PlumberyNodeContext
 from plumbery.logging import setup_logging
 logging = setup_logging()
-
 
 class FileContentDeployment(Deployment):
     """
@@ -162,6 +162,42 @@ class PreparePolisher(PlumberyPolisher):
 
     """
 
+    def upgrade_vmware_tools(self, node):
+        """
+        Upgrade VMware tools on target node
+
+        :param node: the node to be polished
+        :type node: :class:`libcloud.compute.base.Node`
+
+        """
+
+        if self.engine.safeMode:
+            return True
+
+        while True:
+            try:
+                self.region.ex_update_vm_tools(node=node)
+
+                logging.info("- upgrading vmware tools")
+                return True
+
+            except Exception as feedback:
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                if 'Please try again later' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                if 'NO_CHANGE' in str(feedback):
+                    logging.debug("- vmware tools is already up-to-date")
+                    return True
+
+                logging.info("- unable to upgrade vmware tools")
+                logging.error(str(feedback))
+                return False
+
     def _apply_prepares(self, node, steps):
         """
         Does the actual job over SSH
@@ -202,22 +238,36 @@ class PreparePolisher(PlumberyPolisher):
 
         try:
             session.connect()
-
-            if self.engine.safeMode:
-                logging.info("- skipped - no ssh interaction in safe mode")
-
-            else:
-                node = steps.run(node, session)
-
         except Exception as feedback:
             logging.info("Error: unable to prepare '{}' at '{}'!".format(
                 node.name, target_ip))
             logging.error(str(feedback))
             logging.info("- failed")
-            result = False
+            return False
 
-        else:
-            result = True
+        while True:
+            try:
+                if self.engine.safeMode:
+                    logging.info("- skipped - no ssh interaction in safe mode")
+
+                else:
+                    node = steps.run(node, session)
+
+            except Exception as feedback:
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                logging.info("Error: unable to prepare '{}' at '{}'!".format(
+                    node.name, target_ip))
+                logging.error(str(feedback))
+                logging.info("- failed")
+                result = False
+
+            else:
+                result = True
+
+            break
 
         try:
             session.close()
@@ -524,7 +574,7 @@ class PreparePolisher(PlumberyPolisher):
 
         """
 
-        logging.info("preparing node '{}'".format(settings['name']))
+        logging.info("Preparing node '{}'".format(settings['name']))
         if node is None:
             logging.info("- not found")
             return
@@ -541,6 +591,8 @@ class PreparePolisher(PlumberyPolisher):
         if node.state != NodeState.RUNNING:
             logging.info("- skipped - node is not running")
             return
+
+        self.upgrade_vmware_tools(node)
 
         prepares = self._get_prepares(node, settings, container)
         if len(prepares) < 1:

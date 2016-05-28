@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import absolute_import
 import re
 import time
@@ -64,7 +65,9 @@ class PlumberyNodes(object):
 
     def __init__(self, facility=None):
         """Put nodes in context"""
+
         self.log = setup_logging()
+
         # handle to parent parameters and functions
         self.facility = facility
         self.region = facility.region
@@ -484,6 +487,10 @@ class PlumberyNodes(object):
         """
         matches = re.match(r'(.*)\[([0-9]+)..([0-9]+)\](.*)', label)
         if matches is None:
+            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$",
+                label) is None:
+                logging.warning("Warning: '{}' is not a valid hostname"
+                                .format(label))
             return [label]
 
         labels = []
@@ -492,7 +499,7 @@ class PlumberyNodes(object):
             label = matches.group(1)+str(index)+matches.group(4)
             if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$",
                 label) is None:
-                self.log.warning("Warning: '{}' is not a valid hostname"
+                logging.warning("Warning: '{}' is not a valid hostname"
                                 .format(label))
 
             labels.append(label)
@@ -564,7 +571,7 @@ class PlumberyNodes(object):
             try:
                 self.region.ex_get_location_by_id(path[0])
             except IndexError:
-                self.log.warning("'{}' is unknown".format(path[0]))
+                logging.warning("'{}' is unknown".format(path[0]))
                 return None
 
             self.log.debug("Looking for remote node '{}'"
@@ -589,7 +596,7 @@ class PlumberyNodes(object):
             try:
                 remoteLocation = offshore.ex_get_location_by_id(path[1])
             except IndexError:
-                self.log.warning("'{}' is unknown".format(path[1]))
+                logging.warning("'{}' is unknown".format(path[1]))
                 return None
 
             self.log.debug("Looking for offshore node '{}'"

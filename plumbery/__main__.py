@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import absolute_import
+
 import logging
 import argparse
 import sys
@@ -20,7 +22,6 @@ import sys
 from plumbery.engine import PlumberyEngine
 from plumbery import __version__
 from plumbery.logging import setup_logging
-
 log = setup_logging()
 
 
@@ -94,10 +95,13 @@ def parse_args(args=[]):
     args = parser.parse_args(args)
 
     if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
         log.setLevel(logging.DEBUG)
     elif args.quiet:
+        logging.getLogger().setLevel(logging.WARNING)
         log.setLevel(logging.WARNING)
     else:
+        logging.getLogger().setLevel(logging.INFO)
         log.setLevel(logging.INFO)
 
     if 'version' in args:

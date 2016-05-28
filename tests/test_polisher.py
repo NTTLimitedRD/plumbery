@@ -78,6 +78,34 @@ class FakeRegion:
         return [FakeNode()]
 
 
+fakeFacilitySettings = {
+    'locationId': 'EU6',
+    'prepare': [{'beachhead': '10.1.10.9'}, {'beachhead': '10.1.10.10'}],
+    'regionId': 'dd-eu'}
+
+
+class FakeFacility():
+    plumbery = FakeEngine()
+    settings = fakeFacilitySettings
+    region = FakeRegion()
+    backup = None
+
+    def __repr__(self):
+        return "<FakeFacility fittings: {}>".format(self.fittings)
+
+    def get_location_id(self):
+        return 'EU6'
+
+    def get_setting(self, label, default=None):
+        if label in self.settings:
+            return self.settings[label]
+
+        return default
+
+    def power_on(self):
+        pass
+
+
 class FakeContainer:
 
     id = 123
@@ -85,6 +113,7 @@ class FakeContainer:
     network = FakeNetwork()
 
     region = FakeRegion()
+    facility = FakeFacility()
 
     blueprint = {
         'target': 'fake',
@@ -112,34 +141,6 @@ class FakeContainer:
 
     def _add_to_pool(self, node):
         pass
-
-fakeFacilitySettings = {
-    'locationId': 'EU6',
-    'prepare': [{'beachhead': '10.1.10.9'}, {'beachhead': '10.1.10.10'}],
-    'regionId': 'dd-eu'}
-
-
-class FakeFacility():
-    plumbery = FakeEngine()
-    settings = fakeFacilitySettings
-    backup = None
-    region = FakeRegion()
-
-    def __repr__(self):
-        return "<FakeFacility fittings: {}>".format(self.fittings)
-
-    def get_location_id(self):
-        return 'EU6'
-
-    def get_setting(self, label, default=None):
-        if label in self.settings:
-            return self.settings[label]
-
-        return default
-
-    def power_on(self):
-        pass
-
 
 FakeStatus = namedtuple('FakeStatus', 'action')
 

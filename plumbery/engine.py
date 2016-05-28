@@ -35,10 +35,10 @@ from libcloud.backup.types import Provider as BackupProvider
 
 from .exception import PlumberyException
 from .facility import PlumberyFacility
+from .logging import setup_logging
 from .polisher import PlumberyPolisher
 from .text import PlumberyText, PlumberyContext
 from plumbery import __version__
-from plumbery.logging import setup_logging
 
 
 __all__ = ['PlumberyEngine']

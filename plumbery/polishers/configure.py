@@ -12,11 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import time
 
-from plumbery.exception import ConfigurationError
 from plumbery.polisher import PlumberyPolisher
 from plumbery.nodes import PlumberyNodes
+from plumbery.exception import ConfigurationError
 from plumbery.polishers.memory import MemoryConfiguration
 from plumbery.polishers.cpu import CpuConfiguration
 from plumbery.polishers.monitoring import MonitoringConfiguration
@@ -28,11 +29,8 @@ logging = setup_logging()
 
 
 class ConfigurePolisher(PlumberyPolisher):
-    configuration_props = (MonitoringConfiguration,
-                           DisksConfiguration, BackupConfiguration,
-                           WindowsConfiguration)
     """
-    Finalizes the setup of fittings
+    Configures various elements in fittings plan
 
     This polisher looks at each node in sequence, and adjust settings
     according to fittings plan. This is covering various features that
@@ -43,6 +41,10 @@ class ConfigurePolisher(PlumberyPolisher):
     - network interfaces
 
     """
+
+    configuration_props = (MonitoringConfiguration,
+                           DisksConfiguration, BackupConfiguration,
+                           WindowsConfiguration)
 
     def move_to(self, facility):
         """
@@ -60,14 +62,10 @@ class ConfigurePolisher(PlumberyPolisher):
 
     def shine_container(self, container):
         """
-        prepares a container until it shines
+        Configures a container
 
         :param container: the container to be polished
         :type container: :class:`plumbery.PlumberyInfrastructure`
-
-        This is where the hard work is done. You have to override this
-        function in your own polisher. Note that you can compare the reality
-        versus the theoritical settings if you want.
 
         """
 
@@ -423,23 +421,25 @@ class ConfigurePolisher(PlumberyPolisher):
 
             ram_prop = MemoryConfiguration()
             ram_prop.validate(settings)
-
             memory = ram_prop.configure(node, settings)
 
             if memory is not False and cpu is not False:
                 self.set_node_compute(node, cpu, memory)
+
         except ConfigurationError as ce:
+
             if self.engine.safeMode:
                 logging.warn(ce.message)
             else:
                 raise ce
 
         for prop_cls in self.configuration_props:
+
             try:
                 configuration_prop = prop_cls(engine=container.facility.plumbery)
                 configuration_prop.validate(settings)
-
                 configuration_prop.configure(node, settings)
+
             except ConfigurationError as ce:
                 if self.engine.safeMode:
                     logging.warn(ce.message)
