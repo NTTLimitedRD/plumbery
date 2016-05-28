@@ -78,41 +78,6 @@ class FakeRegion:
         return [FakeNode()]
 
 
-class FakeContainer:
-
-    id = 123
-    domain = 'fake'
-    network = FakeNetwork()
-
-    region = FakeRegion()
-
-    blueprint = {
-        'target': 'fake',
-        'domain': {
-            'name': 'VDC1',
-            'service': 'ADVANCED',
-            'description': 'fake'},
-        'ethernet': {
-            'name': 'vlan1',
-            'subnet': '10.0.10.0',
-            'description': 'fake'},
-        'nodes': [{
-            'stackstorm': {
-                'description': 'fake',
-                'appliance': 'RedHat 6 64-bit 4 CPU'
-                }
-            }]
-        }
-
-    def get_network_domain(self, blueprint):
-        return None
-
-    def get_ethernet(self, blueprint):
-        return None
-
-    def _add_to_pool(self, node):
-        pass
-
 fakeFacilitySettings = {
     'locationId': 'EU6',
     'prepare': [{'beachhead': '10.1.10.9'}, {'beachhead': '10.1.10.10'}],
@@ -140,6 +105,42 @@ class FakeFacility():
     def power_on(self):
         pass
 
+
+class FakeContainer:
+
+    id = 123
+    domain = 'fake'
+    network = FakeNetwork()
+
+    region = FakeRegion()
+    facility = FakeFacility()
+
+    blueprint = {
+        'target': 'fake',
+        'domain': {
+            'name': 'VDC1',
+            'service': 'ADVANCED',
+            'description': 'fake'},
+        'ethernet': {
+            'name': 'vlan1',
+            'subnet': '10.0.10.0',
+            'description': 'fake'},
+        'nodes': [{
+            'stackstorm': {
+                'description': 'fake',
+                'appliance': 'RedHat 6 64-bit 4 CPU'
+                }
+            }]
+        }
+
+    def get_network_domain(self, blueprint):
+        return None
+
+    def get_ethernet(self, blueprint):
+        return None
+
+    def _add_to_pool(self, node):
+        pass
 
 FakeStatus = namedtuple('FakeStatus', 'action')
 
