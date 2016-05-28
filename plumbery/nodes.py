@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+from __future__ import absolute_import
 import re
 import time
 from socket import error as SocketError
@@ -25,9 +25,10 @@ from libcloud.utils.xml import fixxpath, findall
 from libcloud.common.dimensiondata import TYPES_URN
 from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
-from exception import PlumberyException
-from infrastructure import PlumberyInfrastructure
-from util import retry
+from .exception import PlumberyException
+from .infrastructure import PlumberyInfrastructure
+from .util import retry
+from .logging import setup_logging
 
 __all__ = ['PlumberyNodes']
 
@@ -65,6 +66,8 @@ class PlumberyNodes(object):
     def __init__(self, facility=None):
         """Put nodes in context"""
 
+        self.log = setup_logging()
+
         # handle to parent parameters and functions
         self.facility = facility
         self.region = facility.region
@@ -87,7 +90,7 @@ class PlumberyNodes(object):
 
         """
 
-        logging.debug("Building nodes of blueprint '{}'".format(
+        self.log.debug("Building nodes of blueprint '{}'".format(
             blueprint['target']))
 
         self.facility.power_on()
@@ -95,7 +98,7 @@ class PlumberyNodes(object):
         if ('nodes' not in blueprint
                 or not isinstance(blueprint['nodes'], list)):
 
-            logging.debug("No nodes have been defined in '{}'".format(
+            self.log.debug("No nodes have been defined in '{}'".format(
                 blueprint['target']))
             return
 
@@ -111,10 +114,10 @@ class PlumberyNodes(object):
 
             for label in self.expand_labels(label):
 
-                logging.info("Creating node '{}'".format(label))
+                self.log.info("Creating node '{}'".format(label))
 
                 if self.get_node(label):
-                    logging.info("- already there")
+                    self.log.info("- already there")
                     continue
 
                 description = '#plumbery'
@@ -130,7 +133,7 @@ class PlumberyNodes(object):
                 if image is None:
                     raise PlumberyException("Error: unable to find image "
                                             "for '{}'!".format(imageName))
-                logging.debug("- using image '{}'".format(image.name))
+                self.log.debug("- using image '{}'".format(image.name))
 
                 cpu = None
                 if 'cpu' in settings:
@@ -143,17 +146,17 @@ class PlumberyNodes(object):
                     if (int(tokens[0]) < 1
                             or int(tokens[0]) > 32):
 
-                        logging.info("- cpu should be between 1 and 32")
+                        self.log.info("- cpu should be between 1 and 32")
 
                     elif (int(tokens[1]) < 1
                             or int(tokens[1]) > 2):
 
-                        logging.info("- core per cpu should be either 1 or 2")
+                        self.log.info("- core per cpu should be either 1 or 2")
 
                     elif tokens[2].upper() not in ('STANDARD',
                                                    'HIGHPERFORMANCE'):
 
-                        logging.info("- cpu speed should be either 'standard'"
+                        self.log.info("- cpu speed should be either 'standard'"
                                      " or 'highspeed'")
 
                     else:
@@ -161,33 +164,33 @@ class PlumberyNodes(object):
                             cpu_count=tokens[0],
                             cores_per_socket=tokens[1],
                             performance=tokens[2].upper())
-                        logging.debug("- assigning {} cpus".format(
+                        self.log.debug("- assigning {} cpus".format(
                             cpu.cpu_count))
-                        logging.debug("- core per cpu: {}".format(
+                        self.log.debug("- core per cpu: {}".format(
                             cpu.cores_per_socket))
-                        logging.debug("- cpu performance: {}".format(
+                        self.log.debug("- cpu performance: {}".format(
                             cpu.performance.lower()))
 
                 memory = None
                 if 'memory' in settings:
                     memory = int(settings['memory'])
                     if memory < 1 or memory > 256:
-                        logging.info("- memory should be between 1 and 256")
+                        self.log.info("- memory should be between 1 and 256")
                         memory = None
                     else:
-                        logging.debug("- assigning {} GB of memory".format(
+                        self.log.debug("- assigning {} GB of memory".format(
                             memory))
 
                 if self.plumbery.safeMode:
-                    logging.info("- skipped - safe mode")
+                    self.log.info("- skipped - safe mode")
                     continue
 
                 if container.domain is None:
-                    logging.info("- missing network domain")
+                    self.log.info("- missing network domain")
                     continue
 
                 if container.network is None:
-                    logging.info("- missing Ethernet network")
+                    self.log.info("- missing Ethernet network")
                     continue
 
                 primary_ipv4 = None
@@ -206,7 +209,7 @@ class PlumberyNodes(object):
                         if len(tokens) < 1:
                             break
 
-                        logging.info("Glueing node '{}' to network '{}'"
+                        self.log.info("Glueing node '{}' to network '{}'"
                                      .format(label, token))
 
                         numbers = tokens.pop(0).strip('.').split('.')
@@ -215,7 +218,7 @@ class PlumberyNodes(object):
                             numbers.insert(0, subnet[3-len(numbers)])
 
                         primary_ipv4 = '.'.join(numbers)
-                        logging.debug("- using address '{}'"
+                        self.log.debug("- using address '{}'"
                                       .format(primary_ipv4))
 
                         break
@@ -251,16 +254,16 @@ class PlumberyNodes(object):
                                 ex_is_started=should_start,
                                 ex_description=description)
 
-                        logging.info("- in progress")
+                        self.log.info("- in progress")
 
                         if should_start:  # stop the node after start
 
-                            logging.info("- waiting for node to be deployed")
+                            self.log.info("- waiting for node to be deployed")
                             node = None
                             while True:
                                 node = self.get_node(label)
                                 if node is None:
-                                    logging.info("- aborted - missing node '{}'".format(label))
+                                    self.log.info("- aborted - missing node '{}'".format(label))
                                     return
 
                                 if node.extra['status'].action is None:
@@ -269,7 +272,7 @@ class PlumberyNodes(object):
                                 if (node is not None
                                         and node.extra['status'].failure_reason is not None):
 
-                                    logging.info("- aborted - failed deployment "
+                                    self.log.info("- aborted - failed deployment "
                                                  "of node '{}'".format(label))
                                     return
 
@@ -277,7 +280,7 @@ class PlumberyNodes(object):
 
                             if node is not None:
                                 self.region.ex_shutdown_graceful(node)
-                                logging.info("- shutting down after deployment")
+                                self.log.info("- shutting down after deployment")
 
                     except SocketError as feedback:
 
@@ -287,8 +290,8 @@ class PlumberyNodes(object):
                             continue
 
                         else:
-                            logging.info("- unable to create node")
-                            logging.error(str(feedback))
+                            self.log.info("- unable to create node")
+                            self.log.error(str(feedback))
 
                     except Exception as feedback:
 
@@ -297,12 +300,12 @@ class PlumberyNodes(object):
                             continue
 
                         elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                            logging.info("- not now")
-                            logging.error(str(feedback))
+                            self.log.info("- not now")
+                            self.log.error(str(feedback))
 
                         elif 'RESOURCE_LOCKED' in str(feedback):
-                            logging.info("- not now - locked")
-                            logging.error(str(feedback))
+                            self.log.info("- not now - locked")
+                            self.log.error(str(feedback))
 
                         elif ('INVALID_INPUT_DATA: Cannot deploy server '
                               'with Software Labels in the "Stopped" state.' in
@@ -311,8 +314,8 @@ class PlumberyNodes(object):
                             continue
 
                         else:
-                            logging.info("- unable to create node")
-                            logging.error(str(feedback))
+                            self.log.info("- unable to create node")
+                            self.log.error(str(feedback))
 
                     break
 
@@ -348,13 +351,13 @@ class PlumberyNodes(object):
 
                 node = self.get_node(label)
                 if node is None:
-                    logging.info("Destroying node '{}'".format(label))
-                    logging.info("- not found")
+                    self.log.info("Destroying node '{}'".format(label))
+                    self.log.info("- not found")
                     continue
 
                 if 'destroy' in settings and settings['destroy'] == 'never':
-                    logging.info("Destroying node '{}'".format(label))
-                    logging.info("- this node can never be destroyed")
+                    self.log.info("Destroying node '{}'".format(label))
+                    self.log.info("- this node can never be destroyed")
                     return False
 
                 timeout = 300
@@ -367,13 +370,13 @@ class PlumberyNodes(object):
                         break
 
                 if node.state == NodeState.RUNNING:
-                    logging.info("Destroying node '{}'".format(label))
-                    logging.info("- skipped - node is up and running")
+                    self.log.info("Destroying node '{}'".format(label))
+                    self.log.info("- skipped - node is up and running")
                     continue
 
                 if self.plumbery.safeMode:
-                    logging.info("Destroying node '{}'".format(label))
-                    logging.info("- skipped - safe mode")
+                    self.log.info("Destroying node '{}'".format(label))
+                    self.log.info("- skipped - safe mode")
                     continue
 
                 self._stop_monitoring(node, settings)
@@ -381,12 +384,12 @@ class PlumberyNodes(object):
                 container._detach_node_from_internet(node)
                 container._remove_from_pool(node)
 
-                logging.info("Destroying node '{}'".format(label))
+                self.log.info("Destroying node '{}'".format(label))
                 while True:
 
                     try:
                         self.region.destroy_node(node)
-                        logging.info("- in progress")
+                        self.log.info("- in progress")
 
                     except Exception as feedback:
 
@@ -395,18 +398,18 @@ class PlumberyNodes(object):
                             continue
 
                         elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                            logging.info("- not found")
+                            self.log.info("- not found")
 
                         elif 'SERVER_STARTED' in str(feedback):
-                            logging.info("- skipped - node is up and running")
+                            self.log.info("- skipped - node is up and running")
 
                         elif 'RESOURCE_LOCKED' in str(feedback):
-                            logging.info("- not now - locked")
+                            self.log.info("- not now - locked")
                             return False
 
                         else:
-                            logging.info("- unable to destroy node")
-                            logging.error(str(feedback))
+                            self.log.info("- unable to destroy node")
+                            self.log.error(str(feedback))
 
                     break
 
@@ -433,13 +436,13 @@ class PlumberyNodes(object):
 
         for interface in self._list_secondary_interfaces(node):
 
-            logging.info("Detaching node '{}' from network '{}'".format(
+            self.log.info("Detaching node '{}' from network '{}'".format(
                 node.name, interface['network']))
 
             while True:
                 try:
                     self.region.ex_destroy_nic(interface['id'])
-                    logging.info("- in progress")
+                    self.log.info("- in progress")
 
                 except Exception as feedback:
 
@@ -448,14 +451,14 @@ class PlumberyNodes(object):
                         continue
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
+                        self.log.info("- not now - locked")
 
                     elif 'NO_CHANGE' in str(feedback):
-                        logging.info("- already there")
+                        self.log.info("- already there")
 
                     else:
-                        logging.info("- unable to detach node")
-                        logging.error(str(feedback))
+                        self.log.info("- unable to detach node")
+                        self.log.error(str(feedback))
                         return False
 
                 break
@@ -571,7 +574,7 @@ class PlumberyNodes(object):
                 logging.warning("'{}' is unknown".format(path[0]))
                 return None
 
-            logging.debug("Looking for remote node '{}'"
+            self.log.debug("Looking for remote node '{}'"
                           .format('::'.join(path)))
 
             for node in self.region.list_nodes():
@@ -581,7 +584,7 @@ class PlumberyNodes(object):
 
                 if node.name == path[1]:
 
-                    logging.debug("- found it")
+                    self.log.debug("- found it")
 
                     self._enrich_node(node)
                     return node
@@ -596,7 +599,7 @@ class PlumberyNodes(object):
                 logging.warning("'{}' is unknown".format(path[1]))
                 return None
 
-            logging.debug("Looking for offshore node '{}'"
+            self.log.debug("Looking for offshore node '{}'"
                           .format('::'.join(path)))
 
             for node in offshore.list_nodes():
@@ -606,7 +609,7 @@ class PlumberyNodes(object):
 
                 if node.name == path[2]:
 
-                    logging.debug("- found it")
+                    self.log.debug("- found it")
 
                     self._enrich_node(node, region=offshore)
                     return node
@@ -660,8 +663,8 @@ class PlumberyNodes(object):
                 pass
 
             else:
-                logging.info("Error: unable to retrieve storage information")
-                logging.error(str(feedback))
+                self.log.info("Error: unable to retrieve storage information")
+                self.log.error(str(feedback))
 
     @classmethod
     def list_nodes(self, blueprint):
@@ -769,167 +772,6 @@ class PlumberyNodes(object):
             for label in self.expand_labels(label):
                 self.start_node(label)
 
-    def _start_monitoring(self, node, monitoring='ESSENTIALS'):
-        """
-        Enables monitoring of one node
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param monitoring: either 'ESSENTIALS' or 'ADVANCED'
-        :type monitoring: ``str``
-
-        """
-
-        value = monitoring.upper()
-        logging.info("Starting {} monitoring of node '{}'".format(
-            value.lower(), node.name))
-
-        if value not in ['ESSENTIALS', 'ADVANCED']:
-            logging.info("- monitoring should be "
-                         "either 'essentials' or 'advanced'")
-        else:
-            while True:
-                try:
-                    self.region.ex_enable_monitoring(node, service_plan=value)
-                    logging.info("- in progress")
-                    return True
-
-                except Exception as feedback:
-                    if 'RESOURCE_BUSY' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'RETRYABLE_SYSTEM_ERROR' in str(feedback):
-                        time.sleep(10)
-                        continue
-
-                    elif 'NO_CHANGE' in str(feedback):
-                        logging.info("- already there")
-
-                    elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- unable to start monitoring "
-                                     "- node has been locked")
-
-                    else:
-                        logging.info("- unable to start monitoring")
-                        logging.error(str(feedback))
-
-                break
-
-        return False
-
-    def _configure_backup(self, node, backup):
-        """
-        Configure backup on a node
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        :param backup: The backup settings
-        :type  backup: ``dict`` or ``str``
-
-        """
-        default_email = self.backup.connection.get_account_details().email
-        if isinstance(backup, basestring):
-            backup = {
-                'plan': backup,
-                'email': default_email,
-                'clients': [{
-                    'type': 'filesystem'
-                }]
-            }
-
-        plan = backup['plan'].lower().capitalize()
-        logging.info("Starting {} backup of node '{}'".format(
-            plan.lower(), node.name))
-
-        if plan not in ['Essentials', 'Advanced', 'Enterprise']:
-            logging.info("- backup should be "
-                         "either 'essentials' or 'advanced'")
-            return False
-        backup_details = None
-        try:
-            self.backup.create_target_from_node(
-                node,
-                extra={'servicePlan': plan})
-        except Exception as feedback:
-            if feedback.msg == 'Cloud backup for this server is already enabled or being enabled (state: NORMAL).':
-                logging.info("- already there")
-                backup_details = self.backup.ex_get_backup_details_for_target(node.id)
-            else:
-                logging.info("- unable to start backup")
-                logging.error(str(feedback))
-                return False
-
-        while (backup_details is not None and
-               backup_details.status is not 'NORMAL'):
-            try:
-                backup_details = self.backup.ex_get_backup_details_for_target(node.id)
-                logging.info("- in progress, found asset %s", backup_details.asset_id)
-
-            except Exception as feedback:
-                if 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'RETRYABLE_SYSTEM_ERROR' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'NO_CHANGE' in str(feedback):
-                    logging.info("- already there")
-
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- unable to start backup "
-                                 "- node has been locked")
-
-                else:
-                    logging.info("- unable to start backup")
-                    logging.error(str(feedback))
-
-            break
-        target = self.backup.ex_get_target_by_id(node.id)
-        storage_policies = self.backup.ex_list_available_storage_policies(
-            target=target
-        )
-        schedule_policies = self.backup.ex_list_available_schedule_policies(
-            target=target
-        )
-        client_types = self.backup.ex_list_available_client_types(
-            target=target
-        )
-        clients = backup.get('clients', [{'type': 'filesystem'}])
-        for client in clients:
-            logging.info("- adding backup client")
-
-            client_type = client.get('type', 'filesystem').lower()
-            storage_policy = client.get(
-                'storagePolicy', '14 Day Storage Policy').lower()
-            schedule_policy = client.get(
-                'schedulePolicy', '12AM - 6AM').lower()
-            trigger = client.get('trigger', 'ON_FAILURE')
-            email = client.get('email', default_email)
-
-            storage_policy = [x for x in storage_policies
-                              if x.name.lower() == storage_policy][0]
-            schedule_policy = [x for x in schedule_policies
-                               if x.name.lower() == schedule_policy][0]
-
-            if client_type in ['file', 'filesystem']:
-                client = [x for x in client_types if x.is_file_system][0]
-            else:
-                client = [x for x in client_types
-                          if x.description.startswith(client_type)][0]
-            self.backup.ex_add_client_to_target(
-                target=target,
-                client_type=client,
-                storage_policy=storage_policy,
-                schedule_policy=schedule_policy,
-                trigger=trigger,
-                email=email
-            )
-
     def start_node(self, node):
         """
         Starts one node
@@ -945,13 +787,13 @@ class PlumberyNodes(object):
         else:
             name = node.name
 
-        logging.info("Starting node '{}'".format(name))
+        self.log.info("Starting node '{}'".format(name))
         if node is None:
-            logging.info("- not found")
+            self.log.info("- not found")
             return
 
         if self.plumbery.safeMode:
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
             return
 
         while True:
@@ -959,7 +801,7 @@ class PlumberyNodes(object):
             try:
                 self.region.ex_start_node(node)
 
-                logging.info("- in progress")
+                self.log.info("- in progress")
 
             except Exception as feedback:
 
@@ -968,11 +810,11 @@ class PlumberyNodes(object):
                     continue
 
                 elif 'SERVER_STARTED' in str(feedback):
-                    logging.info("- skipped - node is up and running")
+                    self.log.info("- skipped - node is up and running")
 
                 else:
-                    logging.info("- unable to start node")
-                    logging.error(str(feedback))
+                    self.log.info("- unable to start node")
+                    self.log.error(str(feedback))
 
             break
 
@@ -1029,20 +871,20 @@ class PlumberyNodes(object):
         else:
             name = node.name
 
-        logging.info("Stopping node '{}'".format(name))
+        self.log.info("Stopping node '{}'".format(name))
         if node is None:
-            logging.info("- not found")
+            self.log.info("- not found")
             return
 
         if ('running' in settings
                 and settings['running'] == 'always'
                 and node.state == NodeState.RUNNING):
 
-            logging.info("- skipped - node has to stay always on")
+            self.log.info("- skipped - node has to stay always on")
             return
 
         if self.plumbery.safeMode:
-            logging.info("- skipped - safe mode")
+            self.log.info("- skipped - safe mode")
             return
 
         retry = True
@@ -1050,7 +892,7 @@ class PlumberyNodes(object):
 
             try:
                 self.region.ex_shutdown_graceful(node)
-                logging.info("- in progress")
+                self.log.info("- in progress")
 
             except Exception as feedback:
 
@@ -1070,81 +912,28 @@ class PlumberyNodes(object):
                         time.sleep(30)
                         continue
 
-                    logging.info("- unable to shutdown gracefully "
+                    self.log.info("- unable to shutdown gracefully "
                                  "- invalid VMware tools")
 
-                    logging.info("- powering the node off")
+                    self.log.info("- powering the node off")
                     try:
                         self.region.ex_power_off(node)
-                        logging.info("- in progress")
+                        self.log.info("- in progress")
 
                     except Exception as feedback:
 
                         if 'SERVER_STOPPED' in str(feedback):
-                            logging.info("- already stopped")
+                            self.log.info("- already stopped")
 
                         else:
-                            logging.info("- unable to stop node")
-                            logging.error(str(feedback))
+                            self.log.info("- unable to stop node")
+                            self.log.error(str(feedback))
 
                 elif 'SERVER_STOPPED' in str(feedback):
-                    logging.info("- already stopped")
+                    self.log.info("- already stopped")
 
                 else:
-                    logging.info("- unable to stop node")
-                    logging.error(str(feedback))
-
-            break
-
-    def _stop_monitoring(self, node, settings):
-        """
-        Disables monitoring of one node
-
-        :param node: the target node
-        :type node: :class:`libcloud.compute.base.Node`
-
-        """
-
-        if node is None:
-            return
-
-        if ('running' in settings
-                and settings['running'] == 'always'
-                and node.state == NodeState.RUNNING):
-
-            return
-
-        if self.plumbery.safeMode:
-            return
-
-        logging.info("Stopping monitoring of node '{}'".format(node.name))
-
-        while True:
-
-            try:
-                self.region.ex_disable_monitoring(node)
-                logging.info("- in progress")
-
-            except Exception as feedback:
-
-                if 'NO_CHANGE' in str(feedback):
-                    pass
-
-                elif 'OPERATION_NOT_SUPPORTED' in str(feedback):
-                    pass
-
-                elif 'RESOURCE_BUSY' in str(feedback):
-                    time.sleep(10)
-                    continue
-
-                elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                    logging.info("- not found")
-
-                elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
-
-                else:
-                    logging.info("- unable to stop monitoring")
-                    logging.error(str(feedback))
+                    self.log.info("- unable to stop node")
+                    self.log.error(str(feedback))
 
             break

@@ -12,9 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from __future__ import absolute_import
 import hashlib
-import logging
 import os
 import random
 import requests
@@ -34,11 +33,13 @@ from libcloud.loadbalancer.types import Provider as BalancerProvider
 from libcloud.backup.providers import get_driver as get_backup_driver
 from libcloud.backup.types import Provider as BackupProvider
 
-from exception import PlumberyException
-from facility import PlumberyFacility
-from polisher import PlumberyPolisher
-from text import PlumberyText, PlumberyContext
+from .exception import PlumberyException
+from .facility import PlumberyFacility
+from .polisher import PlumberyPolisher
+from .text import PlumberyText, PlumberyContext
 from plumbery import __version__
+from plumbery.logging import setup_logging
+
 
 __all__ = ['PlumberyEngine']
 
@@ -117,7 +118,7 @@ class PlumberyEngine(object):
         :type plan: ``str`` or ``file`` or ``dict``
 
         """
-
+        self.log = setup_logging()
         self.c0 = time.clock()
         self.t0 = time.time()
 
@@ -181,12 +182,12 @@ class PlumberyEngine(object):
         if not isinstance(parameters, dict):
             raise TypeError('Parameters should be a dictionary')
 
-        logging.debug("Parameters:")
+        self.log.debug("Parameters:")
         for key in parameters:
             if key not in self.parameters:
                 self.parameters[key] = {}
             self.parameters[key]['value'] = parameters[key]
-            logging.debug("- {}: {}".format(
+            self.log.debug("- {}: {}".format(
                 key, self.parameters[key]['value']))
 
     def get_parameters(self):
@@ -333,7 +334,7 @@ class PlumberyEngine(object):
         self.load_secrets()
 
         if self.safeMode:
-            logging.info(
+            self.log.info(
                 "Running in safe mode"
                 " - no actual change will be made to the fittings")
 
@@ -354,16 +355,16 @@ class PlumberyEngine(object):
                 raise TypeError('buildPolisher should be a string')
 
             self.buildPolisher = settings['buildPolisher']
-            logging.debug("Build polisher: {}".format(self.buildPolisher))
+            self.log.debug("Build polisher: {}".format(self.buildPolisher))
 
         if 'defaults' in settings:
             if not isinstance(settings['defaults'], dict):
                 raise TypeError('defaults should be a dictionary')
 
-            logging.debug("Default values:")
+            self.log.debug("Default values:")
             for key in settings['defaults'].keys():
                 self.defaults[key] = settings['defaults'][key]
-                logging.debug("- {}: {}".format(key, self.defaults[key]))
+                self.log.debug("- {}: {}".format(key, self.defaults[key]))
 
         if 'information' in settings:
             if isinstance(settings['information'], str):
@@ -384,7 +385,7 @@ class PlumberyEngine(object):
             if not isinstance(settings['parameters'], dict):
                 raise TypeError('parameters should be a dictionary')
 
-            logging.debug("Parameters:")
+            self.log.debug("Parameters:")
             for key in settings['parameters']:
 
                 if key not in self.parameters:
@@ -407,7 +408,7 @@ class PlumberyEngine(object):
                                      .format(key))
                 self.parameters[key]['default'] = \
                     settings['parameters'][key]['default']
-                logging.debug("- {}: {}".format(
+                self.log.debug("- {}: {}".format(
                     key,
                     self.parameters[key]['default']))
 
@@ -415,13 +416,13 @@ class PlumberyEngine(object):
             if not isinstance(settings['polishers'], list):
                 raise TypeError('polishers should be a list')
 
-            logging.debug("Polishers:")
+            self.log.debug("Polishers:")
             for item in settings['polishers']:
                 key = item.keys()[0]
                 value = item[key]
                 self.polishers.append(
                     PlumberyPolisher.from_shelf(key, value))
-                logging.debug("- {}".format(key))
+                self.log.debug("- {}".format(key))
 
         if 'safeMode' in settings:
             if settings['safeMode'] not in [True, False]:
@@ -513,7 +514,7 @@ class PlumberyEngine(object):
                 path = '~/.ssh/id_rsa.pub'
 
                 with open(os.path.expanduser(path)) as stream:
-                    logging.debug("- loading {} from {}".format(id, path))
+                    self.log.debug("- loading {} from {}".format(id, path))
                     text = stream.read().strip()
                     stream.close()
                     return text
@@ -525,11 +526,11 @@ class PlumberyEngine(object):
 
         key = RSA.generate(2048)
         self.secrets[name+'.rsa_private'] = key.exportKey('PEM')
-        logging.debug("- generating {}".format(name+'.rsa_private'))
+        self.log.debug("- generating {}".format(name+'.rsa_private'))
 
         pubkey = key.publickey()
         self.secrets[name+'.rsa_public'] = pubkey.exportKey('OpenSSH')
-        logging.debug("- generating {}".format(name+'.rsa_public'))
+        self.log.debug("- generating {}".format(name+'.rsa_public'))
 
         self.save_secrets()
         return self.secrets[id]
@@ -599,7 +600,7 @@ class PlumberyEngine(object):
         elif '.sha1.' in id:
             secret = hashlib.sha1(secret).hexdigest()
 
-        logging.debug("- generating {}".format(id))
+        self.log.debug("- generating {}".format(id))
         self.secrets[id] = secret
         self.save_secrets()
 
@@ -610,13 +611,13 @@ class PlumberyEngine(object):
         Displays secrets attached to this fittings plan
         """
 
-        logging.info("Showing secrets")
+        self.log.info("Showing secrets")
 
         if len(self.secrets.keys()) < 1:
-            logging.info("- no secret found")
+            self.log.info("- no secret found")
 
         for key in sorted(self.secrets):
-            logging.info("- {}: {}".format(key, self.secrets[key]))
+            self.log.info("- {}: {}".format(key, self.secrets[key]))
 
     def save_secrets(self, plan=None):
         """
@@ -646,8 +647,8 @@ class PlumberyEngine(object):
             handle.close()
 
         except IOError:
-            logging.warning("Unable to save secrets")
-            logging.debug("- cannot write to file '{}'".format(
+            self.log.warning("Unable to save secrets")
+            self.log.debug("- cannot write to file '{}'".format(
                 secretsFile))
 
     def load_secrets(self, plan=None):
@@ -669,7 +670,7 @@ class PlumberyEngine(object):
             return
 
         secretsFile = secretsId+'.secrets'
-        logging.debug("Loading secrets from '{}'".format(secretsFile))
+        self.log.debug("Loading secrets from '{}'".format(secretsFile))
 
         if os.path.isfile(secretsFile):
             try:
@@ -677,11 +678,11 @@ class PlumberyEngine(object):
                 self.secrets = yaml.load(handle)
                 handle.close()
 
-                logging.debug("- found {} secrets".format(
+                self.log.debug("- found {} secrets".format(
                     len(self.secrets)))
 
             except IOError:
-                logging.debug("- unable to load secrets")
+                self.log.debug("- unable to load secrets")
 
     def forget_secrets(self, plan=None):
         """
@@ -700,7 +701,7 @@ class PlumberyEngine(object):
         secretsFile = secretsId+'.secrets'
 
         if self.safeMode:
-            logging.info("Secrets cannot be forgotten in safe mode")
+            self.log.info("Secrets cannot be forgotten in safe mode")
 
         self.secrets = {}
 
@@ -709,8 +710,8 @@ class PlumberyEngine(object):
                 os.remove(secretsFile)
 
             except IOError:
-                logging.warning("Unable to forget secrets")
-                logging.debug("- cannot delete file '{}'".format(
+                self.log.warning("Unable to forget secrets")
+                self.log.debug("- cannot delete file '{}'".format(
                     secretsFile))
 
     def set_user_name(self, name):
@@ -811,13 +812,13 @@ class PlumberyEngine(object):
         if isinstance(facility, dict):
             facility = PlumberyFacility(self, facility)
 
-        logging.debug("Adding facility")
+        self.log.debug("Adding facility %s" % facility)
         for key in facility.settings:
-            logging.debug("- {}: {}".format(key, facility.settings[key]))
+            self.log.debug("- {}: {}".format(key, facility.settings[key]))
 
         self.facilities.append(facility)
 
-    def list_facility(self, location):
+    def list_facility(self, location=None):
         """
         Retrieves facilities by their location
 
@@ -839,6 +840,8 @@ class PlumberyEngine(object):
             ...
 
         """
+        if location is None:
+            return self.facilities
 
         if isinstance(location, str):
             location = location.split(' ')
@@ -1048,9 +1051,9 @@ class PlumberyEngine(object):
 
         all = self.get_default('blueprints', None)
         if all is None:
-            logging.info("Building all blueprints")
+            self.log.info("Building all blueprints")
         else:
-            logging.info("Building '{}'".format("', '".join(all.split(' '))))
+            self.log.info("Building '{}'".format("', '".join(all.split(' '))))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1091,7 +1094,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        logging.info("Building blueprint '{}'".format(label))
+        self.log.info("Building blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1122,7 +1125,7 @@ class PlumberyEngine(object):
 
         """
 
-        logging.info("Starting nodes from all blueprints")
+        self.log.info("Starting nodes from all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1157,7 +1160,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        logging.info("Starting nodes from blueprint '{}'".format(label))
+        self.log.info("Starting nodes from blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1197,7 +1200,7 @@ class PlumberyEngine(object):
         if len(polishers) < 1:
             return False
 
-        logging.info("Polishing all blueprints")
+        self.log.info("Polishing all blueprints")
 
         for polisher in polishers:
             polisher.go(self)
@@ -1244,7 +1247,7 @@ class PlumberyEngine(object):
         polishers = PlumberyPolisher.filter(self.polishers, filter)
 
         if len(polishers) < 1:
-            logging.debug('No polisher has been found')
+            self.log.debug('No polisher has been found')
             return
 
         if isinstance(names, list):
@@ -1252,7 +1255,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        logging.info("Polishing blueprint '{}'".format(label))
+        self.log.info("Polishing blueprint '{}'".format(label))
 
         for polisher in polishers:
             polisher.go(self)
@@ -1287,7 +1290,7 @@ class PlumberyEngine(object):
 
         """
 
-        logging.info("Stopping nodes from all blueprints")
+        self.log.info("Stopping nodes from all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1322,7 +1325,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        logging.info("Stopping nodes from blueprint '{}'".format(label))
+        self.log.info("Stopping nodes from blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1352,7 +1355,7 @@ class PlumberyEngine(object):
 
         """
 
-        logging.info("Wiping all blueprints")
+        self.log.info("Wiping all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1390,7 +1393,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        logging.info("Wiping blueprint '{}'".format(label))
+        self.log.info("Wiping blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1420,7 +1423,7 @@ class PlumberyEngine(object):
 
         """
 
-        logging.info("Destroying all blueprints")
+        self.log.info("Destroying all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1458,7 +1461,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        logging.info("Destroying blueprint '{}'".format(label))
+        self.log.info("Destroying blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1480,9 +1483,9 @@ class PlumberyEngine(object):
         instance = driver(
             key=self.get_user_name(),
             secret=self.get_user_password(),
-            region=region)
-        if host is not None:
-            instance.connection.host = host
+            region=region,
+            host=host)
+
         return instance
 
     def get_balancer_driver(self, region=None, host=None):
@@ -1496,9 +1499,8 @@ class PlumberyEngine(object):
         instance = driver(
             key=self.get_user_name(),
             secret=self.get_user_password(),
-            region=region)
-        if host is not None:
-            instance.connection.host = host
+            region=region,
+            host=host)
         return instance
 
     def get_backup_driver(self, region=None, host=None):
@@ -1512,9 +1514,8 @@ class PlumberyEngine(object):
         instance = driver(
             key=self.get_user_name(),
             secret=self.get_user_password(),
-            region=region)
-        if host is not None:
-            instance.connection.host = host
+            region=region,
+            host=host)
         return instance
 
     def lookup(self, token):

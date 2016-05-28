@@ -7,10 +7,12 @@ Tests for `plumbery` module.
 import logging
 import os
 import unittest
+import yaml
 
 from Crypto.PublicKey import RSA
 import ast
 
+import requests_mock
 from mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
@@ -650,6 +652,17 @@ class TestPlumberyEngine(unittest.TestCase):
             main(['-v'], engine)
         with self.assertRaises(SystemExit):
             main(['fittings.yaml', 'build', 'web', '-v'], engine)
+
+    def test_param_http(self):
+        engine = PlumberyEngine()
+        with self.assertRaises(TypeError):
+            engine.set_parameters(('http://smee.com/params.yml'))
+
+    def test_remote_params(self):
+        engine = PlumberyEngine()
+        with requests_mock.mock() as m:
+            m.get('http://smee.com/params.yml', text=yaml.dump(myParameters))
+            engine.set_parameters('http://smee.com/params.yml')
 
 if __name__ == '__main__':
     import sys

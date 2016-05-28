@@ -12,8 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import logging
+from logging import setup_logging
 
 __all__ = ['PlumberyPolisher']
 
@@ -75,6 +74,7 @@ class PlumberyPolisher(object):
     """
 
     def __init__(self, settings):
+        self.log = setup_logging()
         self.settings = settings
 
     @classmethod
@@ -94,23 +94,23 @@ class PlumberyPolisher(object):
         :rtype: ``list`` of :class:`plumbery.PlumberyPolisher` or ``[]``
 
         """
-
+        log = setup_logging()
         if filter is None:
             for polisher in polishers:
-                logging.info("Using polisher '{}'".format(
+                log.info("Using polisher '{}'".format(
                     polisher.settings['name']))
             return polishers
 
         for polisher in polishers:
             if polisher.settings['name'] == filter:
-                logging.info("Using polisher '{}'".format(filter))
+                log.info("Using polisher '{}'".format(filter))
                 filtered = [polisher]
                 return filtered
 
         # generate an exception if no implementation is available
         polisher = PlumberyPolisher.from_shelf(filter)
 
-        logging.info("Using polisher '{}'".format(filter))
+        log.info("Using polisher '{}'".format(filter))
         return [polisher]
 
     @classmethod
@@ -131,28 +131,29 @@ class PlumberyPolisher(object):
 
         moduleName = 'polishers.' + polishId
         polisherName = polishId.capitalize() + 'Polisher'
-
+        log = setup_logging()
         try:
 
-            logging.debug("Importing '{}'".format(moduleName))
+            log.debug("Importing '{}'".format(moduleName))
             polisherModule = __import__(
                 moduleName,
                 globals(),
                 locals(),
                 [polisherName])
 
-            logging.debug("Instantiating '{}'".format(polisherName))
+            log.debug("Instantiating '{}'".format(polisherName))
             polisherClass = getattr(polisherModule, polisherName)
-
+            if settings is None:
+                settings = {}
             settings['name'] = polishId
             return polisherClass(settings)
 
         except ImportError as feedback:
-            logging.debug("Unable to find module '{}'".format(moduleName))
+            log.debug("Unable to find module '{}'".format(moduleName))
             raise feedback
 
         except Exception as feedback:
-            logging.debug("Unable to import '{}' from '{}'".format(
+            log.debug("Unable to import '{}' from '{}'".format(
                 polisherName, moduleName))
             raise feedback
 

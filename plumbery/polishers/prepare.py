@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import os
 import time
 import yaml
@@ -32,7 +31,8 @@ from plumbery.nodes import PlumberyNodes
 from plumbery.polisher import PlumberyPolisher
 from plumbery.text import PlumberyText
 from plumbery.text import PlumberyNodeContext
-
+from plumbery.logging import setup_logging
+logging = setup_logging()
 
 class FileContentDeployment(Deployment):
     """

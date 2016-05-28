@@ -12,13 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import argparse
+from __future__ import absolute_import
 import logging
+import argparse
 import sys
 
 from plumbery.engine import PlumberyEngine
 from plumbery import __version__
+from plumbery.logging import setup_logging
+
+log = setup_logging()
 
 
 def parse_args(args=[]):
@@ -91,17 +94,17 @@ def parse_args(args=[]):
     args = parser.parse_args(args)
 
     if args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
+        log.setLevel(logging.DEBUG)
     elif args.quiet:
-        logging.getLogger().setLevel(logging.WARNING)
+        log.setLevel(logging.WARNING)
     else:
-        logging.getLogger().setLevel(logging.INFO)
+        log.setLevel(logging.INFO)
 
     if 'version' in args:
         print(args.version)
 
     args.fittings = args.fittings[0]
-    logging.debug("- loading '{}'".format(args.fittings))
+    log.debug("- loading '{}'".format(args.fittings))
 
     args.action = args.action[0].lower()
 
@@ -119,12 +122,12 @@ def parse_args(args=[]):
     if len(args.blueprints) < 1:
         args.blueprints = None
     else:
-        logging.debug('blueprints: '+' '.join(args.blueprints))
+        log.debug('blueprints: '+' '.join(args.blueprints))
 
     if len(args.facilities) < 1:
         args.facilities = None
     else:
-        logging.debug('facilities: '+' '.join(args.facilities))
+        log.debug('facilities: '+' '.join(args.facilities))
 
     return args
 
@@ -211,10 +214,10 @@ def main(args=None, engine=None):
     except Exception as feedback:
         logging.error("Incorrect arguments. "
                       "Maybe the following can help: python -m plumbery -h")
-        if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
+        if log.getEffectiveLevel() == logging.DEBUG:
             raise
         else:
-            logging.error("{}: {}".format(
+            log.error("{}: {}".format(
                 feedback.__class__.__name__,
                 str(feedback)))
         sys.exit(2)
@@ -229,15 +232,15 @@ def main(args=None, engine=None):
                 engine.safeMode = True
 
         except Exception as feedback:
-            if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
-                logging.error("Cannot read fittings plan from '{}'".format(
+            if log.getEffectiveLevel() == logging.DEBUG:
+                log.error("Cannot read fittings plan from '{}'".format(
                     args.fittings))
                 raise
             else:
-                logging.error("Cannot read fittings plan from '{}'"
+                log.error("Cannot read fittings plan from '{}'"
                               ", run with -d for debug".format(
                                   args.fittings))
-                logging.error("{}: {}".format(
+                log.error("{}: {}".format(
                     feedback.__class__.__name__,
                     str(feedback)))
             sys.exit(2)
@@ -247,16 +250,16 @@ def main(args=None, engine=None):
     try:
         engine.do(args.action, args.blueprints, args.facilities)
 
-        logging.info(engine.document_elapsed())
+        log.info(engine.document_elapsed())
 
     except Exception as feedback:
-        if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
-            logging.error("Unable to do '{}'".format(args.action))
+        if log.getEffectiveLevel() == logging.DEBUG:
+            log.error("Unable to do '{}'".format(args.action))
             raise
         else:
-            logging.error("Unable to do '{}', run with -d for debug".format(
+            log.error("Unable to do '{}', run with -d for debug".format(
                 args.action))
-            logging.error("{}: {}".format(
+            log.error("{}: {}".format(
                 feedback.__class__.__name__,
                 str(feedback)))
         sys.exit(2)
@@ -265,5 +268,5 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        logging.info("Aborted by user")
+        log.info("Aborted by user")
         sys.exit(0)

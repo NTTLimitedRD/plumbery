@@ -3,6 +3,36 @@
 History
 -------
 
+0.9.4 (2016-05-27)
+~~~~~~~~~~~~~~~~~~
+
+* fixed various bugs for windows - UAT for windows complete.
+
+0.9.3 (2016-05-27)
+~~~~~~~~~~~~~~~~~~
+
+* Added pretty logging
+
+0.9.2 (2016-05-27)
+~~~~~~~~~~~~~~~~~~
+
+* Fixed bugs around private MCPs
+
+0.9.1 (2016-05-26)
+~~~~~~~~~~~~~~~~~~
+
+* Added validation phase to all post-deploy configuration tasks
+
+0.9.0 (2016-05-25)
+~~~~~~~~~~~~~~~~~~
+
+* Added initial windows polisher for command execution
+
+0.8.1 (2016-05-23)
+~~~~~~~~~~~~~~~~~~
+
+* Remove windows line endings from unix shell fixtures.
+
 0.8.0 (2016-04-13)
 ~~~~~~~~~~~~~~~~~~
 

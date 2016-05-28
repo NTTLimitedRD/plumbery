@@ -1,12 +1,15 @@
-apache-libcloud==1.0.0-rc2
-netifaces==0.10.4
+-e git+https://github.com/DimensionDataCBUSydney/libcloud.git#egg=apache-libcloud
+netifaces
 bumpversion==0.5.3
-wheel==0.23.0
+paramiko
+wheel
 watchdog==0.8.3
-flake8==2.4.1
-tox==2.1.1
-coverage==4.0
 Sphinx==1.3.1
-cryptography==1.1
+cryptography
+pycrypto
 PyYAML==3.11
 requests
+pywinexe
+requests_ntlm
+-e git+https://github.com/diyan/pywinrm.git#egg=pywinrm
+colorlog
