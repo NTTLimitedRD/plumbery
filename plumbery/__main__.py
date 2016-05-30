@@ -267,6 +267,11 @@ def main(args=None, engine=None):
 if __name__ == "__main__":
     try:
         main()
+
+        # if some errors have been logged, make it explicit to the caller
+        if plogging.foundErrors():
+            sys.exit(2)
+
     except KeyboardInterrupt:
         plogging.info("Aborted by user")
         sys.exit(0)
