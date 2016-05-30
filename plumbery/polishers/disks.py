@@ -16,8 +16,7 @@ import time
 
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class DisksConfiguration(NodeConfiguration):
@@ -28,19 +27,40 @@ class DisksConfiguration(NodeConfiguration):
 
     def validate(self, settings):
         if self._element_name_ in settings:
-            value = settings[self._element_name_].upper()
-            if value not in ['ESSENTIALS', 'ADVANCED']:
-                raise ConfigurationError(
-                    "- monitoring should be "
-                    "either 'essentials' or 'advanced'")
+            for item in settings[self._element_name_]:
+                tokens = item.lower().split()
+                if len(tokens) < 2 or len(tokens) > 3:
+                    raise ConfigurationError(
+                        "- malformed disk attributes;"
+                        " provide disk id and size in GB, e.g., 1 50;"
+                        " add disk type if needed, e.g., economy")
+                if len(tokens) < 3:
+                    tokens.append('standard')
+
+                if int(tokens[0]) not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
+                    raise ConfigurationError(
+                        "- disk id should be between 1 and 9")
+
+                if int(tokens[1]) < 1:
+                    raise ConfigurationError(
+                        "- minimum disk size is 1 GB")
+
+                if int(tokens[1]) > 1000:
+                    raise ConfigurationError(
+                        "- disk size cannot exceed 1000 GB")
+
+                if tokens[2] not in ('standard', 'highperformance', 'economy'):
+                    raise ConfigurationError(
+                        "- disk speed should be either 'standard' "
+                         "or 'highperformance' or 'economy'")
 
     def configure(self, node, settings):
         if self._element_name_ in settings:
             for item in settings['disks']:
-                logging.debug("- setting disk {}".format(item))
+                plogging.debug("- setting disk {}".format(item))
                 attributes = item.split()
                 if len(attributes) < 2:
-                    logging.info("- malformed disk attributes;"
+                    plogging.info("- malformed disk attributes;"
                                  " provide disk id and size in GB, e.g., 1 50;"
                                  " add disk type if needed, e.g., economy")
                 elif len(attributes) < 3:
@@ -79,15 +99,15 @@ class DisksConfiguration(NodeConfiguration):
         """
 
         if size < 1:
-            logging.info("- minimum disk size is 1 GB")
+            plogging.info("- minimum disk size is 1 GB")
             return
 
         if size > 1000:
-            logging.info("- disk size cannot exceed 1000 GB")
+            plogging.info("- disk size cannot exceed 1000 GB")
             return
 
-        if speed not in ['standard', 'highperformance', 'economy']:
-            logging.info("- disk speed should be either 'standard' "
+        if speed not in ('standard', 'highperformance', 'economy'):
+            plogging.info("- disk speed should be either 'standard' "
                          "or 'highperformance' or 'economy'")
             return
 
@@ -97,33 +117,33 @@ class DisksConfiguration(NodeConfiguration):
                     changed = False
 
                     if disk['size'] > size:
-                        logging.info("- disk shrinking could break the node")
-                        logging.info("- skipped - disk {} will not be reduced"
+                        plogging.info("- disk shrinking could break the node")
+                        plogging.info("- skipped - disk {} will not be reduced"
                                      .format(id))
 
                     if disk['size'] < size:
-                        logging.info("- expanding disk {} to {} GB"
+                        plogging.info("- expanding disk {} to {} GB"
                                      .format(id, size))
                         self.change_node_disk_size(node, disk['id'], size)
                         changed = True
 
                     if disk['speed'].lower() != speed.lower():
-                        logging.info("- changing disk {} to '{}'"
+                        plogging.info("- changing disk {} to '{}'"
                                      .format(id, speed))
                         self.change_node_disk_speed(node, disk['id'], speed)
                         changed = True
 
                     if not changed:
-                        logging.debug("- no change in disk {}".format(id))
+                        plogging.debug("- no change in disk {}".format(id))
 
                     return
 
-        logging.info("- adding {} GB '{}' disk".format(
+        plogging.info("- adding {} GB '{}' disk".format(
             size, speed))
 
-        if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
-            return
+#        if self.engine.safeMode:
+#            plogging.info("- skipped - safe mode")
+#            return
 
         while True:
             try:
@@ -132,7 +152,7 @@ class DisksConfiguration(NodeConfiguration):
                     amount=size,
                     speed=speed.upper())
 
-                logging.info("- in progress")
+                plogging.info("- in progress")
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -143,9 +163,9 @@ class DisksConfiguration(NodeConfiguration):
                     time.sleep(10)
                     continue
 
-                logging.info("- unable to add disk {} GB '{}'"
+                plogging.info("- unable to add disk {} GB '{}'"
                              .format(size, speed))
-                logging.error(str(feedback))
+                plogging.error(str(feedback))
 
             break
 
@@ -165,7 +185,7 @@ class DisksConfiguration(NodeConfiguration):
         """
 
         if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
+            plogging.info("- skipped - safe mode")
             return
 
         while True:
@@ -175,7 +195,7 @@ class DisksConfiguration(NodeConfiguration):
                     disk_id=id,
                     size=size)
 
-                logging.info("- in progress")
+                plogging.info("- in progress")
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -186,9 +206,9 @@ class DisksConfiguration(NodeConfiguration):
                     time.sleep(10)
                     continue
 
-                logging.info("- unable to change disk size to {}GB"
+                plogging.info("- unable to change disk size to {}GB"
                              .format(size))
-                logging.error(str(feedback))
+                plogging.error(str(feedback))
 
             break
 
@@ -209,7 +229,7 @@ class DisksConfiguration(NodeConfiguration):
         """
 
         if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
+            plogging.info("- skipped - safe mode")
             return
 
         while True:
@@ -219,7 +239,7 @@ class DisksConfiguration(NodeConfiguration):
                     disk_id=id,
                     speed=speed)
 
-                logging.info("- in progress")
+                plogging.info("- in progress")
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -230,8 +250,8 @@ class DisksConfiguration(NodeConfiguration):
                     time.sleep(10)
                     continue
 
-                logging.info("- unable to change disk to '{}'"
+                plogging.info("- unable to change disk to '{}'"
                              .format(speed))
-                logging.error(str(feedback))
+                plogging.error(str(feedback))
 
             break

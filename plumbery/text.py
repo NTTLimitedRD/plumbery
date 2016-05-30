@@ -14,11 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import yaml
-from .logging import setup_logging
-from .nodes import PlumberyNodes
 
-logging = setup_logging()
+import yaml
+
+from plumbery.logging import plogging
+from plumbery.nodes import PlumberyNodes
 
 __all__ = ['PlumberyText', 'PlumberyContext']
 
@@ -87,7 +87,7 @@ class PlumberyText:
                 raise KeyError("Missing parameter '{}'".format(token))
 
             if token not in debugged:
-                logging.debug("- '{}' -> '{}'".format(token, replacement))
+                plogging.debug("- '{}' -> '{}'".format(token, replacement))
                 debugged.append(token)
 
             expanded += text[index:head]+str(replacement)
@@ -118,7 +118,7 @@ class PlumberyText:
 
         serialized = False
         if not isinstance(text, str):  # serialize python object
-            logging.debug("- serializing object before expansion")
+            plogging.debug("- serializing object before expansion")
             text = str(text)
             serialized = True
 
@@ -146,7 +146,7 @@ class PlumberyText:
             replacement = context.lookup(token)
             if replacement is None:   # preserve unmatched tag
                 if token not in debugged:
-                    logging.debug("- no match for '{}'".format(token))
+                    plogging.debug("- no match for '{}'".format(token))
                     debugged.append(token)
 
                 expanded += text[index:tail+len(closing)]
@@ -154,7 +154,7 @@ class PlumberyText:
 
             else:  # actual expansion
                 if token not in debugged:
-                    logging.debug("- '{}' -> '{}'".format(token, replacement))
+                    plogging.debug("- '{}' -> '{}'".format(token, replacement))
                     debugged.append(token)
 
                 if serialized:  # preserve line breaks

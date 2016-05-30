@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import logging
 import colorlog
 
@@ -34,7 +35,8 @@ def setup_logging(engine=None):
         return loggers.get('plumbery')
     else:
         formatter = colorlog.ColoredFormatter(
-            "%(asctime)-2s %(module)s %(funcName)-6s %(log_color)s%(message)s",
+            "%(asctime)-2s %(log_color)s%(message)s",
+#            "%(asctime)-2s %(module)s %(funcName)-6s %(log_color)s%(message)s",
             datefmt='%H:%M:%S',
             reset=True,
             log_colors={
@@ -58,3 +60,43 @@ def setup_logging(engine=None):
             log.addHandler(handler)
         loggers.update(dict(name=log))
         return log
+
+
+class PlumberyLogging(object):
+
+    def __init__(self):
+        self.reset()
+        self.log = setup_logging()
+
+    def reset(self):
+        self.errors = 0
+
+    def foundErrors(self):
+        return self.errors > 0
+
+    def debug(self, *args):
+        self.log.debug(*args)
+
+    def info(self, *args):
+        self.log.info(*args)
+
+    def warning(self, *args):
+        self.log.warning(*args)
+
+    def error(self, *args):
+        self.log.error(*args)
+        self.errors += 1
+
+    def critical(self, *args):
+        self.log.critical(*args)
+        self.errors += 1
+
+    def getEffectiveLevel(self):
+        return logging.getLogger().getEffectiveLevel()
+
+    def setLevel(self, level):
+        logging.getLogger().setLevel(level)
+        self.log.setLevel(level)
+
+
+plogging = PlumberyLogging()

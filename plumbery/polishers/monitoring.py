@@ -12,14 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import time
 
 from libcloud.compute.types import NodeState
 
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class MonitoringConfiguration(NodeConfiguration):
@@ -61,13 +61,13 @@ class MonitoringConfiguration(NodeConfiguration):
         """
 
         value = monitoring.upper()
-        logging.info("Starting {} monitoring of node '{}'".format(
+        plogging.info("Starting {} monitoring of node '{}'".format(
             value.lower(), node.name))
 
         while True:
             try:
                 self.region.ex_enable_monitoring(node, service_plan=value)
-                logging.info("- in progress")
+                plogging.info("- in progress")
                 return True
 
             except Exception as feedback:
@@ -80,15 +80,15 @@ class MonitoringConfiguration(NodeConfiguration):
                     continue
 
                 elif 'NO_CHANGE' in str(feedback):
-                    logging.info("- already there")
+                    plogging.info("- already there")
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- unable to start monitoring "
+                    plogging.info("- unable to start monitoring "
                                  "- node has been locked")
 
                 else:
-                    logging.info("- unable to start monitoring")
-                    logging.error(str(feedback))
+                    plogging.info("- unable to start monitoring")
+                    plogging.error(str(feedback))
 
             break
 
@@ -115,13 +115,13 @@ class MonitoringConfiguration(NodeConfiguration):
         if self.plumbery.safeMode:
             return
 
-        logging.info("Stopping monitoring of node '{}'".format(node.name))
+        plogging.info("Stopping monitoring of node '{}'".format(node.name))
 
         while True:
 
             try:
                 self.region.ex_disable_monitoring(node)
-                logging.info("- in progress")
+                plogging.info("- in progress")
 
             except Exception as feedback:
 
@@ -136,13 +136,13 @@ class MonitoringConfiguration(NodeConfiguration):
                     continue
 
                 elif 'RESOURCE_NOT_FOUND' in str(feedback):
-                    logging.info("- not found")
+                    plogging.info("- not found")
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- not now - locked")
+                    plogging.info("- not now - locked")
 
                 else:
-                    logging.info("- unable to stop monitoring")
-                    logging.error(str(feedback))
+                    plogging.info("- unable to stop monitoring")
+                    plogging.error(str(feedback))
 
             break

@@ -12,11 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
 
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class MemoryConfiguration(NodeConfiguration):
@@ -34,7 +34,7 @@ class MemoryConfiguration(NodeConfiguration):
     def configure(self, node, settings):
         if self._element_name_ in settings:
             memory = int(settings[self._element_name_])
-            logging.debug("- setting {} GB of memory".format(
+            plogging.debug("- setting {} GB of memory".format(
                     memory))
             return memory
         return False

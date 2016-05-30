@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import time
 import requests
 
@@ -23,9 +24,7 @@ import winrm
 from winrm.protocol import Protocol
 
 from plumbery.polishers.base import NodeConfiguration
-
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class WindowsConfiguration(NodeConfiguration):
@@ -38,7 +37,7 @@ class WindowsConfiguration(NodeConfiguration):
         self.secret = engine.get_shared_secret()
         # todo: provide a fittings-wide override.
         self.username = 'administrator'
-        logging.debug('Loading windows polisher')
+        plogging.debug('Loading windows polisher')
 
     def _try_winrm(self, node):
         ip = node.private_ips[0]
@@ -86,29 +85,29 @@ class WindowsConfiguration(NodeConfiguration):
         :type node: :class:`libcloud.compute.base.Node`
         """
         ip = node.private_ips[0]
-        logging.debug("Testing out quick function on %s", ip)
+        plogging.debug("Testing out quick function on %s", ip)
         out = run_cmd(
             'echo hello',
             args=[],
             user=self.username,
             password=self.secret,
             host=ip)
-        logging.info(out)
-        logging.debug("Running winexe to remotely configure %s", ip)
+        plogging.info(out)
+        plogging.debug("Running winexe to remotely configure %s", ip)
         cmds = [
             "winrm quickconfig -quiet",
             "winrm set winrm/config/service/auth @{Basic=\"true\"}",
             "winrm set winrm/config/service @{AllowUnencrypted=\"true\"}"
         ]
         for cmd in cmds:
-            logging.debug('Running command "%s"', cmd)
+            plogging.debug('Running command "%s"', cmd)
             out = run_cmd(
                 cmd,
                 args=[],
                 user=self.username,
                 password=self.secret,
                 host=ip)
-            logging.info(out)
+            plogging.info(out)
 
     def _lockdown_winrm(self, node):
         """
@@ -118,26 +117,26 @@ class WindowsConfiguration(NodeConfiguration):
         :type node: :class:`libcloud.compute.base.Node`
         """
         ip = node.private_ips[0]
-        logging.debug("Running winexe to remotely deconfigure %s", ip)
+        plogging.debug("Running winexe to remotely deconfigure %s", ip)
         cmds = [
             "winrm set winrm/config/service/auth @{Basic=\"false\"}",
             "winrm set winrm/config/service @{AllowUnencrypted=\"false\"}"
         ]
         for cmd in cmds:
-            logging.debug('Running command "%s"', cmd)
+            plogging.debug('Running command "%s"', cmd)
             out = run_cmd(
                 cmd,
                 args=[],
                 user=self.username,
                 password=self.secret,
                 host=ip)
-            logging.info(out)
+            plogging.info(out)
 
     def validate(self, settings):
         return True
 
     def reap(self, *args):
-        logging.debug('Reap for windows polisher (noop)')
+        plogging.debug('Reap for windows polisher (noop)')
         return
 
     def configure(self, node, settings):
@@ -155,9 +154,9 @@ class WindowsConfiguration(NodeConfiguration):
 
         """
         if self._element_name_ in settings:
-            logging.info("preparing node '{}'".format(settings['name']))
+            plogging.info("preparing node '{}'".format(settings['name']))
             if node is None:
-                logging.info("- not found")
+                plogging.info("- not found")
                 return
 
             timeout = 300
@@ -170,25 +169,25 @@ class WindowsConfiguration(NodeConfiguration):
                     break
 
                 if node.state != NodeState.RUNNING:
-                    logging.info("- skipped - node is not running")
+                    plogging.info("- skipped - node is not running")
                     return
 
             ipv6 = node.extra['ipv6']
             ip = node.private_ips[0]
             if ipv6 is None:
-                logging.error('No ipv6 address for node, cannot configure')
+                plogging.error('No ipv6 address for node, cannot configure')
                 return
 
             # Check to see if WinRM works..
             try:
                 self._try_winrm(node)
             except winrm.exceptions.InvalidCredentialsError:
-                logging.warn('initial login to %s failed, trying to setup winrm remotely',
+                plogging.warn('initial login to %s failed, trying to setup winrm remotely',
                              ip)
                 self._setup_winrm(node)
                 self._try_winrm(node)
             except requests.exceptions.ConnectionError:
-                logging.warn('initial connection to %s failed, trying to setup winrm remotely',
+                plogging.warn('initial connection to %s failed, trying to setup winrm remotely',
                              ip)
                 self._setup_winrm(node)
                 self._try_winrm(node)
@@ -206,10 +205,10 @@ class WindowsConfiguration(NodeConfiguration):
                 cmds.append((command_parts[0], command_parts[1:]))
 
             out, err = self._winrm_commands(node, cmds)
-            logging.info(out)
-            logging.warning(err)
+            plogging.info(out)
+            plogging.warning(err)
 
-            logging.debug('locking down winrm')
+            plogging.debug('locking down winrm')
             self._lockdown_winrm(node)
         else:
             return False
