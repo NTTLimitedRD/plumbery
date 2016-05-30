@@ -21,8 +21,7 @@ import sys
 
 from plumbery.engine import PlumberyEngine
 from plumbery import __version__
-from plumbery.logging import setup_logging
-log = setup_logging()
+from plumbery.logging import plogging
 
 
 def parse_args(args=[]):
@@ -95,20 +94,17 @@ def parse_args(args=[]):
     args = parser.parse_args(args)
 
     if args.debug:
-        logging.getLogger().setLevel(logging.DEBUG)
-        log.setLevel(logging.DEBUG)
+        plogging.setLevel(logging.DEBUG)
     elif args.quiet:
-        logging.getLogger().setLevel(logging.WARNING)
-        log.setLevel(logging.WARNING)
+        plogging.setLevel(logging.WARNING)
     else:
-        logging.getLogger().setLevel(logging.INFO)
-        log.setLevel(logging.INFO)
+        plogging.setLevel(logging.INFO)
 
     if 'version' in args:
         print(args.version)
 
     args.fittings = args.fittings[0]
-    log.debug("- loading '{}'".format(args.fittings))
+    plogging.debug("- loading '{}'".format(args.fittings))
 
     args.action = args.action[0].lower()
 
@@ -126,12 +122,12 @@ def parse_args(args=[]):
     if len(args.blueprints) < 1:
         args.blueprints = None
     else:
-        log.debug('blueprints: '+' '.join(args.blueprints))
+        plogging.debug('blueprints: '+' '.join(args.blueprints))
 
     if len(args.facilities) < 1:
         args.facilities = None
     else:
-        log.debug('facilities: '+' '.join(args.facilities))
+        plogging.debug('facilities: '+' '.join(args.facilities))
 
     return args
 
@@ -216,12 +212,12 @@ def main(args=None, engine=None):
         args = parse_args(args)
 
     except Exception as feedback:
-        logging.error("Incorrect arguments. "
+        plogging.error("Incorrect arguments. "
                       "Maybe the following can help: python -m plumbery -h")
-        if log.getEffectiveLevel() == logging.DEBUG:
+        if plogging.getEffectiveLevel() == logging.DEBUG:
             raise
         else:
-            log.error("{}: {}".format(
+            plogging.error("{}: {}".format(
                 feedback.__class__.__name__,
                 str(feedback)))
         sys.exit(2)
@@ -236,15 +232,15 @@ def main(args=None, engine=None):
                 engine.safeMode = True
 
         except Exception as feedback:
-            if log.getEffectiveLevel() == logging.DEBUG:
-                log.error("Cannot read fittings plan from '{}'".format(
+            if plogging.getEffectiveLevel() == logging.DEBUG:
+                plogging.error("Cannot read fittings plan from '{}'".format(
                     args.fittings))
                 raise
             else:
-                log.error("Cannot read fittings plan from '{}'"
+                plogging.error("Cannot read fittings plan from '{}'"
                               ", run with -d for debug".format(
                                   args.fittings))
-                log.error("{}: {}".format(
+                plogging.error("{}: {}".format(
                     feedback.__class__.__name__,
                     str(feedback)))
             sys.exit(2)
@@ -254,16 +250,16 @@ def main(args=None, engine=None):
     try:
         engine.do(args.action, args.blueprints, args.facilities)
 
-        log.info(engine.document_elapsed())
+        plogging.info(engine.document_elapsed())
 
     except Exception as feedback:
-        if log.getEffectiveLevel() == logging.DEBUG:
-            log.error("Unable to do '{}'".format(args.action))
+        if plogging.getEffectiveLevel() == logging.DEBUG:
+            plogging.error("Unable to do '{}'".format(args.action))
             raise
         else:
-            log.error("Unable to do '{}', run with -d for debug".format(
+            plogging.error("Unable to do '{}', run with -d for debug".format(
                 args.action))
-            log.error("{}: {}".format(
+            plogging.error("{}: {}".format(
                 feedback.__class__.__name__,
                 str(feedback)))
         sys.exit(2)
@@ -272,5 +268,5 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        log.info("Aborted by user")
+        plogging.info("Aborted by user")
         sys.exit(0)

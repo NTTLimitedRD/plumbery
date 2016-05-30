@@ -31,8 +31,7 @@ from plumbery.nodes import PlumberyNodes
 from plumbery.polisher import PlumberyPolisher
 from plumbery.text import PlumberyText
 from plumbery.text import PlumberyNodeContext
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 class FileContentDeployment(Deployment):
     """
@@ -178,7 +177,7 @@ class PreparePolisher(PlumberyPolisher):
             try:
                 self.region.ex_update_vm_tools(node=node)
 
-                logging.info("- upgrading vmware tools")
+                plogging.info("- upgrading vmware tools")
                 return True
 
             except Exception as feedback:
@@ -191,11 +190,11 @@ class PreparePolisher(PlumberyPolisher):
                     continue
 
                 if 'NO_CHANGE' in str(feedback):
-                    logging.debug("- vmware tools is already up-to-date")
+                    plogging.debug("- vmware tools is already up-to-date")
                     return True
 
-                logging.info("- unable to upgrade vmware tools")
-                logging.error(str(feedback))
+                plogging.info("- unable to upgrade vmware tools")
+                plogging.error(str(feedback))
                 return False
 
     def _apply_prepares(self, node, steps):
@@ -214,7 +213,7 @@ class PreparePolisher(PlumberyPolisher):
         """
 
         if node is None or node.state != NodeState.RUNNING:
-            logging.info("- skipped - node is not running")
+            plogging.info("- skipped - node is not running")
             return False
 
         # select the address to use
@@ -239,16 +238,16 @@ class PreparePolisher(PlumberyPolisher):
         try:
             session.connect()
         except Exception as feedback:
-            logging.info("Error: unable to prepare '{}' at '{}'!".format(
+            plogging.info("Error: unable to prepare '{}' at '{}'!".format(
                 node.name, target_ip))
-            logging.error(str(feedback))
-            logging.info("- failed")
+            plogging.error(str(feedback))
+            plogging.info("- failed")
             return False
 
         while True:
             try:
                 if self.engine.safeMode:
-                    logging.info("- skipped - no ssh interaction in safe mode")
+                    plogging.info("- skipped - no ssh interaction in safe mode")
 
                 else:
                     node = steps.run(node, session)
@@ -258,10 +257,10 @@ class PreparePolisher(PlumberyPolisher):
                     time.sleep(10)
                     continue
 
-                logging.info("Error: unable to prepare '{}' at '{}'!".format(
+                plogging.info("Error: unable to prepare '{}' at '{}'!".format(
                     node.name, target_ip))
-                logging.error(str(feedback))
-                logging.info("- failed")
+                plogging.error(str(feedback))
+                plogging.info("- failed")
                 result = False
 
             else:
@@ -312,7 +311,7 @@ class PreparePolisher(PlumberyPolisher):
                 and isinstance(settings['prepare'], list)
                 and len(settings['prepare']) > 0):
 
-            logging.debug('- using prepare commands')
+            plogging.debug('- using prepare commands')
 
             for script in settings['prepare']:
 
@@ -328,7 +327,7 @@ class PreparePolisher(PlumberyPolisher):
                     else:
                         args = []
 
-                    logging.debug("- {} {} {}".format(
+                    plogging.debug("- {} {} {}".format(
                         tokens[0], script, ' '.join(args)))
 
                     try:
@@ -339,7 +338,7 @@ class PreparePolisher(PlumberyPolisher):
                             if(tokens[0] == 'run'
                                     and PlumberyText.could_expand(text)):
 
-                                logging.debug("- expanding script '{}'"
+                                plogging.debug("- expanding script '{}'"
                                               .format(script))
                                 text = PlumberyText.expand_string(
                                     text, environment)
@@ -353,11 +352,11 @@ class PreparePolisher(PlumberyPolisher):
                                         name=script)})
 
                             else:
-                                logging.error("- script '{}' is empty"
+                                plogging.error("- script '{}' is empty"
                                               .format(script))
 
                     except IOError:
-                        logging.error("- unable to read script '{}'"
+                        plogging.error("- unable to read script '{}'"
                                       .format(script))
 
                 elif tokens[0] in ['put', 'put_raw']:  # send a file
@@ -368,7 +367,7 @@ class PreparePolisher(PlumberyPolisher):
                     else:
                         destination = './'+file
 
-                    logging.debug("- {} {} {}".format(
+                    plogging.debug("- {} {} {}".format(
                         tokens[0], file, destination))
 
                     try:
@@ -379,7 +378,7 @@ class PreparePolisher(PlumberyPolisher):
                             if(tokens[0] == 'put'
                                     and PlumberyText.could_expand(content)):
 
-                                logging.debug("- expanding file '{}'"
+                                plogging.debug("- expanding file '{}'"
                                               .format(file))
                                 content = PlumberyText.expand_string(
                                     content, environment)
@@ -391,7 +390,7 @@ class PreparePolisher(PlumberyPolisher):
                                     target=destination)})
 
                     except IOError:
-                        logging.error("- unable to read file '{}'"
+                        plogging.error("- unable to read file '{}'"
                                       .format(file))
 
                 else:  # echo a sensible message eventually
@@ -401,16 +400,16 @@ class PreparePolisher(PlumberyPolisher):
                     message = ' '.join(tokens)
                     message = PlumberyText.expand_string(
                         message, environment)
-                    logging.info("- {}".format(message))
+                    plogging.info("- {}".format(message))
 
         if ('cloud-config' in settings
                 and isinstance(settings['cloud-config'], dict)
                 and len(settings['cloud-config']) > 0):
 
-            logging.info('- using cloud-config')
+            plogging.info('- using cloud-config')
 
             # mandatory, else cloud-init will not consider user-data
-            logging.debug('- preparing meta-data')
+            plogging.debug('- preparing meta-data')
             meta_data = 'instance_id: dummy\n'
 
             destination = '/var/lib/cloud/seed/nocloud-net/meta-data'
@@ -420,13 +419,13 @@ class PreparePolisher(PlumberyPolisher):
                     content=meta_data,
                     target=destination)})
 
-            logging.debug('- preparing user-data')
+            plogging.debug('- preparing user-data')
 
             expanded = PlumberyText.expand_string(
                 settings['cloud-config'], environment)
 
             user_data = '#cloud-config\n'+expanded
-            logging.debug(user_data)
+            plogging.debug(user_data)
 
             destination = '/var/lib/cloud/seed/nocloud-net/user-data'
             prepares.append({
@@ -435,7 +434,7 @@ class PreparePolisher(PlumberyPolisher):
                     content=user_data,
                     target=destination)})
 
-            logging.debug('- preparing remote install of cloud-init')
+            plogging.debug('- preparing remote install of cloud-init')
 
             script = 'prepare.cloud-init.sh'
             try:
@@ -453,7 +452,7 @@ class PreparePolisher(PlumberyPolisher):
                 raise PlumberyException("Error: cannot read '{}'"
                                         .format(script))
 
-            logging.debug('- preparing reboot to trigger cloud-init')
+            plogging.debug('- preparing reboot to trigger cloud-init')
 
             prepares.append({
                 'description': 'reboot node',
@@ -541,7 +540,7 @@ class PreparePolisher(PlumberyPolisher):
                         self.beachheading = True
 
         except Exception as feedback:
-            logging.error(str(feedback))
+            plogging.error(str(feedback))
 
         for item in self.facility.get_setting('prepare', []):
             if not isinstance(item, dict):
@@ -553,10 +552,10 @@ class PreparePolisher(PlumberyPolisher):
                 break
 
         if self.beachheading:
-            logging.info("- beachheading at '{}'".format(
+            plogging.info("- beachheading at '{}'".format(
                 self.facility.get_setting('locationId')))
         else:
-            logging.debug("- '{}' is unreachable".format(
+            plogging.debug("- '{}' is unreachable".format(
                 self.facility.get_setting('locationId')))
 
     def shine_node(self, node, settings, container):
@@ -574,9 +573,9 @@ class PreparePolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Preparing node '{}'".format(settings['name']))
+        plogging.info("Preparing node '{}'".format(settings['name']))
         if node is None:
-            logging.info("- not found")
+            plogging.info("- not found")
             return
 
         timeout = 300
@@ -589,25 +588,25 @@ class PreparePolisher(PlumberyPolisher):
                 break
 
         if node.state != NodeState.RUNNING:
-            logging.info("- skipped - node is not running")
+            plogging.info("- skipped - node is not running")
             return
 
         self.upgrade_vmware_tools(node)
 
         prepares = self._get_prepares(node, settings, container)
         if len(prepares) < 1:
-            logging.info('- nothing to do')
+            plogging.info('- nothing to do')
             self.report.append({node.name: {
                 'status': 'skipped - nothing to do'
                 }})
             return
 
         if len(node.public_ips) > 0:
-            logging.info("- node is reachable at '{}'".format(
+            plogging.info("- node is reachable at '{}'".format(
                 node.public_ips[0]))
 
         elif not self.beachheading:
-            logging.info('- node is unreachable')
+            plogging.info('- node is unreachable')
             self.report.append({node.name: {
                 'status': 'unreachable'
                 }})
@@ -620,7 +619,7 @@ class PreparePolisher(PlumberyPolisher):
             steps.append(item['genius'])
 
         if self._apply_prepares(node, MultiStepDeployment(steps)):
-            logging.info('- done')
+            plogging.info('- done')
             self.report.append({node.name: {
                 'status': 'completed',
                 'prepares': descriptions
@@ -642,7 +641,7 @@ class PreparePolisher(PlumberyPolisher):
             return
 
         fileName = self.settings['reap']
-        logging.info("Reporting on preparations in '{}'".format(fileName))
+        plogging.info("Reporting on preparations in '{}'".format(fileName))
         with open(fileName, 'w') as stream:
             stream.write(yaml.dump(self.report, default_flow_style=False))
             stream.close()

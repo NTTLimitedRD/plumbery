@@ -12,7 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from logging import setup_logging
+
+from plumbery.logging import plogging
 
 __all__ = ['PlumberyPolisher']
 
@@ -74,7 +75,6 @@ class PlumberyPolisher(object):
     """
 
     def __init__(self, settings):
-        self.log = setup_logging()
         self.settings = settings
 
     @classmethod
@@ -94,23 +94,22 @@ class PlumberyPolisher(object):
         :rtype: ``list`` of :class:`plumbery.PlumberyPolisher` or ``[]``
 
         """
-        log = setup_logging()
         if filter is None:
             for polisher in polishers:
-                log.info("Using polisher '{}'".format(
+                plogging.info("Using polisher '{}'".format(
                     polisher.settings['name']))
             return polishers
 
         for polisher in polishers:
             if polisher.settings['name'] == filter:
-                log.info("Using polisher '{}'".format(filter))
+                plogging.info("Using polisher '{}'".format(filter))
                 filtered = [polisher]
                 return filtered
 
         # generate an exception if no implementation is available
         polisher = PlumberyPolisher.from_shelf(filter)
 
-        log.info("Using polisher '{}'".format(filter))
+        plogging.info("Using polisher '{}'".format(filter))
         return [polisher]
 
     @classmethod
@@ -131,17 +130,16 @@ class PlumberyPolisher(object):
 
         moduleName = 'polishers.' + polishId
         polisherName = polishId.capitalize() + 'Polisher'
-        log = setup_logging()
         try:
 
-            log.debug("Importing '{}'".format(moduleName))
+            plogging.debug("Importing '{}'".format(moduleName))
             polisherModule = __import__(
                 moduleName,
                 globals(),
                 locals(),
                 [polisherName])
 
-            log.debug("Instantiating '{}'".format(polisherName))
+            plogging.debug("Instantiating '{}'".format(polisherName))
             polisherClass = getattr(polisherModule, polisherName)
             if settings is None:
                 settings = {}
@@ -149,11 +147,11 @@ class PlumberyPolisher(object):
             return polisherClass(settings)
 
         except ImportError as feedback:
-            log.debug("Unable to find module '{}'".format(moduleName))
+            plogging.debug("Unable to find module '{}'".format(moduleName))
             raise feedback
 
         except Exception as feedback:
-            log.debug("Unable to import '{}' from '{}'".format(
+            plogging.debug("Unable to import '{}' from '{}'".format(
                 polisherName, moduleName))
             raise feedback
 

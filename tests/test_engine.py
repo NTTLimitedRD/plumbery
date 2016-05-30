@@ -18,11 +18,9 @@ from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 from plumbery.__main__ import parse_args, main
 from plumbery.engine import PlumberyEngine
-from plumbery.logging import setup_logging
+from plumbery.logging import plogging
 from plumbery.polisher import PlumberyPolisher
 from plumbery import __version__
-
-log = setup_logging()
 
 DIMENSIONDATA_PARAMS = ('user', 'password')
 
@@ -560,7 +558,7 @@ class TestPlumberyEngine(unittest.TestCase):
                 text = stream.read()
                 stream.close()
                 self.assertEqual(localKey.strip(), text.strip())
-                logging.info("Successful lookup of local public key")
+                plogging.info("Successful lookup of local public key")
 
         except IOError:
             pass
@@ -603,15 +601,13 @@ class TestPlumberyEngine(unittest.TestCase):
 
         args = parse_args(['fittings.yaml', 'build', 'web', '-d'])
         self.assertEqual(args.debug, True)
-        log = setup_logging()
         self.assertEqual(
-            log.getEffectiveLevel(), logging.DEBUG)
+            plogging.getEffectiveLevel(), logging.DEBUG)
 
         args = parse_args(['fittings.yaml', 'build', 'web', '-q'])
         self.assertEqual(args.quiet, True)
-        log = setup_logging()
         self.assertEqual(
-            log.getEffectiveLevel(), logging.WARNING)
+            plogging.getEffectiveLevel(), logging.WARNING)
 
         args = parse_args(['fittings.yaml', 'start', '@NA12'])
         self.assertEqual(args.fittings, 'fittings.yaml')

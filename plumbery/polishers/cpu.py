@@ -16,8 +16,7 @@ from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
 from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class CpuConfiguration(NodeConfiguration):
@@ -54,7 +53,7 @@ class CpuConfiguration(NodeConfiguration):
                 tokens.append('1')
             if len(tokens) < 3:
                 tokens.append('standard')
-            logging.debug("- setting compute {}".format(' '.join(tokens)))
+            plogging.debug("- setting compute {}".format(' '.join(tokens)))
             cpu = DimensionDataServerCpuSpecification(
                 cpu_count=tokens[0],
                 cores_per_socket=tokens[1],

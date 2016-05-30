@@ -15,8 +15,7 @@
 import sys
 
 from plumbery.polishers.inventory import InventoryPolisher
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class AnsiblePolisher(InventoryPolisher):
@@ -151,11 +150,11 @@ class AnsiblePolisher(InventoryPolisher):
 
         if 'reap' in self.settings:
             fileName = self.settings['reap']
-            logging.info("Writing inventory for ansible in '{}'".format(
+            plogging.info("Writing inventory for ansible in '{}'".format(
                 fileName))
             stream = open(fileName, 'w')
         else:
-            logging.info("Showing the inventory for ansible")
+            plogging.info("Showing the inventory for ansible")
             stream = sys.stdout
 
         for line in sorted(hosts):

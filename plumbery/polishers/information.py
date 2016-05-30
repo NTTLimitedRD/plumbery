@@ -20,8 +20,7 @@ from plumbery.polisher import PlumberyPolisher
 from plumbery.text import PlumberyText
 from plumbery.text import PlumberyContext
 from plumbery.text import PlumberyNodeContext
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class InformationPolisher(PlumberyPolisher):
@@ -215,7 +214,7 @@ class InformationPolisher(PlumberyPolisher):
 
         """
 
-        logging.info("- examinating node '{}'".format(settings['name']))
+        plogging.info("- examinating node '{}'".format(settings['name']))
 
         lines = []
 
@@ -226,7 +225,7 @@ class InformationPolisher(PlumberyPolisher):
                 lines.append(description)
 
         if node is None:
-            logging.debug("- not found")
+            plogging.debug("- not found")
             lines.append("node is unknown")
         elif node.state == NodeState.RUNNING:
             lines.append("node is up and running")
@@ -264,10 +263,10 @@ class InformationPolisher(PlumberyPolisher):
 
         if 'reap' in self.settings:
             fileName = self.settings['reap']
-            logging.info("Writing information in '{}'".format(fileName))
+            plogging.info("Writing information in '{}'".format(fileName))
             stream = open(fileName, 'w')
         else:
-            logging.info("Showing information")
+            plogging.info("Showing information")
             stream = sys.stdout
 
         stream.write('\n'.join(self.information)+'\n')
