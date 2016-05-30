@@ -28,11 +28,32 @@ class DisksConfiguration(NodeConfiguration):
 
     def validate(self, settings):
         if self._element_name_ in settings:
-            value = settings[self._element_name_].upper()
-            if value not in ['ESSENTIALS', 'ADVANCED']:
-                raise ConfigurationError(
-                    "- monitoring should be "
-                    "either 'essentials' or 'advanced'")
+            for item in settings[self._element_name_]:
+                tokens = item.lower().split()
+                if len(tokens) < 2 or len(tokens) > 3:
+                    raise ConfigurationError(
+                        "- malformed disk attributes;"
+                        " provide disk id and size in GB, e.g., 1 50;"
+                        " add disk type if needed, e.g., economy")
+                if len(tokens) < 3:
+                    tokens.append('standard')
+
+                if int(tokens[0]) not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
+                    raise ConfigurationError(
+                        "- disk id should be between 1 and 9")
+
+                if int(tokens[1]) < 1:
+                    raise ConfigurationError(
+                        "- minimum disk size is 1 GB")
+
+                if int(tokens[1]) > 1000:
+                    raise ConfigurationError(
+                        "- disk size cannot exceed 1000 GB")
+
+                if tokens[2] not in ('standard', 'highperformance', 'economy'):
+                    raise ConfigurationError(
+                        "- disk speed should be either 'standard' "
+                         "or 'highperformance' or 'economy'")
 
     def configure(self, node, settings):
         if self._element_name_ in settings:
@@ -86,7 +107,7 @@ class DisksConfiguration(NodeConfiguration):
             logging.info("- disk size cannot exceed 1000 GB")
             return
 
-        if speed not in ['standard', 'highperformance', 'economy']:
+        if speed not in ('standard', 'highperformance', 'economy'):
             logging.info("- disk speed should be either 'standard' "
                          "or 'highperformance' or 'economy'")
             return
@@ -121,9 +142,9 @@ class DisksConfiguration(NodeConfiguration):
         logging.info("- adding {} GB '{}' disk".format(
             size, speed))
 
-        if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
-            return
+#        if self.engine.safeMode:
+#            logging.info("- skipped - safe mode")
+#            return
 
         while True:
             try:
