@@ -29,6 +29,11 @@ class CpuConfiguration(NodeConfiguration):
     def validate(self, settings):
         if self._element_name_ in settings:
             tokens = str(settings[self._element_name_]).split(' ')
+            if len(tokens) < 2:
+                tokens.append('1')
+            if len(tokens) < 3:
+                tokens.append('standard')
+
             if int(tokens[0]) < 1 or int(tokens[0]) > 32:
                 raise ConfigurationError('CPU should be within 1 and 32')
 
