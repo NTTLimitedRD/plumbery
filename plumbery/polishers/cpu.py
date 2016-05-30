@@ -41,10 +41,10 @@ class CpuConfiguration(NodeConfiguration):
 
             elif tokens[2].upper() not in ('STANDARD',
                                            'HIGHPERFORMANCE'):
-
                 raise ConfigurationError(
                     "- cpu speed should be either 'standard'"
                     " or 'highspeed'")
+            return True
 
     def configure(self, node, settings):
         if self._element_name_ in settings:
