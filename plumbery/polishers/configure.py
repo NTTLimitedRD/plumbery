@@ -435,7 +435,8 @@ class ConfigurePolisher(PlumberyPolisher):
         for prop_cls in self.configuration_props:
 
             try:
-                configuration_prop = prop_cls(engine=container.facility.plumbery)
+                configuration_prop = prop_cls(engine=container.facility.plumbery,
+                                              facility=self.facility)
                 configuration_prop.validate(settings)
                 configuration_prop.configure(node, settings)
 

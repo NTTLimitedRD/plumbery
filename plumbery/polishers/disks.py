@@ -25,6 +25,10 @@ class DisksConfiguration(NodeConfiguration):
     _configuration_ = {
     }
 
+    def __init__(self, engine, facility):
+        self.engine = engine
+        self.facility = facility
+
     def validate(self, settings):
         if self._element_name_ in settings:
             for item in settings[self._element_name_]:
@@ -147,7 +151,7 @@ class DisksConfiguration(NodeConfiguration):
 
         while True:
             try:
-                self.region.ex_add_storage_to_node(
+                self.facility.region.ex_add_storage_to_node(
                     node=node,
                     amount=size,
                     speed=speed.upper())
@@ -190,7 +194,7 @@ class DisksConfiguration(NodeConfiguration):
 
         while True:
             try:
-                self.region.ex_change_storage_size(
+                self.facility.region.ex_change_storage_size(
                     node=node,
                     disk_id=id,
                     size=size)
@@ -234,7 +238,7 @@ class DisksConfiguration(NodeConfiguration):
 
         while True:
             try:
-                self.region.ex_change_storage_speed(
+                self.facility.region.ex_change_storage_speed(
                     node=node,
                     disk_id=id,
                     speed=speed)

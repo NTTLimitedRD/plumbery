@@ -28,6 +28,10 @@ class MonitoringConfiguration(NodeConfiguration):
     _configuration_ = {
     }
 
+    def __init__(self, engine, facility):
+        self.engine = engine
+        self.facility = facility
+
     def validate(self, settings):
         if self._element_name_ in settings:
             value = settings[self._element_name_].upper()
@@ -66,7 +70,7 @@ class MonitoringConfiguration(NodeConfiguration):
 
         while True:
             try:
-                self.region.ex_enable_monitoring(node, service_plan=value)
+                self.facility.region.ex_enable_monitoring(node, service_plan=value)
                 plogging.info("- in progress")
                 return True
 
@@ -120,7 +124,7 @@ class MonitoringConfiguration(NodeConfiguration):
         while True:
 
             try:
-                self.region.ex_disable_monitoring(node)
+                self.facility.region.ex_disable_monitoring(node)
                 plogging.info("- in progress")
 
             except Exception as feedback:
