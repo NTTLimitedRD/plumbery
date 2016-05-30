@@ -16,8 +16,7 @@ from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
 from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class CpuConfiguration(NodeConfiguration):
@@ -29,6 +28,11 @@ class CpuConfiguration(NodeConfiguration):
     def validate(self, settings):
         if self._element_name_ in settings:
             tokens = str(settings[self._element_name_]).split(' ')
+            if len(tokens) < 2:
+                tokens.append('1')
+            if len(tokens) < 3:
+                tokens.append('standard')
+
             if int(tokens[0]) < 1 or int(tokens[0]) > 32:
                 raise ConfigurationError('CPU should be within 1 and 32')
 
@@ -49,7 +53,7 @@ class CpuConfiguration(NodeConfiguration):
                 tokens.append('1')
             if len(tokens) < 3:
                 tokens.append('standard')
-            logging.debug("- setting compute {}".format(' '.join(tokens)))
+            plogging.debug("- setting compute {}".format(' '.join(tokens)))
             cpu = DimensionDataServerCpuSpecification(
                 cpu_count=tokens[0],
                 cores_per_socket=tokens[1],

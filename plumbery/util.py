@@ -12,16 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import absolute_import
+
 import time
 from functools import wraps
 
-from .logging import setup_logging
-
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
-def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=logging):
+def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=plogging):
     """Retry calling the decorated function using an exponential backoff.
 
     http://thecodeship.com/patterns/guide-to-python-function-decorators/

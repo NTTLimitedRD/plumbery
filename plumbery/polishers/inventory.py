@@ -12,12 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import sys
 import yaml
 
 from plumbery.polisher import PlumberyPolisher
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class InventoryPolisher(PlumberyPolisher):
@@ -72,9 +72,9 @@ class InventoryPolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Examinating node '{}'".format(settings['name']))
+        plogging.info("Examinating node '{}'".format(settings['name']))
         if node is None:
-            logging.info("- not found")
+            plogging.info("- not found")
             return
 
         data = {}
@@ -141,7 +141,7 @@ class InventoryPolisher(PlumberyPolisher):
 
         self.inventory.append(data)
 
-        logging.info("- done")
+        plogging.info("- done")
 
     def reap(self):
         """
@@ -158,10 +158,10 @@ class InventoryPolisher(PlumberyPolisher):
 
         if 'reap' in self.settings:
             fileName = self.settings['reap']
-            logging.info("Writing inventory in '{}'".format(fileName))
+            plogging.info("Writing inventory in '{}'".format(fileName))
             stream = open(fileName, 'w')
         else:
-            logging.info("Showing the inventory")
+            plogging.info("Showing the inventory")
             stream = sys.stdout
 
         stream.write(yaml.dump(self.inventory, default_flow_style=False))

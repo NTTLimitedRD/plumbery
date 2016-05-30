@@ -12,11 +12,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from libcloud.compute.base import NodeState
 
 from plumbery.polisher import PlumberyPolisher
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class PingPolisher(PlumberyPolisher):
@@ -40,25 +40,25 @@ class PingPolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Pinging node '{}'".format(settings['name']))
+        plogging.info("Pinging node '{}'".format(settings['name']))
         if node is None:
-            logging.info("- not found")
+            plogging.info("- not found")
             return
 
         if 'description' in node.extra:
             description = node.extra['description'].replace(
                 '#plumbery', '').strip()
             if len(description) > 0:
-                logging.info("- {}".format(description))
+                plogging.info("- {}".format(description))
 
         if node.state == NodeState.RUNNING:
-            logging.info("- node is up and running")
+            plogging.info("- node is up and running")
         elif node.state in [NodeState.TERMINATED,
                             NodeState.STOPPED,
                             NodeState.SUSPENDED]:
-            logging.info("- node has been stopped")
+            plogging.info("- node has been stopped")
         else:
-            logging.info("- state: {}".format(node.state))
+            plogging.info("- state: {}".format(node.state))
 
         # hack because the driver does not report public ipv4 accurately
         if len(node.public_ips) < 1:
@@ -70,11 +70,11 @@ class PingPolisher(PlumberyPolisher):
                     break
 
         if len(node.public_ips) > 0:
-            logging.info("- public: {}".format(
+            plogging.info("- public: {}".format(
                 node.public_ips[0]))
 
         for item in node.private_ips:
-            logging.info("- private: {}".format(str(item)))
+            plogging.info("- private: {}".format(str(item)))
 
         if node.extra['ipv6']:
-            logging.info("- ipv6: {}".format(str(node.extra['ipv6'])))
+            plogging.info("- ipv6: {}".format(str(node.extra['ipv6'])))

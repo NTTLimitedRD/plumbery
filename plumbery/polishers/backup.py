@@ -16,8 +16,7 @@ import time
 
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 class BackupConfiguration(NodeConfiguration):
     __name__ = 'BackupConfiguration'
@@ -63,7 +62,7 @@ class BackupConfiguration(NodeConfiguration):
             }
 
         plan = backup['plan'].lower().capitalize()
-        logging.info("Starting {} backup of node '{}'".format(
+        plogging.info("Starting {} backup of node '{}'".format(
             plan.lower(), node.name))
 
         backup_details = None
@@ -73,18 +72,18 @@ class BackupConfiguration(NodeConfiguration):
                 extra={'servicePlan': plan})
         except Exception as feedback:
             if feedback.msg == 'Cloud backup for this server is already enabled or being enabled (state: NORMAL).':
-                logging.info("- already there")
+                plogging.info("- already there")
                 backup_details = self.backup.ex_get_backup_details_for_target(node.id)
             else:
-                logging.info("- unable to start backup")
-                logging.error(str(feedback))
+                plogging.info("- unable to start backup")
+                plogging.error(str(feedback))
                 return False
 
         while (backup_details is not None and
                backup_details.status is not 'NORMAL'):
             try:
                 backup_details = self.backup.ex_get_backup_details_for_target(node.id)
-                logging.info("- in progress, found asset %s", backup_details.asset_id)
+                plogging.info("- in progress, found asset %s", backup_details.asset_id)
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -96,15 +95,15 @@ class BackupConfiguration(NodeConfiguration):
                     continue
 
                 elif 'NO_CHANGE' in str(feedback):
-                    logging.info("- already there")
+                    plogging.info("- already there")
 
                 elif 'RESOURCE_LOCKED' in str(feedback):
-                    logging.info("- unable to start backup "
+                    plogging.info("- unable to start backup "
                                  "- node has been locked")
 
                 else:
-                    logging.info("- unable to start backup")
-                    logging.error(str(feedback))
+                    plogging.info("- unable to start backup")
+                    plogging.error(str(feedback))
 
             break
         target = self.backup.ex_get_target_by_id(node.id)
@@ -119,7 +118,7 @@ class BackupConfiguration(NodeConfiguration):
         )
         clients = backup.get('clients', [{'type': 'filesystem'}])
         for client in clients:
-            logging.info("- adding backup client")
+            plogging.info("- adding backup client")
 
             client_type = client.get('type', 'filesystem').lower()
             storage_policy = client.get(

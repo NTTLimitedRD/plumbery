@@ -24,8 +24,7 @@ from plumbery.polishers.monitoring import MonitoringConfiguration
 from plumbery.polishers.disks import DisksConfiguration
 from plumbery.polishers.backup import BackupConfiguration
 from plumbery.polishers.windows import WindowsConfiguration
-from plumbery.logging import setup_logging
-logging = setup_logging()
+from plumbery.logging import plogging
 
 
 class ConfigurePolisher(PlumberyPolisher):
@@ -69,23 +68,23 @@ class ConfigurePolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Configuring blueprint '{}'".format(
+        plogging.info("Configuring blueprint '{}'".format(
             container.blueprint['target']))
 
         if container.network is None:
-            logging.info("- aborted - no network here")
+            plogging.info("- aborted - no network here")
             return
 
         self.container = container
 
-        logging.info("- waiting for nodes to be deployed")
+        plogging.info("- waiting for nodes to be deployed")
 
         names = self.nodes.list_nodes(container.blueprint)
         for name in names:
             while True:
                 node = self.nodes.get_node(name)
                 if node is None:
-                    logging.info("- aborted - missing node '{}'".format(name))
+                    plogging.info("- aborted - missing node '{}'".format(name))
                     return
 
                 if node.extra['status'].action is None:
@@ -94,13 +93,13 @@ class ConfigurePolisher(PlumberyPolisher):
                 if (node is not None
                         and node.extra['status'].failure_reason is not None):
 
-                    logging.info("- aborted - failed deployment "
+                    plogging.info("- aborted - failed deployment "
                                  "of node '{}'".format(name))
                     return
 
                 time.sleep(20)
 
-        logging.info("- nodes have been deployed")
+        plogging.info("- nodes have been deployed")
 
         container._build_firewall_rules()
 
@@ -126,35 +125,35 @@ class ConfigurePolisher(PlumberyPolisher):
         if cpu is not None and 'cpu' in node.extra:
 
             if int(cpu.cpu_count) != int(node.extra['cpu'].cpu_count):
-                logging.info("- changing to {} cpu".format(
+                plogging.info("- changing to {} cpu".format(
                     cpu.cpu_count))
                 changed = True
 
             if (int(cpu.cores_per_socket) !=
                     int(node.extra['cpu'].cores_per_socket)):
 
-                logging.info("- changing to {} core(s) per socket".format(
+                plogging.info("- changing to {} core(s) per socket".format(
                     cpu.cores_per_socket))
                 changed = True
 
             if cpu.performance != node.extra['cpu'].performance:
-                logging.info("- changing to '{}' cpu performance".format(
+                plogging.info("- changing to '{}' cpu performance".format(
                     cpu.performance.lower()))
                 changed = True
 
         if memory is not None and 'memoryMb' in node.extra:
 
             if memory != int(node.extra['memoryMb']/1024):
-                logging.info("- changing to {} GB memory".format(
+                plogging.info("- changing to {} GB memory".format(
                     memory))
                 changed = True
 
         if not changed:
-            logging.debug("- no change in compute")
+            plogging.debug("- no change in compute")
             return
 
         if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
+            plogging.info("- skipped - safe mode")
             return
 
         while True:
@@ -166,7 +165,7 @@ class ConfigurePolisher(PlumberyPolisher):
                     cores_per_socket=cpu.cores_per_socket,
                     cpu_performance=cpu.performance)
 
-                logging.info("- in progress")
+                plogging.info("- in progress")
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -177,8 +176,8 @@ class ConfigurePolisher(PlumberyPolisher):
                     time.sleep(10)
                     continue
 
-                logging.info("- unable to reconfigure node")
-                logging.error(str(feedback))
+                plogging.info("- unable to reconfigure node")
+                plogging.error(str(feedback))
 
             break
 
@@ -242,11 +241,11 @@ class ConfigurePolisher(PlumberyPolisher):
             if token.lower() == 'primary':
                 continue
 
-            logging.info("Glueing node '{}' to network '{}'"
+            plogging.info("Glueing node '{}' to network '{}'"
                          .format(node.name, token))
             vlan = self.container.get_ethernet(token.split('::'))
             if vlan is None:
-                logging.info("- network '{}' is unknown".format(token))
+                plogging.info("- network '{}' is unknown".format(token))
                 continue
 
             kwargs = {}
@@ -258,11 +257,11 @@ class ConfigurePolisher(PlumberyPolisher):
                     numbers.insert(0, subnet[3-len(numbers)])
 
                 private_ipv4 = '.'.join(numbers)
-                logging.debug("- using address '{}'".format(private_ipv4))
+                plogging.debug("- using address '{}'".format(private_ipv4))
                 kwargs['private_ipv4'] = private_ipv4
 
             if self.engine.safeMode:
-                logging.info("- skipped - safe mode")
+                plogging.info("- skipped - safe mode")
                 continue
 
             if 'private_ipv4' not in kwargs:
@@ -271,7 +270,7 @@ class ConfigurePolisher(PlumberyPolisher):
             while True:
                 try:
                     self.region.ex_attach_node_to_vlan(node, **kwargs)
-                    logging.info("- in progress")
+                    plogging.info("- in progress")
                     hasChanged = True
 
                 except Exception as feedback:
@@ -281,14 +280,14 @@ class ConfigurePolisher(PlumberyPolisher):
                         continue
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
+                        plogging.info("- not now - locked")
 
                     elif 'INVALID_INPUT_DATA' in str(feedback):
-                        logging.info("- already there")
+                        plogging.info("- already there")
 
                     else:
-                        logging.info("- unable to glue node")
-                        logging.error(str(feedback))
+                        plogging.info("- unable to glue node")
+                        plogging.error(str(feedback))
 
                 break
 
@@ -306,7 +305,7 @@ class ConfigurePolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Making node '{}' reachable from the internet"
+        plogging.info("Making node '{}' reachable from the internet"
                      .format(node.name))
 
         domain = self.container.get_network_domain(
@@ -318,17 +317,17 @@ class ConfigurePolisher(PlumberyPolisher):
         for rule in self.region.ex_list_nat_rules(domain):
             if rule.internal_ip == internal_ip:
                 external_ip = rule.external_ip
-                logging.info("- node is reachable at '{}'".format(external_ip))
+                plogging.info("- node is reachable at '{}'".format(external_ip))
 
         if self.engine.safeMode:
-            logging.info("- skipped - safe mode")
+            plogging.info("- skipped - safe mode")
             return
 
         if external_ip is None:
             external_ip = self.container._get_ipv4()
 
             if external_ip is None:
-                logging.info("- no more ipv4 address available -- assign more")
+                plogging.info("- no more ipv4 address available -- assign more")
                 return
 
             while True:
@@ -337,7 +336,7 @@ class ConfigurePolisher(PlumberyPolisher):
                         domain,
                         internal_ip,
                         external_ip)
-                    logging.info("- node is reachable at '{}'".format(
+                    plogging.info("- node is reachable at '{}'".format(
                         external_ip))
 
                 except Exception as feedback:
@@ -346,12 +345,12 @@ class ConfigurePolisher(PlumberyPolisher):
                         continue
 
                     elif 'RESOURCE_LOCKED' in str(feedback):
-                        logging.info("- not now - locked")
+                        plogging.info("- not now - locked")
                         return
 
                     else:
-                        logging.info("- unable to add address translation")
-                        logging.error(str(feedback))
+                        plogging.info("- unable to add address translation")
+                        plogging.error(str(feedback))
 
                 break
 
@@ -360,19 +359,19 @@ class ConfigurePolisher(PlumberyPolisher):
         for rule in self.container._list_firewall_rules():
 
             if rule.name in candidates.keys():
-                logging.info("Creating firewall rule '{}'"
+                plogging.info("Creating firewall rule '{}'"
                              .format(rule.name))
-                logging.info("- already there")
+                plogging.info("- already there")
                 candidates = {k: candidates[k]
                               for k in candidates if k != rule.name}
 
         for name, rule in candidates.items():
 
-            logging.info("Creating firewall rule '{}'"
+            plogging.info("Creating firewall rule '{}'"
                          .format(name))
 
             if self.engine.safeMode:
-                logging.info("- skipped - safe mode")
+                plogging.info("- skipped - safe mode")
 
             else:
 
@@ -383,16 +382,16 @@ class ConfigurePolisher(PlumberyPolisher):
                         rule=rule,
                         position='LAST')
 
-                    logging.info("- in progress")
+                    plogging.info("- in progress")
 
                 except Exception as feedback:
 
                     if 'NAME_NOT_UNIQUE' in str(feedback):
-                        logging.info("- already there")
+                        plogging.info("- already there")
 
                     else:
-                        logging.info("- unable to create firewall rule")
-                        logging.error(str(feedback))
+                        plogging.info("- unable to create firewall rule")
+                        plogging.error(str(feedback))
 
     def shine_node(self, node, settings, container):
         """
@@ -409,9 +408,9 @@ class ConfigurePolisher(PlumberyPolisher):
 
         """
 
-        logging.info("Configuring node '{}'".format(settings['name']))
+        plogging.info("Configuring node '{}'".format(settings['name']))
         if node is None:
-            logging.info("- not found")
+            plogging.info("- not found")
             return
 
         try:
@@ -429,7 +428,7 @@ class ConfigurePolisher(PlumberyPolisher):
         except ConfigurationError as ce:
 
             if self.engine.safeMode:
-                logging.warn(ce.message)
+                plogging.warn(ce.message)
             else:
                 raise ce
 
@@ -442,7 +441,7 @@ class ConfigurePolisher(PlumberyPolisher):
 
             except ConfigurationError as ce:
                 if self.engine.safeMode:
-                    logging.warn(ce.message)
+                    plogging.warn(ce.message)
                 else:
                     raise ce
 

@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import absolute_import
 import hashlib
 import os
@@ -33,12 +34,12 @@ from libcloud.loadbalancer.types import Provider as BalancerProvider
 from libcloud.backup.providers import get_driver as get_backup_driver
 from libcloud.backup.types import Provider as BackupProvider
 
-from .exception import PlumberyException
-from .facility import PlumberyFacility
-from .logging import setup_logging
-from .polisher import PlumberyPolisher
-from .text import PlumberyText, PlumberyContext
 from plumbery import __version__
+from plumbery.exception import PlumberyException
+from plumbery.facility import PlumberyFacility
+from plumbery.logging import plogging
+from plumbery.polisher import PlumberyPolisher
+from plumbery.text import PlumberyText, PlumberyContext
 
 
 __all__ = ['PlumberyEngine']
@@ -118,7 +119,6 @@ class PlumberyEngine(object):
         :type plan: ``str`` or ``file`` or ``dict``
 
         """
-        self.log = setup_logging()
         self.c0 = time.clock()
         self.t0 = time.time()
 
@@ -182,12 +182,12 @@ class PlumberyEngine(object):
         if not isinstance(parameters, dict):
             raise TypeError('Parameters should be a dictionary')
 
-        self.log.debug("Parameters:")
+        plogging.debug("Parameters:")
         for key in parameters:
             if key not in self.parameters:
                 self.parameters[key] = {}
             self.parameters[key]['value'] = parameters[key]
-            self.log.debug("- {}: {}".format(
+            plogging.debug("- {}: {}".format(
                 key, self.parameters[key]['value']))
 
     def get_parameters(self):
@@ -334,7 +334,7 @@ class PlumberyEngine(object):
         self.load_secrets()
 
         if self.safeMode:
-            self.log.info(
+            plogging.info(
                 "Running in safe mode"
                 " - no actual change will be made to the fittings")
 
@@ -355,16 +355,16 @@ class PlumberyEngine(object):
                 raise TypeError('buildPolisher should be a string')
 
             self.buildPolisher = settings['buildPolisher']
-            self.log.debug("Build polisher: {}".format(self.buildPolisher))
+            plogging.debug("Build polisher: {}".format(self.buildPolisher))
 
         if 'defaults' in settings:
             if not isinstance(settings['defaults'], dict):
                 raise TypeError('defaults should be a dictionary')
 
-            self.log.debug("Default values:")
+            plogging.debug("Default values:")
             for key in settings['defaults'].keys():
                 self.defaults[key] = settings['defaults'][key]
-                self.log.debug("- {}: {}".format(key, self.defaults[key]))
+                plogging.debug("- {}: {}".format(key, self.defaults[key]))
 
         if 'information' in settings:
             if isinstance(settings['information'], str):
@@ -385,7 +385,7 @@ class PlumberyEngine(object):
             if not isinstance(settings['parameters'], dict):
                 raise TypeError('parameters should be a dictionary')
 
-            self.log.debug("Parameters:")
+            plogging.debug("Parameters:")
             for key in settings['parameters']:
 
                 if key not in self.parameters:
@@ -408,7 +408,7 @@ class PlumberyEngine(object):
                                      .format(key))
                 self.parameters[key]['default'] = \
                     settings['parameters'][key]['default']
-                self.log.debug("- {}: {}".format(
+                plogging.debug("- {}: {}".format(
                     key,
                     self.parameters[key]['default']))
 
@@ -416,13 +416,13 @@ class PlumberyEngine(object):
             if not isinstance(settings['polishers'], list):
                 raise TypeError('polishers should be a list')
 
-            self.log.debug("Polishers:")
+            plogging.debug("Polishers:")
             for item in settings['polishers']:
                 key = item.keys()[0]
                 value = item[key]
                 self.polishers.append(
                     PlumberyPolisher.from_shelf(key, value))
-                self.log.debug("- {}".format(key))
+                plogging.debug("- {}".format(key))
 
         if 'safeMode' in settings:
             if settings['safeMode'] not in [True, False]:
@@ -514,7 +514,7 @@ class PlumberyEngine(object):
                 path = '~/.ssh/id_rsa.pub'
 
                 with open(os.path.expanduser(path)) as stream:
-                    self.log.debug("- loading {} from {}".format(id, path))
+                    plogging.debug("- loading {} from {}".format(id, path))
                     text = stream.read().strip()
                     stream.close()
                     return text
@@ -526,11 +526,11 @@ class PlumberyEngine(object):
 
         key = RSA.generate(2048)
         self.secrets[name+'.rsa_private'] = key.exportKey('PEM')
-        self.log.debug("- generating {}".format(name+'.rsa_private'))
+        plogging.debug("- generating {}".format(name+'.rsa_private'))
 
         pubkey = key.publickey()
         self.secrets[name+'.rsa_public'] = pubkey.exportKey('OpenSSH')
-        self.log.debug("- generating {}".format(name+'.rsa_public'))
+        plogging.debug("- generating {}".format(name+'.rsa_public'))
 
         self.save_secrets()
         return self.secrets[id]
@@ -600,7 +600,7 @@ class PlumberyEngine(object):
         elif '.sha1.' in id:
             secret = hashlib.sha1(secret).hexdigest()
 
-        self.log.debug("- generating {}".format(id))
+        plogging.debug("- generating {}".format(id))
         self.secrets[id] = secret
         self.save_secrets()
 
@@ -611,13 +611,13 @@ class PlumberyEngine(object):
         Displays secrets attached to this fittings plan
         """
 
-        self.log.info("Showing secrets")
+        plogging.info("Showing secrets")
 
         if len(self.secrets.keys()) < 1:
-            self.log.info("- no secret found")
+            plogging.info("- no secret found")
 
         for key in sorted(self.secrets):
-            self.log.info("- {}: {}".format(key, self.secrets[key]))
+            plogging.info("- {}: {}".format(key, self.secrets[key]))
 
     def save_secrets(self, plan=None):
         """
@@ -647,8 +647,8 @@ class PlumberyEngine(object):
             handle.close()
 
         except IOError:
-            self.log.warning("Unable to save secrets")
-            self.log.debug("- cannot write to file '{}'".format(
+            plogging.warning("Unable to save secrets")
+            plogging.debug("- cannot write to file '{}'".format(
                 secretsFile))
 
     def load_secrets(self, plan=None):
@@ -670,7 +670,7 @@ class PlumberyEngine(object):
             return
 
         secretsFile = secretsId+'.secrets'
-        self.log.debug("Loading secrets from '{}'".format(secretsFile))
+        plogging.debug("Loading secrets from '{}'".format(secretsFile))
 
         if os.path.isfile(secretsFile):
             try:
@@ -678,11 +678,11 @@ class PlumberyEngine(object):
                 self.secrets = yaml.load(handle)
                 handle.close()
 
-                self.log.debug("- found {} secrets".format(
+                plogging.debug("- found {} secrets".format(
                     len(self.secrets)))
 
             except IOError:
-                self.log.debug("- unable to load secrets")
+                plogging.debug("- unable to load secrets")
 
     def forget_secrets(self, plan=None):
         """
@@ -701,7 +701,7 @@ class PlumberyEngine(object):
         secretsFile = secretsId+'.secrets'
 
         if self.safeMode:
-            self.log.info("Secrets cannot be forgotten in safe mode")
+            plogging.info("Secrets cannot be forgotten in safe mode")
 
         self.secrets = {}
 
@@ -710,8 +710,8 @@ class PlumberyEngine(object):
                 os.remove(secretsFile)
 
             except IOError:
-                self.log.warning("Unable to forget secrets")
-                self.log.debug("- cannot delete file '{}'".format(
+                plogging.warning("Unable to forget secrets")
+                plogging.debug("- cannot delete file '{}'".format(
                     secretsFile))
 
     def set_user_name(self, name):
@@ -812,9 +812,9 @@ class PlumberyEngine(object):
         if isinstance(facility, dict):
             facility = PlumberyFacility(self, facility)
 
-        self.log.debug("Adding facility %s" % facility)
+        plogging.debug("Adding facility %s" % facility)
         for key in facility.settings:
-            self.log.debug("- {}: {}".format(key, facility.settings[key]))
+            plogging.debug("- {}: {}".format(key, facility.settings[key]))
 
         self.facilities.append(facility)
 
@@ -1051,9 +1051,9 @@ class PlumberyEngine(object):
 
         all = self.get_default('blueprints', None)
         if all is None:
-            self.log.info("Building all blueprints")
+            plogging.info("Building all blueprints")
         else:
-            self.log.info("Building '{}'".format("', '".join(all.split(' '))))
+            plogging.info("Building '{}'".format("', '".join(all.split(' '))))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1094,7 +1094,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        self.log.info("Building blueprint '{}'".format(label))
+        plogging.info("Building blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1125,7 +1125,7 @@ class PlumberyEngine(object):
 
         """
 
-        self.log.info("Starting nodes from all blueprints")
+        plogging.info("Starting nodes from all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1160,7 +1160,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        self.log.info("Starting nodes from blueprint '{}'".format(label))
+        plogging.info("Starting nodes from blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1200,7 +1200,7 @@ class PlumberyEngine(object):
         if len(polishers) < 1:
             return False
 
-        self.log.info("Polishing all blueprints")
+        plogging.info("Polishing all blueprints")
 
         for polisher in polishers:
             polisher.go(self)
@@ -1247,7 +1247,7 @@ class PlumberyEngine(object):
         polishers = PlumberyPolisher.filter(self.polishers, filter)
 
         if len(polishers) < 1:
-            self.log.debug('No polisher has been found')
+            plogging.debug('No polisher has been found')
             return
 
         if isinstance(names, list):
@@ -1255,7 +1255,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        self.log.info("Polishing blueprint '{}'".format(label))
+        plogging.info("Polishing blueprint '{}'".format(label))
 
         for polisher in polishers:
             polisher.go(self)
@@ -1290,7 +1290,7 @@ class PlumberyEngine(object):
 
         """
 
-        self.log.info("Stopping nodes from all blueprints")
+        plogging.info("Stopping nodes from all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1325,7 +1325,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        self.log.info("Stopping nodes from blueprint '{}'".format(label))
+        plogging.info("Stopping nodes from blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1355,7 +1355,7 @@ class PlumberyEngine(object):
 
         """
 
-        self.log.info("Wiping all blueprints")
+        plogging.info("Wiping all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1393,7 +1393,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        self.log.info("Wiping blueprint '{}'".format(label))
+        plogging.info("Wiping blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1423,7 +1423,7 @@ class PlumberyEngine(object):
 
         """
 
-        self.log.info("Destroying all blueprints")
+        plogging.info("Destroying all blueprints")
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1461,7 +1461,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        self.log.info("Destroying blueprint '{}'".format(label))
+        plogging.info("Destroying blueprint '{}'".format(label))
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
