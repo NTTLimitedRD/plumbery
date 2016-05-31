@@ -165,3 +165,4 @@ class BackupConfiguration(NodeConfiguration):
                 trigger=trigger,
                 email=email
             )
+        return True

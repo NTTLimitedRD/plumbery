@@ -33,7 +33,7 @@ class WindowsConfiguration(NodeConfiguration):
     _configuration_ = {
     }
 
-    def __init__(self, engine):
+    def __init__(self, engine, facility):
         self.secret = engine.get_shared_secret()
         # todo: provide a fittings-wide override.
         self.username = 'administrator'

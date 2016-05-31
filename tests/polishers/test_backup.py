@@ -71,6 +71,7 @@ class BackupConfigurationTests(unittest.TestCase):
         }
         config = backup.BackupConfiguration(self.plumbery, self.facility)
         backupConfiguration = config.configure(TestNode(), settings)
+        self.assertTrue(backupConfiguration)
 
 if __name__ == '__main__':
     import sys

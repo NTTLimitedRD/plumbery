@@ -9,7 +9,12 @@ import os
 import unittest
 import yaml
 
-from Crypto.PublicKey import RSA
+try:
+    from Crypto.Hash import MD5, SHA256
+    from Crypto.PublicKey import RSA
+except ImportError:
+    import logging
+    logging.getLogger().error('No Crypto support loaded')
 import ast
 
 import requests_mock
