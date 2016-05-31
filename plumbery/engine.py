@@ -285,7 +285,7 @@ class PlumberyEngine(object):
             if not HAS_CRYPTO:
                 self.secretsId = hashlib.md5(plan.encode('utf-8')).hexdigest()
             else:
-                self.secretsId = MD5.new(plan).hexdigest()
+                self.secretsId = MD5.new(plan.encode('utf-8')).hexdigest()
 
             if plan.startswith(("https://", "http://")):
                 response = requests.get(plan)
@@ -321,11 +321,11 @@ class PlumberyEngine(object):
 
         if isinstance(plan, dict):
             documents = [plan]
-            self.secretsId = MD5.new(str(plan)).hexdigest()
+            self.secretsId = MD5.new(str(plan).encode('utf-8')).hexdigest()
 
         elif isinstance(plan, list):
             documents = plan
-            self.secretsId = MD5.new(str(plan)).hexdigest()
+            self.secretsId = MD5.new(str(plan).encode('utf-8')).hexdigest()
 
         else:
             documents = list(yaml.load_all(plan))
@@ -428,7 +428,7 @@ class PlumberyEngine(object):
 
             plogging.debug("Polishers:")
             for item in settings['polishers']:
-                key = item.keys()[0]
+                key = list(item)[0]
                 value = item[key]
                 self.polishers.append(
                     PlumberyPolisher.from_shelf(key, value))
@@ -602,13 +602,13 @@ class PlumberyEngine(object):
                 for i in range(9))
 
         if '.sha256.' in id:
-            secret = SHA256.new(secret).hexdigest()
+            secret = SHA256.new(secret.encode('utf-8')).hexdigest()
 
         elif '.md5.' in id:
-            secret = MD5.new(secret).hexdigest()
+            secret = MD5.new(secret.encode('utf-8')).hexdigest()
 
         elif '.sha1.' in id:
-            secret = hashlib.sha1(secret).hexdigest()
+            secret = hashlib.sha1(secret.encode('utf-8')).hexdigest()
 
         plogging.debug("- generating {}".format(id))
         self.secrets[id] = secret
@@ -639,7 +639,7 @@ class PlumberyEngine(object):
         """
 
         if plan:
-            secretsId = MD5.new(plan).hexdigest()
+            secretsId = MD5.new(plan.encode('utf-8')).hexdigest()
 
         elif self.secretsId:
             secretsId = self.secretsId
@@ -671,7 +671,7 @@ class PlumberyEngine(object):
         """
 
         if plan:
-            secretsId = MD5.new(plan).hexdigest()
+            secretsId = MD5.new(plan.encode('utf-8')).hexdigest()
 
         elif self.secretsId:
             secretsId = self.secretsId
@@ -700,7 +700,7 @@ class PlumberyEngine(object):
         """
 
         if plan:
-            secretsId = MD5.new(plan).hexdigest()
+            secretsId = MD5.new(plan.encode('utf-8')).hexdigest()
 
         elif self.secretsId:
             secretsId = self.secretsId

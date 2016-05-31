@@ -30,6 +30,7 @@ from plumbery.exception import PlumberyException
 from plumbery.infrastructure import PlumberyInfrastructure
 from plumbery.logging import plogging
 from plumbery.util import retry
+from plumbery.polishers.monitoring import MonitoringConfiguration
 
 __all__ = ['PlumberyNodes']
 
@@ -104,8 +105,8 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = item.keys()[0]
-                settings = item.values()[0]
+                label = list(item.keys())[0]
+                settings = list(item.values())[0]
 
             else:
                 label = item
@@ -340,7 +341,7 @@ class PlumberyNodes(object):
         for item in reversed(blueprint['nodes']):
 
             if type(item) is dict:
-                label = item.keys()[0]
+                label = list(item)[0]
                 settings = item[label]
             else:
                 label = str(item)
@@ -378,7 +379,11 @@ class PlumberyNodes(object):
                     plogging.info("- skipped - safe mode")
                     continue
 
-                self._stop_monitoring(node, settings)
+                configuration = MonitoringConfiguration(
+                    engine=container.facility.plumbery,
+                    facility=container.facility)
+                configuration.deconfigure(node, settings)
+
                 self._detach_node(node, settings)
                 container._detach_node_from_internet(node)
                 container._remove_from_pool(node)
@@ -679,7 +684,7 @@ class PlumberyNodes(object):
         if 'nodes' in blueprint:
             for item in blueprint['nodes']:
                 if type(item) is dict:
-                    label = list(item.keys())[0]
+                    label = list(item)[0]
 
                 else:
                     label = str(item)
@@ -734,7 +739,7 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = item.keys()[0]
+                label = list(item)[0]
                 settings = item[label]
             else:
                 label = str(item)
@@ -763,7 +768,7 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = item.keys()[0]
+                label = list(item)[0]
 
             else:
                 label = item
@@ -842,8 +847,8 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = item.keys()[0]
-                settings = item.values()[0]
+                label = list(item.keys())[0]
+                settings = list(item.values())[0]
 
             else:
                 label = item

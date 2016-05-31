@@ -244,7 +244,7 @@ class PlumberyFacility(object):
                         raise TypeError('{} should be a dictionary'
                                         .format(blueprint['nodes'][index]))
 
-                    label = list(blueprint['nodes'][index].keys())[0]
+                    label = list(blueprint['nodes'][index])[0]
                     settings = blueprint['nodes'][index][label]
                     if settings is None:
                         settings = {}
@@ -265,13 +265,13 @@ class PlumberyFacility(object):
                     self.update_settings(shell, settings)
                     settings = shell
 
-                    if len(config.keys()) > 0:
+                    if len(list(config)) > 0:
                         settings['cloud-config'] = config
 
                     blueprint['nodes'][index][label] = settings
 
             for index in range(0, len(self.blueprints)):
-                if list(self.blueprints[index].keys())[0] == blueprintName:
+                if list(self.blueprints[index])[0] == blueprintName:
                     self.blueprints[index][blueprintName] = blueprint
 
     def update_settings(self, settings, additions):
@@ -341,7 +341,7 @@ class PlumberyFacility(object):
 
         names = []
         for blueprint in self.blueprints:
-            name = list(blueprint.keys())[0]
+            name = list(blueprint)[0]
             if not isinstance(blueprint[name], dict):
                 continue
 
@@ -435,7 +435,7 @@ class PlumberyFacility(object):
 
             for blueprint in self.blueprints:
 
-                name = blueprint.keys()[0]
+                name = list(blueprint)[0]
                 if name != label:
                     continue
 
@@ -448,7 +448,7 @@ class PlumberyFacility(object):
                             continue
 
                         for scanning in self.blueprints:
-                            if token == scanning.keys()[0]:
+                            if token == list(scanning)[0]:
                                 names.append(token)
                                 break
 
@@ -477,7 +477,7 @@ class PlumberyFacility(object):
         """
 
         for blueprint in self.blueprints:
-            if name == list(blueprint.keys())[0]:
+            if name == list(blueprint)[0]:
 
                 if not isinstance(blueprint[name], dict):
                     return None
@@ -504,7 +504,7 @@ class PlumberyFacility(object):
         labels = set()
 
         for blueprint in self.blueprints:
-            name = blueprint.keys()[0]
+            name = list(blueprint)[0]
             if 'domain' in blueprint[name]:
                 labels.add(blueprint[name]['domain']['name'])
 
@@ -526,7 +526,7 @@ class PlumberyFacility(object):
         labels = set()
 
         for blueprint in self.blueprints:
-            name = blueprint.keys()[0]
+            name = list(blueprint)[0]
             if 'ethernet' in blueprint[name]:
                 labels.add(blueprint[name]['ethernet']['name'])
 
@@ -547,11 +547,11 @@ class PlumberyFacility(object):
         labels = []
 
         for blueprint in self.blueprints:
-            name = blueprint.keys()[0]
+            name = list(blueprint)[0]
             if 'nodes' in blueprint[name]:
                 for item in blueprint[name]['nodes']:
                     if type(item) is dict:
-                        label = item.keys()[0]
+                        label = list(item)[0]
 
                     else:
                         label = item

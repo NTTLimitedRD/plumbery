@@ -493,7 +493,7 @@ class TestPlumberyEngine(unittest.TestCase):
         blueprint = facility.get_blueprint('myBlueprint')
 
         node = blueprint['nodes'][0]
-        self.assertEqual(node.keys()[0], 'toto')
+        self.assertEqual(list(node)[0], 'toto')
 
         config = node['toto']['cloud-config']
         self.assertEqual(config['hostname'], 'toto')
