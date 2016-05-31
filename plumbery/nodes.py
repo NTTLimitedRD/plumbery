@@ -105,8 +105,8 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = list(item)[0]
-                settings = item.values()[0]
+                label = list(item.keys())[0]
+                settings = list(item.values())[0]
 
             else:
                 label = item
@@ -847,8 +847,8 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = list(item)[0]
-                settings = item.values()[0]
+                label = list(item.keys())[0]
+                settings = list(item.values())[0]
 
             else:
                 label = item
