@@ -14,9 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-
+import sys
 import yaml
-
+from six import string_types
 from plumbery.logging import plogging
 from plumbery.nodes import PlumberyNodes
 
@@ -46,7 +46,7 @@ class PlumberyText:
         opening = '{{'
         closing = '}}'
 
-        if not isinstance(text, str):
+        if not isinstance(text, string_types):
             raise TypeError("Parameters expansion requires textual input")
 
         expanded = ''
@@ -117,7 +117,7 @@ class PlumberyText:
         closing = '}}'
 
         serialized = False
-        if not isinstance(text, str):  # serialize python object
+        if not isinstance(text, string_types):  # serialize python object
             plogging.debug("- serializing object before expansion")
             text = str(text)
             serialized = True
@@ -202,7 +202,10 @@ class PlumberyText:
         textchars = bytearray({7, 8, 9, 10, 12, 13, 27}
                               | set(range(0x20, 0x100)) - {0x7f})
 
-        is_binary = lambda bytes: bool(bytes.translate(None, textchars))
+        if (sys.version_info > (3, 0)):
+            is_binary = lambda bytes: bool(bytes.translate(textchars))
+        else:
+            is_binary = lambda bytes: bool(bytes.translate(None, textchars))
 
         return not is_binary(content)
 

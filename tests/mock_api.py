@@ -33,9 +33,11 @@ class ComputeFileFixtures(FileFixtures):
     def __init__(self):
         super(ComputeFileFixtures, self).__init__()
 
+
 class InvalidRequestError(Exception):
     def __init__(self, tag):
         super(InvalidRequestError, self).__init__("Invalid Request - %s" % tag)
+
 
 class DimensionDataMockHttp(MockHttp):
 

@@ -4,7 +4,7 @@ Tests for `facility` module.
 
 import unittest
 
-from mock_api import DimensionDataMockHttp
+from .mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 from plumbery.engine import PlumberyEngine

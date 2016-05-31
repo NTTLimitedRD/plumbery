@@ -128,7 +128,7 @@ class PlumberyPolisher(object):
 
         """
 
-        moduleName = 'polishers.' + polishId
+        moduleName = 'plumbery.polishers.' + polishId
         polisherName = polishId.capitalize() + 'Polisher'
         try:
 

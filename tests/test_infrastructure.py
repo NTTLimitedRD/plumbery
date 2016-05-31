@@ -8,7 +8,7 @@ import unittest
 
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 from libcloud.backup.drivers.dimensiondata import DimensionDataBackupDriver
-from mock_api import DimensionDataMockHttp
+from .mock_api import DimensionDataMockHttp
 
 from plumbery.engine import PlumberyEngine
 from plumbery.infrastructure import PlumberyInfrastructure

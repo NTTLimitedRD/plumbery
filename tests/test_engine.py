@@ -10,15 +10,13 @@ import unittest
 import yaml
 
 try:
-    from Crypto.Hash import MD5, SHA256
     from Crypto.PublicKey import RSA
 except ImportError:
-    import logging
     logging.getLogger().error('No Crypto support loaded')
 import ast
 
 import requests_mock
-from mock_api import DimensionDataMockHttp
+from .mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 from plumbery.__main__ import parse_args, main

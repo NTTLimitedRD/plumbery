@@ -7,7 +7,7 @@ Tests for `nodes` module.
 import unittest
 
 from plumbery.nodes import PlumberyNodes
-from mock_api import DimensionDataMockHttp
+from .mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 DIMENSIONDATA_PARAMS = ('user', 'password')

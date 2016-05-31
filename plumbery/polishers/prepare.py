@@ -33,6 +33,7 @@ from plumbery.text import PlumberyText
 from plumbery.text import PlumberyNodeContext
 from plumbery.logging import plogging
 
+
 class FileContentDeployment(Deployment):
     """
     Installs a file on a target node.

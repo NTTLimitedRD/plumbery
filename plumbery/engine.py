@@ -23,13 +23,17 @@ import sys
 import time
 import uuid
 import yaml
+from six import string_types
 
 try:
     from Crypto.Hash import MD5, SHA256
     from Crypto.PublicKey import RSA
+    HAS_CRYPTO = True
 except ImportError:
     import logging
     logging.getLogger().error('No Crypto support loaded')
+    import hashlib
+    HAS_CRYPTO = False
 
 from libcloud.compute.providers import get_driver as get_compute_driver
 from libcloud.compute.types import Provider as ComputeProvider
@@ -171,7 +175,7 @@ class PlumberyEngine(object):
         if not parameters:
             return
 
-        if isinstance(parameters, str):
+        if isinstance(parameters, string_types):
 
             if parameters.startswith(("https://", "http://")):
                 response = requests.get(parameters)
@@ -276,10 +280,12 @@ class PlumberyEngine(object):
         if plan is None:
             plan = os.getenv('PLUMBERY')
 
-        if isinstance(plan, str):
-
+        if isinstance(plan, string_types):
             # hash reference to the fittings plan, not content of it
-            self.secretsId = MD5.new(plan).hexdigest()
+            if not HAS_CRYPTO:
+                self.secretsId = hashlib.md5(plan.encode('utf-8')).hexdigest()
+            else:
+                self.secretsId = MD5.new(plan).hexdigest()
 
             if plan.startswith(("https://", "http://")):
                 response = requests.get(plan)
