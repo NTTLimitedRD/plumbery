@@ -105,7 +105,7 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = item.keys()[0]
+                label = list(item)[0]
                 settings = item.values()[0]
 
             else:
@@ -341,7 +341,7 @@ class PlumberyNodes(object):
         for item in reversed(blueprint['nodes']):
 
             if type(item) is dict:
-                label = item.keys()[0]
+                label = list(item)[0]
                 settings = item[label]
             else:
                 label = str(item)
@@ -684,7 +684,7 @@ class PlumberyNodes(object):
         if 'nodes' in blueprint:
             for item in blueprint['nodes']:
                 if type(item) is dict:
-                    label = list(item.keys())[0]
+                    label = list(item)[0]
 
                 else:
                     label = str(item)
@@ -739,7 +739,7 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = item.keys()[0]
+                label = list(item)[0]
                 settings = item[label]
             else:
                 label = str(item)
@@ -768,7 +768,7 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = item.keys()[0]
+                label = list(item)[0]
 
             else:
                 label = item
@@ -847,7 +847,7 @@ class PlumberyNodes(object):
         for item in blueprint['nodes']:
 
             if type(item) is dict:
-                label = item.keys()[0]
+                label = list(item)[0]
                 settings = item.values()[0]
 
             else:

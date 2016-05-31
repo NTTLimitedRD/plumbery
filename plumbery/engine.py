@@ -428,7 +428,7 @@ class PlumberyEngine(object):
 
             plogging.debug("Polishers:")
             for item in settings['polishers']:
-                key = item.keys()[0]
+                key = list(item)[0]
                 value = item[key]
                 self.polishers.append(
                     PlumberyPolisher.from_shelf(key, value))

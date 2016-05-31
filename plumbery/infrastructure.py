@@ -725,7 +725,7 @@ class PlumberyInfrastructure(object):
         for item in self.blueprint['listeners']:
 
             if isinstance(item, dict):
-                label = item.keys()[0]
+                label = list(item)[0]
                 settings = item[label]
             else:
                 label = str(item)
@@ -819,7 +819,7 @@ class PlumberyInfrastructure(object):
         for item in self.blueprint['listeners']:
 
             if isinstance(item, dict):
-                label = item.keys()[0]
+                label = list(item)[0]
                 settings = item[label]
             else:
                 label = str(item)
@@ -1351,7 +1351,7 @@ class PlumberyInfrastructure(object):
         for item in self.blueprint['ethernet']['accept']:
 
             if isinstance(item, dict):
-                label = item.keys()[0]
+                label = list(item)[0]
             else:
                 label = str(item)
 
@@ -1533,7 +1533,7 @@ class PlumberyInfrastructure(object):
         for item in self.blueprint['ethernet']['accept']:
 
             if isinstance(item, dict):
-                label = item.keys()[0]
+                label = list(item)[0]
             else:
                 label = str(item)
 
