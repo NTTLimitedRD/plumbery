@@ -321,11 +321,11 @@ class PlumberyEngine(object):
 
         if isinstance(plan, dict):
             documents = [plan]
-            self.secretsId = MD5.new(str(plan.encode('utf-8'))).hexdigest()
+            self.secretsId = MD5.new(str(plan).encode('utf-8')).hexdigest()
 
         elif isinstance(plan, list):
             documents = plan
-            self.secretsId = MD5.new(str(plan.encode('utf-8'))).hexdigest()
+            self.secretsId = MD5.new(str(plan).encode('utf-8')).hexdigest()
 
         else:
             documents = list(yaml.load_all(plan))
