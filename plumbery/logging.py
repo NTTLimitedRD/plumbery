@@ -65,8 +65,36 @@ def setup_logging(engine=None):
 class PlumberyLogging(object):
 
     def __init__(self):
+        logging.basicConfig(format="%(asctime)-2s s%(message)s")
+        self.log = logging.getLogger('plumbery')
+        self.log.propagate = False
+
+        formatter = colorlog.ColoredFormatter(
+            "%(asctime)-2s %(log_color)s%(message)s",
+            datefmt='%H:%M:%S',
+            reset=True,
+            log_colors={
+                'DEBUG':    'cyan',
+                'INFO':     'green',
+                'WARNING':  'yellow',
+                'ERROR':    'red',
+                'CRITICAL': 'red,bg_white',
+            },
+            secondary_log_colors={},
+            style='%'
+        )
+
+
+        if len(self.log.filters) == 0:
+            f = PlumberyLogFilter()
+            self.log.addFilter(f)
+
+        if len(self.log.handlers) == 0:
+            handler = colorlog.StreamHandler()
+            handler.setFormatter(formatter)
+            self.log.addHandler(handler)
+
         self.reset()
-        self.log = setup_logging()
 
     def reset(self):
         self.errors = 0
