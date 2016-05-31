@@ -285,7 +285,7 @@ class PlumberyEngine(object):
             if not HAS_CRYPTO:
                 self.secretsId = hashlib.md5(plan.encode('utf-8')).hexdigest()
             else:
-                self.secretsId = MD5.new(plan).hexdigest()
+                self.secretsId = MD5.new(plan.encode('utf-8')).hexdigest()
 
             if plan.startswith(("https://", "http://")):
                 response = requests.get(plan)
