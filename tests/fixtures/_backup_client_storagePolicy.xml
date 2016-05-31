@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<BackupStoragePolicies xmlns="http://oec.api.opsource.net/schemas/backup">
+ <!-- One or more repetitions. Attribute secondaryLocation is optional, all
+others mandatory -->
+ <storagePolicy retentionPeriodInDays="30" name="30 Day Storage Policy + Secondary Copy" secondaryLocation="Primary"/>
+ <storagePolicy retentionPeriodInDays="14" name="14 Day Storage Policy" secondaryLocation="Primary"/>
+</BackupStoragePolicies>
