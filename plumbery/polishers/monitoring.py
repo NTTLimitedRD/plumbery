@@ -116,7 +116,7 @@ class MonitoringConfiguration(NodeConfiguration):
 
             return
 
-        if self.plumbery.safeMode:
+        if self.engine.safeMode:
             return
 
         plogging.info("Stopping monitoring of node '{}'".format(node.name))
