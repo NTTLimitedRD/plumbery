@@ -24,8 +24,12 @@ import time
 import uuid
 import yaml
 
-from Crypto.Hash import MD5, SHA256
-from Crypto.PublicKey import RSA
+try:
+    from Crypto.Hash import MD5, SHA256
+    from Crypto.PublicKey import RSA
+except ImportError:
+    import logging
+    logging.getLogger().error('No Crypto support loaded')
 
 from libcloud.compute.providers import get_driver as get_compute_driver
 from libcloud.compute.types import Provider as ComputeProvider

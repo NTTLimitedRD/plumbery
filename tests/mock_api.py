@@ -529,3 +529,145 @@ class DimensionDataMockHttp(MockHttp):
         body = self.fixtures.load(
             'caas_2_2_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_network_vlan_0e56433f_d808_4669_821d_812769517ff8.xml')
         return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_client_type(self, method, url, body, headers):
+        body = self.fixtures.load(
+            '_backup_client_type.xml')
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_client_storagePolicy(
+            self, method, url, body, headers):
+        body = self.fixtures.load(
+            '_backup_client_storagePolicy.xml')
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_client_schedulePolicy(
+            self, method, url, body, headers):
+        body = self.fixtures.load(
+            '_backup_client_schedulePolicy.xml')
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_client(
+            self, method, url, body, headers):
+        if method == 'POST':
+            body = self.fixtures.load(
+                '_backup_client_SUCCESS_PUT.xml')
+            return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+        else:
+            raise ValueError("Unknown Method {0}".format(method))
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_NOCLIENT(
+            self, method, url, body, headers):
+        # only gets here are implemented
+        # If we get any other method something has gone wrong
+        assert(method == 'GET')
+        body = self.fixtures.load(
+            '_backup_INFO_NOCLIENT.xml')
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_DISABLED(
+            self, method, url, body, headers):
+        # only gets here are implemented
+        # If we get any other method something has gone wrong
+        assert(method == 'GET')
+        body = self.fixtures.load(
+            '_backup_INFO_DISABLED.xml')
+        return (httplib.BAD_REQUEST, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_NOJOB(
+            self, method, url, body, headers):
+        # only gets here are implemented
+        # If we get any other method something has gone wrong
+        assert(method == 'GET')
+        body = self.fixtures.load(
+            '_backup_INFO_NOJOB.xml')
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_DEFAULT(
+            self, method, url, body, headers):
+        if method != 'POST':
+            raise InvalidRequestError('Only POST is accepted for this test')
+        request = ET.fromstring(body)
+        service_plan = request.get('servicePlan')
+        if service_plan != DEFAULT_BACKUP_PLAN:
+            raise InvalidRequestError('The default plan %s should have been passed in.  Not %s' % (DEFAULT_BACKUP_PLAN, service_plan))
+        body = self.fixtures.load(
+            '_backup_ENABLE.xml')
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup(
+            self, method, url, body, headers):
+        if method == 'POST':
+            body = self.fixtures.load(
+                '_backup_ENABLE.xml')
+            return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+        elif method == 'GET':
+            if url.endswith('disable'):
+                body = self.fixtures.load(
+                    '_backup_DISABLE.xml')
+                return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+            body = self.fixtures.load(
+                '_backup_INFO.xml')
+            return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+        else:
+            raise ValueError("Unknown Method {0}".format(method))
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_EXISTS(
+            self, method, url, body, headers):
+        # only POSTs are implemented
+        # If we get any other method something has gone wrong
+        assert(method == 'POST')
+        body = self.fixtures.load(
+            '_backup_EXISTS.xml')
+        return (httplib.BAD_REQUEST, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_modify(
+            self, method, url, body, headers):
+        request = ET.fromstring(body)
+        service_plan = request.get('servicePlan')
+        if service_plan != 'Essentials':
+            raise InvalidRequestError("Expected Essentials backup plan in request")
+        body = self.fixtures.load('_backup_modify.xml')
+
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_modify_DEFAULT(
+            self, method, url, body, headers):
+        request = ET.fromstring(body)
+        service_plan = request.get('servicePlan')
+        if service_plan != DEFAULT_BACKUP_PLAN:
+            raise InvalidRequestError("Expected % backup plan in test" % DEFAULT_BACKUP_PLAN)
+        body = self.fixtures.load('_backup_modify.xml')
+
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_client_30b1ff76_c76d_4d7c_b39d_3b72be0384c8(
+            self, method, url, body, headers):
+        if url.endswith('disable'):
+            body = self.fixtures.load(
+                ('_remove_backup_client.xml')
+            )
+        elif url.endswith('cancelJob'):
+            body = self.fixtures.load(
+                (''
+                 '_backup_client_30b1ff76_c76d_4d7c_b39d_3b72be0384c8_cancelJob.xml')
+            )
+        else:
+            raise ValueError("Unknown URL: %s" % url)
+        return (httplib.OK, body, {}, httplib.responses[httplib.OK])
+
+    def _oec_0_9_8a8f6abc_2745_4d8a_9cbc_8dabe5a7d0e4_server_e75ead52_692f_4314_8725_c8a4f4d13a87_backup_client_30b1ff76_c76d_4d7c_b39d_3b72be0384c8_FAIL(
+            self, method, url, body, headers):
+        if url.endswith('disable'):
+            body = self.fixtures.load(
+                ('_remove_backup_client_FAIL.xml')
+            )
+        elif url.endswith('cancelJob'):
+            body = self.fixtures.load(
+                (''
+                 '_backup_client_30b1ff76_c76d_4d7c_b39d_3b72be0384c8_cancelJob_FAIL.xml')
+            )
+        else:
+            raise ValueError("Unknown URL: %s" % url)
+        return (httplib.BAD_REQUEST, body, {}, httplib.responses[httplib.OK])

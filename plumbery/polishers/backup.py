@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import time
-
+from six import string_types
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
 from plumbery.logging import plogging
+
 
 class BackupConfiguration(NodeConfiguration):
     __name__ = 'BackupConfiguration'
@@ -24,12 +25,20 @@ class BackupConfiguration(NodeConfiguration):
     _configuration_ = {
     }
 
+    def __init__(self, engine, facility):
+        self.engine = engine
+        self.facility = facility
+
     def validate(self, settings):
         if self._element_name_ in settings:
             backup = settings[self._element_name_]
-            plan = backup['plan'].lower().capitalize()
+            if isinstance(backup, dict):
+                plan = backup['plan'].lower().capitalize()
+            else:
+                plan = backup.lower().capitalize()
             if plan not in ['Essentials', 'Advanced', 'Enterprise']:
                 raise ConfigurationError("Backup plan not valid")
+            return True
 
     def configure(self, node, settings):
         if self._element_name_ in settings:
@@ -51,8 +60,8 @@ class BackupConfiguration(NodeConfiguration):
         :type  backup: ``dict`` or ``str``
 
         """
-        default_email = self.backup.connection.get_account_details().email
-        if isinstance(backup, basestring):
+        default_email = self.facility.backup.connection.get_account_details().email
+        if isinstance(backup, string_types):
             backup = {
                 'plan': backup,
                 'email': default_email,
@@ -67,13 +76,13 @@ class BackupConfiguration(NodeConfiguration):
 
         backup_details = None
         try:
-            self.backup.create_target_from_node(
+            self.facility.backup.create_target_from_node(
                 node,
                 extra={'servicePlan': plan})
         except Exception as feedback:
             if feedback.msg == 'Cloud backup for this server is already enabled or being enabled (state: NORMAL).':
                 plogging.info("- already there")
-                backup_details = self.backup.ex_get_backup_details_for_target(node.id)
+                backup_details = self.facility.backup.ex_get_backup_details_for_target(node.id)
             else:
                 plogging.info("- unable to start backup")
                 plogging.error(str(feedback))
@@ -82,7 +91,7 @@ class BackupConfiguration(NodeConfiguration):
         while (backup_details is not None and
                backup_details.status is not 'NORMAL'):
             try:
-                backup_details = self.backup.ex_get_backup_details_for_target(node.id)
+                backup_details = self.facility.backup.ex_get_backup_details_for_target(node.id)
                 plogging.info("- in progress, found asset %s", backup_details.asset_id)
 
             except Exception as feedback:
@@ -106,14 +115,14 @@ class BackupConfiguration(NodeConfiguration):
                     plogging.error(str(feedback))
 
             break
-        target = self.backup.ex_get_target_by_id(node.id)
-        storage_policies = self.backup.ex_list_available_storage_policies(
+        target = self.facility.backup.ex_get_target_by_id(node.id)
+        storage_policies = self.facility.backup.ex_list_available_storage_policies(
             target=target
         )
-        schedule_policies = self.backup.ex_list_available_schedule_policies(
+        schedule_policies = self.facility.backup.ex_list_available_schedule_policies(
             target=target
         )
-        client_types = self.backup.ex_list_available_client_types(
+        client_types = self.facility.backup.ex_list_available_client_types(
             target=target
         )
         clients = backup.get('clients', [{'type': 'filesystem'}])
@@ -128,17 +137,27 @@ class BackupConfiguration(NodeConfiguration):
             trigger = client.get('trigger', 'ON_FAILURE')
             email = client.get('email', default_email)
 
-            storage_policy = [x for x in storage_policies
-                              if x.name.lower() == storage_policy][0]
-            schedule_policy = [x for x in schedule_policies
-                               if x.name.lower() == schedule_policy][0]
+            try:
+                storage_policy = [x for x in storage_policies
+                                  if x.name.lower() == storage_policy][0]
+            except IndexError:
+                raise ConfigurationError(
+                    "Could not find matching storage policy '%s'" %
+                    storage_policy)
+            try:
+                schedule_policy = [x for x in schedule_policies
+                                   if x.name.lower() == schedule_policy][0]
+            except IndexError:
+                raise ConfigurationError(
+                    "Could not find matching schedule policy '%s'" %
+                    schedule_policy)
 
             if client_type in ['file', 'filesystem']:
                 client = [x for x in client_types if x.is_file_system][0]
             else:
                 client = [x for x in client_types
                           if x.description.startswith(client_type)][0]
-            self.backup.ex_add_client_to_target(
+            self.facility.backup.ex_add_client_to_target(
                 target=target,
                 client_type=client,
                 storage_policy=storage_policy,

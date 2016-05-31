@@ -244,7 +244,7 @@ class PlumberyFacility(object):
                         raise TypeError('{} should be a dictionary'
                                         .format(blueprint['nodes'][index]))
 
-                    label = blueprint['nodes'][index].keys()[0]
+                    label = list(blueprint['nodes'][index].keys())[0]
                     settings = blueprint['nodes'][index][label]
                     if settings is None:
                         settings = {}
@@ -271,7 +271,7 @@ class PlumberyFacility(object):
                     blueprint['nodes'][index][label] = settings
 
             for index in range(0, len(self.blueprints)):
-                if self.blueprints[index].keys()[0] == blueprintName:
+                if list(self.blueprints[index].keys())[0] == blueprintName:
                     self.blueprints[index][blueprintName] = blueprint
 
     def update_settings(self, settings, additions):
@@ -341,7 +341,7 @@ class PlumberyFacility(object):
 
         names = []
         for blueprint in self.blueprints:
-            name = blueprint.keys()[0]
+            name = list(blueprint.keys())[0]
             if not isinstance(blueprint[name], dict):
                 continue
 
@@ -477,7 +477,7 @@ class PlumberyFacility(object):
         """
 
         for blueprint in self.blueprints:
-            if name == blueprint.keys()[0]:
+            if name == list(blueprint.keys())[0]:
 
                 if not isinstance(blueprint[name], dict):
                     return None

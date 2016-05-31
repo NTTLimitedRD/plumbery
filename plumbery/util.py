@@ -55,15 +55,15 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=plogging):
             while mtries > 1:
                 try:
                     return f(*args, **kwargs)
-                except ExceptionToCheck, e:
+                except ExceptionToCheck as e:
                     msg1 = "{}".format(str(e))
                     msg2 = "- retrying in {} seconds...".format(mdelay)
                     if logger:
                         logger.warning(msg1)
                         logger.warning(msg2)
                     else:
-                        print msg1
-                        print msg2
+                        print(msg1)
+                        print(msg2)
                     time.sleep(mdelay)
                     mtries -= 1
                     mdelay *= backoff
