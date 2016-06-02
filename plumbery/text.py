@@ -158,7 +158,7 @@ class PlumberyText:
                     debugged.append(token)
 
                 if serialized:  # preserve line breaks
-                    replacement = replacement.replace('\n', '\\'+'n')
+                    replacement = replacement.replace(b'\n', b'\\'+b'n')
 
                 expanded += text[index:head]+str(replacement)
                 index = tail+len(closing)
