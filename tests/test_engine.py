@@ -552,7 +552,12 @@ class TestPlumberyEngine(unittest.TestCase):
         decrypted = cipher.decrypt(str(encrypted))
         self.assertEqual(decrypted, original)
 
-        self.assertEqual(len(engine.secrets), 12)
+        token = engine.lookup('https://discovery.etcd.io/new')
+        self.assertEqual(token.startswith(
+            'https://discovery.etcd.io/'), True)
+        self.assertEqual(len(token), 58)
+
+        self.assertEqual(len(engine.secrets), 13)
 
         with self.assertRaises(LookupError):
             localKey = engine.lookup('local.rsa_private')

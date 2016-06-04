@@ -588,8 +588,12 @@ class PlumberyEngine(object):
         if id in self.secrets:
             return self.secrets[id]
 
-        if '.uuid' in id:
+        if id.endswith('.uuid'):
             secret = str(uuid.uuid4())
+
+        elif id.startswith('http://') or id.startswith('https://'):
+            plogging.debug('- fetching {}'.format(id))
+            secret = requests.get(id).text
 
         else:
             secret = ''.join(random.choice(
@@ -1558,6 +1562,9 @@ class PlumberyEngine(object):
             return self.get_secret(token)
 
         if token.endswith('.uuid'):
+            return self.get_secret(token)
+
+        if token.startswith('http://') or token.startswith('https://'):
             return self.get_secret(token)
 
         return None
