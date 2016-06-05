@@ -14,7 +14,10 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import ast
 import hashlib
+import logging
 import os
 import random
 import requests
@@ -26,14 +29,10 @@ import yaml
 from six import string_types
 
 try:
-    from Crypto.Hash import MD5, SHA256
-    from Crypto.PublicKey import RSA
-    HAS_CRYPTO = True
+    from Cryptodome.PublicKey import RSA
 except ImportError:
-    import logging
-    logging.getLogger().error('No Crypto support loaded')
-    import hashlib
-    HAS_CRYPTO = False
+    logging.getLogger().error('No Cryptodome support loaded')
+
 
 from libcloud.compute.providers import get_driver as get_compute_driver
 from libcloud.compute.types import Provider as ComputeProvider
@@ -282,10 +281,7 @@ class PlumberyEngine(object):
 
         if isinstance(plan, string_types):
             # hash reference to the fittings plan, not content of it
-            if not HAS_CRYPTO:
-                self.secretsId = hashlib.md5(plan.encode('utf-8')).hexdigest()
-            else:
-                self.secretsId = MD5.new(plan).hexdigest()
+            self.secretsId = hashlib.md5(plan.encode('utf-8')).hexdigest()
 
             if plan.startswith(("https://", "http://")):
                 response = requests.get(plan)
@@ -321,11 +317,11 @@ class PlumberyEngine(object):
 
         if isinstance(plan, dict):
             documents = [plan]
-            self.secretsId = MD5.new(str(plan)).hexdigest()
+            self.secretsId = hashlib.md5(str(plan).encode('utf-8')).hexdigest()
 
         elif isinstance(plan, list):
             documents = plan
-            self.secretsId = MD5.new(str(plan)).hexdigest()
+            self.secretsId = hashlib.md5(str(plan).encode('utf-8')).hexdigest()
 
         else:
             documents = list(yaml.load_all(plan))
@@ -428,7 +424,7 @@ class PlumberyEngine(object):
 
             plogging.debug("Polishers:")
             for item in settings['polishers']:
-                key = item.keys()[0]
+                key = list(item)[0]
                 value = item[key]
                 self.polishers.append(
                     PlumberyPolisher.from_shelf(key, value))
@@ -593,8 +589,12 @@ class PlumberyEngine(object):
         if id in self.secrets:
             return self.secrets[id]
 
-        if '.uuid' in id:
+        if id.endswith('.uuid'):
             secret = str(uuid.uuid4())
+
+        elif id.startswith('http://') or id.startswith('https://'):
+            plogging.debug('- fetching {}'.format(id))
+            secret = requests.get(id).text
 
         else:
             secret = ''.join(random.choice(
@@ -602,13 +602,13 @@ class PlumberyEngine(object):
                 for i in range(9))
 
         if '.sha256.' in id:
-            secret = SHA256.new(secret).hexdigest()
+            secret = hashlib.sha256(secret.encode('utf-8')).hexdigest()
 
         elif '.md5.' in id:
-            secret = MD5.new(secret).hexdigest()
+            secret = hashlib.md5(secret.encode('utf-8')).hexdigest()
 
         elif '.sha1.' in id:
-            secret = hashlib.sha1(secret).hexdigest()
+            secret = hashlib.sha1(secret.encode('utf-8')).hexdigest()
 
         plogging.debug("- generating {}".format(id))
         self.secrets[id] = secret
@@ -639,7 +639,7 @@ class PlumberyEngine(object):
         """
 
         if plan:
-            secretsId = MD5.new(plan).hexdigest()
+            secretsId = hashlib.md5(plan.encode('utf-8')).hexdigest()
 
         elif self.secretsId:
             secretsId = self.secretsId
@@ -671,7 +671,7 @@ class PlumberyEngine(object):
         """
 
         if plan:
-            secretsId = MD5.new(plan).hexdigest()
+            secretsId = hashlib.md5(plan.encode('utf-8')).hexdigest()
 
         elif self.secretsId:
             secretsId = self.secretsId
@@ -700,7 +700,7 @@ class PlumberyEngine(object):
         """
 
         if plan:
-            secretsId = MD5.new(plan).hexdigest()
+            secretsId = hashlib.md5(plan.encode('utf-8')).hexdigest()
 
         elif self.secretsId:
             secretsId = self.secretsId
@@ -1563,6 +1563,9 @@ class PlumberyEngine(object):
             return self.get_secret(token)
 
         if token.endswith('.uuid'):
+            return self.get_secret(token)
+
+        if token.startswith('http://') or token.startswith('https://'):
             return self.get_secret(token)
 
         return None

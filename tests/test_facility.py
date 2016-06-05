@@ -352,7 +352,7 @@ class TestPlumberyFacility(unittest.TestCase):
         self.assertEqual(blueprint['ethernet']['name'], 'myVLAN')
         self.assertEqual(blueprint['ethernet']['subnet'], '10.1.10.0')
         self.assertEqual(len(blueprint['ethernet']['accept']), 1)
-        label = blueprint['nodes'][0].keys()[0]
+        label = list(blueprint['nodes'][0])[0]
         node = blueprint['nodes'][0][label]
         self.assertEqual('default' not in node, True)
         self.assertEqual(node['cpu'], 3)

@@ -25,6 +25,15 @@ class TestPlumberyLogging(unittest.TestCase):
         plogging.reset()
         self.assertEqual(plogging.foundErrors(), False)
 
+    def test_alien(self):
+        logger = logging.getLogger('alien.from.mars')
+        logger.setLevel(logging.DEBUG)
+        logger.debug("hello mars -- debug")
+        logger.info("hello mars -- info")
+        logger.warning("hello mars -- warning")
+        logger.error("hello mars -- error")
+        logger.critical("hello mars -- critical")
+
 if __name__ == '__main__':
     import sys
     sys.exit(unittest.main())

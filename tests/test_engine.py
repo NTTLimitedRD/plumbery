@@ -10,13 +10,14 @@ import unittest
 import yaml
 
 try:
-    from Crypto.PublicKey import RSA
+    from Cryptodome.PublicKey import RSA
+    from Cryptodome.Cipher import PKCS1_OAEP
 except ImportError:
-    logging.getLogger().error('No Crypto support loaded')
+    logging.getLogger().error('No Cryptodome support loaded')
 import ast
 
 import requests_mock
-from .mock_api import DimensionDataMockHttp
+from mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 from plumbery.__main__ import parse_args, main
@@ -493,7 +494,7 @@ class TestPlumberyEngine(unittest.TestCase):
         blueprint = facility.get_blueprint('myBlueprint')
 
         node = blueprint['nodes'][0]
-        self.assertEqual(node.keys()[0], 'toto')
+        self.assertEqual(list(node)[0], 'toto')
 
         config = node['toto']['cloud-config']
         self.assertEqual(config['hostname'], 'toto')
@@ -540,16 +541,23 @@ class TestPlumberyEngine(unittest.TestCase):
         text = engine.lookup('pair1.rsa_public')
         self.assertEqual(text.startswith('ssh-rsa '), True)
         key = RSA.importKey(text)
-        encrypted = key.publickey().encrypt(original, 32)
+        cipher = PKCS1_OAEP.new(key)
+        encrypted = cipher.encrypt(original)
 
         privateKey = engine.lookup('pair1.rsa_private')
         self.assertEqual(privateKey.startswith(
             '-----BEGIN RSA PRIVATE KEY-----'), True)
         key = RSA.importKey(engine.lookup('pair1.rsa_private'))
-        decrypted = key.decrypt(ast.literal_eval(str(encrypted)))
+        cipher = PKCS1_OAEP.new(key)
+        decrypted = cipher.decrypt(str(encrypted))
         self.assertEqual(decrypted, original)
 
-        self.assertEqual(len(engine.secrets), 12)
+        token = engine.lookup('https://discovery.etcd.io/new')
+        self.assertEqual(token.startswith(
+            'https://discovery.etcd.io/'), True)
+        self.assertEqual(len(token), 58)
+
+        self.assertEqual(len(engine.secrets), 13)
 
         with self.assertRaises(LookupError):
             localKey = engine.lookup('local.rsa_private')
