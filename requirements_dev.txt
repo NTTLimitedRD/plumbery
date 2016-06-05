@@ -14,3 +14,4 @@ requests_ntlm
 -e git+https://github.com/diyan/pywinrm.git#egg=pywinrm
 colorlog
 six
+graphviz

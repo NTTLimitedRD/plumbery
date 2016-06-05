@@ -154,6 +154,8 @@ class PlumberyEngine(object):
 
         self._userPassword = None
 
+        # will be overridden to fittings path if provided
+        self.working_directory = os.getcwd()
         self.set_parameters(parameters)
         self.set_fittings(plan)
 
@@ -291,6 +293,7 @@ class PlumberyEngine(object):
                 plan = sys.stdin.read()
 
             elif '\n' not in plan:
+                self.working_directory = os.path.dirname(plan)
                 plan = open(plan, 'r').read()
 
             # load default values for parameters
