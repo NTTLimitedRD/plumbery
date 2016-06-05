@@ -29,6 +29,7 @@ from libcloud.common.dimensiondata import TYPES_URN
 
 from libcloud.utils.xml import findall
 
+from plumbery.terraform import build as terraform_build
 from plumbery.exception import PlumberyException
 from plumbery.logging import plogging
 
@@ -458,6 +459,10 @@ class PlumberyInfrastructure(object):
                         return False
 
                 break
+
+        if 'multicloud' in blueprint                                      \
+           and isinstance(blueprint['multicloud'], dict):
+            terraform_build(blueprint['multicloud'])
 
         return True
 
