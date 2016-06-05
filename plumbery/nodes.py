@@ -99,7 +99,7 @@ class PlumberyNodes(object):
 
             plogging.debug("No nodes have been defined in '{}'".format(
                 blueprint['target']))
-            return
+            blueprint['nodes'] = []
 
         for item in blueprint['nodes']:
 
