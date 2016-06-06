@@ -39,17 +39,22 @@ class Terraform(object):
             for (key, value) in parameters.items():
                 tf_vars.write('%s = "%s"\n' % (key, value))
 
-        self._run_tf('plan', tf_path,
-                     var_file=os.path.join(tf_path, '.tfvars'),
-                     input=False,
-                     out=os.path.join(tf_path, '.tfstate'))
+        ret, o, _ = self._run_tf(
+            'plan', tf_path,
+            var_file=os.path.join(tf_path, '.tfvars'),
+            input=False,
+            detailed_exitcode=True,
+            out=os.path.join(tf_path, '.tfstate'))
+        plogging.debug("STDOUT from terraform plan %s", o)
 
-        self._run_tf('apply', os.path.join(tf_path, '.tfstate'),
-                     input=False)
+        if ret == 2:
+            _, o, _ = self._run_tf('apply', os.path.join(tf_path, '.tfstate'))
+            plogging.debug("STDOUT from terraform apply %s", o)
+
         os.remove(os.path.join(tf_path, '.tfstate'))
         os.remove(os.path.join(tf_path, '.tfvars'))
 
-    def destroy(self, settings):
+    def destroy(self, settings, safe=True):
         tf_path = settings.get('tf_path', None)
         if tf_path is None:
             # default back to the directory of the fittings file.
@@ -59,9 +64,21 @@ class Terraform(object):
         with open(os.path.join(tf_path, '.tfvars'), 'w') as tf_vars:
             for (key, value) in parameters.items():
                 tf_vars.write('%s = "%s"\n' % (key, value))
-        self._run_tf('destroy', tf_path,
-                     var_file=os.path.join(tf_path, '.tfvars'),
-                     input=False)
+        if safe:
+            _, o, _ = self._run_tf(
+                'plan', tf_path,
+                var_file=os.path.join(tf_path, '.tfvars'),
+                input=False,
+                detailed_exitcode=True,
+                destroy=True)
+            plogging.debug("STDOUT from terraform %s", o)
+        else:
+            _, o, _ = self._run_tf(
+                'destroy', tf_path,
+                var_file=os.path.join(tf_path, '.tfvars'),
+                input=False,
+                force=True)
+            plogging.debug("STDOUT from terraform %s", o)
 
     def graph(self, state_directory):
         graph_data = self._run_tf('graph', state_directory)
@@ -77,5 +94,8 @@ class Terraform(object):
             params.append("-%s=%s" % (key.replace('_', '-'), value))
         params.append(state_directory)
         plogging.debug(params)
-        out = subprocess.check_output(params)
-        return out
+        process = subprocess.Popen(params, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        retcode = process.returncode
+        return (retcode, stdout, stderr)
