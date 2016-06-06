@@ -25,8 +25,9 @@ class Terraform(object):
         self.working_directory = working_directory
         self.tf_path = os.getenv('TERRAFORM_PATH')
         if self.tf_path is None or not os.path.exists(self.tf_path):
-            raise RuntimeError("Could not locate terraform binary. "
-                               "Please check TERRAFORM_PATH ENV var.")
+            plogging.warning("Could not locate terraform binary. "
+                             "Please check TERRAFORM_PATH ENV var."
+                             "Ignore if no multicloud fittings are present")
 
     def build(self, settings):
         tf_path = settings.get('tf_path', None)
