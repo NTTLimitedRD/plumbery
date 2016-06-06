@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import ast
 import hashlib
 import logging
 import os
@@ -181,10 +180,9 @@ class PlumberyEngine(object):
             if parameters.startswith(("https://", "http://")):
                 response = requests.get(parameters)
                 parameters = response.text
-
             else:
                 parameters = open(parameters, 'r')
-                parameters = yaml.load(parameters)
+            parameters = yaml.load(parameters)
 
         if isinstance(parameters, list):
             pdict = {}

@@ -595,16 +595,16 @@ class TestPlumberyEngine(unittest.TestCase):
 
         args = parse_args(
             ['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml'])
-        self.assertEqual(args.parameters, 'parameters.yaml')
+        self.assertEqual(args.parameters, ['parameters.yaml'])
 
         args = parse_args(
             ['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml', '-s'])
-        self.assertEqual(args.parameters, 'parameters.yaml')
+        self.assertEqual(args.parameters, ['parameters.yaml'])
         self.assertEqual(args.safe, True)
 
         args = parse_args(
             ['fittings.yaml', 'build', 'web', '-p', 'parameters.yaml', '-d'])
-        self.assertEqual(args.parameters, 'parameters.yaml')
+        self.assertEqual(args.parameters, ['parameters.yaml'])
         self.assertEqual(args.debug, True)
 
         args = parse_args(['fittings.yaml', 'build', 'web', '-s'])
