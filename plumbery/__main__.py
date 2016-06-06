@@ -65,7 +65,7 @@ def parse_args(args=[]):
         default=None)
 
     parser.add_argument(
-        '-p', '--parameters',
+        '-p', '--parameters', nargs='*',
         help='Parameters for this fittings plan')
 
     parser.add_argument(

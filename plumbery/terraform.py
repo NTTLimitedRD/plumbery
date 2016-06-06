@@ -22,7 +22,7 @@ class Terraform(object):
     def __init__(self, working_directory):
         self.working_directory = working_directory
         self.tf_path = os.getenv('TERRAFORM_PATH')
-        if not os.path.exists(self.tf_path):
+        if self.tf_path is None or not os.path.exists(self.tf_path):
             raise RuntimeError("Could not locate terraform binary. "
                                "Please check TERRAFORM_PATH ENV var.")
 

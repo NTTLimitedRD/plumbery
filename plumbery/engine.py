@@ -156,6 +156,7 @@ class PlumberyEngine(object):
 
         # will be overridden to fittings path if provided
         self.working_directory = os.getcwd()
+        print(parameters)
         self.set_parameters(parameters)
         self.set_fittings(plan)
 
@@ -184,12 +185,14 @@ class PlumberyEngine(object):
 
             else:
                 parameters = open(parameters, 'r')
+                parameters = yaml.load(parameters)
 
-        if not isinstance(parameters, dict):
-            parameters = yaml.load(parameters)
-
-        if not isinstance(parameters, dict):
-            raise TypeError('Parameters should be a dictionary')
+        if isinstance(parameters, list):
+            pdict = {}
+            for item in parameters:
+                (key, value) = item.split('=')
+                pdict[key] = value
+            parameters = pdict
 
         plogging.debug("Parameters:")
         for key in parameters:
@@ -1030,6 +1033,9 @@ class PlumberyEngine(object):
                 self.wipe_all_blueprints(facilities)
             else:
                 self.wipe_blueprint(blueprints, facilities)
+
+        elif action == 'graph':
+            raise NotImplementedError("Wait for 1.1.0")
 
         else:
             if blueprints is None:
