@@ -29,6 +29,7 @@ from libcloud.common.dimensiondata import TYPES_URN
 
 from libcloud.utils.xml import findall
 
+from plumbery.terraform import Terraform
 from plumbery.exception import PlumberyException
 from plumbery.logging import plogging
 
@@ -75,6 +76,7 @@ class PlumberyInfrastructure(object):
         self.plumbery = facility.plumbery
         self.network = None
         self.domain = None
+        self.terraform = Terraform(facility.plumbery.working_directory)
 
         self._cache_remote_vlan = []
         self._cache_offshore_vlan = []
@@ -459,6 +461,11 @@ class PlumberyInfrastructure(object):
 
                 break
 
+        if 'multicloud' in blueprint                                      \
+           and isinstance(blueprint['multicloud'], dict):
+            plogging.info("Starting multicloud deployment")
+            self.terraform.build(blueprint['multicloud'])
+
         return True
 
     def destroy_blueprint(self, blueprint):
@@ -578,6 +585,11 @@ class PlumberyInfrastructure(object):
                 break
 
         plogging.info("Destroying network domain '{}'".format(domainName))
+
+        if 'multicloud' in blueprint                                      \
+           and isinstance(blueprint['multicloud'], dict):
+            plogging.info("Destroying multicloud deployment")
+            self.terraform.destroy(blueprint['multicloud'], safe=self.plumbery.safeMode)
 
         if self.plumbery.safeMode:
             plogging.info("- skipped - safe mode")

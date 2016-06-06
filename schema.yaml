@@ -1,0 +1,159 @@
+type: map
+mapping:
+  "information":
+    type: seq
+    sequence:
+      - type: str
+  "links":
+    required: false
+    type: map
+    mapping:
+      "documentation":
+        type: str
+        required: true
+      "credit":
+        type: str
+        required: false
+  "defaults":
+    type: any
+  "parameters":
+    type: any
+  "locationId":
+    type: str
+  "regionId":
+    type: str
+  "basement":
+    type: str
+  "safeMode":
+    type: bool
+  "polishers":
+    type: seq
+    sequence:
+      - type: map
+        matching-rule: 'any'
+        mapping:
+          regex;(.+):
+            type: map
+            mapping:
+              "key":
+                type: str
+              "reap":
+                type: str
+  "prepare":
+    type: seq
+    sequence:
+      - type: map
+        matching-rule: 'any'
+        mapping:
+          regex;(.+):
+            type: str
+  "blueprints":
+    type: seq
+    sequence:
+      - type: map
+        matching-rule: 'any'
+        mapping:
+          regex;(.+):
+            type: map
+            mapping:
+              "ethernet":
+                type: map
+                mapping:
+                  "name":
+                    type: str
+                  "description":
+                    type: str
+                  "subnet":
+                    type: str
+                  "accept":
+                    type: seq
+                    sequence:
+                      - type: str
+                  "destroy":
+                    type: str
+              "domain":
+                type: map
+                mapping:
+                  "name":
+                    type: str
+                    required: true
+                  "description":
+                    type: str
+                  "service":
+                    type: str
+                    enum: ['essentials','advanced']
+                  "ipv4":
+                    type: text
+              "listeners":
+                type: seq
+                sequence:
+                  - type: map
+                    matching-rule: 'any'
+                    mapping:
+                      regex;(.+):
+                        type: map
+                        mapping:
+                          "protocol":
+                            type: str
+                          "port":
+                            type: int
+                          "algorithm":
+                            type: str
+                            enum: ['round_robin']
+              "nodes":
+                type: seq
+                sequence:
+                  - type: map
+                    matching-rule: 'any'
+                    mapping:
+                      regex;(.+):
+                        type: map
+                        mapping:
+                          "default":
+                            type: str
+                          "appliance":
+                            type: str
+                          "cpu":
+                            desc: "Number of CPU | CPU configuration"
+                            type: text
+                          "memory":
+                            desc: "Amount of RAM in GB"
+                            type: int
+                          "disks":
+                            type: seq
+                            sequence:
+                              - type: str
+                          "cloud-config":
+                            type: any
+                          "backup":
+                            type: any
+                          "description":
+                            type: str
+                          "glue":
+                            type: seq
+                            sequence:
+                              - type: str
+                          "running":
+                            type: str
+                            enum: ['always']
+                          "monitoring":
+                            type: str
+                            enum: ['essentials','advanced']
+                          "information":
+                            type: seq
+                            sequence:
+                              - type: str
+                          "prepare":
+                            type: seq
+                            sequence:
+                              - type: str
+                          "windows":
+                            type: map
+                            matching-rule: 'any'
+                            mapping:
+                              "hostname":
+                                type: str
+                              "cmds":
+                                type: seq
+                                sequence:
+                                  - type: str

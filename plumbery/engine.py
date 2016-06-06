@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import ast
 import hashlib
 import logging
 import os
@@ -154,6 +153,8 @@ class PlumberyEngine(object):
 
         self._userPassword = None
 
+        # will be overridden to fittings path if provided
+        self.working_directory = os.getcwd()
         self.set_parameters(parameters)
         self.set_fittings(plan)
 
@@ -179,15 +180,16 @@ class PlumberyEngine(object):
             if parameters.startswith(("https://", "http://")):
                 response = requests.get(parameters)
                 parameters = response.text
-
             else:
                 parameters = open(parameters, 'r')
-
-        if not isinstance(parameters, dict):
             parameters = yaml.load(parameters)
 
-        if not isinstance(parameters, dict):
-            raise TypeError('Parameters should be a dictionary')
+        if isinstance(parameters, list):
+            pdict = {}
+            for item in parameters:
+                (key, value) = item.split('=')
+                pdict[key] = value
+            parameters = pdict
 
         plogging.debug("Parameters:")
         for key in parameters:
@@ -291,6 +293,7 @@ class PlumberyEngine(object):
                 plan = sys.stdin.read()
 
             elif '\n' not in plan:
+                self.working_directory = os.path.dirname(plan)
                 plan = open(plan, 'r').read()
 
             # load default values for parameters
@@ -410,13 +413,14 @@ class PlumberyEngine(object):
                     settings['parameters'][key]['type']
 
                 if 'default' not in settings['parameters'][key]:
-                    raise ValueError("Parameter '{}' has no default value"
+                    plogging.warning("Parameter '{}' has no default value"
                                      .format(key))
-                self.parameters[key]['default'] = \
-                    settings['parameters'][key]['default']
-                plogging.debug("- {}: {}".format(
-                    key,
-                    self.parameters[key]['default']))
+                else:
+                    self.parameters[key]['default'] = \
+                        settings['parameters'][key]['default']
+                    plogging.debug("- {}: {}".format(
+                        key,
+                        self.parameters[key]['default']))
 
         if 'polishers' in settings:
             if not isinstance(settings['polishers'], list):
@@ -1027,6 +1031,9 @@ class PlumberyEngine(object):
                 self.wipe_all_blueprints(facilities)
             else:
                 self.wipe_blueprint(blueprints, facilities)
+
+        elif action == 'graph':
+            raise NotImplementedError("Wait for 1.1.0")
 
         else:
             if blueprints is None:
