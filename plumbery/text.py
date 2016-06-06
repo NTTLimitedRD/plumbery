@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 import sys
+import six
 import yaml
 from six import string_types
 from plumbery.logging import plogging
@@ -119,7 +120,10 @@ class PlumberyText:
         serialized = False
         if not isinstance(text, string_types):  # serialize python object
             plogging.debug("- serializing object before expansion")
-            text = str(text)
+            if six.PY2:
+                text = str(text)
+            else:
+                text = str(text)
             serialized = True
 
         expanded = ''
