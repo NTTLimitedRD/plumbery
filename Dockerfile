@@ -39,4 +39,4 @@ RUN wget http://download.opensuse.org/repositories/home:/uibmz:/opsi:/opsi40-tes
 WORKDIR plumbery
 
 # Deploy fitting
-CMD wget ${WGET_OPTS} ${FITTINGS} -O fittings.yaml && python -m plumbery ${OPTS} ${PARAMETERS} fittings.yaml ${ACTION}
+CMD python -m plumbery.bootstrap -o . ${FITTINGS} && python -m plumbery ${OPTS} ${PARAMETERS} fittings.yaml ${ACTION}
