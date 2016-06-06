@@ -559,7 +559,7 @@ class PlumberyFacility(object):
                     for label in PlumberyNodes.expand_labels(label):
                         if label in labels:
                             plogging.warning("Duplicate node name '{}'"
-                                            .format(label))
+                                             .format(label))
                         else:
                             labels.append(label)
 

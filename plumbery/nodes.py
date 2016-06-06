@@ -915,7 +915,7 @@ class PlumberyNodes(object):
                         continue
 
                     plogging.info("- unable to shutdown gracefully "
-                                 "- invalid VMware tools")
+                                  "- invalid VMware tools")
 
                     plogging.info("- powering the node off")
                     try:

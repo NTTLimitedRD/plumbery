@@ -17,6 +17,8 @@ import os
 import subprocess
 import graphviz
 
+from plumbery.logging import plogging
+
 
 class Terraform(object):
     def __init__(self, working_directory):
@@ -31,10 +33,15 @@ class Terraform(object):
         if tf_path is None:
             # default back to the directory of the fittings file.
             tf_path = self.working_directory
-        self.apply(tf_path)
 
-    def apply(self, state_directory):
-        self._run_tf('apply', state_directory)
+        parameters = settings.get('parameters', {})
+        with open(os.path.join(tf_path, '.tfvars'), 'w') as tf_vars:
+            for (key, value) in parameters.items():
+                tf_vars.write('%s = "%s"' % (key, value))
+
+        self._run_tf('apply', tf_path,
+                     var_file=os.path.join(tf_path, '.tfvars'),
+                     input=False)
 
     def graph(self, state_directory):
         graph_data = self._run_tf('graph', state_directory)
@@ -44,6 +51,11 @@ class Terraform(object):
             dot.write(graph_data)
         graph.render(graph_file_path)
 
-    def _run_tf(self, command, state_directory):
-        out = subprocess.check_output([self.tf_path, command, state_directory])
+    def _run_tf(self, command, state_directory, **kwargs):
+        params = [self.tf_path, command]
+        for (key, value) in kwargs.items():
+            params.append("-%s=%s" % (key.replace('_', '-'), value))
+        params.append(state_directory)
+        plogging.debug(params)
+        out = subprocess.check_output(params)
         return out

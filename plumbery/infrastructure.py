@@ -463,6 +463,7 @@ class PlumberyInfrastructure(object):
 
         if 'multicloud' in blueprint                                      \
            and isinstance(blueprint['multicloud'], dict):
+            plogging.info("Starting multicloud deployment")
             self.terraform.build(blueprint['multicloud'])
 
         return True
