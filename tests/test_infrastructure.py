@@ -3,7 +3,7 @@
 """
 Tests for `infrastructure` module.
 """
-
+import os
 import unittest
 
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
@@ -29,7 +29,7 @@ class FakeNetwork:
 class FakePlumbery:
 
     safeMode = False
-
+    working_directory = os.getcwd()
     def get_balancer_driver(self, region):
         return None
 
