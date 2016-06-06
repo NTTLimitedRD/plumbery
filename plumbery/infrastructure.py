@@ -586,6 +586,12 @@ class PlumberyInfrastructure(object):
 
         plogging.info("Destroying network domain '{}'".format(domainName))
 
+        if 'multicloud' in blueprint                                      \
+           and isinstance(blueprint['multicloud'], dict):
+            plogging.info("Destroying multicloud deployment")
+            if not self.plumbery.safeMode:
+                self.terraform.destroy(blueprint['multicloud'])
+
         if self.plumbery.safeMode:
             plogging.info("- skipped - safe mode")
             return

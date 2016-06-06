@@ -37,9 +37,29 @@ class Terraform(object):
         parameters = settings.get('parameters', {})
         with open(os.path.join(tf_path, '.tfvars'), 'w') as tf_vars:
             for (key, value) in parameters.items():
-                tf_vars.write('%s = "%s"' % (key, value))
+                tf_vars.write('%s = "%s"\n' % (key, value))
 
-        self._run_tf('apply', tf_path,
+        self._run_tf('plan', tf_path,
+                     var_file=os.path.join(tf_path, '.tfvars'),
+                     input=False,
+                     out=os.path.join(tf_path, '.tfstate'))
+
+        self._run_tf('apply', os.path.join(tf_path, '.tfstate'),
+                     input=False)
+        os.remove(os.path.join(tf_path, '.tfstate'))
+        os.remove(os.path.join(tf_path, '.tfvars'))
+
+    def destroy(self, settings):
+        tf_path = settings.get('tf_path', None)
+        if tf_path is None:
+            # default back to the directory of the fittings file.
+            tf_path = self.working_directory
+
+        parameters = settings.get('parameters', {})
+        with open(os.path.join(tf_path, '.tfvars'), 'w') as tf_vars:
+            for (key, value) in parameters.items():
+                tf_vars.write('%s = "%s"\n' % (key, value))
+        self._run_tf('destroy', tf_path,
                      var_file=os.path.join(tf_path, '.tfvars'),
                      input=False)
 

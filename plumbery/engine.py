@@ -156,7 +156,6 @@ class PlumberyEngine(object):
 
         # will be overridden to fittings path if provided
         self.working_directory = os.getcwd()
-        print(parameters)
         self.set_parameters(parameters)
         self.set_fittings(plan)
 
@@ -416,13 +415,14 @@ class PlumberyEngine(object):
                     settings['parameters'][key]['type']
 
                 if 'default' not in settings['parameters'][key]:
-                    raise ValueError("Parameter '{}' has no default value"
+                    plogging.warning("Parameter '{}' has no default value"
                                      .format(key))
-                self.parameters[key]['default'] = \
-                    settings['parameters'][key]['default']
-                plogging.debug("- {}: {}".format(
-                    key,
-                    self.parameters[key]['default']))
+                else:
+                    self.parameters[key]['default'] = \
+                        settings['parameters'][key]['default']
+                    plogging.debug("- {}: {}".format(
+                        key,
+                        self.parameters[key]['default']))
 
         if 'polishers' in settings:
             if not isinstance(settings['polishers'], list):
