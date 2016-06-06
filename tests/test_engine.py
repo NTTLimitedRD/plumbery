@@ -21,6 +21,7 @@ from mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 from plumbery.__main__ import parse_args, main
+from plumbery.action import PlumberyAction
 from plumbery.engine import PlumberyEngine
 from plumbery.logging import plogging
 from plumbery.polisher import PlumberyPolisher
@@ -268,6 +269,26 @@ class FakeLocation:
     country = 'Netherlands'
 
 
+class FakeAction(PlumberyAction):
+    def __init__(self, settings):
+        self.count = 3
+
+    def ignite(self, engine):
+        self.count += 100
+
+    def enter(self, facility):
+        self.count *= 2
+
+    def handle(self, blueprint):
+        self.count += 5
+
+    def quit(self):
+        self.count -= 2
+
+    def reap(self):
+        self.count += 1
+
+
 class TestPlumberyEngine(unittest.TestCase):
 
     def test_init(self):
@@ -469,6 +490,44 @@ class TestPlumberyEngine(unittest.TestCase):
 
         banner = engine.document_elapsed()
         self.assertEqual('Worked for you' in banner, True)
+
+    def test_process_all_blueprints(self):
+
+        engine = PlumberyEngine()
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
+        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+
+        engine.set_shared_secret('fake_secret')
+        engine.set_user_name('fake_name')
+        engine.set_user_password('fake_password')
+        engine.set_fittings(myPrivatePlan)
+
+        engine.process_all_blueprints(action='echo')
+
+        action = FakeAction({})
+        engine.process_all_blueprints(action)
+        self.assertEqual(action.count, 210)
+
+    def test_process_blueprint(self):
+
+        engine = PlumberyEngine()
+        DimensionDataNodeDriver.connectionCls.conn_classes = (
+            None, DimensionDataMockHttp)
+        DimensionDataMockHttp.type = None
+        self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
+
+        engine.set_shared_secret('fake_secret')
+        engine.set_user_name('fake_name')
+        engine.set_user_password('fake_password')
+        engine.set_fittings(myPrivatePlan)
+
+        engine.process_blueprint(action='echo', names='fake')
+
+        action = FakeAction({})
+        engine.process_blueprint(action, names='fake')
+        self.assertEqual(action.count, 205)
 
     def test_as_library(self):
 

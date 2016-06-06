@@ -18,6 +18,7 @@ import copy
 import socket
 import os
 
+from plumbery.action import PlumberyActionLoader
 from plumbery.exception import PlumberyException
 from plumbery.infrastructure import PlumberyInfrastructure
 from plumbery.logging import plogging
@@ -776,6 +777,58 @@ class PlumberyFacility(object):
             nodes.build_blueprint(
                 blueprint,
                 infrastructure.get_container(blueprint))
+
+    def process_all_blueprints(self, action):
+        """
+        Handles all blueprints at this facility
+
+        :param action: the action to perform, e.g., 'start'
+        :type action: ``str`` or :class:`plumbery.PlumberyAction`
+
+        """
+
+        if isinstance(action, str):
+            action = PlumberyActionLoader.from_shelf(action)
+
+        self.power_on()
+        action.enter(self)
+
+        basement = self.list_basement()
+        for name in basement:
+            blueprint = self.get_blueprint(name)
+            action.handle(blueprint)
+
+        for name in self.expand_blueprint('*'):
+            if name not in basement:
+                blueprint = self.get_blueprint(name)
+                action.handle(blueprint)
+
+        action.quit()
+
+    def process_blueprint(self, action, names):
+        """
+        Handles one blueprint at this facility
+
+        :param action: the action to perform, e.g., 'start'
+        :type action: ``str`` or :class:`plumbery.PlumberyAction`
+
+        :param names: the name(s) of the targeted blueprint(s)
+        :type names: ``str`` or ``list`` of ``str``
+
+        """
+
+        if isinstance(action, str):
+            action = PlumberyActionLoader.from_shelf(action)
+
+        self.power_on()
+        action.enter(self)
+
+        for name in self.expand_blueprint(names):
+
+            blueprint = self.get_blueprint(name)
+            action.handle(blueprint)
+
+        action.quit()
 
     def start_all_blueprints(self):
         """

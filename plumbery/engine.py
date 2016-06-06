@@ -41,6 +41,7 @@ from libcloud.backup.providers import get_driver as get_backup_driver
 from libcloud.backup.types import Provider as BackupProvider
 
 from plumbery import __version__
+from plumbery.action import PlumberyActionLoader
 from plumbery.exception import PlumberyException
 from plumbery.facility import PlumberyFacility
 from plumbery.logging import plogging
@@ -1043,6 +1044,78 @@ class PlumberyEngine(object):
                 self.polish_blueprint(blueprints,
                                       filter=action,
                                       facilities=facilities)
+
+    def process_all_blueprints(self, action, facilities=None):
+        """
+        Handles elements described in the fittings plan
+
+        :param action: the action to perform, e.g., 'start'
+        :type action: ``str`` or :class:`plumbery.PlumberyAction`
+
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function triggers the provided action across facilities.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
+
+        """
+
+        if isinstance(action, str):
+            action = PlumberyActionLoader.from_shelf(action)
+
+        action.ignite(self)
+
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
+            facility.focus()
+            facility.process_all_blueprints(action)
+
+        action.reap()
+
+    def process_blueprint(self, action, names, facilities=None):
+        """
+        Handles elements for one blueprint of the fittings plan
+
+        :param action: the action to perform, e.g., 'start'
+        :type action: ``str`` or :class:`plumbery.PlumberyAction`
+
+        :param names: the name(s) of the targeted blueprint(s)
+        :type names: ``str`` or ``list`` of ``str``
+
+        :param facilities: explicit list of target facilities
+        :type facilities: ``str`` or ``list`` of ``str``
+
+        This function triggers the provided action across facilities.
+        The default behaviour is to consider all facilities mentioned in the
+        fittings plan. If a list of facilities is provided, than the action is
+        limited to this subset only.
+
+        """
+
+        if isinstance(action, str):
+            action = PlumberyActionLoader.from_shelf(action)
+
+        action.ignite(self)
+
+        if isinstance(names, list):
+            names = ' '.join(names)
+
+        if facilities is not None:
+            facilities = self.list_facility(facilities)
+        else:
+            facilities = self.facilities
+
+        for facility in facilities:
+            facility.focus()
+            facility.process_blueprint(action, names)
+
+        action.reap()
 
     def build_all_blueprints(self, facilities=None):
         """

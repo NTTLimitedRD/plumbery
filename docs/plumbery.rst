@@ -17,9 +17,11 @@ Submodules
    plumbery.exception
    plumbery.facility
    plumbery.infrastructure
+   plumbery.logging
    plumbery.nodes
    plumbery.polisher
    plumbery.text
+   plumbery.util
 
 Module contents
 ---------------
