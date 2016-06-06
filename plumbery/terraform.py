@@ -90,6 +90,8 @@ class Terraform(object):
         graph.render(graph_file_path)
 
     def _run_tf(self, command, state_directory, **kwargs):
+        if self.tf_path is None:
+            raise RuntimeError("Missing terraform binary")
         params = [self.tf_path, command]
         for (key, value) in kwargs.items():
             params.append("-%s=%s" % (key.replace('_', '-'), value))
