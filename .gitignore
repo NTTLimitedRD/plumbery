@@ -19,3 +19,5 @@ plumbery.egg-info/
 .settings
 .DS_Store
 .eggs/
+terraform.tfstate
+terraform.tfstate.backup

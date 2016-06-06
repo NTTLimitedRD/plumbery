@@ -3,6 +3,11 @@
 History
 -------
 
+0.9.6 (2016-06-06)
+~~~~~~~~~~~~~~~~~~
+
+* Added multicloud support with Hashicorp terraform, supports parameters being passed to TF vars files directly
+
 0.9.5 (2016-05-28)
 ~~~~~~~~~~~~~~~~~~
 
