@@ -15,7 +15,6 @@
 
 import os
 import subprocess
-import graphviz
 
 from plumbery.logging import plogging
 
@@ -83,11 +82,9 @@ class Terraform(object):
 
     def graph(self, state_directory):
         graph_data = self._run_tf('graph', state_directory)
-        graph = graphviz.Digraph
         graph_file_path = os.path.join(state_directory, 'multicloud.dot')
         with open(graph_file_path, 'w') as dot:
             dot.write(graph_data)
-        graph.render(graph_file_path)
 
     def _run_tf(self, command, state_directory, **kwargs):
         if self.tf_path is None:
