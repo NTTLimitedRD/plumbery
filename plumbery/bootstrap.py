@@ -15,6 +15,12 @@
 import argparse
 import os
 import requests
+import six
+
+if six.PY2:
+    from urlparse import urljoin as up
+else:
+    from urllib.parse import urljoin as up
 
 
 def main(args):
@@ -31,7 +37,7 @@ def download_manifest(url, output_dir):
     with open(os.path.join(output_dir, 'manifest.mf'), 'r') as manifest_file:
         lines = manifest_file.readlines()
         for i in lines:
-            download_file(i, output_dir)
+            download_file(up(url, i), output_dir)
 
 
 def download_file(url, output_dir):
