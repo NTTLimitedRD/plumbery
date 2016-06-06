@@ -491,20 +491,18 @@ class PlumberyNodes(object):
         """
         matches = re.match(r'(.*)\[([0-9]+)..([0-9]+)\](.*)', label)
         if matches is None:
-            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$",
-                label) is None:
-                logging.warning("Warning: '{}' is not a valid hostname"
-                                .format(label))
+            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$", label) is None:
+                plogging.warning("Warning: '{}' is not a valid hostname"
+                                 .format(label))
             return [label]
 
         labels = []
         for index in range(int(matches.group(2)), int(matches.group(3))+1):
 
             label = matches.group(1)+str(index)+matches.group(4)
-            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$",
-                label) is None:
-                logging.warning("Warning: '{}' is not a valid hostname"
-                                .format(label))
+            if re.match("^[0-9a-zA-Z]([0-9a-zA-Z\-]{0,61}[0-9a-zA-Z])?$", label) is None:
+                plogging.warning("Warning: '{}' is not a valid hostname"
+                                 .format(label))
 
             labels.append(label)
 
@@ -600,7 +598,7 @@ class PlumberyNodes(object):
             try:
                 remoteLocation = offshore.ex_get_location_by_id(path[1])
             except IndexError:
-                logging.warning("'{}' is unknown".format(path[1]))
+                plogging.warning("'{}' is unknown".format(path[1]))
                 return None
 
             plogging.debug("Looking for offshore node '{}'"
