@@ -17,7 +17,7 @@ ENV PARAMETERS=""
 MAINTAINER "Dimension Data"
 
 # Install basic applications
-RUN apt-get install -y git wget zip
+RUN apt-get install -y git wget
 
 # Download the code
 RUN git clone -b $VERSION --single-branch https://github.com/DimensionDataCBUSydney/plumbery
