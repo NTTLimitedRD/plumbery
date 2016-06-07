@@ -1,10 +1,12 @@
 import unittest
 import os
 from tempfile import gettempdir
-tempdir = gettempdir()
 from mock import MagicMock, patch
 import requests_mock
+
 import plumbery.bootstrap as b
+
+tempdir = gettempdir()
 
 
 class BootstrapTests(unittest.TestCase):
