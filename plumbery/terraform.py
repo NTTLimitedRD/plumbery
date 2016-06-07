@@ -50,9 +50,10 @@ class Terraform(object):
         if ret == 2:
             _, o, _ = self._run_tf('apply', os.path.join(tf_path, '.tfstate'))
             plogging.debug("STDOUT from terraform apply %s", o)
-
-        os.remove(os.path.join(tf_path, '.tfstate'))
-        os.remove(os.path.join(tf_path, '.tfvars'))
+        if os.path.isfile(os.path.join(tf_path, '.tfstate')):
+            os.remove(os.path.join(tf_path, '.tfstate'))
+        if os.path.isfile(os.path.join(tf_path, '.tfvars')):
+            os.remove(os.path.join(tf_path, '.tfvars'))
 
     def destroy(self, settings, safe=True):
         tf_path = settings.get('tf_path', None)
@@ -81,7 +82,7 @@ class Terraform(object):
             plogging.debug("STDOUT from terraform %s", o)
 
     def graph(self, state_directory):
-        graph_data = self._run_tf('graph', state_directory)
+        _, graph_data, _ = self._run_tf('graph', state_directory)
         graph_file_path = os.path.join(state_directory, 'multicloud.dot')
         with open(graph_file_path, 'w') as dot:
             dot.write(graph_data)
