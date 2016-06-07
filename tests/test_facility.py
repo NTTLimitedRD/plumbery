@@ -4,9 +4,16 @@ Tests for `facility` module.
 
 import unittest
 
+# special construct to allow relative import
+#
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "tests"
+from tests import dummy
+
 from .mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
+from plumbery.action import PlumberyAction
 from plumbery.engine import PlumberyEngine
 from plumbery.facility import PlumberyFacility
 
@@ -219,6 +226,25 @@ blueprints:
 """
 
 
+class FakeAction(PlumberyAction):
+    def __init__(self, settings):
+        self.count = 3
+
+    def ignite(self, engine):
+        self.count += 100
+
+    def enter(self, facility):
+        self.count *= 2
+
+    def handle(self, blueprint):
+        self.count += 5
+
+    def quit(self):
+        self.count -= 2
+
+    def reap(self):
+        self.count += 1
+
 class TestPlumberyFacility(unittest.TestCase):
 
     def setUp(self):
@@ -278,6 +304,16 @@ class TestPlumberyFacility(unittest.TestCase):
 
     def test_focus(self):
         self.facility.focus()
+
+    def test_process_all_blueprints(self):
+        action = FakeAction({})
+        self.facility.process_all_blueprints(action)
+        self.assertEqual(action.count, 14)
+
+    def test_process_blueprint(self):
+        action = FakeAction({})
+        self.facility.process_blueprint(action, names='fake')
+        self.assertEqual(action.count, 4)
 
     def test_build_all_blueprints(self):
         self.facility.build_all_blueprints()
