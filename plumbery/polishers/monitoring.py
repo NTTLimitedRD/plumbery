@@ -39,6 +39,7 @@ class MonitoringConfiguration(NodeConfiguration):
                 raise ConfigurationError(
                     "- monitoring should be "
                     "either 'essentials' or 'advanced'")
+        return True
 
     def configure(self, node, settings):
         if self._element_name_ in settings:
