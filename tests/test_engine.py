@@ -28,6 +28,29 @@ from plumbery.logging import plogging
 from plumbery.polisher import PlumberyPolisher
 from plumbery import __version__
 
+import six
+
+if six.PY2:
+    b = bytes = ensure_string = str
+else:
+    def ensure_string(s):
+        if isinstance(s, str):
+            return s
+        elif isinstance(s, bytes):
+            return s.decode('utf-8')
+        else:
+            raise TypeError("Invalid argument %r for ensure_string()" % (s,))
+
+    def b(s):
+        if isinstance(s, str):
+            return s.encode('utf-8')
+        elif isinstance(s, bytes):
+            return s
+        elif isinstance(s, int):
+            return bytes([s])
+        else:
+            raise TypeError("Invalid argument %r for b()" % (s,))
+
 DIMENSIONDATA_PARAMS = ('user', 'password')
 
 myParameters = {
@@ -597,20 +620,20 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.lookup('master.secret')
         engine.lookup('slave.secret')
 
-        original = 'hello world'
+        original = b'hello world'
         if HAS_CRYPTO:
             text = engine.lookup('pair1.rsa_public')
-            self.assertEqual(text.startswith('ssh-rsa '), True)
+            self.assertTrue(ensure_string(text).startswith('ssh-rsa '))
             key = RSA.importKey(text)
             cipher = PKCS1_OAEP.new(key)
             encrypted = cipher.encrypt(original)
 
             privateKey = engine.lookup('pair1.rsa_private')
-            self.assertEqual(privateKey.startswith(
-                '-----BEGIN RSA PRIVATE KEY-----'), True)
+            self.assertTrue(ensure_string(privateKey).startswith(
+                '-----BEGIN RSA PRIVATE KEY-----'))
             key = RSA.importKey(engine.lookup('pair1.rsa_private'))
             cipher = PKCS1_OAEP.new(key)
-            decrypted = cipher.decrypt(str(encrypted))
+            decrypted = cipher.decrypt(encrypted)
             self.assertEqual(decrypted, original)
 
             token = engine.lookup('https://discovery.etcd.io/new')
