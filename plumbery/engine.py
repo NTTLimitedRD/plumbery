@@ -29,8 +29,10 @@ from six import string_types
 
 try:
     from Cryptodome.PublicKey import RSA
+    HAS_CRYPTO = True
 except ImportError:
     logging.getLogger().error('No Cryptodome support loaded')
+    HAS_CRYPTO = False
 
 
 from libcloud.compute.providers import get_driver as get_compute_driver
@@ -535,16 +537,19 @@ class PlumberyEngine(object):
 
         name = id.split('.')[0]
 
-        key = RSA.generate(2048)
-        self.secrets[name+'.rsa_private'] = key.exportKey('PEM')
-        plogging.debug("- generating {}".format(name+'.rsa_private'))
+        if HAS_CRYPTO:
+            key = RSA.generate(2048)
+            self.secrets[name+'.rsa_private'] = key.exportKey('PEM')
+            plogging.debug("- generating {}".format(name+'.rsa_private'))
 
-        pubkey = key.publickey()
-        self.secrets[name+'.rsa_public'] = pubkey.exportKey('OpenSSH')
-        plogging.debug("- generating {}".format(name+'.rsa_public'))
+            pubkey = key.publickey()
+            self.secrets[name+'.rsa_public'] = pubkey.exportKey('OpenSSH')
+            plogging.debug("- generating {}".format(name+'.rsa_public'))
 
-        self.save_secrets()
-        return self.secrets[id]
+            self.save_secrets()
+            return self.secrets[id]
+        else:
+            return None
 
     def get_secret(self, id='random.secret'):
         """
