@@ -6,10 +6,22 @@ Tests for `text` module.
 
 import unittest
 import yaml
+import six
 
 from plumbery.engine import PlumberyEngine
 from plumbery.text import PlumberyText, PlumberyContext, PlumberyNodeContext
 from plumbery import __version__
+
+if six.PY2:
+    b = bytes = ensure_string = str
+else:
+    def ensure_string(s):
+        if isinstance(s, str):
+            return s
+        elif isinstance(s, bytes):
+            return s.decode('utf-8')
+        else:
+            raise TypeError("Invalid argument %r for ensure_string()" % (s,))
 
 input1 = """
 var http = require('http');

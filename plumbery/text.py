@@ -23,6 +23,16 @@ from plumbery.nodes import PlumberyNodes
 
 __all__ = ['PlumberyText', 'PlumberyContext']
 
+if six.PY2:
+    b = bytes = ensure_string = str
+else:
+    def ensure_string(s):
+        if isinstance(s, str):
+            return s
+        elif isinstance(s, bytes):
+            return s.decode('utf-8')
+        else:
+            raise TypeError("Invalid argument %r for ensure_string()" % (s,))
 
 class PlumberyText:
 
@@ -162,7 +172,7 @@ class PlumberyText:
                     debugged.append(token)
 
                 if serialized:  # preserve line breaks
-                    replacement = replacement.replace('\n', '\\'+'n')
+                    replacement = ensure_string(replacement).replace('\n', '\\'+'n')
 
                 expanded += text[index:head]+str(replacement)
                 index = tail+len(closing)
