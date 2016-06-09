@@ -89,7 +89,7 @@ def parse_args(args=[]):
         '-v', '--version',
         help='Print version of this software',
         action='version',
-        version='%(prog)s ' + __version__)
+        version='plumbery ' + __version__)
 
     args = parser.parse_args(args)
 
