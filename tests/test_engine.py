@@ -707,10 +707,26 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_main(self):
 
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web', '@EU6'])
+
         engine = PlumberyEngine()
         engine.set_fittings(myPlan)
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
+        with self.assertRaises(SystemExit):
+            main(['-v'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web', '-v'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web', '@EU6'], engine)
+
+    def test_bad_args(self):
+
+        engine = PlumberyEngine()
+        engine.set_fittings(myPlan)
         with self.assertRaises(SystemExit):
             main(['bad args'], engine)
         with self.assertRaises(SystemExit):
@@ -718,9 +734,7 @@ class TestPlumberyEngine(unittest.TestCase):
         with self.assertRaises(SystemExit):
             main(['fittings.yaml', 'xyz123', 'web'], engine)
         with self.assertRaises(SystemExit):
-            main(['-v'], engine)
-        with self.assertRaises(SystemExit):
-            main(['fittings.yaml', 'build', 'web', '-v'], engine)
+            main(['fittings.yaml', 'build', 'web', '@'], engine)
 
     def test_param_http(self):
         engine = PlumberyEngine()
