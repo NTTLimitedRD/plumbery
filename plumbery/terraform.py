@@ -39,17 +39,21 @@ class Terraform(object):
             for (key, value) in parameters.items():
                 tf_vars.write('%s = "%s"\n' % (key, value))
 
-        ret, o, _ = self._run_tf(
+        ret, o, err = self._run_tf(
             'plan', tf_path,
             var_file=os.path.join(tf_path, '.tfvars'),
             input=False,
             detailed_exitcode=True,
             out=os.path.join(tf_path, '.tfstate'))
         plogging.debug("STDOUT from terraform plan %s", o)
+        if err != '' or None:
+            plogging.error(err)
 
         if ret == 2:
-            _, o, _ = self._run_tf('apply', os.path.join(tf_path, '.tfstate'))
+            _, o, err = self._run_tf('apply', os.path.join(tf_path, '.tfstate'))
             plogging.debug("STDOUT from terraform apply %s", o)
+            if err != '' or None:
+                plogging.error(err)
         if os.path.isfile(os.path.join(tf_path, '.tfstate')):
             os.remove(os.path.join(tf_path, '.tfstate'))
         if os.path.isfile(os.path.join(tf_path, '.tfvars')):

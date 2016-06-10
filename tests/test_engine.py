@@ -24,7 +24,7 @@ from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 from plumbery.__main__ import parse_args, main
 from plumbery.action import PlumberyAction
 from plumbery.engine import PlumberyEngine
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 from plumbery.polisher import PlumberyPolisher
 from plumbery import __version__
 
