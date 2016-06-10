@@ -28,7 +28,7 @@ from libcloud.common.dimensiondata import DimensionDataServerCpuSpecification
 
 from plumbery.exception import PlumberyException
 from plumbery.infrastructure import PlumberyInfrastructure
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 from plumbery.util import retry
 from plumbery.polishers.monitoring import MonitoringConfiguration
 

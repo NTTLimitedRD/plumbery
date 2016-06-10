@@ -46,7 +46,7 @@ from plumbery import __version__
 from plumbery.action import PlumberyActionLoader
 from plumbery.exception import PlumberyException
 from plumbery.facility import PlumberyFacility
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 from plumbery.polisher import PlumberyPolisher
 from plumbery.text import PlumberyText, PlumberyContext
 

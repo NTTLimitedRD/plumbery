@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import time
 from functools import wraps
 
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=plogging):

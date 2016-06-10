@@ -16,7 +16,7 @@
 import os
 import subprocess
 
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class Terraform(object):

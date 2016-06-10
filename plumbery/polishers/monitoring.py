@@ -19,7 +19,7 @@ from libcloud.compute.types import NodeState
 
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class MonitoringConfiguration(NodeConfiguration):

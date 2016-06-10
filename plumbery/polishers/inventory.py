@@ -17,7 +17,7 @@ import sys
 import yaml
 
 from plumbery.polisher import PlumberyPolisher
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class InventoryPolisher(PlumberyPolisher):

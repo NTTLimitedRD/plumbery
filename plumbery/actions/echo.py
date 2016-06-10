@@ -14,7 +14,8 @@
 # limitations under the License.
 
 from plumbery.action import PlumberyAction
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
+
 
 class EchoAction(PlumberyAction):
     """

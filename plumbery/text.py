@@ -18,7 +18,7 @@ import sys
 import six
 import yaml
 from six import string_types
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 from plumbery.nodes import PlumberyNodes
 
 __all__ = ['PlumberyText', 'PlumberyContext']

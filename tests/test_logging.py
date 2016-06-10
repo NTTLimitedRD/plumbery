@@ -8,7 +8,7 @@ Tests for `logging` module.
 import logging
 import unittest
 
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class TestPlumberyLogging(unittest.TestCase):
