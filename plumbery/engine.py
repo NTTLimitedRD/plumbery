@@ -214,7 +214,7 @@ class PlumberyEngine(object):
         parameters = {}
 
         for key in self.parameters:
-            parameters[key+'.parameter'] = self.get_parameter(key)
+            parameters['parameter.'+key] = self.get_parameter(key)
 
         return parameters
 
@@ -309,9 +309,9 @@ class PlumberyEngine(object):
 
                     if 'parameters' in settings:
                         for key in settings['parameters'].keys():
-                            if key+'.parameter' in parameters:
+                            if 'parameter.'+key in parameters:
                                 continue
-                            parameters[key+'.parameter'] = settings['parameters'][key]['default']
+                            parameters['parameter.'+key] = settings['parameters'][key]['default']
                     break
 
             # expand parameters
@@ -1636,7 +1636,7 @@ class PlumberyEngine(object):
         if token == 'password.credentials':
             return self.get_user_password()
 
-        if token.endswith('.parameter'):
+        if token.startswith('parameter.'):
             return self.get_parameter(token)
 
         if token.endswith('.rsa_public'):

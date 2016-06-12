@@ -88,7 +88,7 @@ class PlumberyText:
                 index = tail+len(closing)
                 continue
 
-            if not token.endswith('.parameter'):
+            if not token.startswith('parameter.'):
                 expanded += text[index:tail+len(closing)]
                 index = tail+len(closing)
                 continue
