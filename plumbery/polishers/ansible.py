@@ -15,7 +15,7 @@
 import sys
 
 from plumbery.polishers.inventory import InventoryPolisher
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class AnsiblePolisher(InventoryPolisher):

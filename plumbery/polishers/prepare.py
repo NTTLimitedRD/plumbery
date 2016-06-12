@@ -31,7 +31,7 @@ from plumbery.nodes import PlumberyNodes
 from plumbery.polisher import PlumberyPolisher
 from plumbery.text import PlumberyText
 from plumbery.text import PlumberyNodeContext
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class FileContentDeployment(Deployment):

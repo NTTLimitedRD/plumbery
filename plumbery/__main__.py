@@ -21,7 +21,7 @@ import sys
 
 from plumbery.engine import PlumberyEngine
 from plumbery import __version__
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 def parse_args(args=[]):

@@ -16,7 +16,7 @@
 from libcloud.compute.base import NodeState
 
 from plumbery.polisher import PlumberyPolisher
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class PingPolisher(PlumberyPolisher):

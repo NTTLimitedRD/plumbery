@@ -16,7 +16,7 @@
 import os
 import subprocess
 
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class Terraform(object):
@@ -39,20 +39,25 @@ class Terraform(object):
             for (key, value) in parameters.items():
                 tf_vars.write('%s = "%s"\n' % (key, value))
 
-        ret, o, _ = self._run_tf(
+        ret, o, err = self._run_tf(
             'plan', tf_path,
             var_file=os.path.join(tf_path, '.tfvars'),
             input=False,
             detailed_exitcode=True,
             out=os.path.join(tf_path, '.tfstate'))
         plogging.debug("STDOUT from terraform plan %s", o)
+        if err != '' or None:
+            plogging.error(err)
 
         if ret == 2:
-            _, o, _ = self._run_tf('apply', os.path.join(tf_path, '.tfstate'))
+            _, o, err = self._run_tf('apply', os.path.join(tf_path, '.tfstate'))
             plogging.debug("STDOUT from terraform apply %s", o)
-
-        os.remove(os.path.join(tf_path, '.tfstate'))
-        os.remove(os.path.join(tf_path, '.tfvars'))
+            if err != '' or None:
+                plogging.error(err)
+        if os.path.isfile(os.path.join(tf_path, '.tfstate')):
+            os.remove(os.path.join(tf_path, '.tfstate'))
+        if os.path.isfile(os.path.join(tf_path, '.tfvars')):
+            os.remove(os.path.join(tf_path, '.tfvars'))
 
     def destroy(self, settings, safe=True):
         tf_path = settings.get('tf_path', None)
@@ -81,7 +86,7 @@ class Terraform(object):
             plogging.debug("STDOUT from terraform %s", o)
 
     def graph(self, state_directory):
-        graph_data = self._run_tf('graph', state_directory)
+        _, graph_data, _ = self._run_tf('graph', state_directory)
         graph_file_path = os.path.join(state_directory, 'multicloud.dot')
         with open(graph_file_path, 'w') as dot:
             dot.write(graph_data)

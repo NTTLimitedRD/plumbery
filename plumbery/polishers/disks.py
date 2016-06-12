@@ -16,7 +16,7 @@ import time
 
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class DisksConfiguration(NodeConfiguration):
@@ -45,9 +45,9 @@ class DisksConfiguration(NodeConfiguration):
                     raise ConfigurationError(
                         "- disk id should be between 0 and 9")
 
-                if int(tokens[1]) < 1:
+                if int(tokens[1]) < 10:
                     raise ConfigurationError(
-                        "- minimum disk size is 1 GB")
+                        "- minimum disk size is 10 GB")
 
                 if int(tokens[1]) > 1000:
                     raise ConfigurationError(
@@ -57,6 +57,7 @@ class DisksConfiguration(NodeConfiguration):
                     raise ConfigurationError(
                         "- disk speed should be either 'standard' "
                          "or 'highperformance' or 'economy'")
+        return True
 
     def configure(self, node, settings):
         if self._element_name_ in settings:

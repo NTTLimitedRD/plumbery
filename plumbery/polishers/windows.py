@@ -24,7 +24,7 @@ import winrm
 from winrm.protocol import Protocol
 
 from plumbery.polishers.base import NodeConfiguration
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class WindowsConfiguration(NodeConfiguration):

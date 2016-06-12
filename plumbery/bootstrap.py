@@ -12,10 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import absolute_import
+
 import argparse
 import os
 import requests
 import six
+import sys
 
 if six.PY2:
     from urlparse import urljoin as up
@@ -23,7 +27,17 @@ else:
     from urllib.parse import urljoin as up
 
 
+def parse_args(args):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-o', '--output', help='output directory')
+    parser.add_argument('files', nargs='+', help='The URL for remote files')
+    return parser.parse_args(args)
+
+
 def main(args):
+    if args.output is None:
+        args.output = os.getcwd()
     for url in args.files:
         filename = url.split('/')[-1]
         if filename == 'manifest.mf':
@@ -43,16 +57,12 @@ def download_manifest(url, output_dir):
 def download_file(url, output_dir):
     local_filename = url.split('/')[-1]
     r = requests.get(url, stream=True)
-    with open(local_filename, 'wb') as f:
+    with open(os.path.join(output_dir, local_filename), 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024): 
             if chunk: # filter out keep-alive new chunks
                 f.write(chunk)
     return local_filename
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-d', '--debug', action='store_true')
-    parser.add_argument('-o', '--output', help='output directory')
-    parser.add_argument('files', nargs='+', help='The URL for remote files')
-    args = parser.parse_args()
+    args = parse_args(sys.argv[1:])
     main(args)

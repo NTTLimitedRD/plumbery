@@ -31,7 +31,7 @@ from libcloud.utils.xml import findall
 
 from plumbery.terraform import Terraform
 from plumbery.exception import PlumberyException
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 __all__ = ['PlumberyInfrastructure']
 

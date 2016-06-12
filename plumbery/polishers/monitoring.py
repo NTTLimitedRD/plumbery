@@ -19,7 +19,7 @@ from libcloud.compute.types import NodeState
 
 from plumbery.polishers.base import NodeConfiguration
 from plumbery.exception import ConfigurationError
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class MonitoringConfiguration(NodeConfiguration):
@@ -39,6 +39,7 @@ class MonitoringConfiguration(NodeConfiguration):
                 raise ConfigurationError(
                     "- monitoring should be "
                     "either 'essentials' or 'advanced'")
+        return True
 
     def configure(self, node, settings):
         if self._element_name_ in settings:

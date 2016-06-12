@@ -24,7 +24,7 @@ from plumbery.polishers.monitoring import MonitoringConfiguration
 from plumbery.polishers.disks import DisksConfiguration
 from plumbery.polishers.backup import BackupConfiguration
 from plumbery.polishers.windows import WindowsConfiguration
-from plumbery.logging import plogging
+from plumbery.plogging import plogging
 
 
 class ConfigurePolisher(PlumberyPolisher):
