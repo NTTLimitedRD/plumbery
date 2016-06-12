@@ -2,21 +2,21 @@
 Tests for `facility` module.
 """
 
-import unittest
-
 # special construct to allow relative import
 #
 if __name__ == "__main__" and __package__ is None:
     __package__ = "tests"
 from tests import dummy
 
-from .mock_api import DimensionDataMockHttp
+import unittest
+
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 
 from plumbery.action import PlumberyAction
 from plumbery.engine import PlumberyEngine
 from plumbery.facility import PlumberyFacility
 
+from .mock_api import DimensionDataMockHttp
 DIMENSIONDATA_PARAMS = ('user', 'password')
 
 

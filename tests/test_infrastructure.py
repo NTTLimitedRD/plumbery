@@ -3,16 +3,23 @@
 """
 Tests for `infrastructure` module.
 """
+
+# special construct to allow relative import
+#
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "tests"
+from tests import dummy
+
 import os
 import unittest
 
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
 from libcloud.backup.drivers.dimensiondata import DimensionDataBackupDriver
-from .mock_api import DimensionDataMockHttp
 
 from plumbery.engine import PlumberyEngine
 from plumbery.infrastructure import PlumberyInfrastructure
 
+from .mock_api import DimensionDataMockHttp
 DIMENSIONDATA_PARAMS = ('user', 'password')
 
 
