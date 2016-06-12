@@ -29,7 +29,7 @@ in a fittings file. You will find some comprehensive example at the bottom of th
   running                   no          If set to **always**, then plumbery cannot delete the fittings
   =======================  ==========  ================================================================================================
 
-Complete example::
+Complete example:
 
 .. sourcecode:: yaml
 

@@ -52,7 +52,7 @@ Download https://raw.githubusercontent.com/bagder/ca-bundle/master/ca-bundle.crt
 Test the installation
 ~~~~~~~~~~~~~~~~~~~~~
 
-Ok, now you can check that plumbery can be triggered from the command line::
+Ok, now you can check that plumbery can be triggered from the command line:
 
 .. sourcecode:: bash
 
@@ -64,10 +64,9 @@ Do a quick deployment
 ~~~~~~~~~~~~~~~~~~~~~
 
 Open your preferred text editor to create a new file named ``fittings.yaml``.
-Put the following content in it, save the file, and close the editor::
+Put the following content in it, save the file, and close the editor:
 
-.. code-block:: yaml
-   :linenos:
+.. sourcecode:: bash
 
     locationId: EU6
 
@@ -86,7 +85,7 @@ Put the following content in it, save the file, and close the editor::
 This is a very limited fittings file, yet it is all you need to deploy a new
 server in the data centre of Frankfurt in Germany (Europe).
 
-At this stage you are ready to deploy the fittings plan. The most straightforward command::
+At this stage you are ready to deploy the fittings plan. The most straightforward command:
 
 .. sourcecode:: bash
 
@@ -94,14 +93,14 @@ At this stage you are ready to deploy the fittings plan. The most straightforwar
 
 This will display a sequence of messages so that you can monitor what is done, and check that all steps are executed correctly.
 
-If you hit an issue that you cannot explain, then make plumbery more verbose with the debug flag::
+If you hit an issue that you cannot explain, then make plumbery more verbose with the debug flag:
 
 .. sourcecode:: bash
 
     $ python -m plumbery fittings.yaml deploy -d
 
 In the end, keep in mind that resources deployed by plumbery are costing money to someone!
-Hopefully, there is a simple way to stop the bill::
+Hopefully, there is a simple way to stop the bill:
 
 .. sourcecode:: bash
 

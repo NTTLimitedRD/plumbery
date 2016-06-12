@@ -3,7 +3,7 @@ Using defaults
 
 In the first document of a fittings file, you can declare a section called defaults, this contains the default attributes for each of the nodes in the blueprints of subsequent documents.
 
-For example::
+For example:
 
 .. sourcecode:: yaml
 
@@ -35,7 +35,7 @@ This will mean that every node deployed will have SSH keys, the ubuntu user, roo
 Declaring classes of nodes
 --------------------------
 
-If the keyword ``default`` is used for the configuration of a node, then plumbery will look for related settings, like in the folloowing example::
+If the keyword ``default`` is used for the configuration of a node, then plumbery will look for related settings, like in the folloowing example:
 
 .. sourcecode:: yaml
 
@@ -73,7 +73,7 @@ Declaring default network domain and network
 
 In many cases the same network domain and VLAN are used across multiple blueprints. In that case you are advised to put related definitions only once, in the ``defaults`` section.
 
-Example::
+Example:
 
 .. sourcecode:: yaml
 

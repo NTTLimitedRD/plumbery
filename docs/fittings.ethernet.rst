@@ -1,7 +1,7 @@
 Defining Ethernet networks
 ==========================
 
-Each blueprint can contain one ``ethernet``directive, like in the following exemple::
+Each blueprint can contain one ``ethernet``directive, like in the following exemple:
 
 .. sourcecode:: yaml
 
@@ -26,7 +26,7 @@ Fitting attributes
 How to allow traffic between multiple networks?
 -----------------------------------------------
 
-The ``accept`` directive is translated by plumbery into additional firewall rules automatically. This allows for easy setup, like in the following example of a 3-tier application::
+The ``accept`` directive is translated by plumbery into additional firewall rules automatically. This allows for easy setup, like in the following example of a 3-tier application:
 
 .. sourcecode:: yaml
 

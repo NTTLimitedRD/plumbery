@@ -1,7 +1,7 @@
 Using from Docker
 =================
 
-The plumbery Docker image is the simplest and easiest way to use Plumbery, you can process multiple deployments at the same time, isolate the processes and there is no requirement to install any additional software. to download the plumbery image simply run::
+The plumbery Docker image is the simplest and easiest way to use Plumbery, you can process multiple deployments at the same time, isolate the processes and there is no requirement to install any additional software. to download the plumbery image simply run:
 
 .. sourcecode:: bash
 
@@ -16,7 +16,7 @@ You can then run the image with the following environment variables:
 * **SHARED_SECRET** - the password for the deployed servers
 * **FITTINGS** - The URL to some fittings file, this can be a HTTP/HTTPS or a FTP/FTPS address. Look in https://github.com/DimensionDataCBUSydney/plumbery-contrib for examples
 
-A fictitious example could be::
+A fictitious example could be:
 
 .. sourcecode:: bash
 
@@ -25,7 +25,7 @@ A fictitious example could be::
          -e "FITTINGS=https://raw.githubusercontent.com/DimensionDataCBUSydney/plumbery-contrib/master/fittings/example/first/fittings.yaml" \
          dimensiondataresearch/plumbery
 
-If needed, you have more variables to play with::
+If needed, you have more variables to play with:
 
 * **WGET_OPTS** can be set for the fetching of the fittings file, the following options are supported:
   * "--no-check-certificate" to disable SSL certificate validation

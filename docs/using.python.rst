@@ -2,7 +2,7 @@ Using Plumbery as a python library
 ==================================
 
 Since Plumbery is easy to load, you can use it interactively like in the
-following example::
+following example:
 
 .. sourcecode:: python
 
@@ -11,7 +11,7 @@ following example::
     ...
 
 If you are writing some code using Plumbery as a library, you would import
-the engine and use it, as with any other python module. For example::
+the engine and use it, as with any other python module. For example:
 
 .. sourcecode:: python
 
