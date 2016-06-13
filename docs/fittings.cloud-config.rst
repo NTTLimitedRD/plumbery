@@ -17,7 +17,7 @@ declarative capabilities.
 
 This "best of both worlds" approach lets the directive acts like a configuration
 file for common tasks, while maintaining the flexibility of a script for more
-complex functionality::
+complex functionality:
 
 .. sourcecode:: yaml
 
@@ -97,7 +97,7 @@ For example, we could write a file to /test.txt with the contents::
   Hello world.
   How are you doing today?
 
-The portion of the cloud-config that would accomplish this would look like this::
+The portion of the cloud-config that would accomplish this would look like this:
 
 .. sourcecode:: yaml
 
@@ -112,7 +112,7 @@ Update or install packages on the server
 ----------------------------------------
 
 To install additional packages, you can simply list the package names using the
-``packages:`` directive. Each list item should represent a package::
+``packages:`` directive. Each list item should represent a package:
 
 .. sourcecode:: yaml
 
@@ -133,7 +133,7 @@ Run shell commands as root
 
 If none of the managed actions that cloud-config provides works for what you
 want to do, you can also run arbitrary commands with the ``runcmd:`` directive.
-This directive takes a list of items to execute, that will be passed to the shell process::
+This directive takes a list of items to execute, that will be passed to the shell process:
 
 .. sourcecode:: yaml
 
@@ -157,7 +157,7 @@ secure nodes and to support passwordless access to nodes.
 
 However, for simple demonstrations, or similar short-lived deployments, you
 may just add following directives to access nodes with ssh, as root, with the
-master secret password used by plumbery for the creation of servers::
+master secret password used by plumbery for the creation of servers:
 
 .. sourcecode:: yaml
 

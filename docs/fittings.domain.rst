@@ -1,7 +1,7 @@
 Defining network domains
 ========================
 
-Each blueprint can contain one domain configuration, like in the following exemple::
+Each blueprint can contain one domain configuration, like in the following exemple:
 
 .. sourcecode:: yaml
 

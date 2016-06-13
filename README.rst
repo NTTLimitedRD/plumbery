@@ -31,7 +31,7 @@ Infrastructure as code at Dimension Data with Apache Libcloud
 Features
 --------
 
-* 35 tutorials covering popular use cases
+* 41 tutorials covering popular use cases
 * Read fittings plan in YAML
 * Load parameters in separate YAMl file
 * Use cloud API to create the network infrastructure, and to build nodes
@@ -65,9 +65,9 @@ Features
 * Wipe all nodes
 * Wipe nodes belonging to the same blueprint
 * Destroy part of the setup, or all blueprints
-* You can extend plumbery with your own polishers, it has been designed for that
+* You can extend plumbery with your own software, it has been designed for that
 * Run from the command line, or as a python library
-* Accept custom polisher from the command line too
+* Accept custom actions from the command line too
 * Limit plumbing to some locations if needed
 
 Contributors
