@@ -10,11 +10,12 @@ in a fittings file. You will find some comprehensive example at the bottom of th
   =======================  ==========  ================================================================================================
   Keyword                   Required    Description
   =======================  ==========  ================================================================================================
+  apiHost                   yes         A private API endpoint. See :doc:`fittings.facility`
   appliance                 yes         The name of the image to deploy, .e.g., 'Ubuntu'. See :doc:`fittings.appliance`
   backup                    no          Details of the cloud backup configuration. See :doc:`fittings.backup`
   beachhead                 no          Advanced networking setting. See :doc:`fittings.beachhead`
   blueprints                yes         A collection of blueprints
-  cloud-config              no          The cloud-config details, see :doc:`fittings.cloud-config`
+  cloud-config              no          The cloud-config details. See :doc:`fittings.cloud-config`
   cpu                       no          The number of CPU, or the CPU configuration. See :doc:`fittings.compute`
   default                   no          The class of some fittings. See :doc:`fittings.defaults`
   defaults                  no          A map of default values. See :doc:`fittings.defaults`
@@ -26,12 +27,12 @@ in a fittings file. You will find some comprehensive example at the bottom of th
   information               no          A list of strings explaining what the fittings does
   links                     no          A map, including 'documentation' and 'credit' as possible values
   listeners                 no          A collection of listener objects, describing load balancers settings
-  locationId                yes         The id of a target data centre, e.g., 'EU6'; See :doc:`fittings.facility`
+  locationId                yes         The id of a target data centre, e.g., 'EU6'. See :doc:`fittings.facility`
   memory                    no          The amount of RAM in gigabytes. See :doc:`fittings.compute`
   monitoring                no          The monitoring plan to configure, either **essentials** or **advanced**. No default
   nodes                     yes         A collection of node objects, describing the servers to be deployed
   parameters                no          Settings that can be provided externally to plumbery
-  regionId                  no          Used to identify API endpoint, e.g., 'dd-ap'; See :doc:`fittings.facility`
+  regionId                  no          Used to identify API endpoint, e.g., 'dd-ap'. See :doc:`fittings.facility`
   running                   no          If set to **always**, then plumbery cannot delete the fittings
   =======================  ==========  ================================================================================================
 
