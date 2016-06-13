@@ -14,14 +14,14 @@ Each blueprint can contain one ``ethernet``directive, like in the following exem
 Fitting attributes
 ------------------
 
-  =======================  ==========  ================================================================================================
-  Attribute                 Required    Description
-  =======================  ==========  ================================================================================================
-  name                      yes         A name for the VLAN
-  description               no          A description of the VLAN, that can include hashtags. No default
-  subnet                    yes         The private IPv4 /24 network address to be used
-  accept                    no          A list of networks that are entitled to send traffic to this network
-  =======================  ==========  ================================================================================================
+=======================  ==========  =======================================================================
+Attribute                 Required    Description
+=======================  ==========  =======================================================================
+name                      yes         A name for the VLAN
+description               no          A description of the VLAN, that can include hashtags. No default
+subnet                    yes         The private IPv4 /24 network address to be used
+accept                    no          A list of networks that are entitled to send traffic to this network
+=======================  ==========  =======================================================================
 
 How to allow traffic between multiple networks?
 -----------------------------------------------

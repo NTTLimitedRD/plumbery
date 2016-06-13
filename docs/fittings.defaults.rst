@@ -1,7 +1,7 @@
 Using defaults
 ==============
 
-In the first document of a fittings file, you can declare a section called defaults, this contains the default attributes for each of the nodes in the blueprints of subsequent documents.
+In the first document of a fittings file, you can add a ``defaults:`` directive. This will contain default attributes for each of the nodes in the blueprints of subsequent documents.
 
 For example:
 
@@ -66,7 +66,7 @@ If the keyword ``default`` is used for the configuration of a node, then plumber
           slave01:
             default: slave-node
 
-This approach saves a lot of typings, and of duplications. It is recommended when a fittings file is relying on multiple similar nodes.
+This approach saves a lot of typings, and avoid duplications. It is recommended when a fittings file is relying on multiple similar nodes.
 
 Declaring default network domain and network
 --------------------------------------------

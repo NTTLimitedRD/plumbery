@@ -14,11 +14,13 @@ Each blueprint can contain one domain configuration, like in the following exemp
 Fitting attributes
 ------------------
 
-  =======================  ==========  ================================================================================================
-  Attribute                 Required    Description
-  =======================  ==========  ================================================================================================
-  name                      yes         A name for the network domain
-  description               no          A description of the network domain, that can include hashtags. No default
-  service                   no          Either **essentials** (default) or **advanced**
-  ipv4                      no          The maximum number of public IPv4 addresses to consume in the domain, or **auto**. Default is 0
-  =======================  ==========  ================================================================================================
+=======================  ==========  ================================================================================================
+Attribute                 Required    Description
+=======================  ==========  ================================================================================================
+name                      yes         Name of the network domain
+description               no          Description of the network domain, that can include hashtags. No default
+service                   no          Either **essentials** (default) or **advanced**
+ipv4                      no          Quantity of public IPv4 addresses, or **auto**. Default is 0
+=======================  ==========  ================================================================================================
+
+The attribute ``ipv4:`` is used in conjunction with ``glue:``. See :doc:`fittings.glue` for more information on this topic.
