@@ -133,17 +133,29 @@ class PlumberyFacility(object):
         :type locationId: ``str`` or None
 
         :return:  the region, e.g., 'dd-eu' or 'dd-ap', etc.
-        :rtype: ``str``
+        :rtype: ``str`` or None
+
+        This function helps to bind well-known data centres to their respective regions.
+
+        For example::
+
+            >>>facility.get_region(locationID='EU6')
+            'dd-eu'
+
+            >>>facility.get_region(locationID='XY7')
+            None
 
         """
 
         regions = {
+            'AF3': 'dd-af',
             'AP3': 'dd-ap',
             'AP4': 'dd-ap',
             'AP5': 'dd-ap',
             'AU9': 'dd-au',
             'AU10': 'dd-au',
             'AU11': 'dd-au',
+            'CA2': 'dd-ca',
             'EU6': 'dd-eu',
             'EU7': 'dd-eu',
             'EU8': 'dd-eu',
