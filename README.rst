@@ -77,6 +77,7 @@ Contributors
 * `Anthony Shaw`_ [Dimension Data employee]
 * `Olivier Grosjeanne`_ [Dimension Data employee]
 * `Jacques Clément`_ [Dimension Data employee]
+* `Asim Khawaja`_ [Dimension Data employee]
 
 Credits
 -------
@@ -96,6 +97,7 @@ Credits
 .. _`Anthony Shaw`: https://github.com/tonybaloney
 .. _`Olivier Grosjeanne`: https://github.com/job-so
 .. _`Jacques Clément`: https://github.com/jacquesclement
+.. _`Asim Khawaja`: https://github.com/asimkhawaja
 .. _`Cloud-Init`: https://cloudinit.readthedocs.org/en/latest/topics/examples.html
 .. _`Apache Libcloud`: https://libcloud.apache.org/
 .. _netifaces: https://pypi.python.org/pypi/netifaces
