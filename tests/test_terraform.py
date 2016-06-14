@@ -1,7 +1,15 @@
+#!/usr/bin/env python
+
+"""
+Tests for `terraform` module.
+"""
+
 import unittest
 import os
 import mock
+
 from plumbery.terraform import Terraform
+
 from tempfile import gettempdir
 tempdir = gettempdir()
 

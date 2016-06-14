@@ -17,6 +17,10 @@ History
 ~~~~~~~~~~~~~~~~~~
 
 * Added multicloud support with Hashicorp terraform, supports parameters being passed to TF vars files directly
+* Add colored logging
+* Multiple code fixes
+* Adapt code for python 3 compatibility
+* Passing Travis CI for python 2.7, but not yet for python 3
 
 0.9.5 (2016-05-28)
 ~~~~~~~~~~~~~~~~~~

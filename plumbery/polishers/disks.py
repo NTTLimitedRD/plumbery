@@ -41,9 +41,9 @@ class DisksConfiguration(NodeConfiguration):
                 if len(tokens) < 3:
                     tokens.append('standard')
 
-                if int(tokens[0]) not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
+                if int(tokens[0]) not in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9):
                     raise ConfigurationError(
-                        "- disk id should be between 1 and 9")
+                        "- disk id should be between 0 and 9")
 
                 if int(tokens[1]) < 10:
                     raise ConfigurationError(
