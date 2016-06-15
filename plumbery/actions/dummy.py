@@ -17,7 +17,7 @@ from plumbery.action import PlumberyAction
 from plumbery.plogging import plogging
 
 
-class EchoAction(PlumberyAction):
+class DummyAction(PlumberyAction):
     """
     Dummy action used for tests
 
@@ -28,11 +28,8 @@ class EchoAction(PlumberyAction):
     to derive for your own needs.
     """
 
-    def __init__(self, settings):
-        self.settings = settings
-        plogging.info("Action: echo")
-
     def ignite(self, engine):
+        plogging.info("Action: dummy")
         plogging.info("- ignite engine")
 
     def enter(self, facility):
