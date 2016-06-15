@@ -22,7 +22,8 @@ from plumbery.plogging import plogging
 
 
 def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=plogging):
-    """Retry calling the decorated function using an exponential backoff.
+    """
+    Retries calling the decorated function using an exponential backoff.
 
     http://thecodeship.com/patterns/guide-to-python-function-decorators/
 
@@ -72,3 +73,56 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2, logger=plogging):
         return f_retry  # true decorator
 
     return deco_retry
+
+
+class PlumberyParameters(object):
+    """
+    Manages parameters
+
+    :param dictionary: pre-populated set of named parameters
+    :type dictionary: ``dict``
+
+    """
+
+    def __init__(self, dictionary=None):
+
+        if dictionary is None:
+            self.dictionary = {}
+        elif not isinstance(dictionary, dict):
+            raise TypeError("invalid type for parameter 'dictionary'")
+        else:
+            self.dictionary = dictionary
+
+    def set(self, parameter, value):
+        """
+        Remembers the value of a parameter
+
+        :param parameter: the parameter
+        :type parameter: ``str``
+
+        :param value: the value
+        :type value: any
+
+        """
+
+        self.dictionary[parameter] = value
+
+    def get(self, parameter, default=None):
+        """
+        Retrieves the value of a parameter
+
+        :param parameter: the parameter
+        :type parameter: ``str``
+
+        :param default: default value to return if the parameter has not been set
+        :type default: any
+
+        :return: the value of this parameter, or None
+
+        """
+
+        if parameter in self.dictionary:
+            return self.dictionary[parameter]
+
+        return default
+
