@@ -93,6 +93,10 @@ defaults:
 
       rsa_public: "{{ pair1.ssh.rsa_public }}"
 
+    write_files:
+
+    runcmd:
+
 parameters:
 
   locationId:

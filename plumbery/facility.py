@@ -306,7 +306,10 @@ class PlumberyFacility(object):
             return
 
         for key in additions.keys():
-            if key not in settings:
+            if additions[key] is None:
+                pass
+
+            elif key not in settings:
                 settings[key] = additions[key]
 
             elif isinstance(settings[key], list):
