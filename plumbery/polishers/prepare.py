@@ -332,8 +332,7 @@ class PreparePolisher(PlumberyPolisher):
                         tokens[0], script, ' '.join(args)))
 
                     try:
-                        path = os.path.dirname(__file__)+'/'+script
-                        with open(path) as stream:
+                        with open(script) as stream:
                             text = stream.read()
 
                             if(tokens[0] == 'run'
@@ -372,8 +371,7 @@ class PreparePolisher(PlumberyPolisher):
                         tokens[0], file, destination))
 
                     try:
-                        source = os.path.dirname(__file__)+'/'+file
-                        with open(source) as stream:
+                        with open(file) as stream:
                             content = stream.read()
 
                             if(tokens[0] == 'put'
