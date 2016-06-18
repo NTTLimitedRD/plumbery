@@ -573,7 +573,7 @@ class PlumberyEngine(object):
             except IOError:
                 pass
 
-        if ! HAS_CRYPTO:
+        if not HAS_CRYPTO:
             return None
 
         key = RSA.generate(2048)
