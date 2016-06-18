@@ -537,7 +537,7 @@ class PlumberyEngine(object):
 
         return self._sharedSecret
 
-    def get_rsa_secret(self, id='pair.rsa_private'):
+    def get_rsa_secret(self, id='rsa_private.pair'):
         """
         Returns a part of a RSA pair of keys
 
@@ -546,13 +546,21 @@ class PlumberyEngine(object):
 
         """
 
+        type = '.'.join([x for x in id.split('.')
+                    if x in ('rsa_private', 'rsa_public')])
+
+        name = '.'.join([x for x in id.split('.')
+                    if x not in ('rsa_private', 'rsa_public')])
+
+        id = type+'.'+name
+
         if id in self.secrets:
             return self.secrets[id]
 
-        if id == 'local.rsa_private':
-            raise LookupError("It is forbidden to use 'local.rsa_private'")
+        if id == 'rsa_private.local':
+            raise LookupError("It is forbidden to use 'rsa_private.local'")
 
-        if id == 'local.rsa_public':
+        if id == 'rsa_public.local':
             try:
                 path = '~/.ssh/id_rsa.pub'
 
@@ -565,21 +573,19 @@ class PlumberyEngine(object):
             except IOError:
                 pass
 
-        name = id.split('.')[0]
-
-        if HAS_CRYPTO:
-            key = RSA.generate(2048)
-            self.secrets[name+'.rsa_private'] = key.exportKey('PEM')
-            plogging.debug("- generating {}".format(name+'.rsa_private'))
-
-            pubkey = key.publickey()
-            self.secrets[name+'.rsa_public'] = pubkey.exportKey('OpenSSH')
-            plogging.debug("- generating {}".format(name+'.rsa_public'))
-
-            self.save_secrets()
-            return self.secrets[id]
-        else:
+        if ! HAS_CRYPTO:
             return None
+
+        key = RSA.generate(2048)
+        self.secrets['rsa_private.'+name] = key.exportKey('PEM')
+        plogging.debug("- generating {}".format('rsa_private.'+name))
+
+        pubkey = key.publickey()
+        self.secrets['rsa_public.'+name] = pubkey.exportKey('OpenSSH')
+        plogging.debug("- generating {}".format('rsa_public.'+name))
+
+        self.save_secrets()
+        return self.secrets[id]
 
     def get_secret(self, id='random.secret'):
         """
@@ -1663,23 +1669,31 @@ class PlumberyEngine(object):
         if token == 'shared.secret':
             return self.get_shared_secret()
 
-        if token == 'name.credentials':
+        if token in ('credentials.name', 'name.credentials'):
             return self.get_user_name()
 
-        if token == 'password.credentials':
+        if token in ('credentials.password', 'password.credentials'):
             return self.get_user_password()
 
         if token.startswith('parameter.'):
             return self.get_parameter(token)
 
+        if token.startswith('rsa_public.'):
+            return self.get_rsa_secret(token)
         if token.endswith('.rsa_public'):
+            return self.get_rsa_secret(token)
+        if token.startswith('rsa_private.'):
             return self.get_rsa_secret(token)
         if token.endswith('.rsa_private'):
             return self.get_rsa_secret(token)
 
+        if token.startswith('secret.'):
+            return self.get_secret(token)
         if token.endswith('.secret'):
             return self.get_secret(token)
 
+        if token.startswith('uuid.'):
+            return self.get_secret(token)
         if token.endswith('.uuid'):
             return self.get_secret(token)
 
