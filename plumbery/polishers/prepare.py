@@ -312,7 +312,7 @@ class PreparePolisher(PlumberyPolisher):
                 and isinstance(settings['prepare'], list)
                 and len(settings['prepare']) > 0):
 
-            plogging.debug('- using prepare commands')
+            plogging.info('- using prepare commands')
 
             for script in settings['prepare']:
 
@@ -344,6 +344,10 @@ class PreparePolisher(PlumberyPolisher):
                                     text, environment)
 
                             if len(text) > 0:
+
+                                plogging.info("- running '{}'"
+                                                  .format(script))
+
                                 prepares.append({
                                     'description': ' '.join(tokens),
                                     'genius': ScriptDeployment(
@@ -382,6 +386,8 @@ class PreparePolisher(PlumberyPolisher):
                                 content = PlumberyText.expand_string(
                                     content, environment)
 
+                            plogging.info("- putting file '{}'"
+                                              .format(file))
                             prepares.append({
                                 'description': ' '.join(tokens),
                                 'genius': FileContentDeployment(
