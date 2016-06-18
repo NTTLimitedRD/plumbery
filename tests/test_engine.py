@@ -337,7 +337,7 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(domain['ipv4'], 'auto')
 
         cloudConfig = engine.get_default('cloud-config', {})
-        self.assertEqual(len(cloudConfig.keys()), 3)
+        self.assertEqual(len(cloudConfig.keys()), 5)
 
         self.assertEqual(len(engine.information), 2)
 
@@ -407,7 +407,7 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(domain['ipv4'], 'auto')
 
         cloudConfig = engine.get_default('cloud-config', {})
-        self.assertEqual(len(cloudConfig.keys()), 3)
+        self.assertEqual(len(cloudConfig.keys()), 5)
 
         parameter = engine.get_parameter('locationId')
         self.assertEqual(parameter, 'NA9')
@@ -542,7 +542,7 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         engine.set_fittings(myPrivatePlan)
 
-        engine.process_all_blueprints(action='echo')
+        engine.process_all_blueprints(action='dummy')
 
         action = FakeAction({})
         engine.process_all_blueprints(action)
@@ -561,7 +561,7 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         engine.set_fittings(myPrivatePlan)
 
-        engine.process_blueprint(action='echo', names='fake')
+        engine.process_blueprint(action='dummy', names='fake')
 
         action = FakeAction({})
         engine.process_blueprint(action, names='fake')
