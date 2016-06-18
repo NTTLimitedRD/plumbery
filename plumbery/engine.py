@@ -605,27 +605,25 @@ class PlumberyEngine(object):
 
         The `id` parameter designates one secret among several.
 
-        This function builds a random string out of ASCII letters, digits, and
-        a couple of punctuation letters.
-        The string has 9 characters by default.
+        By default this function builds a random string out of ASCII letters,
+        digits, and a couple of punctuation letters, with 9 characters.
 
         If you put `.uuid` in the id, than the function ``uuid.uuid4()`` is
         called to generate a unique identifier of 36 letters.
 
         The `format` parameter specifies the kind of string that is expected:
-        * 'user' - to be read by a human being
         * 'sha1' - rather long string
         * 'md5' - rather long string too
         * 'sha256' - longest and most secure
 
         Some examples:
 
-            {{ server1.uuid }}
-            {{ server2.uuid }}
-            {{ sql_root.secret }}
-            {{ redis.master.md5.secret }}
-            {{ redis.slave.secret }}
-            {{ database357.sha1.secret }}
+            {{ uuid.server1 }}
+            {{ uuid.server2 }}
+            {{ secret.sql_root }}
+            {{ secret.redis.master.md5 }}
+            {{ secret.redis.slave }}
+            {{ secret.database357.sha1 }}
 
         In a nutshell, this function is giving you a lot of flexibility
         in the generation of secrets.
@@ -635,7 +633,7 @@ class PlumberyEngine(object):
         if id in self.secrets:
             return self.secrets[id]
 
-        if id.endswith('.uuid'):
+        if id.startswith('uuid.') or id.endswith('.uuid'):
             secret = str(uuid.uuid4())
 
         elif id.startswith('http://') or id.startswith('https://'):
@@ -647,13 +645,13 @@ class PlumberyEngine(object):
                 string.ascii_letters+string.digits+'-_!=')
                 for i in range(9))
 
-        if '.sha256.' in id:
+        if id.endswith('.sha256'):
             secret = hashlib.sha256(secret.encode('utf-8')).hexdigest()
 
-        elif '.md5.' in id:
+        elif id.endswith('.md5'):
             secret = hashlib.md5(secret.encode('utf-8')).hexdigest()
 
-        elif '.sha1.' in id:
+        elif id.endswith('.sha1'):
             secret = hashlib.sha1(secret.encode('utf-8')).hexdigest()
 
         plogging.debug("- generating {}".format(id))

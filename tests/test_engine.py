@@ -606,19 +606,19 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.lookup('plumbery.version'), __version__)
 
         engine.secrets = {}
-        random = engine.lookup('random.secret')
+        random = engine.lookup('secret.random')
         self.assertEqual(len(random), 9)
-        self.assertEqual(engine.lookup('random.secret'), random)
+        self.assertEqual(engine.lookup('secret.random'), random)
 
-        md5 = engine.lookup('random.md5.secret')
+        md5 = engine.lookup('secret.random.md5')
         self.assertEqual(len(md5), 32)
         self.assertNotEqual(md5, random)
 
-        sha = engine.lookup('random.sha1.secret')
+        sha = engine.lookup('secret.random.sha1')
         self.assertEqual(len(sha), 40)
         self.assertNotEqual(sha, random)
 
-        sha = engine.lookup('random.sha256.secret')
+        sha = engine.lookup('secret.random.sha256')
         self.assertEqual(len(sha), 64)
         self.assertNotEqual(sha, random)
 
