@@ -231,7 +231,7 @@ class PreparePolisher(PlumberyPolisher):
         # use libcloud to communicate with remote nodes
         session = SSHClient(hostname=target_ip,
                             port=22,
-                            username='root',
+                            username=self.user,
                             password=self.secret,
                             key_files=path,
                             timeout=9)
@@ -479,6 +479,7 @@ class PreparePolisher(PlumberyPolisher):
 
         self.report = []
 
+        self.user = engine.get_shared_user()
         self.secret = engine.get_shared_secret()
 
         self.key = None

@@ -448,6 +448,10 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.add_facility(myFacility)
         self.assertEqual(len(engine.facilities), 1)
 
+        self.assertEqual(engine.get_shared_user(), 'root')
+        engine.set_shared_user('ubuntu')
+        self.assertEqual(engine.get_shared_user(), 'ubuntu')
+
         engine.set_shared_secret('fake_secret')
         self.assertEqual(engine.get_shared_secret(), 'fake_secret')
 

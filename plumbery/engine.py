@@ -147,6 +147,8 @@ class PlumberyEngine(object):
 
         self.buildPolisher = 'configure'
 
+        self._sharedUser = None
+
         self._sharedSecret = None
 
         self.secrets = {}
@@ -461,11 +463,39 @@ class PlumberyEngine(object):
 
         return default
 
+    def set_shared_user(self, user):
+        """
+        Changes the name used to access nodes remotely
+
+        :param user: the user name to be used with ssh
+        :type user: ``str``
+
+        """
+
+        self._sharedUser = user
+
+    def get_shared_user(self):
+        """
+        Retrieves the name used to access nodes remotely
+
+        :return: the user name to be used with ssh
+        :rtype: ``str``
+
+        This functions returns ``root`` until the member function
+        ``set_shared_used()`` has been called.
+
+        """
+
+        if self._sharedUser is None:
+            return 'root'
+
+        return self._sharedUser
+
     def set_shared_secret(self, secret):
         """
         Changes the shared secret to be used with new nodes
 
-        :param secret: the user name to be used with the driver
+        :param secret: the shared secret to be used with the API and with ssh
         :type secret: ``str``
 
         This function can be used to supplement the normal provision of
@@ -479,7 +509,7 @@ class PlumberyEngine(object):
         """
         Retrieves the secret that is communicated to new nodes during setup
 
-        :return: the shared secret to be given to the driver
+        :return: the shared secret to be used with the API and with ssh
         :rtype: ``str``
 
         :raises: :class:`plumbery.PlumberyException`
@@ -1626,6 +1656,9 @@ class PlumberyEngine(object):
 
         if token == 'plumbery.version':
             return __version__
+
+        if token == 'shared.user':
+            return self.get_shared_user()
 
         if token == 'shared.secret':
             return self.get_shared_secret()
