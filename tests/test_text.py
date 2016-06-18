@@ -215,7 +215,7 @@ content: |
 
 input9 = """
 ssh-authorized-keys:
-- "{{ local.rsa_public }}"
+- "{{ rsa_public.local }}"
 """
 
 input10 = """

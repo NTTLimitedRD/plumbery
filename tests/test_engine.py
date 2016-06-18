@@ -660,7 +660,7 @@ class TestPlumberyEngine(unittest.TestCase):
             with self.assertRaises(LookupError):
                 localKey = engine.lookup('local.rsa_private')
 
-            localKey = engine.lookup('local.rsa_public')
+            localKey = engine.lookup('rsa_public.local')
             try:
                 path = '~/.ssh/id_rsa.pub'
                 with open(os.path.expanduser(path)) as stream:
