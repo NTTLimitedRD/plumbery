@@ -3,6 +3,18 @@
 History
 -------
 
+1.0.0 (2016-07-15)
+~~~~~~~~~~~~~~~~~~
+
+* Use libcloud 1.1.0
+* Parameters are now prepended with the keyword `parameter` instead of appended (Breaking change)
+* Documentation improvements
+
+0.9.9 (2016-06-10)
+~~~~~~~~~~~~~~~~~~
+
+* Parse Terraform logging correctly (FIX)
+
 0.9.8 (2016-06-10)
 ~~~~~~~~~~~~~~~~~~
 
