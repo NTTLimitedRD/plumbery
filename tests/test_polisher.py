@@ -4,12 +4,16 @@
 Tests for `polisher` module.
 """
 
+# special construct to allow relative import
+#
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "tests"
+from tests import dummy
+
 from collections import namedtuple
 import unittest
 
-from .mock_api import DimensionDataMockHttp
 from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
-
 from libcloud.compute.types import NodeState
 
 from plumbery.engine import PlumberyEngine
@@ -17,6 +21,7 @@ from plumbery.infrastructure import PlumberyInfrastructure
 from plumbery.nodes import PlumberyNodes
 from plumbery.polisher import PlumberyPolisher
 
+from .mock_api import DimensionDataMockHttp
 DIMENSIONDATA_PARAMS = ('user', 'password')
 
 

@@ -2,25 +2,22 @@ Configure nodes with cloud-config
 =================================
 
 Cloud-config directives are a mean to configure individual nodes via a process named cloud-init.
-Cloud-init is a package that is available for major versions of Linux, including
-Ubuntu, CentOS, Red Hat. In this guide we will present format and usage of
-some useful directives that can be integrated in fittings plan handled by plumbery.
+Cloud-init is a package that is available for major versions of Linux, including Ubuntu, CentOS, Red Hat.
+
+On this page we will present format and usage of some useful directives that can be integrated in fittings plan handled by plumbery.
 
 cloud-config directives and plumbery
 ------------------------------------
 
-The cloud-config format implements a declarative syntax for many common
+Cloud-config directive is written in YAML, like the rest of fittings plan that
+plumbery is using. The cloud-config format implements a declarative syntax for many common
 configuration items, making it easy to accomplish many tasks. It also allows you
 to specify arbitrary commands for anything that falls outside of the predefined
 declarative capabilities.
 
 This "best of both worlds" approach lets the directive acts like a configuration
 file for common tasks, while maintaining the flexibility of a script for more
-complex functionality.
-
-Cloud-config directive is written in YAML, like the rest of fittings plan that
-plumbery is using. So the addition of cloud-config is a natural fit, since the directive
-can be naturally added to node declarations.
+complex functionality:
 
 .. sourcecode:: yaml
 
@@ -115,7 +112,7 @@ Update or install packages on the server
 ----------------------------------------
 
 To install additional packages, you can simply list the package names using the
-``packages:`` directive. Each list item should represent a package.
+``packages:`` directive. Each list item should represent a package:
 
 .. sourcecode:: yaml
 
@@ -136,7 +133,7 @@ Run shell commands as root
 
 If none of the managed actions that cloud-config provides works for what you
 want to do, you can also run arbitrary commands with the ``runcmd:`` directive.
-This directive takes a list of items to execute, that will be passed to the shell process.
+This directive takes a list of items to execute, that will be passed to the shell process:
 
 .. sourcecode:: yaml
 
@@ -168,25 +165,35 @@ master secret password used by plumbery for the creation of servers:
     disable_root: false
     ssh_pwauth: true
 
+Deploying at two data centres
+-----------------------------
+
+Plumbery supports multiple documents in a single fittings file, each document (seperated by 3 dashes in YAML) can have it's own regionId and locationId.
+
+.. sourcecode:: yaml
+
+    ---
+    information:
+      - "Multi-Geography deployment example"
+    links:
+      documentation: https://developer.dimensiondata.com/PLUM
+    ---
+    regionId: dd-eu
+    locationId: EU6
+    blueprints:
+      ...
+    ---
+    regionId: dd-na
+    locationId: NA9
+    blueprints:
+      ...
+
 How to learn more about cloud-config?
 -------------------------------------
 
 Since cloud-config has become an industry-standard, that is used commonly at Amazon Web Services,
 at OpenStack-based clouds, and others, you will find many interesting web
-pages and tutorials on the Internet.
-
-In the context of plumbery, multiple tutorials are leveraging cloud-config, and
-you may want to check the library of demos.
-
-  :doc:`tutorials`
-
-More specifically, the deployment of a master and a slave SQL servers at two
-different data centres is an interesting practical case:
-
-  :doc:`tutorial.sql.master.slave`
-
-Another good starting point is the following page,
-that has been developed by the global cloud-config software community:
+pages and tutorials on the Internet, for example::
 
   http://cloudinit.readthedocs.org/en/latest/topics/examples.html
 

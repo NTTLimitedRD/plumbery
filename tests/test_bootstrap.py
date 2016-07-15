@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+"""
+Tests for `bootstrap` module.
+"""
+
 import unittest
 import os
 from tempfile import gettempdir

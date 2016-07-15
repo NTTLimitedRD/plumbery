@@ -4,6 +4,12 @@
 Tests for `plumbery` module.
 """
 
+# special construct to allow relative import
+#
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "tests"
+from tests import dummy
+
 import logging
 import os
 import unittest
@@ -16,17 +22,6 @@ try:
 except ImportError:
     HAS_CRYPTO = False
     logging.getLogger().error('No Cryptodome support loaded')
-
-import requests_mock
-from .mock_api import DimensionDataMockHttp
-from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
-
-from plumbery.__main__ import parse_args, main
-from plumbery.action import PlumberyAction
-from plumbery.engine import PlumberyEngine
-from plumbery.plogging import plogging
-from plumbery.polisher import PlumberyPolisher
-from plumbery import __version__
 
 import six
 
@@ -51,6 +46,17 @@ else:
         else:
             raise TypeError("Invalid argument %r for b()" % (s,))
 
+from libcloud.compute.drivers.dimensiondata import DimensionDataNodeDriver
+
+from plumbery.__main__ import parse_args, main
+from plumbery.action import PlumberyAction
+from plumbery.engine import PlumberyEngine
+from plumbery.plogging import plogging
+from plumbery.polisher import PlumberyPolisher
+from plumbery import __version__
+
+import requests_mock
+from .mock_api import DimensionDataMockHttp
 DIMENSIONDATA_PARAMS = ('user', 'password')
 
 myParameters = {
@@ -120,16 +126,16 @@ polishers:
 
 ---
 # Frankfurt in Europe
-locationId: "{{ locationId.parameter }}"
+locationId: "{{ parameter.locationId }}"
 regionId: dd-eu
 
 blueprints:
 
   - myBlueprint:
       domain:
-        name: "{{ domainName.parameter }}"
+        name: "{{ parameter.domainName }}"
       ethernet:
-        name: "{{ networkName.parameter }}"
+        name: "{{ parameter.networkName }}"
         subnet: 10.1.10.0
       nodes:
         - myServer:
@@ -161,7 +167,7 @@ defaults:
 
       rsa_public: "{{ pair1.ssh.rsa_public }}"
 
-    hostname: "{{ nodeName.parameter }}"
+    hostname: "{{ parameter.nodeName }}"
 
     packages:
       - ntp
@@ -171,12 +177,12 @@ defaults:
       - path: /root/hosts.awk
         content: |
           #!/usr/bin/awk -f
-          /^{{ {{ nodeName.parameter }}.private }}/ {next}
-          /^{{ {{ nodeName.parameter }}.ipv6 }}/ {next}
+          /^{{ {{ parameter.nodeName }}.private }}/ {next}
+          /^{{ {{ parameter.nodeName }}.ipv6 }}/ {next}
           {print}
           END {
-           print "{{ {{ nodeName.parameter }}.private }}    {{ nodeName.parameter }}"
-           print "{{ {{ nodeName.parameter }}.ipv6 }}    {{ nodeName.parameter }}"
+           print "{{ {{ parameter.nodeName }}.private }}    {{ parameter.nodeName }}"
+           print "{{ {{ parameter.nodeName }}.ipv6 }}    {{ parameter.nodeName }}"
           }
 
 parameters:
@@ -212,19 +218,19 @@ parameters:
     default: myServer
 
 ---
-locationId: "{{ locationId.parameter }}"
-regionId: {{ regionId.parameter }}
+locationId: "{{ parameter.locationId }}"
+regionId: {{ parameter.regionId }}
 
 blueprints:
 
   - myBlueprint:
       domain:
-        name: "{{ domainName.parameter }}"
+        name: "{{ parameter.domainName }}"
       ethernet:
-        name: "{{ networkName.parameter }}"
+        name: "{{ parameter.networkName }}"
         subnet: 10.1.10.0
       nodes:
-        - {{ nodeName.parameter }}:
+        - {{ parameter.nodeName }}:
 """
 
 myAmericanBinding = {
@@ -334,11 +340,11 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(len(engine.links), 1)
 
         parameters = engine.get_parameters()
-        self.assertEqual(parameters['locationId.parameter'],
+        self.assertEqual(parameters['parameter.locationId'],
                          'EU6')
-        self.assertEqual(parameters['domainName.parameter'],
+        self.assertEqual(parameters['parameter.domainName'],
                          'myDC')
-        self.assertEqual(parameters['networkName.parameter'],
+        self.assertEqual(parameters['parameter.networkName'],
                          'myVLAN')
 
         parameter = engine.get_parameter('locationId')
@@ -370,21 +376,21 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_parameters(myParameters)
 
         parameters = engine.get_parameters()
-        self.assertEqual(parameters['locationId.parameter'],
+        self.assertEqual(parameters['parameter.locationId'],
                          'NA9')
-        self.assertEqual(parameters['domainName.parameter'],
+        self.assertEqual(parameters['parameter.domainName'],
                          'justInTimeDomain')
-        self.assertEqual(parameters['networkName.parameter'],
+        self.assertEqual(parameters['parameter.networkName'],
                          'justInTimeNetwork')
 
         engine.set_fittings(myPlan)
 
         parameters = engine.get_parameters()
-        self.assertEqual(parameters['locationId.parameter'],
+        self.assertEqual(parameters['parameter.locationId'],
                          'NA9')
-        self.assertEqual(parameters['domainName.parameter'],
+        self.assertEqual(parameters['parameter.domainName'],
                          'justInTimeDomain')
-        self.assertEqual(parameters['networkName.parameter'],
+        self.assertEqual(parameters['parameter.networkName'],
                          'justInTimeNetwork')
 
         self.assertEqual(engine.safeMode, False)
@@ -732,10 +738,26 @@ class TestPlumberyEngine(unittest.TestCase):
 
     def test_main(self):
 
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web', '@EU6'])
+
         engine = PlumberyEngine()
         engine.set_fittings(myPlan)
         engine.set_user_name('fake_name')
         engine.set_user_password('fake_password')
+        with self.assertRaises(SystemExit):
+            main(['-v'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web', '-v'], engine)
+        with self.assertRaises(SystemExit):
+            main(['fittings.yaml', 'build', 'web', '@EU6'], engine)
+
+    def test_bad_args(self):
+
+        engine = PlumberyEngine()
+        engine.set_fittings(myPlan)
         with self.assertRaises(SystemExit):
             main(['bad args'], engine)
         with self.assertRaises(SystemExit):
@@ -743,9 +765,7 @@ class TestPlumberyEngine(unittest.TestCase):
         with self.assertRaises(SystemExit):
             main(['fittings.yaml', 'xyz123', 'web'], engine)
         with self.assertRaises(SystemExit):
-            main(['-v'], engine)
-        with self.assertRaises(SystemExit):
-            main(['fittings.yaml', 'build', 'web', '-v'], engine)
+            main(['fittings.yaml', 'build', 'web', '@'], engine)
 
     def test_param_http(self):
         engine = PlumberyEngine()

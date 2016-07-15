@@ -31,7 +31,7 @@ Infrastructure as code at Dimension Data with Apache Libcloud
 Features
 --------
 
-* 35 tutorials covering popular use cases
+* 41 tutorials covering popular use cases
 * Read fittings plan in YAML
 * Load parameters in separate YAMl file
 * Use cloud API to create the network infrastructure, and to build nodes
@@ -65,9 +65,9 @@ Features
 * Wipe all nodes
 * Wipe nodes belonging to the same blueprint
 * Destroy part of the setup, or all blueprints
-* You can extend plumbery with your own polishers, it has been designed for that
+* You can extend plumbery with your own software, it has been designed for that
 * Run from the command line, or as a python library
-* Accept custom polisher from the command line too
+* Accept custom actions from the command line too
 * Limit plumbing to some locations if needed
 
 Contributors
@@ -77,6 +77,7 @@ Contributors
 * `Anthony Shaw`_ [Dimension Data employee]
 * `Olivier Grosjeanne`_ [Dimension Data employee]
 * `Jacques Clément`_ [Dimension Data employee]
+* `Asim Khawaja`_ [Dimension Data employee]
 
 Credits
 -------
@@ -96,6 +97,7 @@ Credits
 .. _`Anthony Shaw`: https://github.com/tonybaloney
 .. _`Olivier Grosjeanne`: https://github.com/job-so
 .. _`Jacques Clément`: https://github.com/jacquesclement
+.. _`Asim Khawaja`: https://github.com/asimkhawaja
 .. _`Cloud-Init`: https://cloudinit.readthedocs.org/en/latest/topics/examples.html
 .. _`Apache Libcloud`: https://libcloud.apache.org/
 .. _netifaces: https://pypi.python.org/pypi/netifaces

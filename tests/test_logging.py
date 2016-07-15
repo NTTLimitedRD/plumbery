@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Tests for `logging` module.
+Tests for `plogging` module.
 
 """
 

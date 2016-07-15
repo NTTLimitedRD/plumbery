@@ -6,12 +6,11 @@ The documentation of Plumbery
    :maxdepth: 2
 
    readme
-   tutorials
-   usage
-   getting_started
-   cloud-config
+   overview
+   using
+   installing
+   fittings
    contributing
-   coding
    history
    Documentation extracted from the code <plumbery>
 
