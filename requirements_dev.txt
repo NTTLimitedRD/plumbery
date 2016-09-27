@@ -1,4 +1,4 @@
--e git+https://github.com/DimensionDataCBUSydney/libcloud.git#egg=apache-libcloud
+apache-libcloud==1.1.0
 netifaces
 bumpversion==0.5.3
 paramiko
@@ -14,3 +14,4 @@ requests_ntlm
 -e git+https://github.com/diyan/pywinrm.git#egg=pywinrm
 colorlog
 six
+certifi

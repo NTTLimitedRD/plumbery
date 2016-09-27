@@ -3,7 +3,7 @@
 ###############
 
 FROM python:2.7
-ENV VERSION="0.9.9"
+ENV VERSION="1.0.0"
 ENV MCP_USERNAME=""
 ENV MCP_PASSWORD=""
 ENV SHARED_SECRET=""
@@ -28,7 +28,7 @@ RUN git clone -b $VERSION --single-branch https://github.com/DimensionDataCBUSyd
 ADD plumbery plumbery
 
 # Get pip to download and install requirements:
-RUN pip install requests apache-libcloud==1.0.0-rc2 PyYAML paramiko netifaces pywinexe urllib3 colorlog
+RUN pip install requests apache-libcloud==1.1.0 PyYAML paramiko netifaces pywinexe urllib3 colorlog
 
 RUN wget https://releases.hashicorp.com/terraform/0.6.16/terraform_0.6.16_linux_amd64.zip && unzip terraform_0.6.16_linux_amd64.zip && export TERRAFORM_PATH=~/terraform_0.6.16_linux_amd64/terraform
 
