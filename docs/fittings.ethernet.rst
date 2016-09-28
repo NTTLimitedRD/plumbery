@@ -1,7 +1,7 @@
 Defining Ethernet networks
 ==========================
 
-Each blueprint can contain one ``ethernet``directive, like in the following exemple:
+Each blueprint can contain one ``ethernet`` directive, like in the following exemple:
 
 .. sourcecode:: yaml
 

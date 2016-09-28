@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     plumbery.actions
+    plumbery.fittings
     plumbery.polishers
 
 Submodules
@@ -19,6 +20,7 @@ Submodules
    plumbery.engine
    plumbery.exception
    plumbery.facility
+   plumbery.fitting
    plumbery.infrastructure
    plumbery.nodes
    plumbery.plogging

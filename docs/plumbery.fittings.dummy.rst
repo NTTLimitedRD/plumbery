@@ -1,7 +1,7 @@
-plumbery.polishers.spit module
+plumbery.fittings.dummy module
 ==============================
 
-.. automodule:: plumbery.polishers.spit
+.. automodule:: plumbery.fittings.dummy
     :members:
     :undoc-members:
     :show-inheritance:
