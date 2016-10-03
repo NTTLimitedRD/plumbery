@@ -17,18 +17,11 @@ from plumbery.fitting import PlumberyFitting
 from plumbery.plogging import plogging
 
 
-class DummyFitting(PlumberyFitting):
+class EthernetFitting(PlumberyFitting):
     """
-    Dummy fittings used for tests
+    Represents a VLAN
 
-    :param settings: specific settings for this fittings
-    :type settings: ``dict``
 
-    :param blueprint: the blueprint in which this fittings has been defined
-    :type blueprint: :class:`PlumberyBlueprint`
-
-    Look at another file in this directory if you are looking for something
-    to derive for your own needs.
     """
 
     def parse(self, settings):
@@ -39,40 +32,64 @@ class DummyFitting(PlumberyFitting):
         :type settings: ``dict``
 
         This function raises a `ValueError` if invalid settings are provided.
+
+        Following directives are handled by this class:
+        - name - name of the VLAN - mandatory
+        - description
+        - subnet - e.g., '10.2.3.0'
+
+        Example:
+
+          ethernet:
+            name: myNetwork
+            subnet: 10.2.3.0
+
+
         """
 
         if not isinstance(settings, dict):
             raise TypeError('Settings should be a dictionary')
 
-        expected = ('dummy',)
+        expected = ('description', 'name', 'subnet')
         for key in settings.keys():
             if key not in expected:
                 raise KeyError('Unkown key %s: in settings' % key)
 
-        mandatory = ('dummy',)
+        mandatory = ('name', 'subnet')
         for key in mandatory:
             if key not in settings:
                 raise KeyError('Missing key %s: in settings' % key)
 
-        if not isinstance(settings['dummy'], str):
-            raise TypeError('Invalid directive dummy: in settings')
+        # description
 
-        if len(settings['dummy']) < 1:
-            raise ValueError('Invalid directive dummy: in settings')
+        if 'description' not in settings:
+            settings['description'] = ''
 
-        self.completed = False
+        elif not isinstance(settings['description'], str):
+            raise TypeError('Invalid directive description: in settings')
 
-    def do_some_action(self, parameters={}):
-        """
-        Does something
+        elif len(settings['description']) < 1:
+            raise ValueError('Invalid directive description: in settings')
 
-        :param parameters: specific parameters for this action
-        :type parameters: ``dict``
+        self.description = (settings['description']+' #plumbery').strip()
 
-        :return: True if success, False otherwise
-        :rtype: ``boolean``
+        # name
 
-        """
+        if not isinstance(settings['name'], str):
+            raise TypeError('Invalid directive name: in settings')
 
-        self.completed = True
-        return True
+        if len(settings['name']) < 1:
+            raise ValueError('Invalid directive name: in settings')
+
+        self.name = settings['name']
+
+        # subnet
+
+        if not isinstance(settings['subnet'], str):
+            raise TypeError('Invalid directive subnet: in settings')
+
+        elif len(settings['subnet'].split('.')) != 4:
+            raise ValueError('Invalid directive subnet: in settings')
+
+        self.subnet = settings['subnet']
+

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from plumbery.action import PlumberyAction
 from plumbery.plogging import plogging
 
 __all__ = ['PlumberyFitting', 'PlumberyFittingLoader']
@@ -23,11 +22,12 @@ class PlumberyFitting(object):
     """
     Represents some fitting
 
-    :param settings: specific settings for this fitting
-    :type settings: ``dict``
+    :param engine: the automate that is coordinating
+            plumbing activities at multiple facilities
+    :type engine: :class:`plumbery.PlumberyEngine`
 
-    :param blueprint: the blueprint in which this fitting has been defined
-    :type blueprint: :class:`PlumberyBlueprint`
+    :param facility: the place that is making a context for this fitting
+    :type facility: :class:`plumbery.PlumberyFacility`
 
     Fittings are representation of cloud services, such as 'domain' or
     'node'. They are provided with settings that should be parsed and checked.
@@ -35,9 +35,9 @@ class PlumberyFitting(object):
 
     """
 
-    def __init__(self, settings={}, blueprint=None):
-        self.blueprint = blueprint
-        self.parse(settings)
+    def __init__(self, engine, facility):
+        self.engine = engine
+        self.facility = facility
 
     def parse(self, settings):
         """
@@ -51,25 +51,24 @@ class PlumberyFitting(object):
 
         raise NotImplementedError()
 
-    def do(self, action, settings={}):
+    def do(self, action, parameters=None):
         """
         Performs some action
 
         :param action: the action to perform
-        :type action: ``str`` or :class:`PlumberyAction`
+        :type action: ``str``
+
+        :param parameters: the additional parameters, if any
+        :type parameters: ``dict``
 
         This function dispatches the action to the member function of the
         same name. For example, ``fittings.do('start')`` will execute
         ``fittings.do_start()``.
         """
 
-        if isinstance(action, PlumberyAction):
-            settings = action.get_settings()
-            action = action.get_type()
-
         method = getattr(self, 'do_'+action, None)
         if callable(method):
-            return method(settings)
+            return method(parameters)
         return True
 
 class PlumberyFittingLoader(object):
@@ -95,7 +94,7 @@ class PlumberyFittingLoader(object):
     """
 
     @classmethod
-    def from_shelf(cls, label, settings={}, blueprint=None):
+    def from_shelf(cls, label, engine, facility, settings={}):
         """
         Picks up fitting from the shelf
 
@@ -105,8 +104,12 @@ class PlumberyFittingLoader(object):
         :param settings: specific settings for this fitting
         :type param: ``dict``
 
-        :param blueprint: the blueprint in which this fitting has been defined
-        :type blueprint: :class:`PlumberyBlueprint`
+        :param engine: the automate that is coordinating
+                plumbing activities at multiple facilities
+        :type engine: :class:`plumbery.PlumberyEngine`
+
+        :param facility: the place that is making a context for this fitting
+        :type facility: :class:`plumbery.PlumberyFacility`
 
         :return: instance of fitting ready to use
         :rtype: :class:`plumbery.PlumberyFitting`
@@ -128,8 +131,10 @@ class PlumberyFittingLoader(object):
             fittingsClass = getattr(fittingsModule, fittingsName)
             if settings is None:
                 settings = {}
-            settings['name'] = label
-            return fittingsClass(settings, blueprint)
+            fitting = fittingsClass(engine, facility)
+            fitting.parse(settings)
+            fitting.label = label
+            return fitting
 
         except ImportError as feedback:
             plogging.debug("Unable to find module '{}'".format(moduleName))
