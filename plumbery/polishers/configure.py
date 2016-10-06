@@ -72,7 +72,7 @@ class ConfigurePolisher(PlumberyPolisher):
             container.blueprint['target']))
 
         if container.network is None:
-            plogging.info("- aborted - no network here")
+            plogging.error("- aborted - no network here")
             return
 
         self.container = container
@@ -84,7 +84,7 @@ class ConfigurePolisher(PlumberyPolisher):
             while True:
                 node = self.nodes.get_node(name)
                 if node is None:
-                    plogging.info("- aborted - missing node '{}'".format(name))
+                    plogging.error("- aborted - missing node '{}'".format(name))
                     return
 
                 if node.extra['status'].action is None:
@@ -93,7 +93,7 @@ class ConfigurePolisher(PlumberyPolisher):
                 if (node is not None
                         and node.extra['status'].failure_reason is not None):
 
-                    plogging.info("- aborted - failed deployment "
+                    plogging.error("- aborted - failed deployment "
                                  "of node '{}'".format(name))
                     return
 
