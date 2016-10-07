@@ -195,7 +195,7 @@ class PreparePolisher(PlumberyPolisher):
                     return True
 
                 plogging.info("- unable to upgrade vmware tools")
-                plogging.error(str(feedback))
+                plogging.warning(str(feedback))
                 return False
 
     def _apply_prepares(self, node, steps):
