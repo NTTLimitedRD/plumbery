@@ -588,7 +588,7 @@ class PlumberyEngine(object):
         self.save_secrets()
         return self.secrets[id]
 
-    def get_secret(self, id='random.secret'):
+    def get_secret(self, id='secret.random'):
         """
         Returns a secret
 
@@ -601,7 +601,7 @@ class PlumberyEngine(object):
         Random secrets can be used in scripts and in configuration files
         sent to nodes, for example to configure a database server.
 
-        For this you would put ``{{ random.secret }}`` in your files and let
+        For this you would put ``{{ secret.random }}`` in your files and let
         plumbery provide a value for you.
 
         The `id` parameter designates one secret among several.
