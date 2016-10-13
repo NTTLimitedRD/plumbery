@@ -133,7 +133,8 @@ class AnsiblePolisher(InventoryPolisher):
             else:
                 host_address = item['private_ips'][0]
 
-            hosts.append("{} ansible_ssh_host={}".format(host, host_address))
+            hosts.append("{} private_ipv4={} ansible_ssh_host={}".format(
+                host, host_address, host_address))
 
             group = item['datacenterId']
             if group not in groups.keys():
