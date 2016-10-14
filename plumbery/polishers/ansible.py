@@ -145,6 +145,7 @@ class AnsiblePolisher(InventoryPolisher):
             tags = {tag.strip("#") for tag in description.split()
                     if tag.startswith("#")}
             for tag in tags:
+                tag = 'role='+tag
                 if tag not in groups.keys():
                     groups[tag] = []
                 groups[tag].append(host)
