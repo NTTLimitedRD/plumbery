@@ -32,7 +32,7 @@ class InventoryPolisher(PlumberyPolisher):
     like in the following example::
 
         ---
-        polishers:
+        actions:
           - inventory:
               output: inventory.yaml
         ---

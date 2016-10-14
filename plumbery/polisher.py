@@ -56,7 +56,7 @@ class PlumberyPolisher(object):
 
             ---
             safeMode: False
-            polishers:
+            actions:
               - configure:
                   file: nodes.yaml
               - ansible:

@@ -106,7 +106,7 @@ class PreparePolisher(PlumberyPolisher):
 
         ---
         safeMode: False
-        polishers:
+        actions:
           - prepare:
               key: ~/.ssh/id_rsa.pub
         ---

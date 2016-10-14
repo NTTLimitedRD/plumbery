@@ -31,7 +31,7 @@ class AnsiblePolisher(InventoryPolisher):
 
         ---
         safeMode: False
-        polishers:
+        actions:
           - ansible:
               output: inventory.yaml
         ---

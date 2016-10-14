@@ -16,7 +16,7 @@ Copy the text below and put it in a text file named ``fittings.yaml``:
 
     ---
 
-    polishers:
+    actions:
       - ansible:
           output: gigafox_ansible.yaml
       - inventory:

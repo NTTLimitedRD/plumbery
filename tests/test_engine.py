@@ -119,7 +119,7 @@ parameters:
 
 buildPolisher: alien
 
-polishers:
+actions:
   - ansible:
       output: gigafox_ansible.yaml
   - inventory:

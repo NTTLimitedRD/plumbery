@@ -427,12 +427,12 @@ class PlumberyEngine(object):
                         key,
                         self.parameters[key]['default']))
 
-        if 'polishers' in settings:
-            if not isinstance(settings['polishers'], list):
-                raise TypeError('polishers should be a list')
+        if 'actions' in settings:
+            if not isinstance(settings['actions'], list):
+                raise TypeError('actions should be a list')
 
-            plogging.debug("Polishers:")
-            for item in settings['polishers']:
+            plogging.debug("Actions:")
+            for item in settings['actions']:
                 key = list(item)[0]
                 value = item[key]
                 self.polishers.append(
