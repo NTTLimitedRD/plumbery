@@ -643,10 +643,10 @@ class PreparePolisher(PlumberyPolisher):
 
         """
 
-        if 'reap' not in self.settings:
+        if 'output' not in self.settings:
             return
 
-        fileName = self.settings['reap']
+        fileName = self.settings['output']
         plogging.info("Reporting on preparations in '{}'".format(fileName))
         with open(fileName, 'w') as stream:
             stream.write(yaml.dump(self.report, default_flow_style=False))

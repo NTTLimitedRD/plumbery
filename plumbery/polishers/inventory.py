@@ -34,7 +34,7 @@ class InventoryPolisher(PlumberyPolisher):
         ---
         polishers:
           - inventory:
-              reap: inventory.yaml
+              output: inventory.yaml
         ---
         # Frankfurt in Europe
         locationId: EU6
@@ -156,8 +156,8 @@ class InventoryPolisher(PlumberyPolisher):
         if len(self.inventory) < 1:
             return
 
-        if 'reap' in self.settings:
-            fileName = self.settings['reap']
+        if 'output' in self.settings:
+            fileName = self.settings['output']
             plogging.info("Writing inventory in '{}'".format(fileName))
             stream = open(fileName, 'w')
         else:

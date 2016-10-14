@@ -121,12 +121,12 @@ buildPolisher: alien
 
 polishers:
   - ansible:
-      reap: gigafox_ansible.yaml
+      output: gigafox_ansible.yaml
   - inventory:
-      reap: gigafox_inventory.yaml
+      output: gigafox_inventory.yaml
   - prepare:
       key: ~/.ssh/id_rsa.pub
-      reap: gigafox_prepares.yaml
+      output: gigafox_prepares.yaml
 
 ---
 # Frankfurt in Europe

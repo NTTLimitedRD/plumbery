@@ -18,12 +18,12 @@ Copy the text below and put it in a text file named ``fittings.yaml``:
 
     polishers:
       - ansible:
-          reap: gigafox_ansible.yaml
+          output: gigafox_ansible.yaml
       - inventory:
-          reap: gigafox_inventory.yaml
+          output: gigafox_inventory.yaml
       - rub:
           key: ~/.ssh/id_rsa.pub
-          reap: gigafox_rubs.yaml
+          output: gigafox_rubs.yaml
 
     # each facility is described separately
     ---
