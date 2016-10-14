@@ -331,7 +331,7 @@ class PlumberyText:
             lines = content.split('\\n')
 
         if len(lines) == 1:              # quote string if it would fool yaml
-            if content[-1] in ('-', '\\', '|'):
+            if len(content) > 0 and content[-1] in ('-', '\\', '|'):
                 return '"'+content+'"'
             return content
 
