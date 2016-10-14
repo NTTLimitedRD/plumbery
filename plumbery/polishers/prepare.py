@@ -194,7 +194,7 @@ class PreparePolisher(PlumberyPolisher):
                     plogging.debug("- vmware tools is already up-to-date")
                     return True
 
-                plogging.info("- unable to upgrade vmware tools")
+                plogging.warning("- unable to upgrade vmware tools")
                 plogging.warning(str(feedback))
                 return False
 
@@ -214,7 +214,7 @@ class PreparePolisher(PlumberyPolisher):
         """
 
         if node is None or node.state != NodeState.RUNNING:
-            plogging.info("- skipped - node is not running")
+            plogging.warning("- skipped - node is not running")
             return False
 
         # select the address to use
@@ -239,10 +239,10 @@ class PreparePolisher(PlumberyPolisher):
         try:
             session.connect()
         except Exception as feedback:
-            plogging.info("Error: unable to prepare '{}' at '{}'!".format(
+            plogging.error("Error: unable to prepare '{}' at '{}'!".format(
                 node.name, target_ip))
             plogging.error(str(feedback))
-            plogging.info("- failed")
+            plogging.error("- failed")
             return False
 
         while True:
@@ -258,10 +258,10 @@ class PreparePolisher(PlumberyPolisher):
                     time.sleep(10)
                     continue
 
-                plogging.info("Error: unable to prepare '{}' at '{}'!".format(
+                plogging.error("Error: unable to prepare '{}' at '{}'!".format(
                     node.name, target_ip))
                 plogging.error(str(feedback))
-                plogging.info("- failed")
+                plogging.error("- failed")
                 result = False
 
             else:
@@ -561,7 +561,7 @@ class PreparePolisher(PlumberyPolisher):
             plogging.info("- beachheading at '{}'".format(
                 self.facility.get_setting('locationId')))
         else:
-            plogging.debug("- '{}' is unreachable".format(
+            plogging.info("- '{}' is unreachable".format(
                 self.facility.get_setting('locationId')))
 
     def shine_node(self, node, settings, container):
@@ -581,7 +581,7 @@ class PreparePolisher(PlumberyPolisher):
 
         plogging.info("Preparing node '{}'".format(settings['name']))
         if node is None:
-            plogging.info("- not found")
+            plogging.error("- not found")
             return
 
         timeout = 300
@@ -594,7 +594,7 @@ class PreparePolisher(PlumberyPolisher):
                 break
 
         if node.state != NodeState.RUNNING:
-            plogging.info("- skipped - node is not running")
+            plogging.error("- skipped - node is not running")
             return
 
         self.upgrade_vmware_tools(node)
@@ -612,7 +612,7 @@ class PreparePolisher(PlumberyPolisher):
                 node.public_ips[0]))
 
         elif not self.beachheading:
-            plogging.info('- node is unreachable')
+            plogging.error('- node is unreachable')
             self.report.append({node.name: {
                 'status': 'unreachable'
                 }})
@@ -625,7 +625,7 @@ class PreparePolisher(PlumberyPolisher):
             steps.append(item['genius'])
 
         if self._apply_prepares(node, MultiStepDeployment(steps)):
-            plogging.info('- done')
+            plogging.info('- rebooting')
             self.report.append({node.name: {
                 'status': 'completed',
                 'prepares': descriptions
