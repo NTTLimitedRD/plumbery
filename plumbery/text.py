@@ -217,7 +217,8 @@ class PlumberyText:
                               | set(range(0x20, 0x100)) - {0x7f})
 
         if (sys.version_info > (3, 0)):
-            is_binary = lambda bytes: bool(bytes.translate(textchars))
+            return True
+#            is_binary = lambda bytes: bool(bytes.translate(textchars))
         else:
             is_binary = lambda bytes: bool(bytes.translate(None, textchars))
 
