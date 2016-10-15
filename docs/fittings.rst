@@ -115,7 +115,7 @@ If this new machine will run Ubuntu, you could say:
       write_files:
 
         - path: /etc/profile.d/cisco_spark.sh
-          permissions: "0700"
+          permissions: "0755"
           content: |
             #!/bin/sh
             export CISCO_SPARK_TOKEN="{{ environment.CISCO_SPARK_TOKEN }}"
@@ -129,7 +129,7 @@ Therefore the configuration file actually transmitted to the target machine coul
       write_files:
 
         - path: /etc/profile.d/cisco_spark.sh
-          permissions: "0700"
+          permissions: "0755"
           content: |
             #!/bin/sh
             export CISCO_SPARK_TOKEN="YWM2OEG4OGItNTQ5YS00MDU2LThkNWEtMJNkODk3ZDZLOGQ0OVGlZWU1NmYtZWyY"
