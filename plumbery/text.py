@@ -220,7 +220,7 @@ class PlumberyText:
         text_characters = "".join(map(chr, range(32, 127))) + "\n\r\t\b"
 
         if (sys.version_info > (3, 0)):
-            _null_trans = bytes.maketrans("", "")
+            _null_trans = bytes.maketrans(b"", b"")
         else:
             _null_trans = string.maketrans("", "")
 
