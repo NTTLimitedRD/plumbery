@@ -227,12 +227,13 @@ class PlumberyEngine(object):
         :param label: the name of the parameter to be retrieved
         :type label: ``str``
 
-        :return: the value set in fittings plan, or `None`
+        :return: the value set externallly, or default in fittings plan
         :rtype: ``str`` most often, or ``dict`` or something else
 
         """
 
-        label = label.split('.')[0]
+        if label.startswith('parameter.'):
+            label = label[len('parameter.'):]
 
         if label not in self.parameters:
             raise KeyError("Parameter '{}' is unknown".format(label))
@@ -313,6 +314,9 @@ class PlumberyEngine(object):
                         for key in settings['parameters'].keys():
                             if 'parameter.'+key in parameters:
                                 continue
+                            if 'default' not in settings['parameters'][key]:
+                                raise ValueError("Parameter '{}' has no default value"
+                                                 .format(key))
                             parameters['parameter.'+key] = settings['parameters'][key]['default']
                     break
 

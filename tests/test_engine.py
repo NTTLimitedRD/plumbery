@@ -61,9 +61,9 @@ DIMENSIONDATA_PARAMS = ('user', 'password')
 
 myParameters = {
 
-    'locationId': 'NA9',
-    'domainName': 'justInTimeDomain',
-    'networkName': 'justInTimeNetwork'
+    'locationId': 'EU8',
+    'domainName': 'aDifferentDomain',
+    'networkName': 'aDifferentNetwork'
 
     }
 
@@ -132,6 +132,48 @@ actions:
 # Frankfurt in Europe
 locationId: "{{ parameter.locationId }}"
 regionId: dd-eu
+
+blueprints:
+
+  - myBlueprint:
+      domain:
+        name: "{{ parameter.domainName }}"
+      ethernet:
+        name: "{{ parameter.networkName }}"
+        subnet: 10.1.10.0
+      nodes:
+        - myServer:
+"""
+
+myBadPlan1 = """
+---
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU6
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: myDC
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: myVLAN
+
+  parameterWithoutDefaultValue:
+    information:
+      - "this definition is partial, and missing a defautl value"
+    type: str
+
+---
+locationId: "{{ parameter.locationId }}"
 
 blueprints:
 
@@ -377,25 +419,60 @@ class TestPlumberyEngine(unittest.TestCase):
     def test_parameters(self):
 
         engine = PlumberyEngine()
-        engine.set_parameters(myParameters)
 
         parameters = engine.get_parameters()
-        self.assertEqual(parameters['parameter.locationId'],
-                         'NA9')
-        self.assertEqual(parameters['parameter.domainName'],
-                         'justInTimeDomain')
-        self.assertEqual(parameters['parameter.networkName'],
-                         'justInTimeNetwork')
+        self.assertTrue('parameter.locationId' not in parameters)
+        self.assertTrue('parameter.domainName' not in parameters)
+        self.assertTrue('parameter.networkName' not in parameters)
+
+        with self.assertRaises(KeyError):
+            engine.get_parameter('locationId')
+        with self.assertRaises(KeyError):
+            engine.get_parameter('domainName')
+        with self.assertRaises(KeyError):
+            engine.get_parameter('perfectlyUnknownParameter')
+
+        with self.assertRaises(ValueError):
+            engine.set_fittings(myBadPlan1)
 
         engine.set_fittings(myPlan)
 
         parameters = engine.get_parameters()
         self.assertEqual(parameters['parameter.locationId'],
-                         'NA9')
+                         'EU6')
         self.assertEqual(parameters['parameter.domainName'],
-                         'justInTimeDomain')
+                         'myDC')
         self.assertEqual(parameters['parameter.networkName'],
-                         'justInTimeNetwork')
+                         'myVLAN')
+
+        self.assertEqual(engine.get_parameter('locationId'),
+                         'EU6')
+        self.assertEqual(engine.get_parameter('parameter.locationId'),
+                         'EU6')
+        with self.assertRaises(KeyError):
+            engine.get_parameter('perfectlyUnknownParameter')
+
+        engine = PlumberyEngine()
+
+        engine.set_parameters(myParameters)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['parameter.locationId'],
+                         'EU8')
+        self.assertEqual(parameters['parameter.domainName'],
+                         'aDifferentDomain')
+        self.assertEqual(parameters['parameter.networkName'],
+                         'aDifferentNetwork')
+
+        engine.set_fittings(myPlan)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['parameter.locationId'],
+                         'EU8')
+        self.assertEqual(parameters['parameter.domainName'],
+                         'aDifferentDomain')
+        self.assertEqual(parameters['parameter.networkName'],
+                         'aDifferentNetwork')
 
         self.assertEqual(engine.safeMode, False)
 
@@ -410,21 +487,21 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(len(cloudConfig.keys()), 5)
 
         parameter = engine.get_parameter('locationId')
-        self.assertEqual(parameter, 'NA9')
+        self.assertEqual(parameter, 'EU8')
 
         parameter = engine.get_parameter('domainName')
-        self.assertEqual(parameter, 'justInTimeDomain')
+        self.assertEqual(parameter, 'aDifferentDomain')
 
         parameter = engine.get_parameter('networkName')
-        self.assertEqual(parameter, 'justInTimeNetwork')
+        self.assertEqual(parameter, 'aDifferentNetwork')
 
         self.assertEqual(len(engine.facilities), 1)
         facility = engine.facilities[0]
-        self.assertEqual(facility.settings['locationId'], 'NA9')
+        self.assertEqual(facility.settings['locationId'], 'EU8')
         self.assertEqual(facility.settings['regionId'], 'dd-eu')
         blueprint = facility.blueprints[0]['myBlueprint']
-        self.assertEqual(blueprint['domain']['name'], 'justInTimeDomain')
-        self.assertEqual(blueprint['ethernet']['name'], 'justInTimeNetwork')
+        self.assertEqual(blueprint['domain']['name'], 'aDifferentDomain')
+        self.assertEqual(blueprint['ethernet']['name'], 'aDifferentNetwork')
 
     def test_set(self):
 
