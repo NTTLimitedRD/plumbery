@@ -221,10 +221,10 @@ class PlumberyText:
 
         if (sys.version_info > (3, 0)):
             _null_trans = bytes.maketrans(b"", b"")
+            non_text_characters = content.translate(_null_trans)
         else:
             _null_trans = string.maketrans("", "")
-
-        non_text_characters = content.translate(_null_trans, text_characters)
+            non_text_characters = content.translate(_null_trans, text_characters)
 
         if len(non_text_characters) * 3 > len(text_characters):
             return False
