@@ -432,6 +432,9 @@ class TestPlumberyEngine(unittest.TestCase):
         with self.assertRaises(KeyError):
             engine.get_parameter('perfectlyUnknownParameter')
 
+        with self.assertRaises(KeyError):
+            engine.lookup('parameter.locationId')
+
         with self.assertRaises(ValueError):
             engine.set_fittings(myBadPlan1)
 
@@ -502,6 +505,13 @@ class TestPlumberyEngine(unittest.TestCase):
         blueprint = facility.blueprints[0]['myBlueprint']
         self.assertEqual(blueprint['domain']['name'], 'aDifferentDomain')
         self.assertEqual(blueprint['ethernet']['name'], 'aDifferentNetwork')
+
+    def test_environment(self):
+
+        engine = PlumberyEngine()
+        self.assertTrue(len(engine.lookup('environment.PATH')) > 0)
+        with self.assertRaises(KeyError):
+            engine.lookup('environment.PERFECTLY_UNKNOWN_FROM_HERE')
 
     def test_set(self):
 

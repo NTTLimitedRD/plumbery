@@ -98,6 +98,46 @@ You can then include another document(s) with the public cloud fittings:
     blueprints:
       ...
 
+Environment variables
+---------------------
+
+Environment variables are those set on the system that is running plumbery.
+If you mention an environment variable in a fitting plan, it will be transmitted and used on the target nodes.
+You can think about it as a convenient way to share configuration across nodes created by plumbery.
+On the other end, you may take the risk to expose sensitive information outside your computer.
+
+For example, let say that you deploy a virtual machine that will talk to the Cisco Spark API.
+Before this, you registered to Cisco developer eco-system and got a token that has been saved in CISCO_SPARK_TOKEN, on your workstation. The most straightforward approach would be to just copy this to the target virtual machine.
+If this new machine will run Ubuntu, you could say:
+
+      write_files:
+
+        - path: /etc/profile.d/cisco_spark.sh
+          permissions: "0700"
+          content: |
+            #!/bin/sh
+            export CISCO_SPARK_TOKEN="{{ environment.CISCO_SPARK_TOKEN }}"
+
+During the processing of the fitting plan, plumbery will replace `{{ environment.CISCO_SPARK_TOKEN }}`
+with the actual value of the token on your machine, for example, `YWM2OEG4OGItNTQ5YS00MDU2LThkNWEtMJNkODk3ZDZLOGQ0OVGlZWU1NmYtZWyY`.
+Therefore the configuration file actually transmitted to the target machine will be like the following:
+
+      write_files:
+
+        - path: /etc/profile.d/cisco_spark.sh
+          permissions: "0700"
+          content: |
+            #!/bin/sh
+            export CISCO_SPARK_TOKEN="YWM2OEG4OGItNTQ5YS00MDU2LThkNWEtMJNkODk3ZDZLOGQ0OVGlZWU1NmYtZWyY"
+
+
+When the target virtual machine will boot, the token will be made available in every user sessions.
+
+Please note that this is probably a very lazy approach, that does induce security risks.
+In the situation described before, the right way to do it would be to get a separate token for the new
+machine, instead of sharing a secret from your own machine. You have been warned.
+
+
 Dynamic variables
 -----------------
 

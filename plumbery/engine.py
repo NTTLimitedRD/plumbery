@@ -1703,4 +1703,11 @@ class PlumberyEngine(object):
         if token.startswith('http://') or token.startswith('https://'):
             return self.get_secret(token)
 
+        if token.startswith('environment.'):
+            key = token[len('environment.'):]
+            value = os.environ.get(key)
+            if value is None:
+                raise KeyError("'{}' is absent from environment".format(key))
+            return value
+
         return None
