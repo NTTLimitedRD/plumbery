@@ -558,10 +558,10 @@ class PreparePolisher(PlumberyPolisher):
                 break
 
         if self.beachheading:
-            plogging.info("- beachheading at '{}'".format(
+            plogging.debug("- beachheading at '{}'".format(
                 self.facility.get_setting('locationId')))
         else:
-            plogging.info("- '{}' is unreachable".format(
+            plogging.debug("- not beachheading at '{}'".format(
                 self.facility.get_setting('locationId')))
 
     def shine_node(self, node, settings, container):
