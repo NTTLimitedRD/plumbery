@@ -218,7 +218,11 @@ class PlumberyText:
             return False
 
         text_characters = "".join(map(chr, range(32, 127))) + "\n\r\t\b"
-        _null_trans = string.maketrans("", "")
+
+        if (sys.version_info > (3, 0)):
+            _null_trans = bytes.maketrans("", "")
+        else:
+            _null_trans = string.maketrans("", "")
 
         non_text_characters = content.translate(_null_trans, text_characters)
 
