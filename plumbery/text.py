@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 import sys
 import six
+import string
 import yaml
 from six import string_types
 from plumbery.plogging import plogging
@@ -213,16 +214,18 @@ class PlumberyText:
 
         """
 
-        textchars = bytearray({7, 8, 9, 10, 12, 13, 27}
-                              | set(range(0x20, 0x100)) - {0x7f})
+        if "\0" in content:
+            return False
 
-        if (sys.version_info > (3, 0)):
-            return True
-#            is_binary = lambda bytes: bool(bytes.translate(textchars))
-        else:
-            is_binary = lambda bytes: bool(bytes.translate(None, textchars))
+        text_characters = "".join(map(chr, range(32, 127))) + "\n\r\t\b"
+        _null_trans = string.maketrans("", "")
 
-        return not is_binary(content)
+        non_text_characters = content.translate(_null_trans, text_characters)
+
+        if len(non_text_characters) * 3 > len(text_characters):
+            return False
+
+        return True
 
     @classmethod
     def dump(cls, content):
