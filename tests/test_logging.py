@@ -14,6 +14,13 @@ from plumbery.plogging import plogging
 class TestPlumberyLogging(unittest.TestCase):
 
     def test_direct(self):
+
+        class DullHandler(logging.NullHandler):
+            level = logging.DEBUG
+            def emit(self, record):
+                log_entry = self.format(record)
+
+        plogging.addHandler(DullHandler())
         plogging.setLevel(logging.DEBUG)
         self.assertEqual(plogging.getEffectiveLevel(), logging.DEBUG)
         plogging.debug("hello world -- debug")
