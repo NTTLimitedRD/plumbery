@@ -26,6 +26,7 @@ class PlumberyLogging(object):
     def __init__(self):
 
         self.logger = logging.getLogger('plumbery')
+        self.logger.propagate = 0
 
         # logging to console
         #
@@ -45,6 +46,7 @@ class PlumberyLogging(object):
             style='%'
         )
         handler.setFormatter(formatter)
+
         self.logger.addHandler(handler)
 
         self.reset()
