@@ -217,19 +217,10 @@ class PlumberyText:
         if "\0" in content:
             return False
 
-        text_characters = "".join(map(chr, range(32, 127))) + "\n\r\t\b"
+        if content[0] in string.printable+'#':
+            return True
 
-        if (sys.version_info > (3, 0)):
-            _null_trans = bytes.maketrans(b"", b"")
-            non_text_characters = content.translate(_null_trans)
-        else:
-            _null_trans = string.maketrans("", "")
-            non_text_characters = content.translate(_null_trans, text_characters)
-
-        if len(non_text_characters) * 3 > len(text_characters):
-            return False
-
-        return True
+        return False
 
     @classmethod
     def dump(cls, content):
