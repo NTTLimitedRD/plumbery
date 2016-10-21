@@ -214,7 +214,7 @@ class PlumberyText:
 
         """
 
-        if "\0" in content:
+        if b"\0" in content:
             return False
 
         if content[0] in string.printable+'#':
