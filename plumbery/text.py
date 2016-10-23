@@ -214,7 +214,7 @@ class PlumberyText:
 
         """
 
-        if str(content[0]) in string.printable+'#':
+        if str(content[0]) in string.ascii_letters+string.digits+' \t\r\n#/-,.;=':
             return True
 
         return False
