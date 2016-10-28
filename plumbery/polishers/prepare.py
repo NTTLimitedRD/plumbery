@@ -78,8 +78,28 @@ class RebootDeployment(Deployment):
 
         See also :class:`Deployment.run`
         """
-        self.region.reboot_node(node)
-        return node
+        repeats = 0
+        while True:
+            try:
+                self.region.reboot_node(node)
+
+            except Exception as feedback:
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                if 'VMWARE_TOOLS_INVALID_STATUS' in str(feedback):
+                    if repeats < 5:
+                        time.sleep(10)
+                        repeats += 1
+                        continue
+
+                plogging.error("- unable to reboot node")
+                plogging.error(str(feedback))
+
+            finally:
+                return node
+
 
 
 class PreparePolisher(PlumberyPolisher):
