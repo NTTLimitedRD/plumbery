@@ -1334,7 +1334,7 @@ class PlumberyEngine(object):
         if len(polishers) < 1:
             return False
 
-        plogging.info("Polishing all blueprints")
+        plogging.info("Processing all blueprints")
 
         for polisher in polishers:
             polisher.go(self)
@@ -1389,7 +1389,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        plogging.info("Polishing blueprint '{}'".format(label))
+        plogging.info("Processing blueprint '{}'".format(label))
 
         for polisher in polishers:
             polisher.go(self)
