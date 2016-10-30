@@ -569,7 +569,7 @@ class PlumberyEngine(object):
                 path = '~/.ssh/id_rsa.pub'
 
                 with open(os.path.expanduser(path)) as stream:
-                    plogging.info("- loading {} from {}".format(id, path))
+                    plogging.debug("- loading {} from {}".format(id, path))
                     text = stream.read().strip()
                     stream.close()
                     return text
