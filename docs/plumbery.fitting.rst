@@ -1,7 +1,7 @@
-plumbery.logging module
+plumbery.fitting module
 =======================
 
-.. automodule:: plumbery.logging
+.. automodule:: plumbery.fitting
     :members:
     :undoc-members:
     :show-inheritance:

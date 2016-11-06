@@ -261,12 +261,11 @@ class InformationPolisher(PlumberyPolisher):
         if len(self.information) < 1:
             return
 
-        if 'reap' in self.settings:
-            fileName = self.settings['reap']
+        if 'output' in self.settings:
+            fileName = self.settings['output']
             plogging.info("Writing information in '{}'".format(fileName))
             stream = open(fileName, 'w')
+            stream.write('\n'.join(self.information)+'\n')
         else:
-            plogging.info("Showing information")
-            stream = sys.stdout
+            plogging.info('\n'.join(self.information)+'\n')
 
-        stream.write('\n'.join(self.information)+'\n')

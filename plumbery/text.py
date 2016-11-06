@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 import sys
 import six
+import string
 import yaml
 from six import string_types
 from plumbery.plogging import plogging
@@ -213,15 +214,10 @@ class PlumberyText:
 
         """
 
-        textchars = bytearray({7, 8, 9, 10, 12, 13, 27}
-                              | set(range(0x20, 0x100)) - {0x7f})
+        if str(content[0]) in string.ascii_letters+string.digits+' \t\r\n#/-,.;=':
+            return True
 
-        if (sys.version_info > (3, 0)):
-            is_binary = lambda bytes: bool(bytes.translate(textchars))
-        else:
-            is_binary = lambda bytes: bool(bytes.translate(None, textchars))
-
-        return not is_binary(content)
+        return False
 
     @classmethod
     def dump(cls, content):
@@ -250,6 +246,9 @@ class PlumberyText:
         :return: the related string
 
         """
+        if isinstance(content, int):
+            return cls.dump_str(str(content), spaces+2)
+
         if isinstance(content, str):
             content = yaml.load(content)
 
@@ -331,7 +330,7 @@ class PlumberyText:
             lines = content.split('\\n')
 
         if len(lines) == 1:              # quote string if it would fool yaml
-            if content[-1] in ('-', '\\', '|'):
+            if len(content) > 0 and content[-1] in ('-', '\\', '|'):
                 return '"'+content+'"'
             return content
 
@@ -460,24 +459,5 @@ class PlumberyNodeContext:
                 return node.public_ips[0]
             else:
                 return ''
-
-        ethernet = self.container.get_ethernet(tokens[1])
-        if ethernet is not None:
-
-            if tokens[2] == 'gateway':
-
-                if len(tokens) > 3 and tokens[3] == 'ipv6':
-                    return ethernet.ipv6_gateway
-
-                else:
-                    return ethernet.ipv4_gateway
-
-            elif tokens[2] == 'netmask':
-
-                if len(tokens) > 3 and tokens[3] == 'ipv6':
-                    return ethernet.ipv6_range_size
-
-                else:
-                    return ethernet.private_ipv4_range_address
 
         return None

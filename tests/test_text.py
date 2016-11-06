@@ -215,7 +215,7 @@ content: |
 
 input9 = """
 ssh-authorized-keys:
-- "{{ local.rsa_public }}"
+- "{{ rsa_public.local }}"
 """
 
 input10 = """
@@ -312,6 +312,56 @@ class TestPlumberyText(unittest.TestCase):
         expected = engine.get_user_name()+" "+engine.get_user_password()
         self.assertEqual(
             self.text.expand_string(template, context), expected)
+
+    def test_bad_parameters(self):
+
+        with self.assertRaises(TypeError):
+            self.text.expand_parameters(1234, {})
+        with self.assertRaises(TypeError):
+            self.text.expand_parameters({}, {})
+
+        template = 'little {{ test with multiple {{test and {{ as well'
+        context = PlumberyContext(dictionary={'test': 'toast'})
+        self.assertEqual(
+            self.text.expand_parameters(template, context), template)
+
+        template = 'little {{ }} test and {{      }} as well'
+        context = PlumberyContext(dictionary={'test': 'toast'})
+        self.assertEqual(
+            self.text.expand_parameters(template, context), template)
+
+        template = "{{ parameter.is.unknown }}"
+        context = PlumberyContext(dictionary={'test': 'toast'})
+        with self.assertRaises(KeyError):
+            self.text.expand_parameters(template, context)
+
+    def test_bad_string(self):
+
+        self.text.expand_string(1234, {})
+        self.text.expand_string({}, {})
+
+        template = 'little {{ test with multiple {{test and {{ as well'
+        context = PlumberyContext(dictionary={'test': 'toast'})
+        self.assertEqual(
+            self.text.expand_string(template, context), template)
+
+        template = 'little {{ }} test and {{      }} as well'
+        context = PlumberyContext(dictionary={'test': 'toast'})
+        self.assertEqual(
+            self.text.expand_string(template, context), template)
+
+        template = "{{ secret.is.unknown }}"
+        context = PlumberyContext(dictionary={'test': 'toast'})
+        self.assertEqual(
+            self.text.expand_string(template, context), template)
+
+    def test_could_expand(self):
+
+        template = 'little {{ test with multiple {{test and {{ as well'
+        self.assertTrue(self.text.could_expand(template))
+
+#        template = b'\x00\xFF\x00\xFF'
+#        self.assertFalse(self.text.could_expand(template))
 
     def test_input1(self):
 

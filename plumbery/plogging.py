@@ -25,6 +25,9 @@ class PlumberyLogging(object):
 
     def __init__(self):
 
+        self.logger = logging.getLogger('plumbery')
+        self.logger.propagate = 0
+
         # logging to console
         #
         handler = colorlog.StreamHandler()
@@ -43,7 +46,8 @@ class PlumberyLogging(object):
             style='%'
         )
         handler.setFormatter(formatter)
-        logging.getLogger('').addHandler(handler)
+
+        self.logger.addHandler(handler)
 
         self.reset()
 
@@ -54,27 +58,29 @@ class PlumberyLogging(object):
         return self.errors > 0
 
     def debug(self, *args):
-        logging.debug(*args)
+        self.logger.debug(*args)
 
     def info(self, *args):
-        logging.info(*args)
+        self.logger.info(*args)
 
     def warning(self, *args):
-        logging.warning(*args)
+        self.logger.warning(*args)
 
     def error(self, *args):
-        logging.error(*args)
+        self.logger.error(*args)
         self.errors += 1
 
     def critical(self, *args):
-        logging.critical(*args)
+        self.logger.critical(*args)
         self.errors += 1
 
     def getEffectiveLevel(self):
-        return logging.getLogger('').getEffectiveLevel()
+        return self.logger.getEffectiveLevel()
 
     def setLevel(self, level):
-        logging.getLogger('').setLevel(level)
+        self.logger.setLevel(level)
 
+    def addHandler(self, handler):
+        self.logger.addHandler(handler)
 
 plogging = PlumberyLogging()

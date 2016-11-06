@@ -131,10 +131,7 @@ connection.
 You will have to accept the new host, then provide the password used for the
 creation of the node ``beahhead``.
 
-After that you can do whatever you want on this server. For example, you may
-want to follow instructions from :doc:`getting_started` to finalize the setup
-of the environment at ``beachhead`` : credentials to Dimension Data cloud
-services, etc.
+After that you can do whatever you want on this server.
 
 .. _`a reference page full of examples`: http://cloudinit.readthedocs.org/en/latest/topics/examples.html
 

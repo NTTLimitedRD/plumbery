@@ -263,7 +263,7 @@ class PlumberyNodes(object):
                             while True:
                                 node = self.get_node(label)
                                 if node is None:
-                                    plogging.info("- aborted - missing node '{}'".format(label))
+                                    plogging.error("- aborted - missing node '{}'".format(label))
                                     return
 
                                 if node.extra['status'].action is None:
@@ -272,7 +272,7 @@ class PlumberyNodes(object):
                                 if (node is not None
                                         and node.extra['status'].failure_reason is not None):
 
-                                    plogging.info("- aborted - failed deployment "
+                                    plogging.error("- aborted - failed deployment "
                                                  "of node '{}'".format(label))
                                     return
 

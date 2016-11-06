@@ -31,9 +31,9 @@ class AnsiblePolisher(InventoryPolisher):
 
         ---
         safeMode: False
-        polishers:
+        actions:
           - ansible:
-              reap: inventory.yaml
+              output: inventory.yaml
         ---
         # Frankfurt in Europe
         locationId: EU6
@@ -133,7 +133,8 @@ class AnsiblePolisher(InventoryPolisher):
             else:
                 host_address = item['private_ips'][0]
 
-            hosts.append("{} ansible_ssh_host={}".format(host, host_address))
+            hosts.append("{} private_ipv4={} ansible_host={}".format(
+                host, host_address, host_address))
 
             group = item['datacenterId']
             if group not in groups.keys():
@@ -144,12 +145,13 @@ class AnsiblePolisher(InventoryPolisher):
             tags = {tag.strip("#") for tag in description.split()
                     if tag.startswith("#")}
             for tag in tags:
+                tag = 'role='+tag
                 if tag not in groups.keys():
                     groups[tag] = []
                 groups[tag].append(host)
 
-        if 'reap' in self.settings:
-            fileName = self.settings['reap']
+        if 'output' in self.settings:
+            fileName = self.settings['output']
             plogging.info("Writing inventory for ansible in '{}'".format(
                 fileName))
             stream = open(fileName, 'w')

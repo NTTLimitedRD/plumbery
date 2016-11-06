@@ -78,8 +78,28 @@ class RebootDeployment(Deployment):
 
         See also :class:`Deployment.run`
         """
-        self.region.reboot_node(node)
-        return node
+        repeats = 0
+        while True:
+            try:
+                self.region.reboot_node(node)
+
+            except Exception as feedback:
+                if 'RESOURCE_BUSY' in str(feedback):
+                    time.sleep(10)
+                    continue
+
+                if 'VMWARE_TOOLS_INVALID_STATUS' in str(feedback):
+                    if repeats < 5:
+                        time.sleep(10)
+                        repeats += 1
+                        continue
+
+                plogging.error("- unable to reboot node")
+                plogging.error(str(feedback))
+
+            finally:
+                return node
+
 
 
 class PreparePolisher(PlumberyPolisher):
@@ -106,7 +126,7 @@ class PreparePolisher(PlumberyPolisher):
 
         ---
         safeMode: False
-        polishers:
+        actions:
           - prepare:
               key: ~/.ssh/id_rsa.pub
         ---
@@ -194,8 +214,8 @@ class PreparePolisher(PlumberyPolisher):
                     plogging.debug("- vmware tools is already up-to-date")
                     return True
 
-                plogging.info("- unable to upgrade vmware tools")
-                plogging.error(str(feedback))
+                plogging.warning("- unable to upgrade vmware tools")
+                plogging.warning(str(feedback))
                 return False
 
     def _apply_prepares(self, node, steps):
@@ -214,7 +234,7 @@ class PreparePolisher(PlumberyPolisher):
         """
 
         if node is None or node.state != NodeState.RUNNING:
-            plogging.info("- skipped - node is not running")
+            plogging.warning("- skipped - node is not running")
             return False
 
         # select the address to use
@@ -231,7 +251,7 @@ class PreparePolisher(PlumberyPolisher):
         # use libcloud to communicate with remote nodes
         session = SSHClient(hostname=target_ip,
                             port=22,
-                            username='root',
+                            username=self.user,
                             password=self.secret,
                             key_files=path,
                             timeout=9)
@@ -239,10 +259,10 @@ class PreparePolisher(PlumberyPolisher):
         try:
             session.connect()
         except Exception as feedback:
-            plogging.info("Error: unable to prepare '{}' at '{}'!".format(
+            plogging.error("Error: unable to prepare '{}' at '{}'!".format(
                 node.name, target_ip))
             plogging.error(str(feedback))
-            plogging.info("- failed")
+            plogging.error("- failed")
             return False
 
         while True:
@@ -258,10 +278,10 @@ class PreparePolisher(PlumberyPolisher):
                     time.sleep(10)
                     continue
 
-                plogging.info("Error: unable to prepare '{}' at '{}'!".format(
+                plogging.error("Error: unable to prepare '{}' at '{}'!".format(
                     node.name, target_ip))
                 plogging.error(str(feedback))
-                plogging.info("- failed")
+                plogging.error("- failed")
                 result = False
 
             else:
@@ -312,7 +332,7 @@ class PreparePolisher(PlumberyPolisher):
                 and isinstance(settings['prepare'], list)
                 and len(settings['prepare']) > 0):
 
-            plogging.debug('- using prepare commands')
+            plogging.info('- using prepare commands')
 
             for script in settings['prepare']:
 
@@ -332,8 +352,7 @@ class PreparePolisher(PlumberyPolisher):
                         tokens[0], script, ' '.join(args)))
 
                     try:
-                        path = os.path.dirname(__file__)+'/'+script
-                        with open(path) as stream:
+                        with open(script) as stream:
                             text = stream.read()
 
                             if(tokens[0] == 'run'
@@ -345,6 +364,10 @@ class PreparePolisher(PlumberyPolisher):
                                     text, environment)
 
                             if len(text) > 0:
+
+                                plogging.info("- running '{}'"
+                                                  .format(script))
+
                                 prepares.append({
                                     'description': ' '.join(tokens),
                                     'genius': ScriptDeployment(
@@ -372,8 +395,7 @@ class PreparePolisher(PlumberyPolisher):
                         tokens[0], file, destination))
 
                     try:
-                        source = os.path.dirname(__file__)+'/'+file
-                        with open(source) as stream:
+                        with open(file) as stream:
                             content = stream.read()
 
                             if(tokens[0] == 'put'
@@ -384,6 +406,8 @@ class PreparePolisher(PlumberyPolisher):
                                 content = PlumberyText.expand_string(
                                     content, environment)
 
+                            plogging.info("- putting file '{}'"
+                                              .format(file))
                             prepares.append({
                                 'description': ' '.join(tokens),
                                 'genius': FileContentDeployment(
@@ -475,6 +499,7 @@ class PreparePolisher(PlumberyPolisher):
 
         self.report = []
 
+        self.user = engine.get_shared_user()
         self.secret = engine.get_shared_secret()
 
         self.key = None
@@ -553,10 +578,10 @@ class PreparePolisher(PlumberyPolisher):
                 break
 
         if self.beachheading:
-            plogging.info("- beachheading at '{}'".format(
+            plogging.debug("- beachheading at '{}'".format(
                 self.facility.get_setting('locationId')))
         else:
-            plogging.debug("- '{}' is unreachable".format(
+            plogging.debug("- not beachheading at '{}'".format(
                 self.facility.get_setting('locationId')))
 
     def shine_node(self, node, settings, container):
@@ -576,7 +601,7 @@ class PreparePolisher(PlumberyPolisher):
 
         plogging.info("Preparing node '{}'".format(settings['name']))
         if node is None:
-            plogging.info("- not found")
+            plogging.error("- not found")
             return
 
         timeout = 300
@@ -589,7 +614,7 @@ class PreparePolisher(PlumberyPolisher):
                 break
 
         if node.state != NodeState.RUNNING:
-            plogging.info("- skipped - node is not running")
+            plogging.error("- skipped - node is not running")
             return
 
         self.upgrade_vmware_tools(node)
@@ -607,7 +632,7 @@ class PreparePolisher(PlumberyPolisher):
                 node.public_ips[0]))
 
         elif not self.beachheading:
-            plogging.info('- node is unreachable')
+            plogging.error('- node is unreachable')
             self.report.append({node.name: {
                 'status': 'unreachable'
                 }})
@@ -620,7 +645,7 @@ class PreparePolisher(PlumberyPolisher):
             steps.append(item['genius'])
 
         if self._apply_prepares(node, MultiStepDeployment(steps)):
-            plogging.info('- done')
+            plogging.info('- rebooting')
             self.report.append({node.name: {
                 'status': 'completed',
                 'prepares': descriptions
@@ -638,10 +663,10 @@ class PreparePolisher(PlumberyPolisher):
 
         """
 
-        if 'reap' not in self.settings:
+        if 'output' not in self.settings:
             return
 
-        fileName = self.settings['reap']
+        fileName = self.settings['output']
         plogging.info("Reporting on preparations in '{}'".format(fileName))
         with open(fileName, 'w') as stream:
             stream.write(yaml.dump(self.report, default_flow_style=False))

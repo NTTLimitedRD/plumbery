@@ -56,7 +56,7 @@ class PlumberyPolisher(object):
 
             ---
             safeMode: False
-            polishers:
+            actions:
               - configure:
                   file: nodes.yaml
               - ansible:
@@ -96,20 +96,20 @@ class PlumberyPolisher(object):
         """
         if filter is None:
             for polisher in polishers:
-                plogging.info("Using polisher '{}'".format(
+                plogging.info("Using '{}'".format(
                     polisher.settings['name']))
             return polishers
 
         for polisher in polishers:
             if polisher.settings['name'] == filter:
-                plogging.info("Using polisher '{}'".format(filter))
+                plogging.info("Using '{}'".format(filter))
                 filtered = [polisher]
                 return filtered
 
         # generate an exception if no implementation is available
         polisher = PlumberyPolisher.from_shelf(filter)
 
-        plogging.info("Using polisher '{}'".format(filter))
+        plogging.info("Using '{}'".format(filter))
         return [polisher]
 
     @classmethod

@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from plumbery.plogging import plogging
+from plumbery.util import PlumberyParameters
 
 __all__ = ['PlumberyAction', 'PlumberyActionLoader']
 
@@ -22,8 +23,8 @@ class PlumberyAction(object):
     """
     Performs some action on elements described in the fittings plan
 
-    :param settings: specific settings for this action
-    :type param: ``dict``
+    :param parameters: specific parameters for this action
+    :type parameters: :class:`PlumberyParameters` or ``dict``
 
     An action is an imperative given to plumbery, such as
     'build', 'stop' or 'dispose'. It is commonly expressed as a verb, but
@@ -37,8 +38,40 @@ class PlumberyAction(object):
 
     """
 
-    def __init__(self, settings):
-        self.settings = settings
+    def __init__(self, parameters=PlumberyParameters()):
+        if parameters is None:
+            parameters=PlumberyParameters()
+        elif not isinstance(parameters, PlumberyParameters):
+            raise TypeError("'parameters' should be of type PlumberyParameters")
+
+        self.parameters = parameters
+
+    def get_type(self):
+        """
+        Provides the type of the action
+
+        :return: The type, such as 'build' or 'stop'
+        :rtype: ``str``
+
+        """
+
+        return self.type
+
+    def get_parameter(self, name, default=None):
+        """
+        Provides settings for this action
+
+        :param name: the parameter
+        :type name: ``str``
+
+        :param default: default value to return if the parameter has not been set
+        :type default: any
+
+        :return: the value of this parameter, or None
+
+        """
+
+        return self.parameters.get(name, default)
 
     def ignite(self, engine):
         """
@@ -103,6 +136,7 @@ class PlumberyAction(object):
 
         pass
 
+
 class PlumberyActionLoader(object):
     """
     Loads action classes dynamically
@@ -112,11 +146,11 @@ class PlumberyActionLoader(object):
 
     You can create actions of your own, or use actions from other
     persons. All actions have to be placed in the directory
-    ``plumbery.actions``. Each action should be put in a separate
+    ``plumbery/actions``. Each action should be put in a separate
     python file, and define a class that repeats the file name. For example
     the file::
 
-        plumbery\\actions\\configure.py
+        plumbery/actions/configure.py
 
     should contain::
 
@@ -146,15 +180,15 @@ class PlumberyActionLoader(object):
     """
 
     @classmethod
-    def from_shelf(cls, label, settings={}):
+    def from_shelf(cls, label, parameters=PlumberyParameters()):
         """
         Picks up an action from the shelf
 
         :param label: name of the action to use, e.g., ``inventory``
         :type label: ``str``
 
-        :param settings: specific settings for this action
-        :type param: ``dict``
+        :param parameters: specific parameters for this action
+        :type parameters: ``dict``
 
         :return: instance of a action ready to use
         :rtype: :class:`plumbery.PlumberyAction`
@@ -174,17 +208,28 @@ class PlumberyActionLoader(object):
 
             plogging.debug("Instantiating '{}'".format(actionName))
             actionClass = getattr(actionModule, actionName)
-            if settings is None:
-                settings = {}
-            settings['name'] = label
-            return actionClass(settings)
+            if parameters is None:
+                parameters = PlumberyParameters()
+            elif isinstance(parameters, dict):
+                parameters = PlumberyParameters(parameters)
+            action = actionClass(parameters)
+            action.type = label
+            return action
 
         except ImportError as feedback:
             plogging.debug("Unable to find module '{}'".format(moduleName))
-            raise feedback
+            raise
+
+        except TypeError as feedback:
+            plogging.debug("Invalid parameters for '{}'".format(moduleName))
+            raise
+
+        except ValueError as feedback:
+            plogging.debug("Invalid parameters for '{}'".format(moduleName))
+            raise
 
         except Exception as feedback:
             plogging.debug("Unable to import '{}' from '{}'".format(
                 actionName, moduleName))
-            raise feedback
+            raise
 

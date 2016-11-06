@@ -1,7 +1,7 @@
-plumbery.polishers.prepare module
+plumbery.fittings.ethernet module
 =================================
 
-.. automodule:: plumbery.polishers.prepare
+.. automodule:: plumbery.fittings.ethernet
     :members:
     :undoc-members:
     :show-inheritance:

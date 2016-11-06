@@ -61,9 +61,9 @@ DIMENSIONDATA_PARAMS = ('user', 'password')
 
 myParameters = {
 
-    'locationId': 'NA9',
-    'domainName': 'justInTimeDomain',
-    'networkName': 'justInTimeNetwork'
+    'locationId': 'EU8',
+    'domainName': 'aDifferentDomain',
+    'networkName': 'aDifferentNetwork'
 
     }
 
@@ -93,6 +93,10 @@ defaults:
 
       rsa_public: "{{ pair1.ssh.rsa_public }}"
 
+    write_files:
+
+    runcmd:
+
 parameters:
 
   locationId:
@@ -115,19 +119,61 @@ parameters:
 
 buildPolisher: alien
 
-polishers:
+actions:
   - ansible:
-      reap: gigafox_ansible.yaml
+      output: gigafox_ansible.yaml
   - inventory:
-      reap: gigafox_inventory.yaml
+      output: gigafox_inventory.yaml
   - prepare:
       key: ~/.ssh/id_rsa.pub
-      reap: gigafox_prepares.yaml
+      output: gigafox_prepares.yaml
 
 ---
 # Frankfurt in Europe
 locationId: "{{ parameter.locationId }}"
 regionId: dd-eu
+
+blueprints:
+
+  - myBlueprint:
+      domain:
+        name: "{{ parameter.domainName }}"
+      ethernet:
+        name: "{{ parameter.networkName }}"
+        subnet: 10.1.10.0
+      nodes:
+        - myServer:
+"""
+
+myBadPlan1 = """
+---
+parameters:
+
+  locationId:
+    information:
+      - "the target data centre for this deployment"
+    type: locations.list
+    default: EU6
+
+  domainName:
+    information:
+      - "the name of the network domain to be deployed"
+    type: str
+    default: myDC
+
+  networkName:
+    information:
+      - "the name of the Ethernet VLAN to be deployed"
+    type: str
+    default: myVLAN
+
+  parameterWithoutDefaultValue:
+    information:
+      - "this definition is partial, and missing a defautl value"
+    type: str
+
+---
+locationId: "{{ parameter.locationId }}"
 
 blueprints:
 
@@ -333,7 +379,7 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(domain['ipv4'], 'auto')
 
         cloudConfig = engine.get_default('cloud-config', {})
-        self.assertEqual(len(cloudConfig.keys()), 3)
+        self.assertEqual(len(cloudConfig.keys()), 5)
 
         self.assertEqual(len(engine.information), 2)
 
@@ -373,25 +419,63 @@ class TestPlumberyEngine(unittest.TestCase):
     def test_parameters(self):
 
         engine = PlumberyEngine()
-        engine.set_parameters(myParameters)
 
         parameters = engine.get_parameters()
-        self.assertEqual(parameters['parameter.locationId'],
-                         'NA9')
-        self.assertEqual(parameters['parameter.domainName'],
-                         'justInTimeDomain')
-        self.assertEqual(parameters['parameter.networkName'],
-                         'justInTimeNetwork')
+        self.assertTrue('parameter.locationId' not in parameters)
+        self.assertTrue('parameter.domainName' not in parameters)
+        self.assertTrue('parameter.networkName' not in parameters)
+
+        with self.assertRaises(KeyError):
+            engine.get_parameter('locationId')
+        with self.assertRaises(KeyError):
+            engine.get_parameter('domainName')
+        with self.assertRaises(KeyError):
+            engine.get_parameter('perfectlyUnknownParameter')
+
+        with self.assertRaises(KeyError):
+            engine.lookup('parameter.locationId')
+
+        with self.assertRaises(ValueError):
+            engine.set_fittings(myBadPlan1)
 
         engine.set_fittings(myPlan)
 
         parameters = engine.get_parameters()
         self.assertEqual(parameters['parameter.locationId'],
-                         'NA9')
+                         'EU6')
         self.assertEqual(parameters['parameter.domainName'],
-                         'justInTimeDomain')
+                         'myDC')
         self.assertEqual(parameters['parameter.networkName'],
-                         'justInTimeNetwork')
+                         'myVLAN')
+
+        self.assertEqual(engine.get_parameter('locationId'),
+                         'EU6')
+        self.assertEqual(engine.get_parameter('parameter.locationId'),
+                         'EU6')
+        with self.assertRaises(KeyError):
+            engine.get_parameter('perfectlyUnknownParameter')
+
+        engine = PlumberyEngine()
+
+        engine.set_parameters(myParameters)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['parameter.locationId'],
+                         'EU8')
+        self.assertEqual(parameters['parameter.domainName'],
+                         'aDifferentDomain')
+        self.assertEqual(parameters['parameter.networkName'],
+                         'aDifferentNetwork')
+
+        engine.set_fittings(myPlan)
+
+        parameters = engine.get_parameters()
+        self.assertEqual(parameters['parameter.locationId'],
+                         'EU8')
+        self.assertEqual(parameters['parameter.domainName'],
+                         'aDifferentDomain')
+        self.assertEqual(parameters['parameter.networkName'],
+                         'aDifferentNetwork')
 
         self.assertEqual(engine.safeMode, False)
 
@@ -403,24 +487,31 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(domain['ipv4'], 'auto')
 
         cloudConfig = engine.get_default('cloud-config', {})
-        self.assertEqual(len(cloudConfig.keys()), 3)
+        self.assertEqual(len(cloudConfig.keys()), 5)
 
         parameter = engine.get_parameter('locationId')
-        self.assertEqual(parameter, 'NA9')
+        self.assertEqual(parameter, 'EU8')
 
         parameter = engine.get_parameter('domainName')
-        self.assertEqual(parameter, 'justInTimeDomain')
+        self.assertEqual(parameter, 'aDifferentDomain')
 
         parameter = engine.get_parameter('networkName')
-        self.assertEqual(parameter, 'justInTimeNetwork')
+        self.assertEqual(parameter, 'aDifferentNetwork')
 
         self.assertEqual(len(engine.facilities), 1)
         facility = engine.facilities[0]
-        self.assertEqual(facility.settings['locationId'], 'NA9')
+        self.assertEqual(facility.settings['locationId'], 'EU8')
         self.assertEqual(facility.settings['regionId'], 'dd-eu')
         blueprint = facility.blueprints[0]['myBlueprint']
-        self.assertEqual(blueprint['domain']['name'], 'justInTimeDomain')
-        self.assertEqual(blueprint['ethernet']['name'], 'justInTimeNetwork')
+        self.assertEqual(blueprint['domain']['name'], 'aDifferentDomain')
+        self.assertEqual(blueprint['ethernet']['name'], 'aDifferentNetwork')
+
+    def test_environment(self):
+
+        engine = PlumberyEngine()
+        self.assertTrue(len(engine.lookup('environment.PATH')) > 0)
+        with self.assertRaises(KeyError):
+            engine.lookup('environment.PERFECTLY_UNKNOWN_FROM_HERE')
 
     def test_set(self):
 
@@ -443,6 +534,10 @@ class TestPlumberyEngine(unittest.TestCase):
 
         engine.add_facility(myFacility)
         self.assertEqual(len(engine.facilities), 1)
+
+        self.assertEqual(engine.get_shared_user(), 'root')
+        engine.set_shared_user('ubuntu')
+        self.assertEqual(engine.get_shared_user(), 'ubuntu')
 
         engine.set_shared_secret('fake_secret')
         self.assertEqual(engine.get_shared_secret(), 'fake_secret')
@@ -534,7 +629,7 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         engine.set_fittings(myPrivatePlan)
 
-        engine.process_all_blueprints(action='echo')
+        engine.process_all_blueprints(action='dummy')
 
         action = FakeAction({})
         engine.process_all_blueprints(action)
@@ -553,7 +648,7 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         engine.set_fittings(myPrivatePlan)
 
-        engine.process_blueprint(action='echo', names='fake')
+        engine.process_blueprint(action='dummy', names='fake')
 
         action = FakeAction({})
         engine.process_blueprint(action, names='fake')
@@ -598,19 +693,19 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.lookup('plumbery.version'), __version__)
 
         engine.secrets = {}
-        random = engine.lookup('random.secret')
+        random = engine.lookup('secret.random')
         self.assertEqual(len(random), 9)
-        self.assertEqual(engine.lookup('random.secret'), random)
+        self.assertEqual(engine.lookup('secret.random'), random)
 
-        md5 = engine.lookup('random.md5.secret')
+        md5 = engine.lookup('secret.random.md5')
         self.assertEqual(len(md5), 32)
         self.assertNotEqual(md5, random)
 
-        sha = engine.lookup('random.sha1.secret')
+        sha = engine.lookup('secret.random.sha1')
         self.assertEqual(len(sha), 40)
         self.assertNotEqual(sha, random)
 
-        sha = engine.lookup('random.sha256.secret')
+        sha = engine.lookup('secret.random.sha256')
         self.assertEqual(len(sha), 64)
         self.assertNotEqual(sha, random)
 
@@ -652,7 +747,7 @@ class TestPlumberyEngine(unittest.TestCase):
             with self.assertRaises(LookupError):
                 localKey = engine.lookup('local.rsa_private')
 
-            localKey = engine.lookup('local.rsa_public')
+            localKey = engine.lookup('rsa_public.local')
             try:
                 path = '~/.ssh/id_rsa.pub'
                 with open(os.path.expanduser(path)) as stream:

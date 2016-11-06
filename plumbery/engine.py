@@ -147,6 +147,8 @@ class PlumberyEngine(object):
 
         self.buildPolisher = 'configure'
 
+        self._sharedUser = None
+
         self._sharedSecret = None
 
         self.secrets = {}
@@ -225,12 +227,13 @@ class PlumberyEngine(object):
         :param label: the name of the parameter to be retrieved
         :type label: ``str``
 
-        :return: the value set in fittings plan, or `None`
+        :return: the value set externallly, or default in fittings plan
         :rtype: ``str`` most often, or ``dict`` or something else
 
         """
 
-        label = label.split('.')[0]
+        if label.startswith('parameter.'):
+            label = label[len('parameter.'):]
 
         if label not in self.parameters:
             raise KeyError("Parameter '{}' is unknown".format(label))
@@ -311,6 +314,9 @@ class PlumberyEngine(object):
                         for key in settings['parameters'].keys():
                             if 'parameter.'+key in parameters:
                                 continue
+                            if 'default' not in settings['parameters'][key]:
+                                raise ValueError("Parameter '{}' has no default value"
+                                                 .format(key))
                             parameters['parameter.'+key] = settings['parameters'][key]['default']
                     break
 
@@ -425,12 +431,12 @@ class PlumberyEngine(object):
                         key,
                         self.parameters[key]['default']))
 
-        if 'polishers' in settings:
-            if not isinstance(settings['polishers'], list):
-                raise TypeError('polishers should be a list')
+        if 'actions' in settings:
+            if not isinstance(settings['actions'], list):
+                raise TypeError('actions should be a list')
 
-            plogging.debug("Polishers:")
-            for item in settings['polishers']:
+            plogging.debug("Actions:")
+            for item in settings['actions']:
                 key = list(item)[0]
                 value = item[key]
                 self.polishers.append(
@@ -461,11 +467,39 @@ class PlumberyEngine(object):
 
         return default
 
+    def set_shared_user(self, user):
+        """
+        Changes the name used to access nodes remotely
+
+        :param user: the user name to be used with ssh
+        :type user: ``str``
+
+        """
+
+        self._sharedUser = user
+
+    def get_shared_user(self):
+        """
+        Retrieves the name used to access nodes remotely
+
+        :return: the user name to be used with ssh
+        :rtype: ``str``
+
+        This functions returns ``root`` until the member function
+        ``set_shared_used()`` has been called.
+
+        """
+
+        if self._sharedUser is None:
+            return 'root'
+
+        return self._sharedUser
+
     def set_shared_secret(self, secret):
         """
         Changes the shared secret to be used with new nodes
 
-        :param secret: the user name to be used with the driver
+        :param secret: the shared secret to be used with the API and with ssh
         :type secret: ``str``
 
         This function can be used to supplement the normal provision of
@@ -479,7 +513,7 @@ class PlumberyEngine(object):
         """
         Retrieves the secret that is communicated to new nodes during setup
 
-        :return: the shared secret to be given to the driver
+        :return: the shared secret to be used with the API and with ssh
         :rtype: ``str``
 
         :raises: :class:`plumbery.PlumberyException`
@@ -507,7 +541,7 @@ class PlumberyEngine(object):
 
         return self._sharedSecret
 
-    def get_rsa_secret(self, id='pair.rsa_private'):
+    def get_rsa_secret(self, id='rsa_private.pair'):
         """
         Returns a part of a RSA pair of keys
 
@@ -516,13 +550,21 @@ class PlumberyEngine(object):
 
         """
 
+        type = '.'.join([x for x in id.split('.')
+                    if x in ('rsa_private', 'rsa_public')])
+
+        name = '.'.join([x for x in id.split('.')
+                    if x not in ('rsa_private', 'rsa_public')])
+
+        id = type+'.'+name
+
         if id in self.secrets:
             return self.secrets[id]
 
-        if id == 'local.rsa_private':
-            raise LookupError("It is forbidden to use 'local.rsa_private'")
+        if id == 'rsa_private.local':
+            raise LookupError("It is forbidden to use 'rsa_private.local'")
 
-        if id == 'local.rsa_public':
+        if id == 'rsa_public.local':
             try:
                 path = '~/.ssh/id_rsa.pub'
 
@@ -533,25 +575,24 @@ class PlumberyEngine(object):
                     return text
 
             except IOError:
-                pass
+                plogging.error("- cannot load {} from {}".format(id, path))
+                return ''
 
-        name = id.split('.')[0]
-
-        if HAS_CRYPTO:
-            key = RSA.generate(2048)
-            self.secrets[name+'.rsa_private'] = key.exportKey('PEM')
-            plogging.debug("- generating {}".format(name+'.rsa_private'))
-
-            pubkey = key.publickey()
-            self.secrets[name+'.rsa_public'] = pubkey.exportKey('OpenSSH')
-            plogging.debug("- generating {}".format(name+'.rsa_public'))
-
-            self.save_secrets()
-            return self.secrets[id]
-        else:
+        if not HAS_CRYPTO:
             return None
 
-    def get_secret(self, id='random.secret'):
+        key = RSA.generate(2048)
+        self.secrets['rsa_private.'+name] = key.exportKey('PEM')
+        plogging.debug("- generating {}".format('rsa_private.'+name))
+
+        pubkey = key.publickey()
+        self.secrets['rsa_public.'+name] = pubkey.exportKey('OpenSSH')
+        plogging.debug("- generating {}".format('rsa_public.'+name))
+
+        self.save_secrets()
+        return self.secrets[id]
+
+    def get_secret(self, id='secret.random'):
         """
         Returns a secret
 
@@ -564,32 +605,30 @@ class PlumberyEngine(object):
         Random secrets can be used in scripts and in configuration files
         sent to nodes, for example to configure a database server.
 
-        For this you would put ``{{ random.secret }}`` in your files and let
+        For this you would put ``{{ secret.random }}`` in your files and let
         plumbery provide a value for you.
 
         The `id` parameter designates one secret among several.
 
-        This function builds a random string out of ASCII letters, digits, and
-        a couple of punctuation letters.
-        The string has 9 characters by default.
+        By default this function builds a random string out of ASCII letters,
+        digits, and a couple of punctuation letters, with 9 characters.
 
         If you put `.uuid` in the id, than the function ``uuid.uuid4()`` is
         called to generate a unique identifier of 36 letters.
 
         The `format` parameter specifies the kind of string that is expected:
-        * 'user' - to be read by a human being
         * 'sha1' - rather long string
         * 'md5' - rather long string too
         * 'sha256' - longest and most secure
 
         Some examples:
 
-            {{ server1.uuid }}
-            {{ server2.uuid }}
-            {{ sql_root.secret }}
-            {{ redis.master.md5.secret }}
-            {{ redis.slave.secret }}
-            {{ database357.sha1.secret }}
+            {{ uuid.server1 }}
+            {{ uuid.server2 }}
+            {{ secret.sql_root }}
+            {{ secret.redis.master.md5 }}
+            {{ secret.redis.slave }}
+            {{ secret.database357.sha1 }}
 
         In a nutshell, this function is giving you a lot of flexibility
         in the generation of secrets.
@@ -599,7 +638,7 @@ class PlumberyEngine(object):
         if id in self.secrets:
             return self.secrets[id]
 
-        if id.endswith('.uuid'):
+        if id.startswith('uuid.') or id.endswith('.uuid'):
             secret = str(uuid.uuid4())
 
         elif id.startswith('http://') or id.startswith('https://'):
@@ -611,13 +650,13 @@ class PlumberyEngine(object):
                 string.ascii_letters+string.digits+'-_!=')
                 for i in range(9))
 
-        if '.sha256.' in id:
+        if id.endswith('.sha256'):
             secret = hashlib.sha256(secret.encode('utf-8')).hexdigest()
 
-        elif '.md5.' in id:
+        elif id.endswith('.md5'):
             secret = hashlib.md5(secret.encode('utf-8')).hexdigest()
 
-        elif '.sha1.' in id:
+        elif id.endswith('.sha1'):
             secret = hashlib.sha1(secret.encode('utf-8')).hexdigest()
 
         plogging.debug("- generating {}".format(id))
@@ -1295,7 +1334,7 @@ class PlumberyEngine(object):
         if len(polishers) < 1:
             return False
 
-        plogging.info("Polishing all blueprints")
+        plogging.info("Processing all blueprints")
 
         for polisher in polishers:
             polisher.go(self)
@@ -1350,7 +1389,7 @@ class PlumberyEngine(object):
         else:
             label = names
 
-        plogging.info("Polishing blueprint '{}'".format(label))
+        plogging.info("Processing blueprint '{}'".format(label))
 
         for polisher in polishers:
             polisher.go(self)
@@ -1627,30 +1666,48 @@ class PlumberyEngine(object):
         if token == 'plumbery.version':
             return __version__
 
+        if token == 'shared.user':
+            return self.get_shared_user()
+
         if token == 'shared.secret':
             return self.get_shared_secret()
 
-        if token == 'name.credentials':
+        if token in ('credentials.name', 'name.credentials'):
             return self.get_user_name()
 
-        if token == 'password.credentials':
+        if token in ('credentials.password', 'password.credentials'):
             return self.get_user_password()
 
         if token.startswith('parameter.'):
             return self.get_parameter(token)
 
+        if token.startswith('rsa_public.'):
+            return self.get_rsa_secret(token)
         if token.endswith('.rsa_public'):
+            return self.get_rsa_secret(token)
+        if token.startswith('rsa_private.'):
             return self.get_rsa_secret(token)
         if token.endswith('.rsa_private'):
             return self.get_rsa_secret(token)
 
+        if token.startswith('secret.'):
+            return self.get_secret(token)
         if token.endswith('.secret'):
             return self.get_secret(token)
 
+        if token.startswith('uuid.'):
+            return self.get_secret(token)
         if token.endswith('.uuid'):
             return self.get_secret(token)
 
         if token.startswith('http://') or token.startswith('https://'):
             return self.get_secret(token)
+
+        if token.startswith('environment.'):
+            key = token[len('environment.'):]
+            value = os.environ.get(key)
+            if value is None:
+                raise KeyError("'{}' is absent from environment".format(key))
+            return value
 
         return None

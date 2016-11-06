@@ -262,7 +262,7 @@ def main(args=None, engine=None):
             plogging.error("{}: {}".format(
                 feedback.__class__.__name__,
                 str(feedback)))
-        sys.exit(2)
+        sys.exit(1)
 
 if __name__ == "__main__":
     try:
@@ -270,8 +270,9 @@ if __name__ == "__main__":
 
         # if some errors have been logged, make it explicit to the caller
         if plogging.foundErrors():
-            sys.exit(2)
+            plogging.error("Hit some error, you should check the logs")
+            sys.exit(1)
 
     except KeyboardInterrupt:
-        plogging.info("Aborted by user")
-        sys.exit(0)
+        plogging.error("Aborted by user")
+        sys.exit(1)

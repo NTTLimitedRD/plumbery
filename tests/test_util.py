@@ -10,7 +10,7 @@ http://www.saltycrane.com/blog/2009/11/trying-out-retry-decorator-python/
 import logging
 import unittest
 
-from plumbery.util import retry
+from plumbery.util import retry, PlumberyParameters
 
 
 class RetryableError(Exception):
@@ -109,6 +109,39 @@ class TestPlumberyUtil(unittest.TestCase):
                 return 'success'
 
         fails_once()
+
+    def test_parameters(self):
+        params = PlumberyParameters()
+        self.assertEqual(params.get('dummy'), None)
+        self.assertEqual(params.get('dummy', 'ko'), 'ko')
+        params.set('dummy', 1)
+        self.assertEqual(params.get('dummy'), 1)
+        self.assertEqual(params.get('dummy', 'whatever'), 1)
+        params.set('dummy', 2)
+        self.assertEqual(params.get('dummy'), 2)
+        self.assertEqual(params.get('dummy', 'whatever'), 2)
+
+        params = PlumberyParameters({'dummy': 'ok'})
+        self.assertEqual(params.get('dummy'), 'ok')
+        self.assertEqual(params.get('dummy', 'ko'), 'ok')
+        params.set('dummy', 1)
+        self.assertEqual(params.get('dummy'), 1)
+        self.assertEqual(params.get('dummy', 'whatever'), 1)
+        params.set('dummy', 2)
+        self.assertEqual(params.get('dummy'), 2)
+        self.assertEqual(params.get('dummy', 'whatever'), 2)
+        self.assertEqual(params.get('more_dummy'), None)
+        self.assertEqual(params.get('more_dummy', 'ok'), 'ok')
+        self.assertEqual(params.get('more_dummy', 'ko'), 'ko')
+        params.set('more_dummy', 3)
+        self.assertEqual(params.get('more_dummy'), 3)
+        self.assertEqual(params.get('more_dummy', 'ok'), 3)
+        self.assertEqual(params.get('more_dummy', 'ko'), 3)
+
+        with self.assertRaises(TypeError):
+            params2 = PlumberyParameters('should raise an error')
+        with self.assertRaises(TypeError):
+            params2 = PlumberyParameters(params)
 
 if __name__ == '__main__':
     import sys
