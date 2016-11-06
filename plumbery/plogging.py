@@ -84,3 +84,5 @@ class PlumberyLogging(object):
         self.logger.addHandler(handler)
 
 plogging = PlumberyLogging()
+
+logging.basicConfig(level=logging.INFO)
