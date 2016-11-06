@@ -3,6 +3,19 @@
 History
 -------
 
+1.0.2 (2016-11-6)
+~~~~~~~~~~~~~~~~~~
+
+* Improve inventories for ansible
+* Add environment variables to templates
+* Improve tests of parameters
+* Introduce package-level logger
+* Make reboot stronger against transient states
+* Documentation improvements
+* Passing Travis CI
+* 4252 python statements
+* Test coverage 59%
+
 1.0.1 (2016-10-14)
 ~~~~~~~~~~~~~~~~~~
 
