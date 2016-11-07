@@ -159,6 +159,7 @@ class PlumberyFacility(object):
             'EU6': 'dd-eu',
             'EU7': 'dd-eu',
             'EU8': 'dd-eu',
+            'EU9': 'dd-eu',
             'NA9': 'dd-na',
             'NA12': 'dd-na',
         }
