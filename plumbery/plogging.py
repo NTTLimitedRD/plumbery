@@ -49,6 +49,9 @@ class PlumberyLogging(object):
 
         self.logger.addHandler(handler)
 
+        logging.getLogger('paramiko.transport').addHandler(handler)
+        logging.getLogger('paramiko.transport').propagate = 0
+
         self.reset()
 
     def reset(self):
@@ -84,3 +87,5 @@ class PlumberyLogging(object):
         self.logger.addHandler(handler)
 
 plogging = PlumberyLogging()
+
+logging.basicConfig(level=logging.INFO)

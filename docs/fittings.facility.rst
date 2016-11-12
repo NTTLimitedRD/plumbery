@@ -39,6 +39,7 @@ City                         locationId  Region           regionId
 ===========================  ==========  ===============  ==========
 Amsterdam (Netherlands)      EU7         Europe           dd-eu
 Ashburn (US East)            NA9         United States    dd-na
+Brussels (Belgium)           EU9         Europe           dd-eu
 Frankfurt (Germany)          EU6         Europe           dd-eu
 Hong Kong                    AP5         Asia-Pacific     dd-ap
 Johannesburg (South Africa)  AF3         Africa           dd-af
