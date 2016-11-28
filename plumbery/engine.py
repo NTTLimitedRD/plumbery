@@ -579,6 +579,7 @@ class PlumberyEngine(object):
                 return ''
 
         if not HAS_CRYPTO:
+            plogging.error("ERROR: no crypto support to generate keys")
             return None
 
         key = RSA.generate(2048)
