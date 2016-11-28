@@ -10,18 +10,18 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "tests"
 from tests import dummy
 
+import base64
 import logging
 import os
 import unittest
 import yaml
 
-try:
-    from Cryptodome.PublicKey import RSA
-    from Cryptodome.Cipher import PKCS1_OAEP
-    HAS_CRYPTO = True
-except ImportError:
-    HAS_CRYPTO = False
-    logging.getLogger().error('No Cryptodome support loaded')
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization
 
 import six
 
@@ -722,42 +722,73 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.lookup('slave.secret')
 
         original = b'hello world'
-        if HAS_CRYPTO:
-            text = engine.lookup('pair1.rsa_public')
-            self.assertTrue(ensure_string(text).startswith('ssh-rsa '))
-            key = RSA.importKey(text)
-            cipher = PKCS1_OAEP.new(key)
-            encrypted = cipher.encrypt(original)
+        print('original: {}'.format(original))
 
-            privateKey = engine.lookup('pair1.rsa_private')
-            self.assertTrue(ensure_string(privateKey).startswith(
-                '-----BEGIN RSA PRIVATE KEY-----'))
-            key = RSA.importKey(engine.lookup('pair1.rsa_private'))
-            cipher = PKCS1_OAEP.new(key)
-            decrypted = cipher.decrypt(encrypted)
-            self.assertEqual(decrypted, original)
+        text = ensure_string(engine.lookup('rsa_public.pair1'))
+        print('rsa_public.pair1: {}'.format(text))
 
-            token = engine.lookup('https://discovery.etcd.io/new')
-            self.assertEqual(token.startswith(
-                'https://discovery.etcd.io/'), True)
-            self.assertEqual(len(token), 58)
+        self.assertTrue(text.startswith('ssh-rsa '))
 
-            self.assertEqual(len(engine.secrets), 13)
+        text = bytes(text)
+        key = serialization.load_ssh_public_key(
+            data=text,
+            backend=default_backend())
 
-            with self.assertRaises(LookupError):
-                localKey = engine.lookup('local.rsa_private')
+        encrypted = key.encrypt(
+            original,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                algorithm=hashes.SHA1(),
+                label=None
+            )
+        )
+        encrypted = str(base64.b64encode(encrypted))
+        print('encrypted: {}'.format(encrypted))
 
-            localKey = engine.lookup('rsa_public.local')
-            try:
-                path = '~/.ssh/id_rsa.pub'
-                with open(os.path.expanduser(path)) as stream:
-                    text = stream.read()
-                    stream.close()
-                    self.assertEqual(localKey.strip(), text.strip())
-                    plogging.info("Successful lookup of local public key")
+        privateKey = engine.lookup('rsa_private.pair1')
+        print('rsa_private.pair1: {}'.format(privateKey))
+        self.assertTrue(ensure_string(privateKey).startswith(
+            '-----BEGIN RSA PRIVATE KEY-----'))
 
-            except IOError:
-                pass
+        privateKey = serialization.load_pem_private_key(
+            bytes(privateKey),
+            password=None,
+            backend=default_backend())
+
+        decrypted = privateKey.decrypt(
+            base64.b64decode(encrypted),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                algorithm=hashes.SHA1(),
+                label=None
+            )
+        )
+        decrypted = str(decrypted)
+        print('decrypted: {}'.format(decrypted))
+
+        self.assertEqual(decrypted, original)
+
+        token = engine.lookup('https://discovery.etcd.io/new')
+        self.assertEqual(token.startswith(
+            'https://discovery.etcd.io/'), True)
+        self.assertEqual(len(token), 58)
+
+        self.assertEqual(len(engine.secrets), 13)
+
+        with self.assertRaises(LookupError):
+            localKey = engine.lookup('rsa_private.local')
+
+        localKey = engine.lookup('rsa_public.local')
+        try:
+            path = '~/.ssh/id_rsa.pub'
+            with open(os.path.expanduser(path)) as stream:
+                text = stream.read()
+                stream.close()
+                self.assertEqual(localKey.strip(), text.strip())
+                plogging.info("Successful lookup of local public key")
+
+        except IOError:
+            pass
 
     def test_secrets(self):
 

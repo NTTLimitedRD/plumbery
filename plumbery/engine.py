@@ -27,13 +27,12 @@ import uuid
 import yaml
 from six import string_types
 
-try:
-    from Cryptodome.PublicKey import RSA
-    HAS_CRYPTO = True
-except ImportError:
-    logging.getLogger().error('No Cryptodome support loaded')
-    HAS_CRYPTO = False
-
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization
 
 from libcloud.compute.providers import get_driver as get_compute_driver
 from libcloud.compute.types import Provider as ComputeProvider
@@ -578,16 +577,20 @@ class PlumberyEngine(object):
                 plogging.error("- cannot load {} from {}".format(id, path))
                 return ''
 
-        if not HAS_CRYPTO:
-            plogging.error("ERROR: no crypto support to generate keys")
-            return None
-
-        key = RSA.generate(2048)
-        self.secrets['rsa_private.'+name] = key.exportKey('PEM')
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend())
+        self.secrets['rsa_private.'+name] = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption())
         plogging.debug("- generating {}".format('rsa_private.'+name))
 
-        pubkey = key.publickey()
-        self.secrets['rsa_public.'+name] = pubkey.exportKey('OpenSSH')
+        pubkey = key.public_key()
+        self.secrets['rsa_public.'+name] = pubkey.public_bytes(
+            encoding=serialization.Encoding.OpenSSH,
+            format=serialization.PublicFormat.OpenSSH)
         plogging.debug("- generating {}".format('rsa_public.'+name))
 
         self.save_secrets()
