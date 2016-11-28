@@ -25,7 +25,7 @@ About project deployment
 ------------------------
 
 How to install the full system?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use [detailed instructions](installing.rst) that explain what you have to do step by step.
 
