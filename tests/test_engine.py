@@ -729,7 +729,7 @@ class TestPlumberyEngine(unittest.TestCase):
 
         self.assertTrue(text.startswith('ssh-rsa '))
 
-        text = bytes(text)
+        text = b(text)
         key = serialization.load_ssh_public_key(
             data=text,
             backend=default_backend())
@@ -751,7 +751,7 @@ class TestPlumberyEngine(unittest.TestCase):
             '-----BEGIN RSA PRIVATE KEY-----'))
 
         privateKey = serialization.load_pem_private_key(
-            bytes(privateKey),
+            b(privateKey),
             password=None,
             backend=default_backend())
 
