@@ -763,7 +763,6 @@ class TestPlumberyEngine(unittest.TestCase):
                 label=None
             )
         )
-        decrypted = str(decrypted)
         print('decrypted: {}'.format(decrypted))
 
         self.assertEqual(decrypted, original)
