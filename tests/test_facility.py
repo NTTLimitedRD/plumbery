@@ -230,19 +230,19 @@ class FakeAction(PlumberyAction):
     def __init__(self, settings):
         self.count = 3
 
-    def ignite(self, engine):
+    def begin(self, engine):
         self.count += 100
 
     def enter(self, facility):
         self.count *= 2
 
-    def handle(self, blueprint):
+    def process(self, blueprint):
         self.count += 5
 
     def quit(self):
         self.count -= 2
 
-    def reap(self):
+    def end(self):
         self.count += 1
 
 class TestPlumberyFacility(unittest.TestCase):

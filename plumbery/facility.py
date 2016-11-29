@@ -805,7 +805,7 @@ class PlumberyFacility(object):
         """
 
         if isinstance(action, str):
-            action = PlumberyActionLoader.from_shelf(action)
+            action = PlumberyActionLoader.load(action)
 
         self.power_on()
         action.enter(self)
@@ -813,12 +813,12 @@ class PlumberyFacility(object):
         basement = self.list_basement()
         for name in basement:
             blueprint = self.get_blueprint(name)
-            action.handle(blueprint)
+            action.process(blueprint)
 
         for name in self.expand_blueprint('*'):
             if name not in basement:
                 blueprint = self.get_blueprint(name)
-                action.handle(blueprint)
+                action.process(blueprint)
 
         action.quit()
 
@@ -835,7 +835,7 @@ class PlumberyFacility(object):
         """
 
         if isinstance(action, str):
-            action = PlumberyActionLoader.from_shelf(action)
+            action = PlumberyActionLoader.load(action)
 
         self.power_on()
         action.enter(self)
@@ -843,7 +843,7 @@ class PlumberyFacility(object):
         for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            action.handle(blueprint)
+            action.process(blueprint)
 
         action.quit()
 

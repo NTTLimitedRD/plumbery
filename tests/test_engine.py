@@ -348,20 +348,21 @@ class FakeLocation:
 class FakeAction(PlumberyAction):
     def __init__(self, settings):
         self.count = 3
+        self.label = 'fake'
 
-    def ignite(self, engine):
+    def begin(self, engine):
         self.count += 100
 
     def enter(self, facility):
         self.count *= 2
 
-    def handle(self, blueprint):
+    def process(self, blueprint):
         self.count += 5
 
     def quit(self):
         self.count -= 2
 
-    def reap(self):
+    def end(self):
         self.count += 1
 
 
@@ -629,7 +630,7 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         engine.set_fittings(myPrivatePlan)
 
-        engine.process_all_blueprints(action='dummy')
+        engine.process_all_blueprints(action='noop')
 
         action = FakeAction({})
         engine.process_all_blueprints(action)
@@ -648,7 +649,7 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         engine.set_fittings(myPrivatePlan)
 
-        engine.process_blueprint(action='dummy', names='fake')
+        engine.process_blueprint(action='noop', names='fake')
 
         action = FakeAction({})
         engine.process_blueprint(action, names='fake')

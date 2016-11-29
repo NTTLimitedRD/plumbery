@@ -1108,9 +1108,9 @@ class PlumberyEngine(object):
         """
 
         if isinstance(action, str):
-            action = PlumberyActionLoader.from_shelf(action)
+            action = PlumberyActionLoader.load(action)
 
-        action.ignite(self)
+        action.begin(self)
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1121,7 +1121,7 @@ class PlumberyEngine(object):
             facility.focus()
             facility.process_all_blueprints(action)
 
-        action.reap()
+        action.end()
 
     def process_blueprint(self, action, names, facilities=None):
         """
@@ -1144,9 +1144,9 @@ class PlumberyEngine(object):
         """
 
         if isinstance(action, str):
-            action = PlumberyActionLoader.from_shelf(action)
+            action = PlumberyActionLoader.load(action)
 
-        action.ignite(self)
+        action.begin(self)
 
         if isinstance(names, list):
             names = ' '.join(names)
@@ -1160,7 +1160,7 @@ class PlumberyEngine(object):
             facility.focus()
             facility.process_blueprint(action, names)
 
-        action.reap()
+        action.end()
 
     def build_all_blueprints(self, facilities=None):
         """
