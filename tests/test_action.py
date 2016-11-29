@@ -71,7 +71,7 @@ class TestPlumberyAction(unittest.TestCase):
     def test_loader_unknown_class(self):
 
         with self.assertRaises(ImportError):
-            action = PlumberyActionLoader.from_shelf('*123*')
+            PlumberyActionLoader.from_shelf('*123*')
 
     def test_getters(self):
         action = PlumberyActionLoader.from_shelf('dummy', {'dummy': 'ok'})

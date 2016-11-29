@@ -125,4 +125,3 @@ class PlumberyParameters(object):
             return self.dictionary[parameter]
 
         return default
-

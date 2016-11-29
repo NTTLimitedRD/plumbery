@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import sys
 import six
 import string
 import yaml
@@ -34,6 +33,7 @@ else:
             return s.decode('utf-8')
         else:
             raise TypeError("Invalid argument %r for ensure_string()" % (s,))
+
 
 class PlumberyText:
 

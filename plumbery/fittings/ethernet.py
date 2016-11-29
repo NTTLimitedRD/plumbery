@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from plumbery.fitting import PlumberyFitting
-from plumbery.plogging import plogging
 
 
 class EthernetFitting(PlumberyFitting):
@@ -92,4 +91,3 @@ class EthernetFitting(PlumberyFitting):
             raise ValueError('Invalid directive subnet: in settings')
 
         self.subnet = settings['subnet']
-

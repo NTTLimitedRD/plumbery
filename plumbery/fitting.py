@@ -71,6 +71,7 @@ class PlumberyFitting(object):
             return method(parameters)
         return True
 
+
 class PlumberyFittingLoader(object):
     """
     Loads and set a fitting classe dynamically
@@ -152,4 +153,3 @@ class PlumberyFittingLoader(object):
             plogging.debug("Unable to import '{}' from '{}'".format(
                 fittingsName, moduleName))
             raise
-

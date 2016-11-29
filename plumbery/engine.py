@@ -16,7 +16,6 @@
 from __future__ import absolute_import
 
 import hashlib
-import logging
 import os
 import random
 import requests
@@ -28,10 +27,7 @@ import yaml
 from six import string_types
 
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
 
 from libcloud.compute.providers import get_driver as get_compute_driver
@@ -314,7 +310,8 @@ class PlumberyEngine(object):
                             if 'parameter.'+key in parameters:
                                 continue
                             if 'default' not in settings['parameters'][key]:
-                                raise ValueError("Parameter '{}' has no default value"
+                                raise ValueError("Parameter '{}'"
+                                                 " has no default value"
                                                  .format(key))
                             parameters['parameter.'+key] = settings['parameters'][key]['default']
                     break
@@ -550,10 +547,10 @@ class PlumberyEngine(object):
         """
 
         type = '.'.join([x for x in id.split('.')
-                    if x in ('rsa_private', 'rsa_public')])
+                        if x in ('rsa_private', 'rsa_public')])
 
         name = '.'.join([x for x in id.split('.')
-                    if x not in ('rsa_private', 'rsa_public')])
+                        if x not in ('rsa_private', 'rsa_public')])
 
         id = type+'.'+name
 

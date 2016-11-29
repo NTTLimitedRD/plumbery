@@ -40,9 +40,9 @@ class PlumberyAction(object):
 
     def __init__(self, parameters=PlumberyParameters()):
         if parameters is None:
-            parameters=PlumberyParameters()
+            parameters = PlumberyParameters()
         elif not isinstance(parameters, PlumberyParameters):
-            raise TypeError("'parameters' should be of type PlumberyParameters")
+            raise TypeError("'parameters' should have type PlumberyParameters")
 
         self.parameters = parameters
 
@@ -64,7 +64,7 @@ class PlumberyAction(object):
         :param name: the parameter
         :type name: ``str``
 
-        :param default: default value to return if the parameter has not been set
+        :param default: returned if the parameter has not been set
         :type default: any
 
         :return: the value of this parameter, or None
@@ -232,4 +232,3 @@ class PlumberyActionLoader(object):
             plogging.debug("Unable to import '{}' from '{}'".format(
                 actionName, moduleName))
             raise
-

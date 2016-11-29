@@ -573,7 +573,7 @@ class PlumberyNodes(object):
             try:
                 self.region.ex_get_location_by_id(path[0])
             except IndexError:
-                logging.warning("'{}' is unknown".format(path[0]))
+                plogging.warning("'{}' is unknown".format(path[0]))
                 return None
 
             plogging.debug("Looking for remote node '{}'"

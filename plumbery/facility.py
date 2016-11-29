@@ -135,7 +135,8 @@ class PlumberyFacility(object):
         :return:  the region, e.g., 'dd-eu' or 'dd-ap', etc.
         :rtype: ``str`` or None
 
-        This function helps to bind well-known data centres to their respective regions.
+        This function helps to bind well-known data centres
+        to their respective regions.
 
         For example::
 
@@ -669,7 +670,7 @@ class PlumberyFacility(object):
 
                 if os.getenv('LIBCLOUD_HTTP_PROXY') is not None:
                     plogging.debug('Setting proxy to %s' %
-                                  (os.getenv('LIBCLOUD_HTTP_PROXY')))
+                                   (os.getenv('LIBCLOUD_HTTP_PROXY')))
                     self.region.connection.set_http_proxy(
                         proxy_url=os.getenv('LIBCLOUD_HTTP_PROXY'))
                     self.backup.connection.set_http_proxy(

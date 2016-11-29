@@ -1178,7 +1178,7 @@ class PlumberyInfrastructure(object):
             count = actual + 2
 
         if count < 2 or count > 128:
-            logging.warning("Invalid count of requested IPv4 public addresses")
+            plogging.warning("Invalid count of requested IPv4 public addresses")
             return None
 
         if actual >= count:
