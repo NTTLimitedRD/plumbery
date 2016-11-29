@@ -48,6 +48,6 @@ If the file does not exist, or if its content does not reflect statements put in
 
     $ cd /var/lib/cloud/seed/nocloud-net/
     $ less user-data
-    $ sudo cloud-init --debug --file user-data single
+    $ sudo cloud-init --debug --file user-data single -n cc_write_files
 
 Check error messages thrown by cloud-init and react accordingly.
