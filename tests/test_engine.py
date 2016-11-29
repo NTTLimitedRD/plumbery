@@ -742,7 +742,7 @@ class TestPlumberyEngine(unittest.TestCase):
                 label=None
             )
         )
-        encrypted = str(base64.b64encode(encrypted))
+        encrypted = base64.b64encode(encrypted)
         print('encrypted: {}'.format(encrypted))
 
         privateKey = engine.lookup('rsa_private.pair1')
