@@ -95,6 +95,7 @@ class TestPlumberyAction(unittest.TestCase):
                    'prepare',
                    'start',
                    'stop',
+                   'wipe',
                   )
 
         for label in actions:
@@ -130,6 +131,7 @@ class TestPlumberyAction(unittest.TestCase):
                    'prepare',
                    'start',
                    'stop',
+                   'wipe',
                   ]
 
         self.assertEqual(sorted(actions.keys()), expected)
