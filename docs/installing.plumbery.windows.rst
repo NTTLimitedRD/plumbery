@@ -99,7 +99,7 @@ Alternatively, you can achieve the same result from PowerShell:
 
 .. sourcecode:: powershell
 
-    [Environment]::SetEnvironmentVariable("SSL_CERT_FILE", "<location of download of the ca-bundle.crt file>", "Process")
+    [Environment]::SetEnvironmentVariable("CA_CERTS_PATH", "<location of download of the ca-bundle.crt file>", "Process")
 
 Install plumbery
 ----------------
@@ -161,6 +161,7 @@ Put the following content in it, save the file, and close the editor:
             name: myDC
           ethernet:
             name: myVLAN
+            subnet: 10.11.12.0
           nodes:
             - myServer:
                 appliance: 'Ubuntu'
