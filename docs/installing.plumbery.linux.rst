@@ -120,6 +120,7 @@ Put the following content in it, save the file, and close the editor:
             name: myDC
           ethernet:
             name: myVLAN
+            subnet: 10.11.12.0
           nodes:
             - myServer:
                 appliance: 'Ubuntu'
