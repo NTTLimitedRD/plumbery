@@ -55,10 +55,6 @@ class InformationPolisher(PlumberyPolisher):
                 message, environment)
             lines.append(message)
 
-        for label in engine.links.keys():
-            message = "{}: {}".format(label, engine.links[label])
-            lines.append(message)
-
         if len(lines) < 1:
             return
 
@@ -148,14 +144,54 @@ class InformationPolisher(PlumberyPolisher):
                     message, environment)
                 lines.append(message)
 
-        if len(lines) < 1:
-            return
+        if len(lines) > 0:
 
-        self.information.append("About '{}':".format(
-            container.blueprint['target']))
+            self.information.append("About '{}':".format(
+                container.blueprint['target']))
 
-        for line in lines:
-            self.information.append("- {}".format(line))
+            for line in lines:
+                self.information.append("- {}".format(line))
+
+        if 'balancers' in container.blueprint.keys():
+
+            for item in container.blueprint['balancers']:
+
+                if isinstance(item, dict):
+                    label = list(item)[0]
+                    settings = item[label]
+                else:
+                    label = str(item)
+                    settings = {}
+
+                if 'information' not in settings:
+                    continue
+
+                name = container.name_balancer(label, settings)
+                balancer = container._get_balancer(name)
+                print(balancer)
+
+                context = {
+                    'balancer.name': name,
+                    'balancer.ip': balancer.ip,
+                    'balancer.port': balancer.port,
+                    }
+
+                environment = PlumberyContext(dictionary=context,
+                                              context=self.facility)
+
+                lines = []
+                for line in settings['information']:
+
+                    message = PlumberyText.expand_string(
+                        line, environment)
+                    lines.append(message)
+
+                if len(lines) > 0:
+
+                    self.information.append("About '{}':".format(name))
+
+                    for line in lines:
+                        self.information.append("- {}".format(line))
 
     def list_information(self, node, settings, container):
         """
