@@ -81,7 +81,7 @@ class PlumberyInfrastructure(object):
         self._cache_remote_vlan = []
         self._cache_offshore_vlan = []
         self._cache_firewall_rules = []
-        self._cache_listeners = None
+        self._cache_balancers = None
         self._cache_pools = None
 
         self._network_domains_already_built = []
@@ -626,7 +626,7 @@ class PlumberyInfrastructure(object):
 
     def _build_balancer(self):
         """
-        Adds a load balancer for nodes in the blueprint
+        Adds load balancing for nodes in the blueprint
 
         Example in the fittings plan::
 
@@ -635,21 +635,21 @@ class PlumberyInfrastructure(object):
               ethernet: *data
               nodes:
                 - apache-[10..19]
-              listeners:
+              balancer:
                 - http:
                     port: 80
                     protocol: http
                 - https:
                     port: 443
                     protocol: http
-              balancer:
+              pool:
                 algorithm: round_robin
 
-        In this example, the load balancer is configured to accept web traffic
+        In this example, load balancing is configured to accept web traffic
         and to distribute the workload across multiple web engines.
 
-        One listener is configured for regular http protocol on port 80. The
-        other listener is for secured web protocol, aka, https, on port 443.
+        One balancer is configured for regular http protocol on port 80. The
+        other balancer is for secured web protocol, aka, https, on port 443.
 
         The algorithm used by default is ``round_robin``. This parameter
         can take any value among followings:
@@ -664,7 +664,7 @@ class PlumberyInfrastructure(object):
 
         """
 
-        if 'listeners' not in self.blueprint:
+        if 'balancers' not in self.blueprint:
             return True
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
@@ -676,8 +676,8 @@ class PlumberyInfrastructure(object):
 
         if pool is None:
 
-            if 'balancer' in self.blueprint:
-                settings = self.blueprint['balancer']
+            if 'pool' in self.blueprint:
+                settings = self.blueprint['pool']
                 if not isinstance(settings, dict):
                     settings = {}
             else:
@@ -738,7 +738,7 @@ class PlumberyInfrastructure(object):
                         plogging.info("- unable to create pool")
                         plogging.error(str(feedback))
 
-        for item in self.blueprint['listeners']:
+        for item in self.blueprint['balancers']:
 
             if isinstance(item, dict):
                 label = list(item)[0]
@@ -747,23 +747,22 @@ class PlumberyInfrastructure(object):
                 label = str(item)
                 settings = {}
 
-            name = self.name_listener(label, settings)
+            name = self.name_balancer(label, settings)
 
-            if self._get_listener(name):
-                plogging.info("Creating listener '{}'".format(name))
+            if self._get_balancer(name):
+                plogging.info("Creating balancer '{}'".format(name))
                 plogging.info("- already there")
                 continue
 
             if 'port' in settings:
-                port = settings['port']
+                port = str(settings['port'])
             else:
                 port = '80'
 
-            port = int(port)
-            if port < 1 or port > 65535:
+            if int(port) < 1 or int(port) > 65535:
                 raise PlumberyException(
                     "Error: invalid port has been defined "
-                    "for the listener '{}'!".format(label))
+                    "for the balancer '{}'!".format(label))
 
             if 'protocol' in settings:
                 protocol = settings['protocol']
@@ -775,9 +774,9 @@ class PlumberyInfrastructure(object):
             if protocol not in protocols:
                 raise PlumberyException(
                     "Error: unknown protocol has been defined "
-                    "for the listener '{}'!".format(label))
+                    "for the balancer '{}'!".format(label))
 
-            plogging.info("Creating listener '{}'".format(name))
+            plogging.info("Creating balancer '{}'".format(name))
 
             if self.plumbery.safeMode:
                 plogging.info("- skipped - safe mode")
@@ -786,7 +785,7 @@ class PlumberyInfrastructure(object):
             try:
                 external_ip = self._get_ipv4()
 
-                listener = driver.ex_create_virtual_listener(
+                balancer = driver.ex_create_virtual_listener(
                     network_domain_id=domain.id,
                     name=name,
                     ex_description="#plumbery",
@@ -801,9 +800,9 @@ class PlumberyInfrastructure(object):
                     connection_rate_limit=2000,
                     source_port_preservation='PRESERVE')
 
-                if self._cache_listeners is None:
-                    self._cache_listeners = []
-                self._cache_listeners.append(listener)
+                if self._cache_balancers is None:
+                    self._cache_balancers = []
+                self._cache_balancers.append(balancer)
 
                 plogging.info("- in progress")
 
@@ -813,15 +812,43 @@ class PlumberyInfrastructure(object):
                     plogging.info("- already there")
 
                 elif 'NO_IP_ADDRESS_AVAILABLE' in str(feedback):
-                    plogging.info("- unable to create listener")
+                    plogging.info("- unable to create balancer")
                     plogging.error("Error: No more ipv4 address available "
                                  "-- assign more")
                     raise
 
                 else:
-                    plogging.info("- unable to create listener")
+                    plogging.info("- unable to create balancer")
                     plogging.error(str(feedback))
                     raise
+
+        for item in self.blueprint['balancers']:
+
+            if isinstance(item, dict):
+                label = list(item)[0]
+                settings = item[label]
+            else:
+                label = str(item)
+                settings = {}
+
+            name = self.name_balancer(label, settings)
+
+            if 'port' in settings:
+                port = str(settings['port'])
+            else:
+                port = '80'
+
+            if 'protocol' in settings:
+                protocol = settings['protocol']
+            else:
+                protocol = 'http'
+
+            protocols = ['http', 'https', 'tcp', 'udp']
+
+            if protocol not in protocols:
+                raise PlumberyException(
+                    "Error: unknown protocol has been defined "
+                    "for the balancer '{}'!".format(label))
 
             firewall = self.name_firewall_rule('Internet', name, port)
 
@@ -839,7 +866,7 @@ class PlumberyInfrastructure(object):
                 ip_address=external_ip,
                 ip_prefix_size=None,
                 port_begin=port,
-                port_end=port,
+                port_end=None,
                 address_list_id=None,
                 port_list_id=None)
 
@@ -859,14 +886,14 @@ class PlumberyInfrastructure(object):
             plogging.info("Creating firewall rule '{}'"
                          .format(firewall))
 
-            if self.engine.safeMode:
+            if self.plumbery.safeMode:
                 plogging.info("- skipped - safe mode")
 
             else:
 
                 try:
 
-                    self.container._ex_create_firewall_rule(
+                    self._ex_create_firewall_rule(
                         network_domain=domain,
                         rule=rule,
                         position='LAST')
@@ -881,6 +908,7 @@ class PlumberyInfrastructure(object):
                     else:
                         plogging.info("- unable to create firewall rule")
                         plogging.error(str(feedback))
+                        raise
 
         return True
 
@@ -890,14 +918,14 @@ class PlumberyInfrastructure(object):
 
         """
 
-        if 'listeners' not in self.blueprint:
+        if 'balancers' not in self.blueprint:
             return True
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
         driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
-        for item in self.blueprint['listeners']:
+        for item in self.blueprint['balancers']:
 
             if isinstance(item, dict):
                 label = list(item)[0]
@@ -906,13 +934,13 @@ class PlumberyInfrastructure(object):
                 label = str(item)
                 settings = {}
 
-            name = self.name_listener(label, settings)
+            name = self.name_balancer(label, settings)
 
-            listener = self._get_listener(name)
+            balancer = self._get_balancer(name)
 
-            plogging.info("Destroying listener '{}'".format(name))
+            plogging.info("Destroying balancer '{}'".format(name))
 
-            if listener is None:
+            if balancer is None:
                 plogging.info("- not found")
                 continue
 
@@ -921,7 +949,7 @@ class PlumberyInfrastructure(object):
                 continue
 
             try:
-                driver.destroy_balancer(listener)
+                driver.destroy_balancer(balancer)
                 plogging.info("- in progress")
 
             except Exception as feedback:
@@ -930,7 +958,7 @@ class PlumberyInfrastructure(object):
                     plogging.info("- not found")
 
                 else:
-                    plogging.info("- unable to destroy listener")
+                    plogging.info("- unable to destroy balancer")
                     plogging.error(str(feedback))
 
         pool = self._get_pool()
@@ -985,15 +1013,15 @@ class PlumberyInfrastructure(object):
                     plogging.info("- unable to destroy node")
                     plogging.error(str(feedback))
 
-    def name_listener(self, label, settings={}):
+    def name_balancer(self, label, settings={}):
         return label \
             + '.' + self.blueprint['target']                 \
             + '.' + self.facility.get_location_id().lower()      \
-            + '.listener'
+            + '.balancer'
 
-    def _get_listener(self, name):
+    def _get_balancer(self, name):
         """
-        Retrieves a listener attached to this blueprint
+        Retrieves a balancer attached to this blueprint
 
         """
 
@@ -1005,16 +1033,16 @@ class PlumberyInfrastructure(object):
             return None
         driver.ex_set_current_network_domain(domain.id)
 
-        if self._cache_listeners is None:
-            plogging.info("Listing listeners")
-            self._cache_listeners = driver.list_balancers()
-            plogging.info("- found {} listeners"
-                         .format(len(self._cache_listeners)))
+        if self._cache_balancers is None:
+            plogging.info("Listing balancers")
+            self._cache_balancers = driver.list_balancers()
+            plogging.info("- found {} balancers"
+                         .format(len(self._cache_balancers)))
 
-        for listener in self._cache_listeners:
+        for balancer in self._cache_balancers:
 
-            if listener.name.lower() == name.lower():
-                return listener
+            if balancer.name.lower() == name.lower():
+                return balancer
 
         return None
 
@@ -1029,7 +1057,7 @@ class PlumberyInfrastructure(object):
 
         """
 
-        if 'listeners' not in self.blueprint:
+        if 'pool' not in self.blueprint:
             return None
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
@@ -1059,7 +1087,7 @@ class PlumberyInfrastructure(object):
 
         """
 
-        if 'listeners' not in self.blueprint:
+        if 'pool' not in self.blueprint:
             return
 
         pool = self._get_pool()
@@ -1186,18 +1214,18 @@ class PlumberyInfrastructure(object):
         addresses = self._list_ipv4()
 
         if len(addresses) > 0:
-            plogging.debug('Pool of public IP addresses:')
-            for address in addresses:
-                plogging.debug('- {}'.format(address))
 
-        if len(addresses) > 1:
+            plogging.debug('Pool of public IPv4 addresses:')
+            plogging.debug('- {} adresses have been reserved'.format(
+                len(addresses)))
 
             for reserved in self.ex_list_reserved_public_ip_addresses(domain):
-                plogging.debug('- {} is reserved'.format(reserved))
                 addresses.remove(reserved)
 
+            plogging.debug('- {} available'.format(len(addresses)))
+
         if len(addresses) > 0:
-            plogging.debug('Providing address: {}'.format(addresses[0]))
+            plogging.debug('Using address: {}'.format(addresses[0]))
             return addresses[0]
 
         actual = len(self._list_ipv4())
