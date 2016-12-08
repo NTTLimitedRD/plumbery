@@ -254,16 +254,26 @@ class PreparePolisher(PlumberyPolisher):
                             username=self.user,
                             password=self.secret,
                             key_files=path,
-                            timeout=9)
+                            timeout=10)
 
-        try:
-            session.connect()
-        except Exception as feedback:
-            plogging.error("Error: unable to prepare '{}' at '{}'!".format(
-                node.name, target_ip))
-            plogging.error(str(feedback))
-            plogging.error("- failed")
-            return False
+        attempts = 0
+        while True:
+            attempts += 1
+            if attempts > 5:
+                plogging.error("Error: can not connect to '{}'!".format(
+                    target_ip))
+                plogging.error("- failed")
+                return False
+
+            try:
+                session.connect()
+                break
+
+            except Exception as feedback:
+                plogging.debug(str(feedback))
+                plogging.debug("- attempt {} failed, retrying".format(attempts))
+                time.sleep(10)
+                continue
 
         while True:
             try:
@@ -617,7 +627,7 @@ class PreparePolisher(PlumberyPolisher):
             plogging.error("- skipped - node is not running")
             return
 
-        self.upgrade_vmware_tools(node)
+#        self.upgrade_vmware_tools(node)
 
         prepares = self._get_prepares(node, settings, container)
         if len(prepares) < 1:
