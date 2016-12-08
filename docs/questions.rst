@@ -37,6 +37,33 @@ Fortunately not. Plumbery makes extensive usage of separate configuration files 
 About troubleshooting
 ---------------------
 
+How to control data sent to cloud-init?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The term `user-data` is naming detailed configuration instructions given to cloud-init.
+Plumbery builds `user-data` for each node that has a `cloud-config` statement in the fittings plan.
+Data prepared by plumbery can be inspected with the debug flag::
+
+    $ python -m plumbery fittings.yaml deploy -d
+
+In the stream of messages, look for the keyword `#cloud-config` and following lines. For example::
+
+    #cloud-config
+    users:
+      - default
+      - ssh-authorized-keys:
+          - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC5QNc7Z+PHF2S4Nr/WGs0aIs3FBkwBvHBP4aBdPb35KEWbeKx+X4iJ3CFY4DCqNPsS01IarrzcKzHkpzDRxptB+6iLQE4y7dvIrkHP8rqXOspbQ4afyHE0uN1Jf6kp4kylAe6zwWg
+    ...
+
+
+If you are not sure that such data is correct YAML syntax, then copy the full text, starting on the keyword `#cloud-config`, and paste it in YAML Lint::
+
+    http://www.yamllint.com
+
+YAML Lint will immediately tell you if data is ok or not:
+
+.. image:: yamllint.png
+
 How to troubleshoot cloud-init?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -48,6 +75,6 @@ If the file does not exist, or if its content does not reflect statements put in
 
     $ cd /var/lib/cloud/seed/nocloud-net/
     $ less user-data
-    $ sudo cloud-init --debug --file user-data single -n cc_write_files
+    $ sudo cloud-init --debug --file user-data modules --mode final
 
 Check error messages thrown by cloud-init and react accordingly.
