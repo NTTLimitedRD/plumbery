@@ -461,6 +461,37 @@ class PlumberyInfrastructure(object):
 
                 break
 
+        if 'reserved' in blueprint['ethernet']:
+
+            for reserved in blueprint['ethernet']['reserved']:
+
+                plogging.info("Reserving address '{}'"
+                              .format(reserved))
+
+                if self.plumbery.safeMode:
+                    plogging.info("- skipped - safe mode")
+                    continue
+
+                while True:
+                    try:
+                        self.ex_reserve_private_ip_addresses(
+                            vlan=self.network,
+                            address=reserved)
+                        plogging.info("- in progress")
+
+                    except Exception as feedback:
+
+                        if 'RESOURCE_BUSY' in str(feedback):
+                            time.sleep(10)
+                            continue
+
+                        else:
+                            plogging.info("- unable to create Ethernet network")
+                            plogging.error(str(feedback))
+                            return False
+
+                    break
+
         if 'multicloud' in blueprint                                      \
            and isinstance(blueprint['multicloud'], dict):
             plogging.info("Starting multicloud deployment")
@@ -754,16 +785,6 @@ class PlumberyInfrastructure(object):
                 plogging.info("- already there")
                 continue
 
-            if 'port' in settings:
-                port = str(settings['port'])
-            else:
-                port = '80'
-
-            if int(port) < 1 or int(port) > 65535:
-                raise PlumberyException(
-                    "Error: invalid port has been defined "
-                    "for the balancer '{}'!".format(label))
-
             if 'protocol' in settings:
                 protocol = settings['protocol']
             else:
@@ -776,6 +797,16 @@ class PlumberyInfrastructure(object):
                     "Error: unknown protocol has been defined "
                     "for the balancer '{}'!".format(label))
 
+            if 'port' in settings:
+                port = str(settings['port'])
+            else:
+                port = '80'
+
+            if int(port) < 1 or int(port) > 65535:
+                raise PlumberyException(
+                    "Error: invalid port has been defined "
+                    "for the balancer '{}'!".format(label))
+
             plogging.info("Creating balancer '{}'".format(name))
 
             if self.plumbery.safeMode:
@@ -783,13 +814,16 @@ class PlumberyInfrastructure(object):
                 continue
 
             try:
-                external_ip = self._get_ipv4()
+                if 'address' in settings:
+                    ip = settings['address']
+                else:
+                    ip = self._get_ipv4()
 
                 balancer = driver.ex_create_virtual_listener(
                     network_domain_id=domain.id,
                     name=name,
                     ex_description="#plumbery",
-                    listener_ip_address=external_ip,
+                    listener_ip_address=ip,
                     port=port,
                     pool=pool,
                     persistence_profile=None,
@@ -820,35 +854,6 @@ class PlumberyInfrastructure(object):
                 else:
                     plogging.info("- unable to create balancer")
                     plogging.error(str(feedback))
-                    raise
-
-        for item in self.blueprint['balancers']:
-
-            if isinstance(item, dict):
-                label = list(item)[0]
-                settings = item[label]
-            else:
-                label = str(item)
-                settings = {}
-
-            name = self.name_balancer(label, settings)
-
-            if 'port' in settings:
-                port = str(settings['port'])
-            else:
-                port = '80'
-
-            if 'protocol' in settings:
-                protocol = settings['protocol']
-            else:
-                protocol = 'http'
-
-            protocols = ['http', 'https', 'tcp', 'udp']
-
-            if protocol not in protocols:
-                raise PlumberyException(
-                    "Error: unknown protocol has been defined "
-                    "for the balancer '{}'!".format(label))
 
             firewall = self.name_firewall_rule('Internet', name, port)
 
@@ -863,7 +868,7 @@ class PlumberyInfrastructure(object):
 
             destinationIPv4 = DimensionDataFirewallAddress(
                 any_ip=False,
-                ip_address=external_ip,
+                ip_address=ip,
                 ip_prefix_size=None,
                 port_begin=port,
                 port_end=None,
@@ -908,7 +913,6 @@ class PlumberyInfrastructure(object):
                     else:
                         plogging.info("- unable to create firewall rule")
                         plogging.error(str(feedback))
-                        raise
 
         return True
 
@@ -1877,6 +1881,33 @@ class PlumberyInfrastructure(object):
                 rule_id = info.get('value')
         rule.id = rule_id
         return rule
+
+    def ex_reserve_private_ip_addresses(self, vlan, address):
+
+        req = ET.Element(reservePrivateIpv4Address, {'xmlns': TYPES_URN})
+        ET.SubElement(req, "vlanId").text = vlan.id
+        ET.SubElement(req, "ipAddress").text = address
+
+        result = self.region.connection.request_with_orgId_api_2(
+            action='network/reservedPrivateIpv4Address',
+            method='POST',
+            data=ET.tostring(req)).object
+
+        response_code = findtext(result, 'responseCode', TYPES_URN)
+        return response_code in ['IN_PROGRESS', 'OK']
+
+    def ex_list_reserved_private_ip_addresses(self, vlan):
+        params = {}
+        params['vlanId'] = vlan.id
+
+        response = self.region.connection \
+            .request_with_orgId_api_2('network/reservedPrivateIpv4Address',
+                                      params=params).object
+
+        reserved = []
+        for element in findall(response, 'ipv4', TYPES_URN):
+            reserved.append(element.text)
+        return reserved
 
     def ex_list_reserved_public_ip_addresses(self, network_domain):
         params = {}
