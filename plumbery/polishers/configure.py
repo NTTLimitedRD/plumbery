@@ -446,7 +446,7 @@ class ConfigurePolisher(PlumberyPolisher):
                 else:
                     raise ce
 
+        container._add_to_pool(node)
+
         if 'glue' in settings:
             self.attach_node(node, settings['glue'])
-
-        container._add_to_pool(node)
