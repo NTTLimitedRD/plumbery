@@ -386,7 +386,6 @@ class PlumberyNodes(object):
 
                 self._detach_node(node, settings)
                 container._detach_node_from_internet(node)
-                container._remove_from_pool(node)
 
                 plogging.info("Destroying node '{}'".format(label))
                 while True:

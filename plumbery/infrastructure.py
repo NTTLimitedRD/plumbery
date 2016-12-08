@@ -634,7 +634,7 @@ class PlumberyInfrastructure(object):
               domain: *vdc1
               ethernet: *data
               nodes:
-                - apache[10..19]
+                - apache-[10..19]
               listeners:
                 - http:
                     port: 80
@@ -668,6 +668,7 @@ class PlumberyInfrastructure(object):
             return True
 
         domain = self.get_network_domain(self.blueprint['domain']['name'])
+        network = self.get_ethernet(self.blueprint['ethernet']['name'])
         driver = self.plumbery.get_balancer_driver(self.get_region_id())
         driver.ex_set_current_network_domain(domain.id)
 
@@ -703,6 +704,9 @@ class PlumberyInfrastructure(object):
                     "Error: unknown algorithm has been defined "
                     "for the pool '{}'!".format(name))
 
+            if 'description' not in settings:
+                settings['description'] = 'by plumbery'
+
             plogging.info("Creating pool '{}'".format(name))
 
             if self.plumbery.safeMode:
@@ -714,7 +718,7 @@ class PlumberyInfrastructure(object):
                         network_domain_id=domain.id,
                         name=name,
                         balancer_method=algorithm,
-                        ex_description="#plumbery",
+                        ex_description=settings['description'],
                         health_monitors=None,
                         service_down_action='NONE',
                         slow_ramp_time=30)
@@ -780,12 +784,13 @@ class PlumberyInfrastructure(object):
                 continue
 
             try:
-                self._get_ipv4()
+                external_ip = self._get_ipv4()
 
                 listener = driver.ex_create_virtual_listener(
                     network_domain_id=domain.id,
                     name=name,
                     ex_description="#plumbery",
+                    listener_ip_address=external_ip,
                     port=port,
                     pool=pool,
                     persistence_profile=None,
@@ -817,6 +822,65 @@ class PlumberyInfrastructure(object):
                     plogging.info("- unable to create listener")
                     plogging.error(str(feedback))
                     raise
+
+            firewall = self.name_firewall_rule('Internet', name, port)
+
+            sourceIPv4 = DimensionDataFirewallAddress(
+                any_ip=True,
+                ip_address=network.private_ipv4_range_address,
+                ip_prefix_size=network.private_ipv4_range_size,
+                port_begin=None,
+                port_end=None,
+                address_list_id=None,
+                port_list_id=None)
+
+            destinationIPv4 = DimensionDataFirewallAddress(
+                any_ip=False,
+                ip_address=external_ip,
+                ip_prefix_size=None,
+                port_begin=port,
+                port_end=port,
+                address_list_id=None,
+                port_list_id=None)
+
+            rule = DimensionDataFirewallRule(
+                id=uuid4(),
+                action='ACCEPT_DECISIVELY',
+                name=firewall,
+                location=network.location,
+                network_domain=network.network_domain,
+                status='NORMAL',
+                ip_version='IPV4',
+                protocol='TCP',
+                enabled='true',
+                source=sourceIPv4,
+                destination=destinationIPv4)
+
+            plogging.info("Creating firewall rule '{}'"
+                         .format(firewall))
+
+            if self.engine.safeMode:
+                plogging.info("- skipped - safe mode")
+
+            else:
+
+                try:
+
+                    self.container._ex_create_firewall_rule(
+                        network_domain=domain,
+                        rule=rule,
+                        position='LAST')
+
+                    plogging.info("- in progress")
+
+                except Exception as feedback:
+
+                    if 'NAME_NOT_UNIQUE' in str(feedback):
+                        plogging.info("- already there")
+
+                    else:
+                        plogging.info("- unable to create firewall rule")
+                        plogging.error(str(feedback))
 
         return True
 
@@ -893,10 +957,39 @@ class PlumberyInfrastructure(object):
                     plogging.info("- unable to destroy pool")
                     plogging.error(str(feedback))
 
+        plogging.info("Destroying pool nodes")
+
+        if self.plumbery.safeMode:
+            plogging.info("- skipped - safe mode")
+
+        else:
+            try:
+                nodes = driver.ex_get_nodes(domain.id)
+
+                if len(nodes) > 0:
+
+                    for node in nodes:
+                        plogging.info("- destroying {}".format(node.name))
+                        nodes = driver.ex_destroy_node(node.id)
+
+                    plogging.info("- in progress")
+
+                else:
+                    plogging.info("- nothing to do")
+
+            except Exception as feedback:
+                if 'RESOURCE_NOT_FOUND' in str(feedback):
+                    plogging.info("- not found")
+
+                else:
+                    plogging.info("- unable to destroy node")
+                    plogging.error(str(feedback))
+
     def name_listener(self, label, settings={}):
-        return self.blueprint['target']                 \
-            + '_' + self.facility.get_location_id().lower()      \
-            + '.' + label + '.listener'
+        return label \
+            + '.' + self.blueprint['target']                 \
+            + '.' + self.facility.get_location_id().lower()      \
+            + '.listener'
 
     def _get_listener(self, name):
         """
@@ -927,7 +1020,8 @@ class PlumberyInfrastructure(object):
 
     def _name_pool(self):
         return self.blueprint['target']                     \
-            + '_' + self.facility.get_location_id().lower() + '.pool'
+            + '.' + self.facility.get_location_id().lower() \
+            + '.pool'
 
     def _get_pool(self):
         """
@@ -1014,78 +1108,6 @@ class PlumberyInfrastructure(object):
                 plogging.error(str(feedback))
 
             raise
-
-    def _remove_from_pool(self, node):
-        """
-        Removes a node from the pool
-
-        """
-
-        if 'listeners' not in self.blueprint:
-            return
-
-        domain = self.get_network_domain(self.blueprint['domain']['name'])
-        driver = self.plumbery.get_balancer_driver(self.get_region_id())
-        driver.ex_set_current_network_domain(domain.id)
-
-        pool = self._get_pool()
-        if pool is not None:
-
-            plogging.info("Removing '{}' from pool '{}'".format(
-                node.name,
-                pool.name))
-
-            members = driver.ex_get_pool_members(pool.id)
-
-            found = False
-            for member in members:
-
-                if member.name == self.name_member(node):
-
-                    if self.plumbery.safeMode:
-                        plogging.info("- skipped - safe mode")
-                        return
-
-                    try:
-                        driver.balancer_detach_member(
-                            balancer='*unused*',
-                            member=member)
-                        plogging.info("- in progress")
-
-                    except Exception as feedback:
-
-                        if 'RESOURCE_NOT_FOUND' in str(feedback):
-                            plogging.info("- not found")
-
-                        else:
-                            plogging.info("- unable to remove from pool")
-                            plogging.error(str(feedback))
-
-                    found = True
-                    break
-
-            if not found:
-                plogging.info("- already there")
-
-        try:
-            plogging.info("Destroying membership of '{}'".format(node.name))
-
-            members = driver.ex_get_nodes()
-            for member in members:
-                if member.name == self.name_member(node):
-                    driver.ex_destroy_node(member.id)
-                    break
-
-            plogging.info("- in progress")
-
-        except Exception as feedback:
-
-            if 'RESOURCE_NOT_FOUND' in str(feedback):
-                plogging.info("- not found")
-
-            else:
-                plogging.info("- unable to destroy membership")
-                plogging.error(str(feedback))
 
     def _detach_node_from_internet(self, node):
         """
@@ -1615,7 +1637,7 @@ class PlumberyInfrastructure(object):
             >>>destination='gigafox.production'
             >>>protocol='IP'
             >>>domain.name_firewall_rule(source, destination, protocol)
-            'plumbery.FlowIPFromGigafoxControlToGigafoxProduction'
+            'FromGigafoxControlToGigafoxProduction.IP.plumbery'
 
         """
 
