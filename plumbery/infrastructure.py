@@ -780,6 +780,8 @@ class PlumberyInfrastructure(object):
                 continue
 
             try:
+                self._get_ipv4()
+
                 listener = driver.ex_create_virtual_listener(
                     network_domain_id=domain.id,
                     name=name,
@@ -806,12 +808,15 @@ class PlumberyInfrastructure(object):
                     plogging.info("- already there")
 
                 elif 'NO_IP_ADDRESS_AVAILABLE' in str(feedback):
-                    plogging.info("- no more ipv4 address available "
+                    plogging.info("- unable to create listener")
+                    plogging.error("Error: No more ipv4 address available "
                                  "-- assign more")
+                    raise
 
                 else:
                     plogging.info("- unable to create listener")
                     plogging.error(str(feedback))
+                    raise
 
         return True
 
@@ -952,7 +957,7 @@ class PlumberyInfrastructure(object):
         return None
 
     def name_member(self, node):
-        return node.name+'.plumbery'
+        return node.private_ips[0]
 
     def _add_to_pool(self, node):
         """
@@ -994,8 +999,7 @@ class PlumberyInfrastructure(object):
 
             driver.ex_create_pool_member(
                 pool=pool,
-                node=member,
-                port='*padding*')
+                node=member)
 
             plogging.info("- in progress")
 
@@ -1008,6 +1012,8 @@ class PlumberyInfrastructure(object):
             else:
                 plogging.info("- unable to add to pool")
                 plogging.error(str(feedback))
+
+            raise
 
     def _remove_from_pool(self, node):
         """
@@ -1147,7 +1153,7 @@ class PlumberyInfrastructure(object):
                 name: myVDC
                 ipv4: 8
 
-        If the directive `auto` is used, then plumbery do not check the
+        If the directive `auto` is used, then plumbery does not check the
         maximum number of addresses that can be provided.
         """
 
@@ -1156,15 +1162,20 @@ class PlumberyInfrastructure(object):
             return None
 
         addresses = self._list_ipv4()
-        if len(addresses) > 1:
-
-            for rule in self.region.ex_list_nat_rules(domain):
-                addresses.remove(rule.external_ip)
-
-            if 'balancer' in self.blueprint:
-                addresses.pop(0)
 
         if len(addresses) > 0:
+            plogging.debug('Pool of public IP addresses:')
+            for address in addresses:
+                plogging.debug('- {}'.format(address))
+
+        if len(addresses) > 1:
+
+            for reserved in self.ex_list_reserved_public_ip_addresses(domain):
+                plogging.debug('- {} is reserved'.format(reserved))
+                addresses.remove(reserved)
+
+        if len(addresses) > 0:
+            plogging.debug('Providing address: {}'.format(addresses[0]))
             return addresses[0]
 
         actual = len(self._list_ipv4())
@@ -1182,6 +1193,7 @@ class PlumberyInfrastructure(object):
             return None
 
         if actual >= count:
+            plogging.error("Error: need more IPv4 address than allocated")
             return None
 
         plogging.info('Reserving additional public IPv4 addresses')
@@ -1815,3 +1827,16 @@ class PlumberyInfrastructure(object):
                 rule_id = info.get('value')
         rule.id = rule_id
         return rule
+
+    def ex_list_reserved_public_ip_addresses(self, network_domain):
+        params = {}
+        params['networkDomainId'] = network_domain.id
+
+        response = self.region.connection \
+            .request_with_orgId_api_2('network/reservedPublicIpv4Address',
+                                      params=params).object
+
+        reserved = []
+        for element in findall(response, 'ip', TYPES_URN):
+            reserved.append(element.text)
+        return reserved
