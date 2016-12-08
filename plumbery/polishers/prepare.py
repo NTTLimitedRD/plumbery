@@ -21,7 +21,6 @@ import netifaces
 
 from libcloud.compute.base import NodeState
 from libcloud.compute.deployment import Deployment
-from libcloud.compute.deployment import MultiStepDeployment
 from libcloud.compute.deployment import ScriptDeployment
 from libcloud.compute.deployment import SSHKeyDeployment
 from libcloud.compute.ssh import SSHClient
@@ -226,7 +225,7 @@ class PreparePolisher(PlumberyPolisher):
         :type node: :class:`libcloud.compute.base.Node`
 
         :param steps: the various steps of the preparing
-        :type steps: :class:`libcloud.compute.deployment.MultiStepDeployment`
+        :type steps: ``list`` of ``dict``
 
         :return: ``True`` if everything went fine, ``False`` otherwise
         :rtype: ``bool``
@@ -256,22 +255,22 @@ class PreparePolisher(PlumberyPolisher):
                             key_files=path,
                             timeout=10)
 
-        attempts = 0
+        repeats = 0
         while True:
-            attempts += 1
-            if attempts > 5:
-                plogging.error("Error: can not connect to '{}'!".format(
-                    target_ip))
-                plogging.error("- failed")
-                return False
-
             try:
                 session.connect()
                 break
 
             except Exception as feedback:
+                repeats += 1
+                if repeats > 5:
+                    plogging.error("Error: can not connect to '{}'!".format(
+                        target_ip))
+                    plogging.error("- failed to connect")
+                    return False
+
                 plogging.debug(str(feedback))
-                plogging.debug("- attempt {} failed, retrying".format(attempts))
+                plogging.debug("- connection {} failed, retrying".format(repeats))
                 time.sleep(10)
                 continue
 
@@ -281,7 +280,9 @@ class PreparePolisher(PlumberyPolisher):
                     plogging.info("- skipped - no ssh interaction in safe mode")
 
                 else:
-                    node = steps.run(node, session)
+                    for step in steps:
+                        plogging.info('- {}'.format(step['description']))
+                        step['genius'].run(node, session)
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -627,7 +628,7 @@ class PreparePolisher(PlumberyPolisher):
             plogging.error("- skipped - node is not running")
             return
 
-#        self.upgrade_vmware_tools(node)
+        self.upgrade_vmware_tools(node)
 
         prepares = self._get_prepares(node, settings, container)
         if len(prepares) < 1:
@@ -649,13 +650,10 @@ class PreparePolisher(PlumberyPolisher):
             return
 
         descriptions = []
-        steps = []
         for item in prepares:
             descriptions.append(item['description'])
-            steps.append(item['genius'])
 
-        if self._apply_prepares(node, MultiStepDeployment(steps)):
-            plogging.info('- rebooting')
+        if self._apply_prepares(node, prepares):
             self.report.append({node.name: {
                 'status': 'completed',
                 'prepares': descriptions
