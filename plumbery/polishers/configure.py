@@ -80,7 +80,7 @@ class ConfigurePolisher(PlumberyPolisher):
         plogging.info("- waiting for nodes to be deployed")
 
         names = self.nodes.list_nodes(container.blueprint)
-        for name in names:
+        for name in sorted(names):
             while True:
                 node = self.nodes.get_node(name)
                 if node is None:
@@ -88,6 +88,7 @@ class ConfigurePolisher(PlumberyPolisher):
                     return
 
                 if node.extra['status'].action is None:
+                    plogging.debug("- {} is ready".format(node.name))
                     break
 
                 if (node is not None
