@@ -89,8 +89,8 @@ class AnsiblePolisher(InventoryPolisher):
         After the creation of nodes by plumbery, the inventory provided to
         ansible could look like this::
 
-            masterSQL ansible_host=10.2.3.8
-            slaveSQL ansible_host=10.1.3.8
+            masterSQL  private_ipv4=10.2.3.8 ansible_ssh_host=10.2.3.8
+            slaveSQL  private_ipv4=10.1.3.8 ansible_ssh_ host=10.1.3.8
 
             [EU6]
             slaveSQL
