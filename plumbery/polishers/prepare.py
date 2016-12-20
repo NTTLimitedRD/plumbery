@@ -127,7 +127,7 @@ class PreparePolisher(PlumberyPolisher):
         safeMode: False
         actions:
           - prepare:
-              key: ~/.ssh/id_rsa.pub
+              key: ~/.ssh/myproject_rsa.pub
         ---
         # Frankfurt in Europe
         locationId: EU6
@@ -244,15 +244,12 @@ class PreparePolisher(PlumberyPolisher):
         else:
             target_ip = node.private_ips[0]
 
-        # guess location of user key
-        path = os.path.expanduser('~/.ssh/id_rsa')
-
         # use libcloud to communicate with remote nodes
         session = SSHClient(hostname=target_ip,
                             port=22,
                             username=self.user,
                             password=self.secret,
-                            key_files=path,
+                            key_files=self.key_files,
                             timeout=10)
 
         repeats = 0
@@ -334,10 +331,20 @@ class PreparePolisher(PlumberyPolisher):
 
         prepares = []
 
-        if self.key is not None:
-            prepares.append({
-                'description': 'deploy SSH public key',
-                'genius': SSHKeyDeployment(self.key)})
+        for key_file in self.key_files:
+            try:
+                path = os.path.expanduser(key_file)
+
+                with open(path) as stream:
+                    key = stream.read()
+                    stream.close()
+
+                prepares.append({
+                    'description': 'deploy SSH public key',
+                    'genius': SSHKeyDeployment(key=key)})
+
+            except IOError:
+                plogging.warning("no ssh key in {}".format(key_file))
 
         if ('prepare' in settings
                 and isinstance(settings['prepare'], list)
@@ -513,17 +520,21 @@ class PreparePolisher(PlumberyPolisher):
         self.user = engine.get_shared_user()
         self.secret = engine.get_shared_secret()
 
-        self.key = None
+        self.key_files = engine.get_shared_key_files()
+
         if 'key' in self.settings:
-            try:
-                path = os.path.expanduser(self.settings['key'])
+            key = self.settings['key']
 
-                with open(path) as stream:
-                    self.key = stream.read()
-                    stream.close()
+            file = os.path.expanduser(key)
+            if os.path.isfile(file):
+                plogging.debug("- using shared key {}".format(key))
+                if self.key_files is None:
+                    self.key_files = [key]
+                else:
+                    self.key_files.insert(0, key)
 
-            except IOError:
-                pass
+            else:
+                plogging.error("Error: missing file {}".format(key))
 
     def move_to(self, facility):
         """
