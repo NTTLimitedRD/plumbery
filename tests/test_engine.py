@@ -619,6 +619,9 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.do('polish', 'myBlueprint')
         engine.polish_blueprint('myBlueprint')
 
+        engine.do('refresh')
+        engine.do('refresh', 'myBlueprint')
+
         engine.do('secrets')
 
         engine.do('start')
