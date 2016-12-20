@@ -523,16 +523,37 @@ class TestPlumberyEngine(unittest.TestCase):
         DimensionDataMockHttp.type = None
         self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
+        file = os.path.abspath(
+            os.path.dirname(__file__))+'/fixtures/dummy_rsa.pub'
+
+        settings = {
+            'keys': [ "*hello-there*" ],
+            }
+
+        with self.assertRaises(ValueError):
+            engine.set_settings(settings)
+
+        settings = {
+            'keys': [ file ],
+            }
+
+        engine.set_settings(settings)
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertTrue(file in engine.get_shared_key_files())
+
         settings = {
             'safeMode': False,
             'polishers': [
                 {'ansible': {}},
                 {'configure': {}},
-                ]
+                ],
+            'keys': [ file, file ],
             }
 
         engine.set_settings(settings)
         self.assertEqual(engine.safeMode, False)
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertTrue(file in engine.get_shared_key_files())
 
         engine.add_facility(myFacility)
         self.assertEqual(len(engine.facilities), 1)

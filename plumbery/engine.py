@@ -389,6 +389,15 @@ class PlumberyEngine(object):
 
             self.information = settings['information']
 
+        if 'keys' in settings:
+            if not isinstance(settings['keys'], list):
+                raise TypeError('keys should be a list')
+
+            self.set_shared_key_files(settings['keys'])
+
+        else:
+            self.set_shared_key_files()
+
         if 'links' in settings:
             if not isinstance(settings['links'], dict):
                 raise TypeError('links should be a dictionary')
