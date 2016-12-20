@@ -27,7 +27,7 @@ from libcloud.common.dimensiondata import DimensionDataFirewallRule
 from libcloud.common.dimensiondata import DimensionDataFirewallAddress
 from libcloud.common.dimensiondata import TYPES_URN
 
-from libcloud.utils.xml import findall
+from libcloud.utils.xml import findtext, findall
 
 from plumbery.terraform import Terraform
 from plumbery.exception import PlumberyException
@@ -1884,7 +1884,7 @@ class PlumberyInfrastructure(object):
 
     def ex_reserve_private_ip_addresses(self, vlan, address):
 
-        req = ET.Element(reservePrivateIpv4Address, {'xmlns': TYPES_URN})
+        req = ET.Element('reservePrivateIpv4Address', {'xmlns': TYPES_URN})
         ET.SubElement(req, "vlanId").text = vlan.id
         ET.SubElement(req, "ipAddress").text = address
 
