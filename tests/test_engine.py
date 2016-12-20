@@ -810,6 +810,13 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine._sharedKeyFiles,
                          engine.get_shared_key_files())
 
+        with mock.patch.object(engine, 'get_shared_key_files') as patched:
+            patched.return_value = []
+
+            files = ['*unknown-file*', '**me-too*']
+            with self.assertRaises(ValueError):
+                engine.set_shared_key_files(files)
+
         file = os.path.abspath(
             os.path.dirname(__file__))+'/fixtures/dummy_rsa.pub'
         engine.set_shared_key_files(file)
@@ -817,6 +824,14 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.get_shared_key_files()[0], file)
         self.assertEqual(engine._sharedKeyFiles,
                          engine.get_shared_key_files())
+
+        with mock.patch.object(engine, 'get_shared_key_files') as patched:
+            patched.return_value = []
+
+            files = [file, file, file]
+            engine.set_shared_key_files(files)
+
+            self.assertEqual(engine._sharedKeyFiles, [file])
 
         if 'SHARED_KEY' in os.environ:
             memory = os.environ["SHARED_KEY"]
@@ -850,15 +865,15 @@ class TestPlumberyEngine(unittest.TestCase):
             self.assertTrue(isinstance(engine.get_shared_key_files(), list))
 
             with self.assertRaises(ValueError):
-                localKey = engine.set_shared_key_files()
+                engine.set_shared_key_files()
 
             with self.assertRaises(ValueError):
-                localKey = engine.set_shared_key_files('this_does_not_exist')
+                engine.set_shared_key_files('this_does_not_exist')
 
             file = os.path.abspath(
                 os.path.dirname(__file__))+'/fixtures/dummy_rsa.pub'
             engine.set_shared_key_files(file)
-            self.assertEqual(engine.get_shared_key_files(), [file])
+            self.assertEqual(engine._sharedKeyFiles, [file])
 
     def test_parser(self):
 

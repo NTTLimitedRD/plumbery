@@ -537,12 +537,12 @@ class PlumberyEngine(object):
 
         return self._sharedSecret
 
-    def set_shared_key_files(self, key=None):
+    def set_shared_key_files(self, keys=None):
         """
         Sets locations of ssh keys
 
-        :param key: additional path name that contains a ssh key
-        :type key: ``str`` or `None`
+        :param keys: additional path name that contains a ssh key
+        :type keys: ``str`` or ``list`` of ``str`` or `None`
 
         This function can be used to complement the normal provision of
         ssh keys, or to check that some key is available.
@@ -557,12 +557,16 @@ class PlumberyEngine(object):
 
         self._sharedKeyFiles = self.get_shared_key_files()
 
-        if key is not None:
-            file = os.path.expanduser(key)
-            if not os.path.isfile(file):
-                raise ValueError("Error: missing file {}".format(key))
-            plogging.debug("- using shared key {}".format(key))
-            self._sharedKeyFiles.insert(0, key)
+        if keys is not None:
+            if isinstance(keys, str):
+                keys = [keys]
+            for key in keys:
+                file = os.path.expanduser(key)
+                if not os.path.isfile(file):
+                    raise ValueError("Error: missing file {}".format(key))
+                if key not in self._sharedKeyFiles:
+                    plogging.debug("- using shared key {}".format(key))
+                    self._sharedKeyFiles.insert(0, key)
 
         if len(self._sharedKeyFiles) < 1:
             raise ValueError(
