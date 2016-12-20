@@ -3,6 +3,22 @@
 History
 -------
 
+1.0.3 (2016-12-20)
+~~~~~~~~~~~~~~~~~~
+
+* Fix #41 and #48 on SSH keys
+* Reference and use external SSH keys
+* Allow for reservation of private IPv4 addresses on a VLAN
+* Complete rewrite of load-balancing code
+* Progress on epic topics #36 and #38
+* Remove dependency to cryptodome
+* Provide comprehensive setup instructions for Windows users
+* Add EU9 to the list of available MCP
+* Improve inventory files given to ansible
+* Pass Travis CI
+* 4503 python statements
+* Test coverage 59%
+
 1.0.2 (2016-11-6)
 ~~~~~~~~~~~~~~~~~~
 
