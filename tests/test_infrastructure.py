@@ -182,20 +182,20 @@ class TestPlumberyInfrastructure(unittest.TestCase):
     def test_build(self):
         self.infrastructure.build(fakeBluePrint)
 
-    def test_name_listener(self):
+    def test_name_balancer(self):
         self.infrastructure.blueprint = fakeBluePrint
-        name = self.infrastructure.name_listener('fake')
-        self.assertEqual(name, 'fake_eu6.fake.listener')
+        name = self.infrastructure.name_balancer('fake')
+        self.assertEqual(name, 'fake.fake.eu6.balancer')
 
-    def test_get_listener(self):
+    def test_get_balancer(self):
         self.infrastructure.blueprint = fakeBluePrint
-        listener = self.infrastructure._get_listener('fakeListener')
-        self.assertEqual(listener, None)
+        balancer = self.infrastructure._get_balancer('fakeListener')
+        self.assertEqual(balancer, None)
 
     def test_name_pool(self):
         self.infrastructure.blueprint = fakeBluePrint
         name = self.infrastructure._name_pool()
-        self.assertEqual(name, 'fake_eu6.pool')
+        self.assertEqual(name, 'fake.eu6.pool')
 
     def test_get_pool(self):
         self.infrastructure.blueprint = fakeBluePrint
