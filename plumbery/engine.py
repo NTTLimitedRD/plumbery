@@ -648,7 +648,7 @@ class PlumberyEngine(object):
 
         if id == 'rsa_public.local':
             paths = self.get_shared_key_files()
-            if paths is None:
+            if len(paths) < 1:
                 return ''
             path = paths.pop(0)
 
