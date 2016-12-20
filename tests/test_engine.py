@@ -12,6 +12,7 @@ from tests import dummy
 
 import base64
 import logging
+import mock
 import os
 import unittest
 import yaml
@@ -125,7 +126,7 @@ actions:
   - inventory:
       output: gigafox_inventory.yaml
   - prepare:
-      key: ~/.ssh/id_rsa.pub
+      key: ~/.ssh/myproject_rsa.pub
       output: gigafox_prepares.yaml
 
 ---
@@ -779,16 +780,13 @@ class TestPlumberyEngine(unittest.TestCase):
             localKey = engine.lookup('rsa_private.local')
 
         localKey = engine.lookup('rsa_public.local')
-        try:
-            path = '~/.ssh/id_rsa.pub'
+        if len(localKey) > 0:
+            path = engine.get_shared_key_files()[0]
             with open(os.path.expanduser(path)) as stream:
                 text = stream.read()
                 stream.close()
                 self.assertEqual(localKey.strip(), text.strip())
                 plogging.info("Successful lookup of local public key")
-
-        except IOError:
-            pass
 
     def test_secrets(self):
 
@@ -800,6 +798,67 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.secrets['hello'], 'world')
         engine.forget_secrets(plan='test_engine.yaml')
         self.assertEqual(os.path.isfile('.test_engine.secrets'), False)
+
+    def test_keys(self):
+
+        engine = PlumberyEngine()
+        self.assertEqual(engine._sharedKeyFiles, [])
+
+        with self.assertRaises(ValueError):
+            engine.set_shared_key_files('this_does_not_exist')
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertEqual(engine._sharedKeyFiles,
+                         engine.get_shared_key_files())
+
+        file = os.path.abspath(
+            os.path.dirname(__file__))+'/fixtures/dummy_rsa.pub'
+        engine.set_shared_key_files(file)
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertEqual(engine.get_shared_key_files()[0], file)
+        self.assertEqual(engine._sharedKeyFiles,
+                         engine.get_shared_key_files())
+
+        if 'SHARED_KEY' in os.environ:
+            memory = os.environ["SHARED_KEY"]
+        else:
+            memory = None
+
+        engine._sharedKeyFiles = []
+        os.environ["SHARED_KEY"] = 'this_does_not_exist'
+        with self.assertRaises(ValueError):
+            engine.set_shared_key_files()
+        with self.assertRaises(ValueError):
+            engine.get_shared_key_files()
+        self.assertTrue(isinstance(engine._sharedKeyFiles, list))
+
+        engine._sharedKeyFiles = []
+        os.environ["SHARED_KEY"] = file
+        engine.set_shared_key_files()
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertEqual(engine.get_shared_key_files()[0], file)
+        self.assertEqual(engine._sharedKeyFiles,
+                         engine.get_shared_key_files())
+
+        if memory is None:
+            os.environ.pop("SHARED_KEY")
+        else:
+            os.environ["SHARED_KEY"] = memory
+
+        with mock.patch.object(engine, 'get_shared_key_files') as patched:
+            patched.return_value = []
+
+            self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+
+            with self.assertRaises(ValueError):
+                localKey = engine.set_shared_key_files()
+
+            with self.assertRaises(ValueError):
+                localKey = engine.set_shared_key_files('this_does_not_exist')
+
+            file = os.path.abspath(
+                os.path.dirname(__file__))+'/fixtures/dummy_rsa.pub'
+            engine.set_shared_key_files(file)
+            self.assertEqual(engine.get_shared_key_files(), [file])
 
     def test_parser(self):
 
