@@ -3,11 +3,11 @@
 History
 -------
 
-1.0.3 (2016-12-20)
+1.0.4 (2016-12-20)
 ~~~~~~~~~~~~~~~~~~
 
-* Fix #41 and #48 on SSH keys
-* Reference and use external SSH keys
+* Fix issues #41 and #48 on SSH keys
+* Reference and use external SSH keys to facilitate teamwork
 * Allow for reservation of private IPv4 addresses on a VLAN
 * Complete rewrite of load-balancing code
 * Progress on epic topics #36 and #38
