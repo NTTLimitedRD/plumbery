@@ -578,7 +578,7 @@ class PlumberyEngine(object):
                     self._sharedKeyFiles.insert(0, key)
 
         if len(self._sharedKeyFiles) < 1:
-            raise ValueError(
+            plogging.error(
                 "Error: no SSH key could be found, please run "
                 "ssh-keygen -t rsa -b 4096 -C <your email@c.com>")
 

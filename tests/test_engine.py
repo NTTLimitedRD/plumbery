@@ -885,8 +885,8 @@ class TestPlumberyEngine(unittest.TestCase):
 
             self.assertTrue(isinstance(engine.get_shared_key_files(), list))
 
-            with self.assertRaises(ValueError):
-                engine.set_shared_key_files()
+            engine.set_shared_key_files()
+            self.assertTrue(plogging.foundErrors())
 
             with self.assertRaises(ValueError):
                 engine.set_shared_key_files('this_does_not_exist')
