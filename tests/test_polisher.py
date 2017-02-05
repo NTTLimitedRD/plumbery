@@ -188,10 +188,10 @@ information:
 blueprints:
 
   - test:
-      domain:
+      domain: &myDC
         description: fake
         name: myDC
-      ethernet:
+      ethernet: &myVLAN
         description: fake
         name: myVLAN
         subnet: 10.1.10.0
@@ -216,6 +216,22 @@ blueprints:
         - node1:
             information:
               - node-level information
+
+  - web:
+      domain: *myDC
+      ethernet: *myVLAN
+      nodes:
+        - apache-[10..19]:
+            appliance: 'Ubuntu'
+      balancer:
+        - http:
+            port: 80
+            protocol: http
+        - https:
+            port: 443
+            protocol: http
+      pool:
+        algorithm: round_robin
 """
 
 

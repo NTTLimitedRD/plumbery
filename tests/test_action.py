@@ -18,70 +18,124 @@ class TestPlumberyAction(unittest.TestCase):
             def __init__(self, settings):
                 self.count = 0
 
-            def ignite(self, engine):
+            def begin(self, engine):
                 self.count += 100
 
             def enter(self, facility):
                 self.count *= 2
 
-            def handle(self, blueprint):
+            def process(self, blueprint):
                 self.count += 1
 
             def quit(self):
                 self.count += 3
 
-            def reap(self):
+            def end(self):
                 self.count += 1
 
         action = DummyAction({})
-        action.ignite(engine=None)
+        action.begin(engine=None)
         action.enter(facility=None)
-        action.handle(blueprint=None)
-        action.handle(blueprint=None)
+        action.process(blueprint=None)
+        action.process(blueprint=None)
         action.quit()
         action.enter(facility=None)
-        action.handle(blueprint=None)
-        action.handle(blueprint=None)
+        action.process(blueprint=None)
+        action.process(blueprint=None)
         action.quit()
         action.enter(facility=None)
-        action.handle(blueprint=None)
-        action.handle(blueprint=None)
+        action.process(blueprint=None)
+        action.process(blueprint=None)
         action.quit()
-        action.reap()
+        action.end()
         self.assertEqual(action.count, 836)
 
     def test_loader_ok(self):
 
-        action = PlumberyActionLoader.from_shelf('dummy')
-        action.ignite(engine=None)
+        action = PlumberyActionLoader.load('noop')
+        action.begin(engine=None)
         action.enter(facility=None)
-        action.handle(blueprint=None)
-        action.handle(blueprint=None)
+        action.process(blueprint=None)
+        action.process(blueprint=None)
         action.quit()
         action.enter(facility=None)
-        action.handle(blueprint=None)
-        action.handle(blueprint=None)
+        action.process(blueprint=None)
+        action.process(blueprint=None)
         action.quit()
         action.enter(facility=None)
-        action.handle(blueprint=None)
-        action.handle(blueprint=None)
+        action.process(blueprint=None)
+        action.process(blueprint=None)
         action.quit()
-        action.reap()
+        action.end()
 
     def test_loader_unknown_class(self):
 
         with self.assertRaises(ImportError):
-            action = PlumberyActionLoader.from_shelf('*123*')
+            PlumberyActionLoader.load('*123*')
 
     def test_getters(self):
-        action = PlumberyActionLoader.from_shelf('dummy', {'dummy': 'ok'})
-        self.assertEqual(action.get_type(), 'dummy')
-        self.assertEqual(action.get_parameter('dummy'), 'ok')
+        action = PlumberyActionLoader.load('noop', {'parameter': 'ok'})
+        self.assertEqual(action.get_label(), 'noop')
+        self.assertEqual(action.get_parameter('parameter'), 'ok')
 
         parameters = PlumberyParameters({'goofy': 'ok'})
-        action = PlumberyActionLoader.from_shelf('dummy', parameters)
-        self.assertEqual(action.get_type(), 'dummy')
+        action = PlumberyActionLoader.load('noop', parameters)
+        self.assertEqual(action.get_label(), 'noop')
         self.assertEqual(action.get_parameter('goofy'), 'ok')
+
+    def test_static_load(self):
+
+        actions = ('ansible',
+                   'build',
+                   'configure',
+                   'destroy',
+                   'information',
+                   'noop',
+                   'ping',
+                   'prepare',
+                   'start',
+                   'stop',
+                   'wipe',
+                  )
+
+        for label in actions:
+            action = PlumberyActionLoader.load(label, {})
+            self.assertEqual(action.get_label(), label)
+            action.begin(engine=None)
+            action.enter(facility=None)
+            action.process(blueprint=None)
+            action.process(blueprint=None)
+            action.quit()
+            action.enter(facility=None)
+            action.process(blueprint=None)
+            action.process(blueprint=None)
+            action.quit()
+            action.enter(facility=None)
+            action.process(blueprint=None)
+            action.process(blueprint=None)
+            action.quit()
+            action.end()
+
+    def test_dynamic_load(self):
+
+        actions = PlumberyActionLoader.load_all()
+
+        expected = ['ansible',
+                   'build',
+                   'configure',
+                   'destroy',
+                   'information',
+                   'inventory',
+                   'noop',
+                   'ping',
+                   'prepare',
+                   'start',
+                   'stop',
+                   'wipe',
+                  ]
+
+        self.assertEqual(sorted(actions.keys()), expected)
+
 
 if __name__ == '__main__':
     import sys

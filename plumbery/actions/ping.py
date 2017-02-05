@@ -12,3 +12,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from plumbery.action import PlumberyAction
+from plumbery.plogging import plogging
+
+
+class PingAction(PlumberyAction):
+    """
+    Queries the infrastructure to reflect networking information
+
+    :param settings: specific settings for this action
+    :type param: ``dict``
+
+    """
+
+    def begin(self, engine):
+        plogging.info("Action: ping")
+        plogging.info("- begin")
+
+    def process(self, blueprint):
+        plogging.info("- process blueprint")
+
+    def end(self):
+        plogging.info("- end")

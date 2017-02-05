@@ -135,7 +135,8 @@ class PlumberyFacility(object):
         :return:  the region, e.g., 'dd-eu' or 'dd-ap', etc.
         :rtype: ``str`` or None
 
-        This function helps to bind well-known data centres to their respective regions.
+        This function helps to bind well-known data centres
+        to their respective regions.
 
         For example::
 
@@ -669,7 +670,7 @@ class PlumberyFacility(object):
 
                 if os.getenv('LIBCLOUD_HTTP_PROXY') is not None:
                     plogging.debug('Setting proxy to %s' %
-                                  (os.getenv('LIBCLOUD_HTTP_PROXY')))
+                                   (os.getenv('LIBCLOUD_HTTP_PROXY')))
                     self.region.connection.set_http_proxy(
                         proxy_url=os.getenv('LIBCLOUD_HTTP_PROXY'))
                     self.backup.connection.set_http_proxy(
@@ -804,7 +805,7 @@ class PlumberyFacility(object):
         """
 
         if isinstance(action, str):
-            action = PlumberyActionLoader.from_shelf(action)
+            action = PlumberyActionLoader.load(action)
 
         self.power_on()
         action.enter(self)
@@ -812,12 +813,12 @@ class PlumberyFacility(object):
         basement = self.list_basement()
         for name in basement:
             blueprint = self.get_blueprint(name)
-            action.handle(blueprint)
+            action.process(blueprint)
 
         for name in self.expand_blueprint('*'):
             if name not in basement:
                 blueprint = self.get_blueprint(name)
-                action.handle(blueprint)
+                action.process(blueprint)
 
         action.quit()
 
@@ -834,7 +835,7 @@ class PlumberyFacility(object):
         """
 
         if isinstance(action, str):
-            action = PlumberyActionLoader.from_shelf(action)
+            action = PlumberyActionLoader.load(action)
 
         self.power_on()
         action.enter(self)
@@ -842,7 +843,7 @@ class PlumberyFacility(object):
         for name in self.expand_blueprint(names):
 
             blueprint = self.get_blueprint(name)
-            action.handle(blueprint)
+            action.process(blueprint)
 
         action.quit()
 

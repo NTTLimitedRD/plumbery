@@ -21,7 +21,6 @@ import netifaces
 
 from libcloud.compute.base import NodeState
 from libcloud.compute.deployment import Deployment
-from libcloud.compute.deployment import MultiStepDeployment
 from libcloud.compute.deployment import ScriptDeployment
 from libcloud.compute.deployment import SSHKeyDeployment
 from libcloud.compute.ssh import SSHClient
@@ -128,7 +127,7 @@ class PreparePolisher(PlumberyPolisher):
         safeMode: False
         actions:
           - prepare:
-              key: ~/.ssh/id_rsa.pub
+              key: ~/.ssh/myproject_rsa.pub
         ---
         # Frankfurt in Europe
         locationId: EU6
@@ -226,7 +225,7 @@ class PreparePolisher(PlumberyPolisher):
         :type node: :class:`libcloud.compute.base.Node`
 
         :param steps: the various steps of the preparing
-        :type steps: :class:`libcloud.compute.deployment.MultiStepDeployment`
+        :type steps: ``list`` of ``dict``
 
         :return: ``True`` if everything went fine, ``False`` otherwise
         :rtype: ``bool``
@@ -245,25 +244,32 @@ class PreparePolisher(PlumberyPolisher):
         else:
             target_ip = node.private_ips[0]
 
-        # guess location of user key
-        path = os.path.expanduser('~/.ssh/id_rsa')
-
         # use libcloud to communicate with remote nodes
         session = SSHClient(hostname=target_ip,
                             port=22,
                             username=self.user,
                             password=self.secret,
-                            key_files=path,
-                            timeout=9)
+                            key_files=self.key_files,
+                            timeout=10)
 
-        try:
-            session.connect()
-        except Exception as feedback:
-            plogging.error("Error: unable to prepare '{}' at '{}'!".format(
-                node.name, target_ip))
-            plogging.error(str(feedback))
-            plogging.error("- failed")
-            return False
+        repeats = 0
+        while True:
+            try:
+                session.connect()
+                break
+
+            except Exception as feedback:
+                repeats += 1
+                if repeats > 5:
+                    plogging.error("Error: can not connect to '{}'!".format(
+                        target_ip))
+                    plogging.error("- failed to connect")
+                    return False
+
+                plogging.debug(str(feedback))
+                plogging.debug("- connection {} failed, retrying".format(repeats))
+                time.sleep(10)
+                continue
 
         while True:
             try:
@@ -271,7 +277,9 @@ class PreparePolisher(PlumberyPolisher):
                     plogging.info("- skipped - no ssh interaction in safe mode")
 
                 else:
-                    node = steps.run(node, session)
+                    for step in steps:
+                        plogging.info('- {}'.format(step['description']))
+                        step['genius'].run(node, session)
 
             except Exception as feedback:
                 if 'RESOURCE_BUSY' in str(feedback):
@@ -323,10 +331,20 @@ class PreparePolisher(PlumberyPolisher):
 
         prepares = []
 
-        if self.key is not None:
-            prepares.append({
-                'description': 'deploy SSH public key',
-                'genius': SSHKeyDeployment(self.key)})
+        for key_file in self.key_files:
+            try:
+                path = os.path.expanduser(key_file)
+
+                with open(path) as stream:
+                    key = stream.read()
+                    stream.close()
+
+                prepares.append({
+                    'description': 'deploy SSH public key',
+                    'genius': SSHKeyDeployment(key=key)})
+
+            except IOError:
+                plogging.warning("no ssh key in {}".format(key_file))
 
         if ('prepare' in settings
                 and isinstance(settings['prepare'], list)
@@ -502,17 +520,21 @@ class PreparePolisher(PlumberyPolisher):
         self.user = engine.get_shared_user()
         self.secret = engine.get_shared_secret()
 
-        self.key = None
+        self.key_files = engine.get_shared_key_files()
+
         if 'key' in self.settings:
-            try:
-                path = os.path.expanduser(self.settings['key'])
+            key = self.settings['key']
 
-                with open(path) as stream:
-                    self.key = stream.read()
-                    stream.close()
+            file = os.path.expanduser(key)
+            if os.path.isfile(file):
+                plogging.debug("- using shared key {}".format(key))
+                if self.key_files is None:
+                    self.key_files = [key]
+                else:
+                    self.key_files.insert(0, key)
 
-            except IOError:
-                pass
+            else:
+                plogging.error("Error: missing file {}".format(key))
 
     def move_to(self, facility):
         """
@@ -639,13 +661,10 @@ class PreparePolisher(PlumberyPolisher):
             return
 
         descriptions = []
-        steps = []
         for item in prepares:
             descriptions.append(item['description'])
-            steps.append(item['genius'])
 
-        if self._apply_prepares(node, MultiStepDeployment(steps)):
-            plogging.info('- rebooting')
+        if self._apply_prepares(node, prepares):
             self.report.append({node.name: {
                 'status': 'completed',
                 'prepares': descriptions

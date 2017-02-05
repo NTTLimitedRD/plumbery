@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from plumbery.fitting import PlumberyFitting
-from plumbery.plogging import plogging
 
 
 class DomainFitting(PlumberyFitting):
@@ -114,4 +113,3 @@ class DomainFitting(PlumberyFitting):
             raise ValueError('Invalid directive service: in settings')
 
         self.service = settings['service'].upper()
-

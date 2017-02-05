@@ -79,6 +79,8 @@ Contributors
 * `Olivier Grosjeanne`_ [Dimension Data employee]
 * `Jacques Clément`_ [Dimension Data employee]
 * `Asim Khawaja`_ [Dimension Data employee]
+* `Geoffrey Cristallo`_
+
 
 Credits
 -------
@@ -99,6 +101,7 @@ Credits
 .. _`Olivier Grosjeanne`: https://github.com/job-so
 .. _`Jacques Clément`: https://github.com/jacquesclement
 .. _`Asim Khawaja`: https://github.com/asimkhawaja
+.. _`Geoffrey Cristallo`: https://be.linkedin.com/in/geoffrey-cristallo-5b506417
 .. _`Cloud-Init`: https://cloudinit.readthedocs.org/en/latest/topics/examples.html
 .. _`Apache Libcloud`: https://libcloud.apache.org/
 .. _netifaces: https://pypi.python.org/pypi/netifaces

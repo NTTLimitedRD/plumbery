@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from plumbery.fitting import PlumberyFitting
-from plumbery.plogging import plogging
 
 
 class DummyFitting(PlumberyFitting):

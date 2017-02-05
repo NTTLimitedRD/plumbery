@@ -16,7 +16,6 @@
 from __future__ import absolute_import
 
 import hashlib
-import logging
 import os
 import random
 import requests
@@ -27,13 +26,9 @@ import uuid
 import yaml
 from six import string_types
 
-try:
-    from Cryptodome.PublicKey import RSA
-    HAS_CRYPTO = True
-except ImportError:
-    logging.getLogger().error('No Cryptodome support loaded')
-    HAS_CRYPTO = False
-
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 from libcloud.compute.providers import get_driver as get_compute_driver
 from libcloud.compute.types import Provider as ComputeProvider
@@ -148,8 +143,8 @@ class PlumberyEngine(object):
         self.buildPolisher = 'configure'
 
         self._sharedUser = None
-
         self._sharedSecret = None
+        self._sharedKeyFiles = []
 
         self.secrets = {}
         self.secretsId = None
@@ -315,7 +310,8 @@ class PlumberyEngine(object):
                             if 'parameter.'+key in parameters:
                                 continue
                             if 'default' not in settings['parameters'][key]:
-                                raise ValueError("Parameter '{}' has no default value"
+                                raise ValueError("Parameter '{}'"
+                                                 " has no default value"
                                                  .format(key))
                             parameters['parameter.'+key] = settings['parameters'][key]['default']
                     break
@@ -392,6 +388,15 @@ class PlumberyEngine(object):
                 raise TypeError('information should be a list')
 
             self.information = settings['information']
+
+        if 'keys' in settings:
+            if not isinstance(settings['keys'], list):
+                raise TypeError('keys should be a list')
+
+            self.set_shared_key_files(settings['keys'])
+
+        else:
+            self.set_shared_key_files()
 
         if 'links' in settings:
             if not isinstance(settings['links'], dict):
@@ -541,6 +546,83 @@ class PlumberyEngine(object):
 
         return self._sharedSecret
 
+    def set_shared_key_files(self, keys=None):
+        """
+        Sets locations of ssh keys
+
+        :param keys: additional path name that contains a ssh key
+        :type keys: ``str`` or ``list`` of ``str`` or `None`
+
+        This function can be used to complement the normal provision of
+        ssh keys, or to check that some key is available.
+
+        The functions looks for keys in the
+        user context, and from the environment.
+
+        A ValueError exception is raised if no key can be found, or if the
+        argument provided is not an existing file.
+
+        """
+
+        self._sharedKeyFiles = self.get_shared_key_files()
+
+        if keys is not None:
+            if isinstance(keys, str):
+                keys = [keys]
+            for key in keys:
+                file = os.path.expanduser(key)
+                if not os.path.isfile(file):
+                    raise ValueError("Error: missing file {}".format(key))
+                if key not in self._sharedKeyFiles:
+                    plogging.debug("- using shared key {}".format(key))
+                    self._sharedKeyFiles.insert(0, key)
+
+        if len(self._sharedKeyFiles) < 1:
+            plogging.error(
+                "Error: no SSH key could be found, please run "
+                "ssh-keygen -t rsa -b 4096 -C <your email@c.com>")
+
+    def get_shared_key_files(self):
+        """
+        Retrieves locations of ssh keys
+
+        :return: path names for files that contain ssh keys
+        :rtype: ``list`` of ``str`` or `None`
+
+        SSH keys are not put in the fittings plan, but normally
+        taken from user environment, and from the variable ``SHARED_KEY``.
+
+        You can use the member function ``set_shared_key_files()`` to add
+        a key to the default set of keys.
+
+        """
+
+        if len(self._sharedKeyFiles) > 0:
+            return self._sharedKeyFiles
+
+        key = os.getenv('SHARED_KEY')
+        if key is not None:
+            file = os.path.expanduser(key)
+            if not os.path.isfile(file):
+                raise ValueError(
+                    "Error: non-existent file "
+                    "SHARED_KEY={}".format(key))
+            plogging.debug("- using shared key {}".format(key))
+            self._sharedKeyFiles = [key]
+
+        # from http://www.programcreek.com/python/example/5607/paramiko.RSAKey
+        #
+        for key in ('~/.ssh/id_rsa.pub', # Unix
+                    '~/.ssh/id_dsa.pub', # Unix
+                    '~/ssh/id_rsa.pub',  # Windows
+                    '~/ssh/id_dsa.pub'): # Windows
+            file = os.path.expanduser(key)
+            if os.path.isfile(file):
+                plogging.debug("- using shared key {}".format(key))
+                self._sharedKeyFiles.append(key)
+
+        return self._sharedKeyFiles
+
     def get_rsa_secret(self, id='rsa_private.pair'):
         """
         Returns a part of a RSA pair of keys
@@ -551,10 +633,10 @@ class PlumberyEngine(object):
         """
 
         type = '.'.join([x for x in id.split('.')
-                    if x in ('rsa_private', 'rsa_public')])
+                        if x in ('rsa_private', 'rsa_public')])
 
         name = '.'.join([x for x in id.split('.')
-                    if x not in ('rsa_private', 'rsa_public')])
+                        if x not in ('rsa_private', 'rsa_public')])
 
         id = type+'.'+name
 
@@ -565,9 +647,12 @@ class PlumberyEngine(object):
             raise LookupError("It is forbidden to use 'rsa_private.local'")
 
         if id == 'rsa_public.local':
-            try:
-                path = '~/.ssh/id_rsa.pub'
+            paths = self.get_shared_key_files()
+            if len(paths) < 1:
+                return ''
+            path = paths.pop(0)
 
+            try:
                 with open(os.path.expanduser(path)) as stream:
                     plogging.debug("- loading {} from {}".format(id, path))
                     text = stream.read().strip()
@@ -578,15 +663,20 @@ class PlumberyEngine(object):
                 plogging.error("- cannot load {} from {}".format(id, path))
                 return ''
 
-        if not HAS_CRYPTO:
-            return None
-
-        key = RSA.generate(2048)
-        self.secrets['rsa_private.'+name] = key.exportKey('PEM')
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+            backend=default_backend())
+        self.secrets['rsa_private.'+name] = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption())
         plogging.debug("- generating {}".format('rsa_private.'+name))
 
-        pubkey = key.publickey()
-        self.secrets['rsa_public.'+name] = pubkey.exportKey('OpenSSH')
+        pubkey = key.public_key()
+        self.secrets['rsa_public.'+name] = pubkey.public_bytes(
+            encoding=serialization.Encoding.OpenSSH,
+            format=serialization.PublicFormat.OpenSSH)
         plogging.debug("- generating {}".format('rsa_public.'+name))
 
         self.save_secrets()
@@ -1107,9 +1197,9 @@ class PlumberyEngine(object):
         """
 
         if isinstance(action, str):
-            action = PlumberyActionLoader.from_shelf(action)
+            action = PlumberyActionLoader.load(action)
 
-        action.ignite(self)
+        action.begin(self)
 
         if facilities is not None:
             facilities = self.list_facility(facilities)
@@ -1120,7 +1210,7 @@ class PlumberyEngine(object):
             facility.focus()
             facility.process_all_blueprints(action)
 
-        action.reap()
+        action.end()
 
     def process_blueprint(self, action, names, facilities=None):
         """
@@ -1143,9 +1233,9 @@ class PlumberyEngine(object):
         """
 
         if isinstance(action, str):
-            action = PlumberyActionLoader.from_shelf(action)
+            action = PlumberyActionLoader.load(action)
 
-        action.ignite(self)
+        action.begin(self)
 
         if isinstance(names, list):
             names = ' '.join(names)
@@ -1159,7 +1249,7 @@ class PlumberyEngine(object):
             facility.focus()
             facility.process_blueprint(action, names)
 
-        action.reap()
+        action.end()
 
     def build_all_blueprints(self, facilities=None):
         """

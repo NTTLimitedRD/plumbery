@@ -12,3 +12,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from plumbery.action import PlumberyAction
+from plumbery.plogging import plogging
+
+
+class InformationAction(PlumberyAction):
+    """
+    Displays dynamic information for deployed systems
+
+    :param settings: specific settings for this action
+    :type param: ``dict``
+
+    """
+
+    def begin(self, engine):
+        plogging.info("Action: information")
+        plogging.info("- begin")
+
+    def enter(self, facility):
+        plogging.info("- enter facility")
+
+    def process(self, blueprint):
+        plogging.info("- process blueprint")
+
+    def end(self):
+        plogging.info("- end")

@@ -12,3 +12,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from plumbery.action import PlumberyAction
+from plumbery.plogging import plogging
+
+
+class BuildAction(PlumberyAction):
+    """
+    Builds the infrastructure
+
+    :param settings: specific settings for this action
+    :type param: ``dict``
+
+    """
+
+    def process(self, blueprint):
+        plogging.info("- process blueprint")

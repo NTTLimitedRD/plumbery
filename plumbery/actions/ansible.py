@@ -12,17 +12,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import sys
 
-from plumbery.polishers.inventory import InventoryPolisher
+from plumbery.actions.inventory import InventoryAction
 from plumbery.plogging import plogging
 
 
-class AnsiblePolisher(InventoryPolisher):
+class AnsibleAction(InventoryAction):
     """
     Captures inventory information for ansible
 
-    This polisher looks at each node in sequence, but only to retrieve
+    :param settings: specific settings for this action
+    :type param: ``dict``
+
+    This action looks at each node in sequence, but only to retrieve
     maximum information about each of them. At the end of the process,
     the polisher writes a YAML file to feed ansible.
 
@@ -43,7 +47,7 @@ class AnsiblePolisher(InventoryPolisher):
 
     """
 
-    def reap(self):
+    def end(self):
         """
         Saves information gathered through the polishing sequence
 
@@ -89,8 +93,8 @@ class AnsiblePolisher(InventoryPolisher):
         After the creation of nodes by plumbery, the inventory provided to
         ansible could look like this::
 
-            masterSQL  private_ipv4=10.2.3.8 ansible_ssh_host=10.2.3.8
-            slaveSQL  private_ipv4=10.1.3.8 ansible_ssh_ host=10.1.3.8
+            masterSQL ansible_host=10.2.3.8
+            slaveSQL ansible_host=10.1.3.8
 
             [EU6]
             slaveSQL
@@ -150,8 +154,8 @@ class AnsiblePolisher(InventoryPolisher):
                     groups[tag] = []
                 groups[tag].append(host)
 
-        if 'output' in self.settings:
-            fileName = self.settings['output']
+        fileName = self.get_parameter('output', None)
+        if fileName:
             plogging.info("Writing inventory for ansible in '{}'".format(
                 fileName))
             stream = open(fileName, 'w')

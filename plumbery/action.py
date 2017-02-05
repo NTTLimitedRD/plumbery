@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from plumbery.plogging import plogging
 from plumbery.util import PlumberyParameters
 
@@ -40,22 +42,29 @@ class PlumberyAction(object):
 
     def __init__(self, parameters=PlumberyParameters()):
         if parameters is None:
-            parameters=PlumberyParameters()
+            parameters = PlumberyParameters()
         elif not isinstance(parameters, PlumberyParameters):
-            raise TypeError("'parameters' should be of type PlumberyParameters")
+            raise TypeError("'parameters' should have type PlumberyParameters")
 
         self.parameters = parameters
 
-    def get_type(self):
+    def get_banner(self, location):
         """
-        Provides the type of the action
+        Informs the end-user
+        """
 
-        :return: The type, such as 'build' or 'stop'
+        return "Plumbing at {}".format(location)
+
+    def get_label(self):
+        """
+        Provides the label of the action
+
+        :return: The label, such as 'build' or 'stop'
         :rtype: ``str``
 
         """
 
-        return self.type
+        return self.label
 
     def get_parameter(self, name, default=None):
         """
@@ -64,7 +73,7 @@ class PlumberyAction(object):
         :param name: the parameter
         :type name: ``str``
 
-        :param default: default value to return if the parameter has not been set
+        :param default: returned if the parameter has not been set
         :type default: any
 
         :return: the value of this parameter, or None
@@ -73,7 +82,7 @@ class PlumberyAction(object):
 
         return self.parameters.get(name, default)
 
-    def ignite(self, engine):
+    def begin(self, engine):
         """
         Binds to a plumbery engine
 
@@ -86,6 +95,8 @@ class PlumberyAction(object):
         """
 
         self.engine = engine
+
+        plogging.info("Using '{}'".format(self.get_label()))
 
     def enter(self, facility):
         """
@@ -102,7 +113,9 @@ class PlumberyAction(object):
 
         self.facility = facility
 
-    def handle(self, blueprint):
+        plogging.info(self.get_banner(facility))
+
+    def process(self, blueprint):
         """
         Prepares one blueprint
 
@@ -125,7 +138,7 @@ class PlumberyAction(object):
 
         pass
 
-    def reap(self):
+    def end(self):
         """
         Reaps the outcome of all this action
 
@@ -180,7 +193,36 @@ class PlumberyActionLoader(object):
     """
 
     @classmethod
-    def from_shelf(cls, label, parameters=PlumberyParameters()):
+    def load_all(cls, settings={}):
+
+        actions = {}
+
+        there = os.path.abspath(os.path.dirname(__file__))+'/actions'
+        for unused1, unused2, files in os.walk(there):
+            plogging.debug("Loading actions from %s", there)
+
+            for file in files:
+                label, extension = file.split('.', 1)
+                if len(label) < 2:
+                    continue
+                if label[0] in ('-', '_', '~'):
+                    continue
+                if extension == 'py':
+                    plogging.debug("Loading action %s", file)
+
+                    if label in settings:
+                        parameters = settings[ label ]
+                    else:
+                        parameters = {}
+
+                    actions[ label ] = PlumberyActionLoader.load(label,
+                                                                 parameters)
+
+        return actions
+
+
+    @classmethod
+    def load(cls, label, parameters=PlumberyParameters()):
         """
         Picks up an action from the shelf
 
@@ -213,7 +255,7 @@ class PlumberyActionLoader(object):
             elif isinstance(parameters, dict):
                 parameters = PlumberyParameters(parameters)
             action = actionClass(parameters)
-            action.type = label
+            action.label = label
             return action
 
         except ImportError as feedback:
@@ -232,4 +274,3 @@ class PlumberyActionLoader(object):
             plogging.debug("Unable to import '{}' from '{}'".format(
                 actionName, moduleName))
             raise
-

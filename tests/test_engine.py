@@ -10,18 +10,19 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "tests"
 from tests import dummy
 
+import base64
 import logging
+import mock
 import os
 import unittest
 import yaml
 
-try:
-    from Cryptodome.PublicKey import RSA
-    from Cryptodome.Cipher import PKCS1_OAEP
-    HAS_CRYPTO = True
-except ImportError:
-    HAS_CRYPTO = False
-    logging.getLogger().error('No Cryptodome support loaded')
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization
 
 import six
 
@@ -125,7 +126,7 @@ actions:
   - inventory:
       output: gigafox_inventory.yaml
   - prepare:
-      key: ~/.ssh/id_rsa.pub
+      key: ~/.ssh/myproject_rsa.pub
       output: gigafox_prepares.yaml
 
 ---
@@ -348,20 +349,21 @@ class FakeLocation:
 class FakeAction(PlumberyAction):
     def __init__(self, settings):
         self.count = 3
+        self.label = 'fake'
 
-    def ignite(self, engine):
+    def begin(self, engine):
         self.count += 100
 
     def enter(self, facility):
         self.count *= 2
 
-    def handle(self, blueprint):
+    def process(self, blueprint):
         self.count += 5
 
     def quit(self):
         self.count -= 2
 
-    def reap(self):
+    def end(self):
         self.count += 1
 
 
@@ -521,16 +523,37 @@ class TestPlumberyEngine(unittest.TestCase):
         DimensionDataMockHttp.type = None
         self.region = DimensionDataNodeDriver(*DIMENSIONDATA_PARAMS)
 
+        file = os.path.abspath(
+            os.path.dirname(__file__))+'/fixtures/dummy_rsa.pub'
+
+        settings = {
+            'keys': [ "*hello-there*" ],
+            }
+
+        with self.assertRaises(ValueError):
+            engine.set_settings(settings)
+
+        settings = {
+            'keys': [ file ],
+            }
+
+        engine.set_settings(settings)
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertTrue(file in engine.get_shared_key_files())
+
         settings = {
             'safeMode': False,
             'polishers': [
                 {'ansible': {}},
                 {'configure': {}},
-                ]
+                ],
+            'keys': [ file, file ],
             }
 
         engine.set_settings(settings)
         self.assertEqual(engine.safeMode, False)
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertTrue(file in engine.get_shared_key_files())
 
         engine.add_facility(myFacility)
         self.assertEqual(len(engine.facilities), 1)
@@ -596,6 +619,9 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.do('polish', 'myBlueprint')
         engine.polish_blueprint('myBlueprint')
 
+        engine.do('refresh')
+        engine.do('refresh', 'myBlueprint')
+
         engine.do('secrets')
 
         engine.do('start')
@@ -629,7 +655,7 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         engine.set_fittings(myPrivatePlan)
 
-        engine.process_all_blueprints(action='dummy')
+        engine.process_all_blueprints(action='noop')
 
         action = FakeAction({})
         engine.process_all_blueprints(action)
@@ -648,7 +674,7 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.set_user_password('fake_password')
         engine.set_fittings(myPrivatePlan)
 
-        engine.process_blueprint(action='dummy', names='fake')
+        engine.process_blueprint(action='noop', names='fake')
 
         action = FakeAction({})
         engine.process_blueprint(action, names='fake')
@@ -722,42 +748,69 @@ class TestPlumberyEngine(unittest.TestCase):
         engine.lookup('slave.secret')
 
         original = b'hello world'
-        if HAS_CRYPTO:
-            text = engine.lookup('pair1.rsa_public')
-            self.assertTrue(ensure_string(text).startswith('ssh-rsa '))
-            key = RSA.importKey(text)
-            cipher = PKCS1_OAEP.new(key)
-            encrypted = cipher.encrypt(original)
+        print('original: {}'.format(original))
 
-            privateKey = engine.lookup('pair1.rsa_private')
-            self.assertTrue(ensure_string(privateKey).startswith(
-                '-----BEGIN RSA PRIVATE KEY-----'))
-            key = RSA.importKey(engine.lookup('pair1.rsa_private'))
-            cipher = PKCS1_OAEP.new(key)
-            decrypted = cipher.decrypt(encrypted)
-            self.assertEqual(decrypted, original)
+        text = ensure_string(engine.lookup('rsa_public.pair1'))
+        print('rsa_public.pair1: {}'.format(text))
 
-            token = engine.lookup('https://discovery.etcd.io/new')
-            self.assertEqual(token.startswith(
-                'https://discovery.etcd.io/'), True)
-            self.assertEqual(len(token), 58)
+        self.assertTrue(text.startswith('ssh-rsa '))
 
-            self.assertEqual(len(engine.secrets), 13)
+        text = b(text)
+        key = serialization.load_ssh_public_key(
+            data=text,
+            backend=default_backend())
 
-            with self.assertRaises(LookupError):
-                localKey = engine.lookup('local.rsa_private')
+        encrypted = key.encrypt(
+            original,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                algorithm=hashes.SHA1(),
+                label=None
+            )
+        )
+        encrypted = base64.b64encode(encrypted)
+        print('encrypted: {}'.format(encrypted))
 
-            localKey = engine.lookup('rsa_public.local')
-            try:
-                path = '~/.ssh/id_rsa.pub'
-                with open(os.path.expanduser(path)) as stream:
-                    text = stream.read()
-                    stream.close()
-                    self.assertEqual(localKey.strip(), text.strip())
-                    plogging.info("Successful lookup of local public key")
+        privateKey = engine.lookup('rsa_private.pair1')
+        print('rsa_private.pair1: {}'.format(privateKey))
+        self.assertTrue(ensure_string(privateKey).startswith(
+            '-----BEGIN RSA PRIVATE KEY-----'))
 
-            except IOError:
-                pass
+        privateKey = serialization.load_pem_private_key(
+            b(privateKey),
+            password=None,
+            backend=default_backend())
+
+        decrypted = privateKey.decrypt(
+            base64.b64decode(encrypted),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                algorithm=hashes.SHA1(),
+                label=None
+            )
+        )
+        print('decrypted: {}'.format(decrypted))
+
+        self.assertEqual(decrypted, original)
+
+        token = engine.lookup('https://discovery.etcd.io/new')
+        self.assertEqual(token.startswith(
+            'https://discovery.etcd.io/'), True)
+        self.assertEqual(len(token), 58)
+
+        self.assertEqual(len(engine.secrets), 13)
+
+        with self.assertRaises(LookupError):
+            localKey = engine.lookup('rsa_private.local')
+
+        localKey = engine.lookup('rsa_public.local')
+        if len(localKey) > 0:
+            path = engine.get_shared_key_files()[0]
+            with open(os.path.expanduser(path)) as stream:
+                text = stream.read()
+                stream.close()
+                self.assertEqual(localKey.strip(), text.strip())
+                plogging.info("Successful lookup of local public key")
 
     def test_secrets(self):
 
@@ -769,6 +822,82 @@ class TestPlumberyEngine(unittest.TestCase):
         self.assertEqual(engine.secrets['hello'], 'world')
         engine.forget_secrets(plan='test_engine.yaml')
         self.assertEqual(os.path.isfile('.test_engine.secrets'), False)
+
+    def test_keys(self):
+
+        engine = PlumberyEngine()
+        self.assertEqual(engine._sharedKeyFiles, [])
+
+        with self.assertRaises(ValueError):
+            engine.set_shared_key_files('this_does_not_exist')
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertEqual(engine._sharedKeyFiles,
+                         engine.get_shared_key_files())
+
+        with mock.patch.object(engine, 'get_shared_key_files') as patched:
+            patched.return_value = []
+
+            files = ['*unknown-file*', '**me-too*']
+            with self.assertRaises(ValueError):
+                engine.set_shared_key_files(files)
+
+        file = os.path.abspath(
+            os.path.dirname(__file__))+'/fixtures/dummy_rsa.pub'
+        engine.set_shared_key_files(file)
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertEqual(engine.get_shared_key_files()[0], file)
+        self.assertEqual(engine._sharedKeyFiles,
+                         engine.get_shared_key_files())
+
+        with mock.patch.object(engine, 'get_shared_key_files') as patched:
+            patched.return_value = []
+
+            files = [file, file, file]
+            engine.set_shared_key_files(files)
+
+            self.assertEqual(engine._sharedKeyFiles, [file])
+
+        if 'SHARED_KEY' in os.environ:
+            memory = os.environ["SHARED_KEY"]
+        else:
+            memory = None
+
+        engine._sharedKeyFiles = []
+        os.environ["SHARED_KEY"] = 'this_does_not_exist'
+        with self.assertRaises(ValueError):
+            engine.set_shared_key_files()
+        with self.assertRaises(ValueError):
+            engine.get_shared_key_files()
+        self.assertTrue(isinstance(engine._sharedKeyFiles, list))
+
+        engine._sharedKeyFiles = []
+        os.environ["SHARED_KEY"] = file
+        engine.set_shared_key_files()
+        self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+        self.assertEqual(engine.get_shared_key_files()[0], file)
+        self.assertEqual(engine._sharedKeyFiles,
+                         engine.get_shared_key_files())
+
+        if memory is None:
+            os.environ.pop("SHARED_KEY")
+        else:
+            os.environ["SHARED_KEY"] = memory
+
+        with mock.patch.object(engine, 'get_shared_key_files') as patched:
+            patched.return_value = []
+
+            self.assertTrue(isinstance(engine.get_shared_key_files(), list))
+
+            engine.set_shared_key_files()
+            self.assertTrue(plogging.foundErrors())
+
+            with self.assertRaises(ValueError):
+                engine.set_shared_key_files('this_does_not_exist')
+
+            file = os.path.abspath(
+                os.path.dirname(__file__))+'/fixtures/dummy_rsa.pub'
+            engine.set_shared_key_files(file)
+            self.assertEqual(engine._sharedKeyFiles, [file])
 
     def test_parser(self):
 

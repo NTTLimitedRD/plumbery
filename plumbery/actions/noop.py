@@ -12,3 +12,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from plumbery.action import PlumberyAction
+from plumbery.plogging import plogging
+
+
+class NoopAction(PlumberyAction):
+    """
+    Performs absolutely nothing
+
+    :param settings: specific settings for this action
+    :type param: ``dict``
+
+    Look at another file in this directory if you are looking for something
+    to derive for your own needs.
+    """
+
+    pass

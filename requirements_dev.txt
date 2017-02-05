@@ -1,4 +1,4 @@
-apache-libcloud==1.1.0
+apache-libcloud==1.2.1
 netifaces
 bumpversion==0.5.3
 paramiko
@@ -6,7 +6,6 @@ wheel
 watchdog==0.8.3
 Sphinx==1.3.1
 cryptography
-pycryptodomex
 PyYAML==3.11
 requests
 pywinexe

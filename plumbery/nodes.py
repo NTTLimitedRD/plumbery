@@ -386,7 +386,6 @@ class PlumberyNodes(object):
 
                 self._detach_node(node, settings)
                 container._detach_node_from_internet(node)
-                container._remove_from_pool(node)
 
                 plogging.info("Destroying node '{}'".format(label))
                 while True:
@@ -573,7 +572,7 @@ class PlumberyNodes(object):
             try:
                 self.region.ex_get_location_by_id(path[0])
             except IndexError:
-                logging.warning("'{}' is unknown".format(path[0]))
+                plogging.warning("'{}' is unknown".format(path[0]))
                 return None
 
             plogging.debug("Looking for remote node '{}'"

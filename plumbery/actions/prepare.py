@@ -17,29 +17,14 @@ from plumbery.action import PlumberyAction
 from plumbery.plogging import plogging
 
 
-class DummyAction(PlumberyAction):
+class PrepareAction(PlumberyAction):
     """
-    Dummy action used for tests
+    Prepares nodes
 
     :param settings: specific settings for this action
     :type param: ``dict``
 
-    Look at another file in this directory if you are looking for something
-    to derive for your own needs.
     """
 
-    def ignite(self, engine):
-        plogging.info("Action: dummy")
-        plogging.info("- ignite engine")
-
-    def enter(self, facility):
-        plogging.info("- enter facility")
-
-    def handle(self, blueprint):
-        plogging.info("- handle blueprint")
-
-    def quit(self):
-        plogging.info("- quit facility")
-
-    def reap(self):
-        plogging.info("- reap")
+    def process(self, blueprint):
+        plogging.info("- process blueprint")
